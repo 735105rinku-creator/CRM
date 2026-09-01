@@ -1,0 +1,128 @@
+@use '../customers/logistics-customers.component.scss';
+
+.span-4 {
+  grid-column: span 4;
+}
+
+.check-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 11px;
+}
+
+.check-grid label {
+  min-height: 50px;
+
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  padding: 10px 12px;
+
+  border-radius: 12px;
+
+  background: #edf1f6;
+
+  color: #536174;
+
+  cursor: pointer;
+
+  box-shadow:
+    inset 3px 3px 7px
+    rgba(168, 179, 191, 0.34),
+    inset -3px -3px 7px
+    rgba(255, 255, 255, 0.95);
+
+  font-size: 0.6rem;
+  font-weight: 750;
+}
+
+.check-grid input {
+  display: none;
+}
+
+.check-grid label > span {
+  width: 19px;
+  height: 19px;
+
+  display: grid;
+  place-items: center;
+
+  border: 1px solid #a5afb9;
+  border-radius: 6px;
+
+  color: transparent;
+
+  font-size: 0.55rem;
+}
+
+.check-grid input:checked + span {
+  border-color: #98703a;
+
+  background:
+    linear-gradient(
+      145deg,
+      #d9bd82,
+      #aa8046
+    );
+
+  color: #07111f;
+}
+
+.category-chip {
+  display: inline-flex;
+
+  padding: 5px 8px;
+
+  border-radius: 8px;
+
+  background:
+    rgba(42, 90, 137, 0.09);
+
+  color: #436c92;
+
+  font-size: 0.54rem;
+  font-weight: 800;
+}
+
+.status.active {
+  background: #def1e6;
+  color: #37795a;
+}
+
+.status.inactive {
+  background: #e6ebf1;
+  color: #65717f;
+}
+
+@media (max-width: 1150px) {
+  .span-4 {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 700px) {
+  .span-4 {
+    grid-column: auto;
+  }
+
+  .check-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.required-star {
+  color: #dc2626;
+  font-weight: 900;
+}
+.detail-card { align-items: center; background: #fff; border: 1px solid #e5ebf3; border-radius: 8px; display: flex; justify-content: space-between; padding: 16px 18px; }
+.detail-card > div:first-child { align-items: center; display: flex; gap: 12px; }
+.detail-icon { align-items: center; background: #edf1f6; border-radius: 8px; color: #98703a; display: inline-grid; height: 38px; place-items: center; width: 38px; }
+.detail-card small { color: #64748b; font-size: .68rem; font-weight: 900; letter-spacing: .08em; }
+.detail-card h2 { margin: 3px 0; }
+.detail-card p { color: #64748b; margin: 0; }
+.detail-actions { display: flex; gap: 8px; }
+.actions button { align-items: center; display: inline-grid; place-items: center; }

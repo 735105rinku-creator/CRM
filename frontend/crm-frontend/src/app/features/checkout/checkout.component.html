@@ -1,0 +1,63 @@
+<app-public-header />
+
+<main class="checkout-page">
+  <section class="checkout-hero">
+    <div>
+      <p>Secure Subscription Checkout</p>
+      <h1>Complete payment, then sign in as Company Admin.</h1>
+      <span>Pricing selection, company registration and Razorpay activation stay connected in one company-scoped flow.</span>
+    </div>
+    <ol>
+      <li class="done">Plan selected</li>
+      <li class="done">Company registered</li>
+      <li class="active">Razorpay payment</li>
+      <li>Admin login</li>
+    </ol>
+  </section>
+
+  <section class="checkout-grid">
+    <article class="plan-summary">
+      @if (selectedPlan(); as plan) {
+        <small>{{ plan.code | uppercase }}</small>
+        <h2>{{ plan.name }}</h2>
+        <strong>{{ formatCurrency(plan.payableInr ?? plan.priceInr) }}</strong>
+        @if ((plan.discountInr || 0) > 0) {
+          <em>You save {{ formatCurrency(plan.discountInr) }}</em>
+        } @else {
+          <em>{{ plan.durationMonths }} month subscription</em>
+        }
+        <div class="limit-row">
+          <span>{{ limitLabel(plan.employeeLimit) }} employees</span>
+          <span>{{ limitLabel(plan.hrAccountLimit) }} HR accounts</span>
+        </div>
+        <ul>
+          @for (feature of plan.features || []; track feature) {
+            <li>{{ feature }}</li>
+          }
+        </ul>
+      } @else if (isLoading()) {
+        <div class="empty-state">Loading selected plan...</div>
+      } @else {
+        <div class="empty-state">Selected plan is not available.</div>
+      }
+    </article>
+
+    <article class="payment-panel">
+      <img src="/brand/opasbizz-crm.webp" alt="Opas Bizz CRM" />
+      <p>Company Admin Account</p>
+      <h2>{{ adminEmail() || 'New company admin' }}</h2>
+      @if (message()) {
+        <div class="alert success">{{ message() }}</div>
+      }
+      @if (error()) {
+        <div class="alert danger">{{ error() }}</div>
+      }
+      <button type="button" (click)="payNow()" [disabled]="!selectedPlan() || isLoading() || isPaying()">
+        {{ isPaying() ? 'Processing...' : 'Pay with Razorpay' }}
+      </button>
+      <a routerLink="/pricing">Change selected plan</a>
+    </article>
+  </section>
+</main>
+
+<app-public-footer />

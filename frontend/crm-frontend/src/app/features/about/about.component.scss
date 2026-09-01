@@ -1,0 +1,154 @@
+.about-page {
+  background: #edf6f2;
+  color: #12201b;
+  min-height: calc(100dvh - 76px);
+}
+
+.about-hero {
+  align-items: center;
+  display: grid;
+  gap: clamp(28px, 5vw, 64px);
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.78fr);
+  padding: clamp(44px, 7vw, 88px) clamp(16px, 5vw, 72px) 28px;
+}
+
+.eyebrow {
+  color: #0f766e;
+  font-size: 0.82rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  margin: 0 0 14px;
+  text-transform: uppercase;
+}
+
+h1 {
+  color: #132f2a;
+  font-size: clamp(2.3rem, 5.4vw, 5.2rem);
+  font-weight: 950;
+  letter-spacing: 0;
+  line-height: 1.02;
+  margin: 0;
+  max-width: 920px;
+}
+
+.intro {
+  color: #45645d;
+  font-size: clamp(1rem, 1.5vw, 1.2rem);
+  line-height: 1.7;
+  margin: 24px 0;
+  max-width: 720px;
+}
+
+.primary-link {
+  align-items: center;
+  background: #143d35;
+  border-radius: 8px;
+  color: #ffffff;
+  display: inline-flex;
+  font-weight: 900;
+  min-height: 48px;
+  padding: 0 18px;
+  text-decoration: none;
+}
+
+figure {
+  background: #dcece6;
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  border-radius: 28px;
+  box-shadow:
+    18px 18px 38px rgba(85, 116, 105, 0.28),
+    -16px -16px 34px rgba(255, 255, 255, 0.85),
+    inset 0 1px 0 rgba(255, 255, 255, 0.75);
+  margin: 0;
+  overflow: hidden;
+  padding: 14px;
+}
+
+figure img {
+  border-radius: 20px;
+  display: block;
+  height: min(420px, 58vw);
+  object-fit: cover;
+  width: 100%;
+}
+
+.metric-band,
+.clay-grid {
+  display: grid;
+  gap: 22px;
+  padding: 28px clamp(16px, 5vw, 72px);
+}
+
+.metric-band {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.metric-band article,
+.clay-grid article {
+  background: #e7f3ee;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 24px;
+  box-shadow:
+    14px 14px 28px rgba(87, 118, 106, 0.22),
+    -12px -12px 26px rgba(255, 255, 255, 0.9),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+.metric-band article {
+  display: grid;
+  gap: 4px;
+  padding: 24px;
+}
+
+.metric-band strong {
+  color: #0f766e;
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  font-weight: 950;
+}
+
+.metric-band span {
+  color: #45645d;
+  font-weight: 850;
+}
+
+.clay-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding-bottom: clamp(48px, 7vw, 92px);
+}
+
+.clay-grid article {
+  overflow: hidden;
+}
+
+.clay-grid img {
+  aspect-ratio: 16 / 10;
+  display: block;
+  object-fit: cover;
+  width: 100%;
+}
+
+.clay-grid div {
+  padding: 22px;
+}
+
+h2 {
+  color: #173c35;
+  font-size: 1.15rem;
+  font-weight: 950;
+  margin: 0 0 10px;
+}
+
+.clay-grid p {
+  color: #4f6b64;
+  line-height: 1.65;
+  margin: 0;
+}
+
+@media (max-width: 860px) {
+  .about-hero,
+  .metric-band,
+  .clay-grid {
+    grid-template-columns: 1fr;
+  }
+}
+

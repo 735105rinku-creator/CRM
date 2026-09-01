@@ -1,0 +1,235 @@
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2304: Cannot find name 'EmployeeFormTab'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:544:46:
+[37m      544 │ ...d readonly employeeFormTab = signal<[32mEmployeeFormTab[37m>('personal');
+          ╵                                        [32m~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2304: Cannot find name 'EmployeeFormTab'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:1146:36:
+[37m      1146 │   protected setEmployeeFormTab(tab: [32mEmployeeFormTab[37m): void {
+           ╵                                     [32m~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2304: Cannot find name 'EmployeeFormTab'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:2649:39:
+[37m      2649 │   private employeeSectionControls(tab: [32mEmployeeFormTab[37m): string[] {
+           ╵                                        [32m~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2304: Cannot find name 'EmployeeFormTab'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:2650:27:
+[37m      2650 │     const controls: Record<[32mEmployeeFormTab[37m, string[]> = {
+           ╵                            [32m~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2304: Cannot find name 'EmployeeFormTab'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:544:46:
+[37m      544 │ ...d readonly employeeFormTab = signal<[32mEmployeeFormTab[37m>('personal');
+          ╵                                        [32m~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2304: Cannot find name 'EmployeeFormTab'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:1146:36:
+[37m      1146 │   protected setEmployeeFormTab(tab: [32mEmployeeFormTab[37m): void {
+           ╵                                     [32m~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2304: Cannot find name 'EmployeeFormTab'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:2649:39:
+[37m      2649 │   private employeeSectionControls(tab: [32mEmployeeFormTab[37m): string[] {
+           ╵                                        [32m~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2304: Cannot find name 'EmployeeFormTab'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:2650:27:
+[37m      2650 │     const controls: Record<[32mEmployeeFormTab[37m, string[]> = {
+           ╵                            [32m~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2304: Cannot find name 'EmployeeFormTab'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:544:46:
+[37m      544 │ ...d readonly employeeFormTab = signal<[32mEmployeeFormTab[37m>('personal');
+          ╵                                        [32m~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2304: Cannot find name 'EmployeeFormTab'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:1146:36:
+[37m      1146 │   protected setEmployeeFormTab(tab: [32mEmployeeFormTab[37m): void {
+           ╵                                     [32m~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2304: Cannot find name 'EmployeeFormTab'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:2649:39:
+[37m      2649 │   private employeeSectionControls(tab: [32mEmployeeFormTab[37m): string[] {
+           ╵                                        [32m~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2304: Cannot find name 'EmployeeFormTab'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:2650:27:
+[37m      2650 │     const controls: Record<[32mEmployeeFormTab[37m, string[]> = {
+           ╵                            [32m~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mexpected "{".
+    ╷
+684 │ .employee-drawer-form.tab-leave > [data-employee-section="leave"],`r`n.employee-drawer-form.tab-documents > [data-employee-section="documents"] {`r`n  animation: employeeSectionIn 0.22s ease both;`r`n  display: grid;`r`n}
+    │                                                                                                                                                                                                    ^
+    ╵
+  src\app\features\hr\hr-dashboard.component.scss 684:196  root stylesheet[0m [1m[35m[plugin angular-sass][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2532: Object is possibly 'undefined'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.html:218:49:
+[37m      218 │         @for (tab of employeeFormTabs; track tab.[32mid[37m) {
+          ╵                                                  [32m~~[0m
+
+  Error occurs in the template of component HrDashboardComponent.
+
+    src/app/features/hr/hr-dashboard.component.ts:441:15:
+[37m      441 │   templateUrl: [32m'./hr-dashboard.component.html'[37m,
+          ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2532: Object is possibly 'undefined'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.html:219:74:
+[37m      219 │ ...e]="employeeFormTab() === tab.[32mid[37m" (click)="setEmployeeFormTab(...
+          ╵                                  [32m~~[0m
+
+  Error occurs in the template of component HrDashboardComponent.
+
+    src/app/features/hr/hr-dashboard.component.ts:441:15:
+[37m      441 │   templateUrl: [32m'./hr-dashboard.component.html'[37m,
+          ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2532: Object is possibly 'undefined'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.html:219:110:
+[37m      219 │ ...ployeeFormTab() === tab.id" (click)="setEmployeeFormTab(tab.[32mid[37m)">
+          ╵                                                                [32m~~[0m
+
+  Error occurs in the template of component HrDashboardComponent.
+
+    src/app/features/hr/hr-dashboard.component.ts:441:15:
+[37m      441 │   templateUrl: [32m'./hr-dashboard.component.html'[37m,
+          ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2532: Object is possibly 'undefined'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.html:220:25:
+[37m      220 │             <span>{{ tab.[32micon[37m }}</span>{{ tab.label }}
+          ╵                          [32m~~~~[0m
+
+  Error occurs in the template of component HrDashboardComponent.
+
+    src/app/features/hr/hr-dashboard.component.ts:441:15:
+[37m      441 │   templateUrl: [32m'./hr-dashboard.component.html'[37m,
+          ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2532: Object is possibly 'undefined'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.html:220:46:
+[37m      220 │             <span>{{ tab.icon }}</span>{{ tab.[32mlabel[37m }}
+          ╵                                               [32m~~~~~[0m
+
+  Error occurs in the template of component HrDashboardComponent.
+
+    src/app/features/hr/hr-dashboard.component.ts:441:15:
+[37m      441 │   templateUrl: [32m'./hr-dashboard.component.html'[37m,
+          ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2532: Object is possibly 'undefined'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:1134:38:
+[37m      1134 │ ...Tab() === [32mthis.employeeFormTabs[this.employeeFormTabs.length [37m...
+           ╵              [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS18048: 'tab' is possibly 'undefined'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:1138:59:
+[37m      1138 │ ...eFormTabs.findIndex((tab) => [32mtab[37m.id === this.employeeFormTab());
+           ╵                                 [32m~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS18048: 'tab' is possibly 'undefined'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:1139:92:
+[37m      1139 │ ...this.employeeSectionControls([32mtab[37m.id)).forEach((controlName) =...
+           ╵                                 [32m~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS18048: 'tab' is possibly 'undefined'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:1145:59:
+[37m      1145 │ ...eFormTabs.findIndex((tab) => [32mtab[37m.id === this.employeeFormTab());
+           ╵                                 [32m~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2352: Conversion of type '({ readonly id: "personal"; readonly label: "Personal"; readonly icon: "P"; } | { readonly id: "contact"; readonly label: "Contact"; readonly icon: "C"; } | { readonly id: "employment"; readonly label: "Employment"; readonly icon: "E"; } | { ...; } | { ...; })[]' to type 'readonly [{ readonly id: "personal"; readonly label: "Personal"; readonly icon: "P"; }, { readonly id: "contact"; readonly label: "Contact"; readonly icon: "C"; }, { readonly id: "employment"; readonly label: "Employment"; readonly icon: "E"; }, { ...; }, { ...; }, { ...; }]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Target requires 6 element(s) but source may have fewer.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:1131:11:
+[37m      1131 │     return [32mthis.employeeFormTabs.filter((tab) => tab.id !== 'doc[37m...
+           ╵            [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2352: Conversion of type '({ readonly id: "personal"; readonly label: "Personal"; readonly icon: "P"; } | { readonly id: "contact"; readonly label: "Contact"; readonly icon: "C"; } | { readonly id: "employment"; readonly label: "Employment"; readonly icon: "E"; } | { ...; } | { ...; })[]' to type 'readonly [{ readonly id: "personal"; readonly label: "Personal"; readonly icon: "P"; }, { readonly id: "contact"; readonly label: "Contact"; readonly icon: "C"; }, { readonly id: "employment"; readonly label: "Employment"; readonly icon: "E"; }, { ...; }, { ...; }, { ...; }]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Target requires 6 element(s) but source may have fewer.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:1131:11:
+[37m      1131 │     return [32mthis.employeeFormTabs.filter((tab) => tab.id !== 'doc[37m...
+           ╵            [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2352: Conversion of type '({ readonly id: "personal"; readonly label: "Personal"; readonly icon: "P"; } | { readonly id: "contact"; readonly label: "Contact"; readonly icon: "C"; } | { readonly id: "employment"; readonly label: "Employment"; readonly icon: "E"; } | { ...; } | { ...; })[]' to type 'readonly [{ readonly id: "personal"; readonly label: "Personal"; readonly icon: "P"; }, { readonly id: "contact"; readonly label: "Contact"; readonly icon: "C"; }, { readonly id: "employment"; readonly label: "Employment"; readonly icon: "E"; }, { ...; }, { ...; }, { ...; }]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Target requires 6 element(s) but source may have fewer.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:1131:11:
+[37m      1131 │     return [32mthis.employeeFormTabs.filter((tab) => tab.id !== 'doc[37m...
+           ╵            [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'onEmployeeDepartmentChanged' does not exist on type 'HrDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.html:291:61:
+[37m      291 │ ...olName="departmentCode" (change)="[32monEmployeeDepartmentChanged[37m()">
+          ╵                                      [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component HrDashboardComponent.
+
+    src/app/features/hr/hr-dashboard.component.ts:441:15:
+[37m      441 │   templateUrl: [32m'./hr-dashboard.component.html'[37m,
+          ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'onEmployeeDepartmentChanged' does not exist on type 'HrDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.html:291:61:
+[37m      291 │ ...olName="departmentCode" (change)="[32monEmployeeDepartmentChanged[37m()">
+          ╵                                      [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component HrDashboardComponent.
+
+    src/app/features/hr/hr-dashboard.component.ts:441:15:
+[37m      441 │   templateUrl: [32m'./hr-dashboard.component.html'[37m,
+          ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m

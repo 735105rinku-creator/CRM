@@ -1,0 +1,858 @@
+<section class="role-dashboard super-admin-console">
+  <div class="platform-shell">
+    <aside class="platform-menu" aria-label="Super admin menu">
+      <div class="sidebar-profile">
+        <img src="/brand/opasbizz-crm.webp" alt="OpasBizz logo" />
+        <div>
+          <strong>{{ userName() }}</strong>
+          <span>{{ userEmail() || 'super_admin' }}</span>
+        </div>
+      </div>
+
+      <button type="button" class="back-btn" (click)="goBack()">
+        <span>‹</span>
+        Back
+      </button>
+
+      <div class="menu-head">
+        <p class="eyebrow">Platform</p>
+        <h1>Super Admin</h1>
+      </div>
+
+      <nav class="platform-nav">
+        @for (group of menuGroups; track group.title) {
+          <div class="menu-group">
+            <span>{{ group.title }}</span>
+            @for (item of group.items; track item.id) {
+              <button
+                type="button"
+                [class.active]="activeSection() === item.id"
+                (click)="setSection(item.id)"
+              >
+                {{ item.label }}
+              </button>
+            }
+          </div>
+        }
+      </nav>
+
+      <div class="platform-user">
+        <button type="button" (click)="logout()">Log out</button>
+      </div>
+    </aside>
+
+    <main class="platform-main">
+      <header class="platform-topbar">
+        <div class="topbar-brand">
+          <img src="/brand/opasbizz-crm.webp" alt="OpasBizz logo" />
+          <strong>Opas Bizz CRM</strong>
+        </div>
+        <div class="topbar-actions">
+                    <div class="super-notification-menu">
+            <button type="button" class="notification-btn" (click)="toggleNotificationPanel()" aria-label="Open notifications">
+              @if (notificationUnreadCount() > 0) { <span>{{ notificationUnreadCount() }}</span> }
+            </button>
+            @if (isNotificationPanelOpen()) {
+              <section class="super-notification-panel" aria-label="Super Admin notifications">
+                <header><div><strong>Notifications</strong><em>{{ topbarNotifications().length }} latest updates</em></div><button type="button" (click)="closeNotificationPanel()" aria-label="Close notifications">X</button></header>
+                <div class="super-notification-list">
+                  @for (notification of topbarNotifications(); track notification._id || notification.createdAt) {
+                    <article [class.unread]="!notification.isRead">
+                      <span class="status-pill" [class.danger]="notificationPriorityClass(notification) === 'danger'" [class.success]="notificationPriorityClass(notification) === 'success'">{{ notification.priority || notification.type || 'system' }}</span>
+                      <strong>{{ notification.title }}</strong>
+                      <small>{{ notification.message }}</small>
+                      <em>{{ formatDate(notification.createdAt) }}</em>
+                    </article>
+                  } @empty { <span class="empty-state">No notifications yet.</span> }
+                </div>
+              </section>
+            }
+          </div>
+          <button type="button" class="header-back-btn super-header-back" (click)="goBack()"><span>�</span>Back</button>
+          <div class="topbar-profile">
+            <strong>{{ userName() }}</strong>
+            <em>{{ userEmail() || 'super_admin' }}</em>
+          </div>
+        </div>
+      </header>
+
+      <div class="hero-row platform-hero">
+        <div>
+          <p class="eyebrow">Opas Bizz Pvt. Ltd.</p>
+          <h1>{{ sectionTitle() }}</h1>
+          <span>Minimal platform control for companies, subscriptions, users, permissions and system operations.</span>
+        </div>
+        <div class="hero-actions">
+          <button type="button" class="primary-action" (click)="refresh()">Refresh</button>
+          <button type="button" class="ghost-btn" (click)="openReports()">Reports</button>
+        </div>
+      </div>
+
+      @if (errorMessage()) {
+        <div class="notice danger">{{ errorMessage() }}</div>
+      }
+
+      @if (activeSection() === 'overview') {
+        <div class="metric-grid platform-stats">
+          <article>
+            <span>Total Companies</span>
+            <strong>{{ stats().companies }}</strong>
+            <small>{{ stats().active }} active • {{ stats().trial }} trial • {{ stats().suspended }} suspended</small>
+          </article>
+          <article>
+            <span>Total Users</span>
+            <strong>{{ stats().users }}</strong>
+            <small>Across platform tenants</small>
+          </article>
+          <article>
+            <span>New Signups</span>
+            <strong>{{ stats().signups }}</strong>
+            <small>This month</small>
+          </article>
+          <article>
+            <span>MRR / Total Revenue</span>
+            <strong>{{ formatCurrency(stats().mrr) }}</strong>
+            <small>{{ formatCurrency(stats().revenue) }} total paid revenue</small>
+          </article>
+          <article>
+            <span>Subscriptions</span>
+            <strong>{{ stats().subscriptionsActive }}</strong>
+            <small>{{ stats().subscriptionsExpired }} expired/suspended</small>
+          </article>
+          <article>
+            <span>Support Tickets</span>
+            <strong>{{ stats().ticketsOpen }}</strong>
+            <small>{{ stats().ticketsPending }} pending</small>
+          </article>
+        </div>
+
+        <div class="analytics-grid">
+          <article class="panel">
+            <div class="panel-heading">
+              <div>
+                <h2>Company Signup Trend</h2>
+                <p>Last 6 months</p>
+              </div>
+            </div>
+            <div class="mini-chart">
+              @for (month of signupTrend(); track month.label) {
+                <span [style.height.%]="month.percent"><b>{{ month.value }}</b><em>{{ month.label }}</em></span>
+              }
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-heading">
+              <div>
+                <h2>Revenue Growth</h2>
+                <p>Paid payments from Razorpay records</p>
+              </div>
+            </div>
+            <div class="mini-chart revenue">
+              @for (month of revenueTrend(); track month.label) {
+                <span [style.height.%]="month.percent"><b>{{ formatCurrency(month.value) }}</b><em>{{ month.label }}</em></span>
+              }
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-heading">
+              <div>
+                <h2>Plan Distribution</h2>
+                <p>Starter / Professional / Enterprise</p>
+              </div>
+            </div>
+            <div class="bar-list compact-bars">
+              @for (plan of planDistribution(); track plan.label) {
+                <button type="button" (click)="setCompanyPlanValue(plan.label); setSection('companies')">
+                  <span>{{ plan.label }}</span>
+                  <strong>{{ plan.value }}</strong>
+                  <i [style.width.%]="plan.percent"></i>
+                </button>
+              } @empty {
+                <div class="empty-state">No plan data yet.</div>
+              }
+            </div>
+          </article>
+        </div>
+
+        <div class="workspace-grid">
+          <article class="panel span-2">
+            <div class="panel-heading">
+              <div>
+                <h2>Top Active Companies</h2>
+                <p>Ranked by current usage/users available in tenant stats.</p>
+              </div>
+            </div>
+            <div class="bar-list">
+              @for (company of topCompanies(); track company._id || company.companyCode) {
+                <button type="button" (click)="openCompany(company)">
+                  <span>{{ company.companyName }}</span>
+                  <strong>{{ companyUsage(company) }}</strong>
+                  <i [style.width.%]="capacityPercent(company)"></i>
+                </button>
+              } @empty {
+                <div class="empty-state">No usage data yet.</div>
+              }
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-heading">
+              <div>
+                <h2>Recent Activity</h2>
+                <p>Company, subscription, payment and support updates.</p>
+              </div>
+            </div>
+            <div class="activity-feed">
+              @for (activity of recentActivity(); track activity.title + activity.meta) {
+                <span>
+                  <strong>{{ activity.title }}</strong>
+                  <em>{{ activity.meta }}</em>
+                  <i>{{ activity.status }}</i>
+                </span>
+              } @empty {
+                <div class="empty-state">No activity found yet.</div>
+              }
+            </div>
+          </article>
+        </div>
+      } @else if (activeSection() === 'companies' || activeSection() === 'company-details' || activeSection() === 'suspended-companies' || activeSection() === 'onboarding-requests') {
+        <article class="panel">
+          <div class="panel-heading">
+            <div>
+              <h2>{{ sectionTitle() }}</h2>
+              <p>{{ sectionDescription() }}</p>
+            </div>
+            @if (activeSection() !== 'onboarding-requests') {
+              <button type="button" class="primary-action" (click)="setSection('add-company')">Add Company</button>
+            }
+          </div>
+
+          <div class="filter-row">
+            <label>Search<input type="search" [value]="companySearch()" (input)="setCompanySearch($event)" placeholder="Company, code or email" /></label>
+            <label>Status
+              <select [value]="companyStatusFilter()" (change)="setCompanyStatusFilter($event)">
+                <option value="all">All</option>
+                <option value="active">Active</option>
+                <option value="trial">Trial</option>
+                <option value="inactive">Inactive</option>
+                <option value="pending_verification">Pending Verification</option>
+                <option value="suspended">Suspended</option>
+                <option value="blocked">Blocked</option>
+              </select>
+            </label>
+            <label>Plan
+              <select [value]="companyPlanFilter()" (change)="setCompanyPlanFilter($event)">
+                <option value="all">All</option>
+                @for (plan of planOptions(); track plan) {
+                  <option [value]="plan">{{ plan }}</option>
+                }
+              </select>
+            </label>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Company</th>
+                  <th>Admin Email</th>
+                  <th>Status</th>
+                  <th>Plan</th>
+                  <th>Users</th>
+                  <th>Joined</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (company of filteredCompanies(); track company._id || company.companyCode) {
+                  <tr>
+                    <td>
+                      <span class="company-cell">
+                        <img [src]="logoUrl(company)" alt="" />
+                        <span>{{ company.companyName }}<em>{{ company.companyCode || '-' }}</em></span>
+                      </span>
+                    </td>
+                    <td>{{ company.email || '-' }}</td>
+                    <td><span class="status-pill">{{ company.status || 'trial' }}</span></td>
+                    <td>{{ company.subscriptionPlan || 'Business' }}</td>
+                    <td>{{ companyUsage(company) }}</td>
+                    <td>{{ formatDate(company.createdAt) }}</td>
+                    <td>
+                      <div class="status-actions">
+                        <button type="button" class="table-action" (click)="openCompany(company)">Open</button>
+                        @if (activeSection() === 'suspended-companies') {
+                          @if (canUnblockCompany(company)) {
+                            <button
+                              type="button"
+                              class="table-action success"
+                              [disabled]="isStatusSaving()"
+                              (click)="updateCompanyStatus(company, 'active')"
+                            >Unblock</button>
+                          }
+                          @if (canSuspendCompany(company)) {
+                            <button
+                              type="button"
+                              class="table-action warn"
+                              [disabled]="isStatusSaving()"
+                              (click)="updateCompanyStatus(company, 'suspended')"
+                            >Suspend</button>
+                          }
+                          @if (canBlockCompany(company)) {
+                            <button
+                              type="button"
+                              class="table-action danger"
+                              [disabled]="isStatusSaving()"
+                              (click)="updateCompanyStatus(company, 'blocked')"
+                            >Block</button>
+                          }
+                        }
+                      </div>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr><td colspan="7" class="empty-state">No companies found.</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </article>
+      } @else if (activeSection() === 'add-company') {
+        <article class="panel create-company-panel">
+          <div class="panel-heading">
+            <div>
+              <h2>Create Company</h2>
+              <p>Company workspace, default departments, roles and company admin are created together.</p>
+            </div>
+          </div>
+          <form class="form-grid" [formGroup]="companyForm" (ngSubmit)="createCompany()">
+            <label>Company name<input formControlName="name" type="text" /></label>
+            <label>Company code<input formControlName="companyCode" type="text" /></label>
+            <label>Company email<input formControlName="email" type="email" /></label>
+            <label>Phone<input formControlName="phone" type="text" /></label>
+            <label>Admin name<input formControlName="adminName" type="text" /></label>
+            <label>Admin email<input formControlName="adminEmail" type="email" /></label>
+            <label>Admin mobile<input formControlName="adminMobile" type="text" /></label>
+            <label>Admin password<input formControlName="adminPassword" type="password" /></label>
+            <button class="primary-action" type="submit" [disabled]="companyForm.invalid || isCreatingCompany()">Create Company</button>
+          </form>
+        </article>
+      } @else if (activeSection() === 'plans' || activeSection() === 'subscriptions' || activeSection() === 'invoices' || activeSection() === 'coupons' || activeSection() === 'expiring' || activeSection() === 'payment-settings') {
+        <section class="billing-admin-maximal">
+          <div class="billing-admin-head">
+            <img src="/brand/opasbizz-crm.webp" alt="Opas Bizz Pvt. Ltd. logo" />
+            <div>
+              <p class="eyebrow">Opas Bizz Pvt. Ltd.</p>
+              <h2>{{ sectionTitle() }}</h2>
+              <span>
+                @if (activeSection() === 'plans') { Manage subscription plans only. }
+                @if (activeSection() === 'subscriptions') { Active subscriptions only. }
+                @if (activeSection() === 'expiring') { Expired and expiring soon subscriptions only. }
+                @if (activeSection() === 'invoices') { Razorpay invoices and payment history only. }
+                @if (activeSection() === 'payment-settings') { Payment gateway settings only. }
+                @if (activeSection() === 'coupons') { Coupons and discounts only. }
+              </span>
+            </div>
+          </div>
+
+          @if (activeSection() === 'plans') {
+            <div class="billing-admin-grid">
+              <article class="panel billing-form-panel">
+                <div class="panel-heading"><div><h2>Plan Management</h2><p>Create or update basic, standard and business plans.</p></div></div>
+                <form class="form-grid" [formGroup]="billingPlanForm" (ngSubmit)="saveBillingPlan()">
+                  <label>Plan code<select formControlName="code"><option value="basic">basic</option><option value="standard">standard</option><option value="business">business</option></select></label>
+                  <label>Name<input formControlName="name" /></label>
+                  <label>Price INR<input type="number" formControlName="priceInr" /></label>
+                  <label>Duration months<input type="number" formControlName="durationMonths" /></label>
+                  <label>Employee limit<input type="number" formControlName="employeeLimit" /></label>
+                  <label>HR account limit<input type="number" formControlName="hrAccountLimit" /></label>
+                  <label class="span-2">Description<input formControlName="description" /></label>
+                  <label class="span-2">Features<textarea formControlName="features" rows="4"></textarea></label>
+                  <label class="check-line"><input type="checkbox" formControlName="isActive" /> Active</label>
+                  <button class="primary-action" type="submit" [disabled]="billingPlanForm.invalid || isBillingSaving()">Save Plan</button>
+                </form>
+              </article>
+
+              <article class="panel">
+                <div class="panel-heading"><div><h2>Plan Registry</h2><p>Only plan management records are shown here.</p></div></div>
+                <div class="plan-admin-list">
+                  @for (plan of billingPlans(); track plan._id || plan.code) {
+                    <span>
+                      <strong>{{ plan.name }} � {{ formatCurrency(plan.priceInr) }}</strong>
+                      <em>{{ limitLabel(plan.employeeLimit) }} employees � {{ limitLabel(plan.hrAccountLimit) }} HR � {{ plan.isActive === false ? 'inactive' : 'active' }}</em>
+                      <button type="button" class="table-action" (click)="togglePlan(plan)">{{ plan.isActive === false ? 'Activate' : 'Inactive' }}</button>
+                    </span>
+                  } @empty { <div class="empty-state">No plans saved yet.</div> }
+                </div>
+              </article>
+            </div>
+          }
+
+          @if (activeSection() === 'subscriptions') {
+            <article class="panel">
+              <div class="panel-heading"><div><h2>Active Subscriptions</h2><p>Only companies with active subscription status.</p></div></div>
+              <div class="table-wrap"><table><thead><tr><th>Company</th><th>Plan</th><th>Status</th><th>Valid Until</th><th>Employees</th><th>HR Limit</th><th>Change Plan</th></tr></thead><tbody>
+                @for (company of activeSubscriptionRows(); track company._id || company.companyCode) {
+                  <tr><td>{{ company.companyName }}<br /><small>{{ company.email }}</small></td><td>{{ company.subscriptionPlan || 'basic' }}</td><td><span class="status-pill">{{ company.subscriptionStatus || 'active' }}</span></td><td>{{ formatDate(company.subscriptionEndsAt) }}</td><td>{{ limitLabel(company.maxEmployees) }}</td><td>{{ limitLabel(company.hrAccountLimit) }}</td><td><select [value]="company.subscriptionPlan || 'basic'" (change)="changeCompanyPlan(company, $event)">@for (plan of billingPlanOptions(); track plan.code) { <option [value]="plan.code">{{ plan.name }}</option> }</select></td></tr>
+                } @empty { <tr><td colspan="7" class="empty-state">No active subscriptions found.</td></tr> }
+              </tbody></table></div>
+            </article>
+          }
+
+          @if (activeSection() === 'expiring') {
+            <article class="panel">
+              <div class="panel-heading"><div><h2>Expired / Expiring Soon</h2><p>Only expired subscriptions and plans ending within 15 days.</p></div></div>
+              <div class="table-wrap"><table><thead><tr><th>Company</th><th>Plan</th><th>Status</th><th>Valid Until</th><th>Action</th></tr></thead><tbody>
+                @for (company of expiringOrExpiredRows(); track company._id || company.companyCode) {
+                  <tr><td>{{ company.companyName }}<br /><small>{{ company.email }}</small></td><td>{{ company.subscriptionPlan || 'basic' }}</td><td><span class="status-pill">{{ company.subscriptionStatus || 'expired' }}</span></td><td>{{ formatDate(company.subscriptionEndsAt) }}</td><td><select [value]="company.subscriptionPlan || 'basic'" (change)="changeCompanyPlan(company, $event)">@for (plan of billingPlanOptions(); track plan.code) { <option [value]="plan.code">{{ plan.name }}</option> }</select></td></tr>
+                } @empty { <tr><td colspan="5" class="empty-state">No expired or expiring subscriptions found.</td></tr> }
+              </tbody></table></div>
+            </article>
+          }
+
+          @if (activeSection() === 'invoices') {
+            <article class="panel">
+              <div class="panel-heading"><div><h2>Invoices & Payment History</h2><p>Only Razorpay subscription payment records.</p></div></div>
+              <div class="table-wrap"><table><thead><tr><th>Company</th><th>Plan</th><th>Amount</th><th>Discount</th><th>Status</th><th>Order</th><th>Payment</th><th>Date</th></tr></thead><tbody>
+                @for (payment of billingPayments(); track payment._id || payment.razorpayOrderId) {
+                  <tr><td>{{ paymentCompanyLabel(payment) }}</td><td>{{ payment.planName || payment.planCode }}</td><td>{{ formatCurrency(payment.payableInr || 0) }}</td><td>{{ formatCurrency(payment.discountInr || 0) }}</td><td><span class="status-pill">{{ payment.status || 'created' }}</span></td><td>{{ payment.razorpayOrderId || '-' }}</td><td>{{ payment.razorpayPaymentId || '-' }}</td><td>{{ formatDate(payment.paidAt || payment.createdAt) }}</td></tr>
+                } @empty { <tr><td colspan="8" class="empty-state">No payment history found.</td></tr> }
+              </tbody></table></div>
+            </article>
+          }
+
+          @if (activeSection() === 'payment-settings') {
+            <article class="panel">
+              <div class="panel-heading"><div><h2>Payment Gateway Settings</h2><p>Only Razorpay gateway configuration status.</p></div></div>
+              <div class="module-grid">
+                <span><strong>Provider</strong><em>{{ gatewaySettings().provider || 'Razorpay' }}</em></span>
+                <span><strong>Mode</strong><em>{{ gatewaySettings().mode || 'demo' }}</em></span>
+                <span><strong>Key ID</strong><em>{{ gatewaySettings().keyConfigured ? 'Configured' : 'Missing' }}</em></span>
+                <span><strong>Key Secret</strong><em>{{ gatewaySettings().secretConfigured ? 'Configured' : 'Missing' }}</em></span>
+                <span><strong>Checkout Script</strong><em>{{ gatewaySettings().checkoutScript || '-' }}</em></span>
+                <span><strong>Brand</strong><em>Opas Bizz Pvt. Ltd.</em></span>
+              </div>
+            </article>
+          }
+
+          @if (activeSection() === 'coupons') {
+            <div class="billing-admin-grid">
+              <article class="panel billing-form-panel">
+                <div class="panel-heading"><div><h2>Coupons / Discounts</h2><p>Only offer creation and active/inactive controls.</p></div></div>
+                <form class="form-grid" [formGroup]="planOfferForm" (ngSubmit)="savePlanOffer()">
+                  <label>Title<input formControlName="title" /></label>
+                  <label>Code<input formControlName="code" placeholder="AUTO if blank" /></label>
+                  <label>Plan<select formControlName="planCode"><option value="all">All plans</option><option value="basic">Basic</option><option value="standard">Standard</option><option value="business">Business</option></select></label>
+                  <label>Discount type<select formControlName="discountType"><option value="percent">Percent</option><option value="flat">Flat INR</option></select></label>
+                  <label>Discount value<input type="number" formControlName="discountValue" /></label>
+                  <label>Start<input type="date" formControlName="startsAt" /></label>
+                  <label>End<input type="date" formControlName="endsAt" /></label>
+                  <label class="check-line"><input type="checkbox" formControlName="isActive" /> Active</label>
+                  <label class="span-2">Description<input formControlName="description" /></label>
+                  <button class="primary-action" type="submit" [disabled]="planOfferForm.invalid || isBillingSaving()">Save Offer</button>
+                </form>
+              </article>
+              <article class="panel">
+                <div class="panel-heading"><div><h2>Offer Registry</h2><p>Only coupons and discounts are listed here.</p></div></div>
+                <div class="plan-admin-list">
+                  @for (offer of planOffers(); track offer._id || offer.code) {
+                    <span><strong>{{ offer.title }} � {{ offer.code }}</strong><em>{{ offer.planCode || 'all' }} � {{ offer.discountValue }}{{ offer.discountType === 'flat' ? ' INR' : '%' }} � {{ offer.isActive === false ? 'inactive' : 'active' }}</em><button type="button" class="table-action" (click)="toggleOffer(offer)">{{ offer.isActive === false ? 'Activate' : 'Inactive' }}</button></span>
+                  } @empty { <div class="empty-state">No offers created yet.</div> }
+                </div>
+              </article>
+            </div>
+          }
+        </section>
+      } @else if (activeSection() === 'users' || activeSection() === 'platform-admins' || activeSection() === 'blocked-users' || activeSection() === 'login-logs') {
+        <article class="panel">
+          <div class="panel-heading">
+            <div>
+              <h2>{{ sectionTitle() }}</h2>
+              <p>
+                @if (activeSection() === 'users') { All users only, with active/inactive controls. }
+                @if (activeSection() === 'platform-admins') { Global company admin access and account status controls. }
+                @if (activeSection() === 'blocked-users') { Blocked/Banned users only, with unblock action. }
+                @if (activeSection() === 'login-logs') { Login activity logs only. }
+              </p>
+            </div>
+          </div>
+
+          @if (activeSection() === 'users') {
+            <div class="table-wrap"><table><thead><tr><th>User</th><th>Company</th><th>Email</th><th>Role</th><th>Status</th><th>Action</th></tr></thead><tbody>
+              @for (user of allUserRows(); track user._id || user.email) {
+                <tr><td>{{ user.name }}</td><td>{{ companyLabel(user) }}</td><td>{{ user.email }}</td><td>{{ roleLabel(user.role) }}</td><td><span class="status-pill">{{ user.status || 'active' }}</span></td><td><button type="button" class="table-action" [class.warn]="(user.status || 'active') === 'active'" [disabled]="!user._id || isStatusSaving() || (user.status || '') === 'blocked'" (click)="toggleUserStatus(user)">{{ (user.status || 'active') === 'active' ? 'Inactive' : 'Active' }}</button></td></tr>
+              } @empty { <tr><td colspan="6" class="empty-state">No users found.</td></tr> }
+            </tbody></table></div>
+          }
+
+          @if (activeSection() === 'platform-admins') {
+            <div class="table-wrap"><table><thead><tr><th>User</th><th>Company</th><th>Email</th><th>Mobile</th><th>Status</th><th>Action</th></tr></thead><tbody>
+              @for (admin of platformAdminRows(); track admin._id || admin.email) {
+                <tr><td>{{ admin.name }}</td><td>{{ companyLabel(admin) }}</td><td>{{ admin.email }}</td><td>{{ admin.mobile || '-' }}</td><td><span class="status-pill">{{ admin.status || 'active' }}</span></td><td><button type="button" class="table-action" [class.warn]="(admin.status || 'active') === 'active'" [disabled]="!admin._id || isStatusSaving()" (click)="toggleUserStatus(admin)">{{ (admin.status || 'active') === 'active' ? 'Inactive' : 'Active' }}</button></td></tr>
+              } @empty { <tr><td colspan="6" class="empty-state">No platform/company admins found.</td></tr> }
+            </tbody></table></div>
+          }
+
+          @if (activeSection() === 'blocked-users') {
+            <div class="table-wrap"><table><thead><tr><th>User</th><th>Company</th><th>Email</th><th>Role</th><th>Status</th><th>Action</th></tr></thead><tbody>
+              @for (user of blockedUserRows(); track user._id || user.email) {
+                <tr><td>{{ user.name }}</td><td>{{ companyLabel(user) }}</td><td>{{ user.email }}</td><td>{{ roleLabel(user.role) }}</td><td><span class="status-pill">{{ user.status || 'blocked' }}</span></td><td><button type="button" class="table-action success" [disabled]="!user._id || isStatusSaving()" (click)="unblockUser(user)">Unblock</button></td></tr>
+              } @empty { <tr><td colspan="6" class="empty-state">No blocked/banned users found.</td></tr> }
+            </tbody></table></div>
+          }
+
+          @if (activeSection() === 'login-logs') {
+            <div class="table-wrap"><table><thead><tr><th>Email</th><th>User</th><th>Status</th><th>Reason</th><th>IP</th><th>Time</th></tr></thead><tbody>
+              @for (log of loginLogs(); track log._id || log.createdAt) {
+                <tr><td>{{ log.email || '-' }}</td><td>{{ log.user?.name || log.user?.email || '-' }}</td><td><span class="status-pill">{{ log.status || '-' }}</span></td><td>{{ log.reason || '-' }}</td><td>{{ log.ipAddress || '-' }}</td><td>{{ formatDateTime(log.createdAt) }}</td></tr>
+              } @empty { <tr><td colspan="6" class="empty-state">No login activity logs found.</td></tr> }
+            </tbody></table></div>
+          }
+        </article>
+      } @else if (activeSection() === 'roles') {
+        <article class="panel">
+          <div class="panel-heading">
+            <div>
+              <h2>Role Management</h2>
+              <p>Only platform and default company roles are shown here.</p>
+            </div>
+            <button type="button" class="primary-action" (click)="loadRolesAndPermissions()">Refresh</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Role</th><th>Scope</th><th>Level</th><th>Permissions</th><th>Status</th><th>Action</th></tr></thead>
+              <tbody>
+                @for (role of roleManagementRows(); track role._id || role.name) {
+                  <tr>
+                    <td>{{ roleLabelText(role.name) }}</td>
+                    <td>{{ roleCompanyLabel(role) }}</td>
+                    <td>{{ role.level }}</td>
+                    <td>{{ permissionCount(role) }}</td>
+                    <td><span class="status-pill">{{ role.isActive === false ? 'inactive' : 'active' }}</span></td>
+                    <td><button type="button" class="table-action" [class.warn]="role.isActive !== false" [disabled]="!role._id || isRoleSaving()" (click)="toggleRoleActive(role)">{{ role.isActive === false ? 'Activate' : 'Inactive' }}</button></td>
+                  </tr>
+                } @empty { <tr><td colspan="6" class="empty-state">No roles found.</td></tr> }
+              </tbody>
+            </table>
+          </div>
+        </article>
+      } @else if (activeSection() === 'permissions') {
+        <article class="panel">
+          <div class="panel-heading">
+            <div>
+              <h2>Permission Matrix</h2>
+              <p>Only role-permission mapping is shown here.</p>
+            </div>
+            <button type="button" class="primary-action" (click)="loadRolesAndPermissions()">Refresh</button>
+          </div>
+          <div class="table-wrap permission-matrix-wrap">
+            <table>
+              <thead>
+                <tr><th>Module</th><th>Permission</th>@for (role of roleRows(); track role._id || role.name) { <th>{{ roleLabelText(role.name) }}<br /><small>{{ roleCompanyLabel(role) }}</small></th> }</tr>
+              </thead>
+              <tbody>
+                @for (group of permissionGroups(); track group.module) {
+                  @for (permission of group.permissions; track permission.code) {
+                    <tr>
+                      <td>{{ group.label }}</td>
+                      <td>{{ permission.label }}<br /><small>{{ permission.code }}</small></td>
+                      @for (role of roleRows(); track role._id || role.name) {
+                        <td><input type="checkbox" [checked]="roleHasPermission(role, permission.code)" [disabled]="!role._id || isRoleSaving() || role.isActive === false" (change)="toggleRolePermission(role, permission.code, $event)" /></td>
+                      }
+                    </tr>
+                  }
+                } @empty { <tr><td colspan="3" class="empty-state">No permissions found.</td></tr> }
+              </tbody>
+            </table>
+          </div>
+        </article>
+      } @else if (activeSection() === 'custom-roles') {
+        <section class="workspace-grid">
+          <article class="panel span-2">
+            <div class="panel-heading"><div><h2>Custom Role Builder</h2><p>Only custom role creation and custom role list are shown here.</p></div></div>
+            <form class="form-grid" [formGroup]="customRoleForm" (ngSubmit)="saveCustomRole()">
+              <label>Role name<input formControlName="name" type="text" placeholder="regional_hr_manager" /></label>
+              <label>Hierarchy level<input formControlName="level" type="number" min="0" max="10" /></label>
+              <label>Company scope
+                <select formControlName="company">
+                  <option value="">Platform</option>
+                  @for (company of roleCompanies(); track company._id || company.companyCode) { <option [value]="company._id">{{ company.companyName || company.companyCode }}</option> }
+                </select>
+              </label>
+              <label class="check-line"><input type="checkbox" formControlName="isActive" /> Active</label>
+              <label class="span-2">Permissions<textarea formControlName="permissions" rows="6" placeholder="user:read&#10;employee:create&#10;report:read"></textarea></label>
+              <button class="primary-action" type="submit" [disabled]="customRoleForm.invalid || isRoleSaving()">Save Custom Role</button>
+            </form>
+          </article>
+          <article class="panel">
+            <div class="panel-heading"><div><h2>Custom Roles</h2><p>Custom role records only.</p></div></div>
+            <div class="plan-admin-list">
+              @for (role of customRoleRows(); track role._id || role.name) {
+                <span>
+                  <strong>{{ roleLabelText(role.name) }}</strong>
+                  <em>{{ roleCompanyLabel(role) }} � level {{ role.level }} � {{ permissionCount(role) }} permissions � {{ role.isActive === false ? 'inactive' : 'active' }}</em>
+                  <button type="button" class="table-action" [disabled]="!role._id || isRoleSaving()" (click)="toggleRoleActive(role)">{{ role.isActive === false ? 'Activate' : 'Inactive' }}</button>
+                </span>
+              } @empty { <div class="empty-state">No custom roles created yet.</div> }
+            </div>
+          </article>
+        </section>
+      } @else if (activeSection() === 'usage-report') {
+        <article class="panel">
+          <div class="panel-heading"><div><h2>Platform Usage Report</h2><p>Only platform usage metrics, company status, roles and login activity.</p></div><button type="button" class="primary-action" (click)="loadReportAnalytics()">Refresh</button></div>
+          <div class="summary-grid"><span><strong>{{ reportTotal('companies') }}</strong>Companies</span><span><strong>{{ reportTotal('users') }}</strong>Users</span><span><strong>{{ reportTotal('employees') }}</strong>Employees</span><span><strong>{{ reportTotal('successfulLogins') }}</strong>Successful logins</span><span><strong>{{ reportTotal('failedLogins') }}</strong>Failed logins</span></div>
+          <div class="workspace-grid"><div class="module-grid">@for (row of reportRows('companyStatus'); track row.label) { <span><strong>{{ row.value }}</strong><em>{{ row.label }}</em></span> }</div><div class="module-grid">@for (row of reportRows('userRoles'); track row.label) { <span><strong>{{ row.value }}</strong><em>{{ roleLabelText(row.label) }}</em></span> }</div></div>
+        </article>
+      } @else if (activeSection() === 'revenue-report') {
+        <article class="panel">
+          <div class="panel-heading"><div><h2>Revenue Reports</h2><p>Only paid revenue, payment status and plan-wise revenue.</p></div><button type="button" class="primary-action" (click)="loadReportAnalytics()">Refresh</button></div>
+          <div class="summary-grid"><span><strong>{{ formatCurrency(reportTotal('totalRevenueInr')) }}</strong>Total paid revenue</span><span><strong>{{ reportTotal('paidPayments') }}</strong>Paid payments</span><span><strong>{{ reportTotal('pendingPayments') }}</strong>Pending payments</span><span><strong>{{ reportTotal('failedPayments') }}</strong>Failed payments</span><span><strong>{{ formatCurrency(reportTotal('pipelineValueInr')) }}</strong>CRM pipeline value</span></div>
+          <div class="mini-chart revenue">@for (month of trendRows('revenue'); track month.label) { <span [style.height.%]="month.percent"><b>{{ formatCurrency(month.value || 0) }}</b><em>{{ month.label }}</em></span> }</div>
+          <div class="bar-list compact-bars">@for (row of reportRows('revenueByPlan'); track row.label) { <button type="button"><span>{{ row.label }}</span><strong>{{ formatCurrency(row.value || 0) }}</strong><i [style.width.%]="100"></i></button> } @empty { <div class="empty-state">No paid revenue found.</div> }</div>
+        </article>
+      } @else if (activeSection() === 'growth-report') {
+        <article class="panel">
+          <div class="panel-heading"><div><h2>User Growth Reports</h2><p>Only users, companies and employees growth trends.</p></div><button type="button" class="primary-action" (click)="loadReportAnalytics()">Refresh</button></div>
+          <div class="analytics-grid"><div><h2>Users</h2><div class="mini-chart">@for (month of trendRows('users'); track month.label) { <span [style.height.%]="month.percent"><b>{{ month.value }}</b><em>{{ month.label }}</em></span> }</div></div><div><h2>Companies</h2><div class="mini-chart">@for (month of trendRows('companies'); track month.label) { <span [style.height.%]="month.percent"><b>{{ month.value }}</b><em>{{ month.label }}</em></span> }</div></div><div><h2>Employees</h2><div class="mini-chart">@for (month of trendRows('employees'); track month.label) { <span [style.height.%]="month.percent"><b>{{ month.value }}</b><em>{{ month.label }}</em></span> }</div></div></div>
+          <div class="module-grid">@for (row of reportRows('roleDistribution'); track row.label) { <span><strong>{{ row.value }}</strong><em>{{ roleLabelText(row.label) }}</em></span> }</div>
+        </article>
+      } @else if (activeSection() === 'module-usage') {
+        <article class="panel">
+          <div class="panel-heading"><div><h2>Module-wise Usage</h2><p>Only module records, active counts and CRM module breakdown.</p></div><button type="button" class="primary-action" (click)="loadReportAnalytics()">Refresh</button></div>
+          <div class="table-wrap"><table><thead><tr><th>Module</th><th>Total Records</th><th>Active/Success</th></tr></thead><tbody>@for (row of reportRows('moduleRows'); track row.module) { <tr><td>{{ row.module }}</td><td>{{ row.records }}</td><td>{{ row.active }}</td></tr> } @empty { <tr><td colspan="3" class="empty-state">No module usage found.</td></tr> }</tbody></table></div>
+          <div class="workspace-grid"><div class="module-grid">@for (row of reportRows('leadSources'); track row.label) { <span><strong>{{ row.value }}</strong><em>{{ row.label }}</em></span> }</div><div class="module-grid">@for (row of reportRows('dealStages'); track row.label) { <span><strong>{{ row.value }}</strong><em>{{ row.label }}</em></span> }</div><div class="module-grid">@for (row of reportRows('taskStatuses'); track row.label) { <span><strong>{{ row.value }}</strong><em>{{ row.label }}</em></span> }</div></div>
+        </article>
+      } @else if (activeSection() === 'exports') {
+        <article class="panel">
+          <div class="panel-heading"><div><h2>Export Reports</h2><p>Only report export actions are shown here.</p></div><button type="button" class="primary-action" (click)="loadReportAnalytics()">Refresh</button></div>
+          <div class="module-grid">@for (item of reportAnalytics().exports || []; track item.type) { <span><strong>{{ item.label }}</strong><em>{{ item.endpoint }}</em><button type="button" class="table-action success" (click)="exportReport(item.type)">Download CSV</button></span> } @empty { <span><strong>Usage CSV</strong><em>/api/super-admin/reports/export?type=usage</em><button type="button" class="table-action success" (click)="exportReport('usage')">Download CSV</button></span><span><strong>Revenue CSV</strong><em>/api/super-admin/reports/export?type=revenue</em><button type="button" class="table-action success" (click)="exportReport('revenue')">Download CSV</button></span><span><strong>Growth CSV</strong><em>/api/super-admin/reports/export?type=growth</em><button type="button" class="table-action success" (click)="exportReport('growth')">Download CSV</button></span><span><strong>Module Usage CSV</strong><em>/api/super-admin/reports/export?type=modules</em><button type="button" class="table-action success" (click)="exportReport('modules')">Download CSV</button></span> }</div>
+        </article>      } @else if (activeSection() === 'lead-sources') {
+        <section class="workspace-grid">
+          <article class="panel span-2">
+            <div class="panel-heading"><div><h2>Lead Source Templates</h2><p>Only lead source template setup and controls.</p></div></div>
+            <form class="form-grid" [formGroup]="leadSourceForm" (ngSubmit)="saveLeadSource()">
+              <label>Name<input formControlName="name" placeholder="Website" /></label>
+              <label>Code<input formControlName="code" placeholder="auto if blank" /></label>
+              <label>Color<input formControlName="color" type="color" /></label>
+              <label>Sort order<input formControlName="sortOrder" type="number" /></label>
+              <label class="check-line"><input type="checkbox" formControlName="isDefault" /> Default</label>
+              <label class="check-line"><input type="checkbox" formControlName="isActive" /> Active</label>
+              <label class="span-2">Description<input formControlName="description" /></label>
+              <button class="primary-action" type="submit" [disabled]="leadSourceForm.invalid || isCrmSettingSaving()">Save Lead Source</button>
+            </form>
+          </article>
+          <article class="panel">
+            <div class="panel-heading"><div><h2>Lead Sources</h2><p>Lead source records only.</p></div></div>
+            <div class="plan-admin-list">
+              @for (row of crmRows('lead_source'); track row._id || row.code) {
+                <span><strong><i [style.background]="row.color"></i>{{ row.name }}</strong><em>{{ row.code }} � order {{ row.sortOrder || 0 }} � {{ row.isDefault ? 'default' : 'template' }} � {{ row.isActive === false ? 'inactive' : 'active' }}</em><button type="button" class="table-action" [disabled]="!row._id || isCrmSettingSaving()" (click)="toggleCrmSetting(row)">{{ row.isActive === false ? 'Activate' : 'Inactive' }}</button><button type="button" class="table-action success" [disabled]="!row._id || isCrmSettingSaving()" (click)="markCrmDefault(row)">Default</button></span>
+              } @empty { <div class="empty-state">No lead sources found.</div> }
+            </div>
+          </article>
+        </section>
+      } @else if (activeSection() === 'pipeline-stages') {
+        <section class="workspace-grid">
+          <article class="panel span-2">
+            <div class="panel-heading"><div><h2>Default Pipeline Stages</h2><p>Only default pipeline stage setup and controls.</p></div></div>
+            <form class="form-grid" [formGroup]="pipelineStageForm" (ngSubmit)="savePipelineStage()">
+              <label>Name<input formControlName="name" placeholder="Qualified" /></label>
+              <label>Code<input formControlName="code" placeholder="auto if blank" /></label>
+              <label>Color<input formControlName="color" type="color" /></label>
+              <label>Sort order<input formControlName="sortOrder" type="number" /></label>
+              <label class="check-line"><input type="checkbox" formControlName="isDefault" /> Default</label>
+              <label class="check-line"><input type="checkbox" formControlName="isActive" /> Active</label>
+              <label class="span-2">Description<input formControlName="description" /></label>
+              <button class="primary-action" type="submit" [disabled]="pipelineStageForm.invalid || isCrmSettingSaving()">Save Pipeline Stage</button>
+            </form>
+          </article>
+          <article class="panel">
+            <div class="panel-heading"><div><h2>Pipeline Stages</h2><p>Default pipeline stage records only.</p></div></div>
+            <div class="plan-admin-list">
+              @for (row of crmRows('pipeline_stage'); track row._id || row.code) {
+                <span><strong><i [style.background]="row.color"></i>{{ row.name }}</strong><em>{{ row.code }} � order {{ row.sortOrder || 0 }} � {{ row.isDefault ? 'default' : 'stage' }} � {{ row.isActive === false ? 'inactive' : 'active' }}</em><button type="button" class="table-action" [disabled]="!row._id || isCrmSettingSaving()" (click)="toggleCrmSetting(row)">{{ row.isActive === false ? 'Activate' : 'Inactive' }}</button><button type="button" class="table-action success" [disabled]="!row._id || isCrmSettingSaving()" (click)="markCrmDefault(row)">Default</button></span>
+              } @empty { <div class="empty-state">No pipeline stages found.</div> }
+            </div>
+          </article>
+        </section>
+      } @else if (activeSection() === 'crm-templates') {
+        <section class="workspace-grid">
+          <article class="panel span-2">
+            <div class="panel-heading"><div><h2>Email/SMS Templates</h2><p>Only CRM communication templates and controls.</p></div></div>
+            <form class="form-grid" [formGroup]="crmTemplateForm" (ngSubmit)="saveCrmTemplate()">
+              <label>Name<input formControlName="name" placeholder="Lead Welcome Email" /></label>
+              <label>Code<input formControlName="code" placeholder="auto if blank" /></label>
+              <label>Channel<select formControlName="channel"><option value="email">Email</option><option value="sms">SMS</option><option value="both">Email + SMS</option></select></label>
+              <label>Sort order<input formControlName="sortOrder" type="number" /></label>
+              <label class="span-2">Subject<input formControlName="subject" placeholder="Email subject" /></label>
+              <label class="span-2">Body<textarea formControlName="body" rows="6" placeholder="Hello leadName,"></textarea></label>
+              <label class="span-2">Description<input formControlName="description" /></label>
+              <label class="check-line"><input type="checkbox" formControlName="isDefault" /> Default</label>
+              <label class="check-line"><input type="checkbox" formControlName="isActive" /> Active</label>
+              <button class="primary-action" type="submit" [disabled]="crmTemplateForm.invalid || isCrmSettingSaving()">Save Template</button>
+            </form>
+          </article>
+          <article class="panel">
+            <div class="panel-heading"><div><h2>Templates</h2><p>Email/SMS template records only.</p></div></div>
+            <div class="plan-admin-list">
+              @for (row of crmRows('message_template'); track row._id || row.code) {
+                <span><strong>{{ row.name }}</strong><em>{{ row.channel }} � {{ row.code }} � {{ row.isDefault ? 'default' : 'template' }} � {{ row.isActive === false ? 'inactive' : 'active' }}</em><small>{{ row.subject || row.body }}</small><button type="button" class="table-action" [disabled]="!row._id || isCrmSettingSaving()" (click)="toggleCrmSetting(row)">{{ row.isActive === false ? 'Activate' : 'Inactive' }}</button><button type="button" class="table-action success" [disabled]="!row._id || isCrmSettingSaving()" (click)="markCrmDefault(row)">Default</button></span>
+              } @empty { <div class="empty-state">No CRM templates found.</div> }
+            </div>
+          </article>
+        </section>
+      } @else if (activeSection() === 'tickets') {
+        <section class="workspace-grid">
+          <article class="panel span-2"><div class="panel-heading"><div><h2>All Support Tickets</h2><p>Only support tickets list, status and priority controls.</p></div><button class="primary-action" type="button" (click)="loadSupportOverview()">Refresh</button></div>
+            <div class="summary-grid"><span><strong>{{ supportStat('totalTickets') }}</strong>Total</span><span><strong>{{ supportStat('openTickets') }}</strong>Open</span><span><strong>{{ supportStat('pendingTickets') }}</strong>Pending</span><span><strong>{{ supportStat('urgentTickets') }}</strong>Urgent</span></div>
+            <div class="table-wrap"><table><thead><tr><th>Ticket</th><th>Company</th><th>Category</th><th>Priority</th><th>Status</th><th>Created</th></tr></thead><tbody>@for (ticket of supportTickets(); track ticket._id || ticket.ticketNumber) { <tr><td><strong>{{ ticket.ticketNumber }}</strong><br /><small>{{ ticket.subject }}</small></td><td>{{ supportCompanyLabel(ticket) }}</td><td>{{ ticket.category }}</td><td><select [value]="ticket.priority || 'medium'" (change)="updateTicketPriority(ticket, $event)"><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option><option value="urgent">Urgent</option></select></td><td><select [value]="ticket.status || 'open'" (change)="updateTicketStatus(ticket, $event)"><option value="open">Open</option><option value="pending">Pending</option><option value="resolved">Resolved</option><option value="closed">Closed</option></select></td><td>{{ formatDate(ticket.createdAt) }}</td></tr> } @empty { <tr><td colspan="6" class="empty-state">No support tickets found.</td></tr> }</tbody></table></div>
+          </article>
+          <article class="panel"><div class="panel-heading"><div><h2>Create Ticket</h2><p>Manual support ticket entry.</p></div></div><form class="form-grid" [formGroup]="supportTicketForm" (ngSubmit)="createSupportTicket()"><label class="span-2">Subject<input formControlName="subject" /></label><label>Requester<input formControlName="requesterName" /></label><label>Email<input formControlName="requesterEmail" /></label><label>Category<input formControlName="category" /></label><label>Priority<select formControlName="priority"><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option><option value="urgent">Urgent</option></select></label><label>Status<select formControlName="status"><option value="open">Open</option><option value="pending">Pending</option></select></label><label class="span-2">Description<textarea formControlName="description" rows="4"></textarea></label><button class="primary-action" type="submit" [disabled]="supportTicketForm.invalid || isSupportSaving()">Create Ticket</button></form></article>
+        </section>
+      } @else if (activeSection() === 'ticket-settings') {
+        <section class="workspace-grid"><article class="panel span-2"><div class="panel-heading"><div><h2>Categories/Priority</h2><p>Only support categories, default priority and SLA controls.</p></div></div><form class="form-grid" [formGroup]="supportCategoryForm" (ngSubmit)="saveSupportCategory()"><label>Name<input formControlName="name" /></label><label>Code<input formControlName="code" placeholder="auto if blank" /></label><label>Default priority<select formControlName="defaultPriority"><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option><option value="urgent">Urgent</option></select></label><label>SLA hours<input type="number" formControlName="slaHours" /></label><label>Sort order<input type="number" formControlName="sortOrder" /></label><label class="check-line"><input type="checkbox" formControlName="isActive" /> Active</label><label class="span-2">Description<input formControlName="description" /></label><button class="primary-action" type="submit" [disabled]="supportCategoryForm.invalid || isSupportSaving()">Save Category</button></form></article><article class="panel"><div class="panel-heading"><div><h2>Categories</h2><p>Category records only.</p></div></div><div class="plan-admin-list">@for (row of supportCategories(); track row._id || row.code) { <span><strong>{{ row.name }}</strong><em>{{ row.defaultPriority }} � SLA {{ row.slaHours }}h � {{ row.isActive === false ? 'inactive' : 'active' }}</em><button type="button" class="table-action" [disabled]="!row._id || isSupportSaving()" (click)="toggleSupportCategory(row)">{{ row.isActive === false ? 'Activate' : 'Inactive' }}</button></span> } @empty { <div class="empty-state">No categories found.</div> }</div></article></section>
+      } @else if (activeSection() === 'knowledge-base') {
+        <section class="workspace-grid"><article class="panel span-2"><div class="panel-heading"><div><h2>Knowledge Base / FAQ</h2><p>Only FAQ article creation and publish controls.</p></div></div><form class="form-grid" [formGroup]="knowledgeBaseForm" (ngSubmit)="saveKnowledgeArticle()"><label>Title<input formControlName="title" /></label><label>Slug<input formControlName="slug" placeholder="auto if blank" /></label><label>Category<input formControlName="category" /></label><label>Sort order<input type="number" formControlName="sortOrder" /></label><label class="span-2">Question<input formControlName="question" /></label><label class="span-2">Answer<textarea rows="6" formControlName="answer"></textarea></label><label class="span-2">Tags<input formControlName="tags" placeholder="billing, login" /></label><label class="check-line"><input type="checkbox" formControlName="isPublished" /> Published</label><button class="primary-action" type="submit" [disabled]="knowledgeBaseForm.invalid || isSupportSaving()">Save Article</button></form></article><article class="panel"><div class="panel-heading"><div><h2>FAQ Articles</h2><p>Knowledge base records only.</p></div></div><div class="plan-admin-list">@for (row of knowledgeArticles(); track row._id || row.slug) { <span><strong>{{ row.title }}</strong><em>{{ row.category }} � {{ row.isPublished === false ? 'draft' : 'published' }}</em><small>{{ row.question || row.answer }}</small><button type="button" class="table-action" [disabled]="!row._id || isSupportSaving()" (click)="toggleKnowledgeArticle(row)">{{ row.isPublished === false ? 'Publish' : 'Draft' }}</button></span> } @empty { <div class="empty-state">No knowledge base articles found.</div> }</div></article></section>      } @else if (activeSection() === 'announcements') {
+        <section class="workspace-grid">
+          <article class="panel span-2">
+            <div class="panel-heading"><div><h2>Platform Announcement</h2><p>Only platform announcement creation, publish window and audience controls.</p></div><button class="primary-action" type="button" (click)="loadNotificationOverview()">Refresh</button></div>
+            <div class="summary-grid"><span><strong>{{ notificationStat('totalAnnouncements') }}</strong>Total</span><span><strong>{{ notificationStat('publishedAnnouncements') }}</strong>Published</span><span><strong>{{ notificationStat('activeTemplates') }}</strong>Active Templates</span><span><strong>{{ notificationStat('activeGateways') }}</strong>Active Gateways</span></div>
+            <form class="form-grid" [formGroup]="announcementForm" (ngSubmit)="saveAnnouncement()">
+              <label>Title<input formControlName="title" placeholder="Maintenance notice" /></label>
+              <label>Audience<select formControlName="audience"><option value="all">All</option><option value="companies">Companies</option><option value="admins">Admins</option><option value="users">Users</option></select></label>
+              <label>Priority<select formControlName="priority"><option value="normal">Normal</option><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option><option value="urgent">Urgent</option></select></label>
+              <label>Action URL<input formControlName="actionUrl" placeholder="/dashboard" /></label>
+              <label>Starts at<input type="datetime-local" formControlName="startsAt" /></label>
+              <label>Ends at<input type="datetime-local" formControlName="endsAt" /></label>
+              <label class="span-2">Message<textarea rows="5" formControlName="message"></textarea></label>
+              <label class="check-line"><input type="checkbox" formControlName="isPublished" /> Published</label>
+              <button class="primary-action" type="submit" [disabled]="announcementForm.invalid || isNotificationSaving()">Save Announcement</button>
+            </form>
+          </article>
+          <article class="panel">
+            <div class="panel-heading"><div><h2>Announcements</h2><p>Announcement records only.</p></div></div>
+            <div class="plan-admin-list">
+              @for (row of announcements(); track row._id || row.title) { <span><strong>{{ row.title }}</strong><em>{{ row.audience }} · {{ row.priority }} · {{ row.isPublished === false ? 'draft' : 'published' }}</em><small>{{ row.message }}</small><button type="button" class="table-action" [disabled]="!row._id || isNotificationSaving()" (click)="toggleAnnouncement(row)">{{ row.isPublished === false ? 'Publish' : 'Draft' }}</button></span> } @empty { <div class="empty-state">No announcements found.</div> }
+            </div>
+          </article>
+        </section>
+      } @else if (activeSection() === 'notification-templates') {
+        <section class="workspace-grid">
+          <article class="panel span-2">
+            <div class="panel-heading"><div><h2>Notification Templates</h2><p>Only reusable in-app, email and SMS template controls.</p></div></div>
+            <form class="form-grid" [formGroup]="notificationTemplateForm" (ngSubmit)="saveNotificationTemplate()">
+              <label>Name<input formControlName="name" placeholder="Subscription Expiry Alert" /></label>
+              <label>Code<input formControlName="code" placeholder="auto if blank" /></label>
+              <label>Channel<select formControlName="channel"><option value="in_app">In App</option><option value="email">Email</option><option value="sms">SMS</option><option value="both">Email + SMS</option></select></label>
+              <label class="check-line"><input type="checkbox" formControlName="isActive" /> Active</label>
+              <label class="span-2">Subject<input formControlName="subject" placeholder="Required for email" /></label>
+              <label class="span-2">Body<textarea rows="6" formControlName="body" [placeholder]="'Hello {{name}},'"></textarea></label>
+              <label class="span-2">Variables<input formControlName="variables" placeholder="name, plan, expiryDate" /></label>
+              <button class="primary-action" type="submit" [disabled]="notificationTemplateForm.invalid || isNotificationSaving()">Save Template</button>
+            </form>
+          </article>
+          <article class="panel">
+            <div class="panel-heading"><div><h2>Templates</h2><p>Notification template records only.</p></div></div>
+            <div class="plan-admin-list">
+              @for (row of notificationTemplates(); track row._id || row.code) { <span><strong>{{ row.name }}</strong><em>{{ row.channel }} · {{ row.code }} · {{ row.isActive === false ? 'inactive' : 'active' }}</em><small>{{ row.subject || row.body }}</small><button type="button" class="table-action" [disabled]="!row._id || isNotificationSaving()" (click)="toggleNotificationTemplate(row)">{{ row.isActive === false ? 'Activate' : 'Inactive' }}</button></span> } @empty { <div class="empty-state">No notification templates found.</div> }
+            </div>
+          </article>
+        </section>
+      } @else if (activeSection() === 'email-sms') {
+        <section class="workspace-grid">
+          <article class="panel span-2">
+            <div class="panel-heading"><div><h2>Email/SMS Configuration</h2><p>Only communication gateway setup, active state and configuration status.</p></div></div>
+            <form class="form-grid" [formGroup]="gatewayForm" (ngSubmit)="saveGatewaySetting()">
+              <label>Provider<input formControlName="provider" placeholder="smtp or msg91" /></label>
+              <label>Label<input formControlName="label" placeholder="SMTP Email" /></label>
+              <label>Channel<select formControlName="channel"><option value="email">Email</option><option value="sms">SMS</option></select></label>
+              <label>Host<input formControlName="host" placeholder="smtp.example.com" /></label>
+              <label>Port<input formControlName="port" placeholder="587" /></label>
+              <label>From<input formControlName="from" placeholder="noreply@example.com" /></label>
+              <label>Sender ID<input formControlName="senderId" placeholder="OPASBZ" /></label>
+              <label>API Key<input formControlName="apiKey" type="password" /></label>
+              <label class="check-line"><input type="checkbox" formControlName="isActive" /> Active</label>
+              <button class="primary-action" type="submit" [disabled]="gatewayForm.invalid || isNotificationSaving()">Save Gateway</button>
+            </form>
+          </article>
+          <article class="panel">
+            <div class="panel-heading"><div><h2>Gateways</h2><p>Email/SMS gateway records only.</p></div></div>
+            <div class="summary-grid"><span><strong>{{ notificationStat('configuredGateways') }}</strong>Configured</span><span><strong>{{ notificationStat('activeGateways') }}</strong>Active</span></div>
+            <div class="plan-admin-list">
+              @for (row of communicationGateways(); track row._id || row.provider) { <span><strong>{{ row.label || row.provider }}</strong><em>{{ row.channel }} · {{ row.isConfigured ? 'configured' : 'missing config' }} · {{ row.isActive === false ? 'inactive' : 'active' }}</em><small>{{ gatewayConfigLabel(row) }}</small><button type="button" class="table-action" [disabled]="!row._id || isNotificationSaving()" (click)="toggleGateway(row)">{{ row.isActive === false ? 'Activate' : 'Inactive' }}</button></span> } @empty { <div class="empty-state">No gateways found.</div> }
+            </div>
+          </article>
+        </section>      } @else if (activeSection() === 'system-logs') {
+        <section class="workspace-grid">
+          <article class="panel span-2"><div class="panel-heading"><div><h2>System Activity Logs</h2><p>Only platform modules, status changes, billing, support, backups and announcement activity.</p></div><button class="primary-action" type="button" (click)="loadAuditOverview()">Refresh</button></div>
+            <div class="summary-grid"><span><strong>{{ auditStat('systemLogs') }}</strong>System Events</span><span><strong>{{ auditStat('activeSessions') }}</strong>Active Sessions</span><span><strong>{{ auditStat('failedAttempts') }}</strong>Failed Attempts</span></div>
+            <div class="table-wrap"><table><thead><tr><th>Module</th><th>Action</th><th>Actor</th><th>Status</th><th>When</th></tr></thead><tbody>@for (row of systemActivityLogs(); track (row.module || '') + (row.action || '') + (row.createdAt || '')) { <tr><td>{{ row.module }}</td><td>{{ row.action }}</td><td>{{ row.actor }}</td><td><span class="status-pill">{{ row.status || '-' }}</span></td><td>{{ formatDate(row.createdAt) }}</td></tr> } @empty { <tr><td colspan="5" class="empty-state">No system activity found.</td></tr> }</tbody></table></div>
+          </article>
+        </section>
+      } @else if (activeSection() === 'auth-history') {
+        <section class="workspace-grid">
+          <article class="panel span-2"><div class="panel-heading"><div><h2>Login/Logout History</h2><p>Only successful login and logout audit entries.</p></div><button class="primary-action" type="button" (click)="loadAuditOverview()">Refresh</button></div>
+            <div class="summary-grid"><span><strong>{{ auditStat('logins') }}</strong>Logins</span><span><strong>{{ auditStat('logouts') }}</strong>Logouts</span><span><strong>{{ auditStat('activeSessions') }}</strong>Sessions</span></div>
+            <div class="table-wrap"><table><thead><tr><th>User</th><th>Status</th><th>Reason</th><th>IP</th><th>When</th></tr></thead><tbody>@for (row of authHistoryLogs(); track row._id || (row.email || '') + (row.createdAt || '')) { <tr><td>{{ row.user?.name || row.email }}</td><td><span class="status-pill success">{{ row.status }}</span></td><td>{{ row.reason || '-' }}</td><td>{{ row.ipAddress || '-' }}</td><td>{{ formatDate(row.createdAt) }}</td></tr> } @empty { <tr><td colspan="5" class="empty-state">No login/logout history found.</td></tr> }</tbody></table></div>
+          </article>
+          <article class="panel"><div class="panel-heading"><div><h2>Recent Sessions</h2><p>Session records only.</p></div></div><div class="plan-admin-list">@for (row of activeSessionRows(); track row._id) { <span><strong>{{ row.user?.name || row.user?.email || 'Session' }}</strong><em>{{ row.isRevoked ? 'revoked' : 'active' }} · {{ row.ipAddress || '-' }}</em><small>{{ row.deviceName || row.userAgent }}</small></span> } @empty { <div class="empty-state">No sessions found.</div> }</div></article>
+        </section>
+      } @else if (activeSection() === 'failed-logins') {
+        <section class="workspace-grid">
+          <article class="panel span-2"><div class="panel-heading"><div><h2>Failed Login Attempts</h2><p>Only failed and locked login attempts.</p></div><button class="primary-action" type="button" (click)="loadAuditOverview()">Refresh</button></div>
+            <div class="summary-grid"><span><strong>{{ auditStat('failedAttempts') }}</strong>Failed/Locked</span><span><strong>{{ failedLoginAttempts().length }}</strong>Shown</span></div>
+            <div class="table-wrap"><table><thead><tr><th>Email</th><th>Status</th><th>Reason</th><th>IP</th><th>When</th></tr></thead><tbody>@for (row of failedLoginAttempts(); track row._id || (row.email || '') + (row.createdAt || '')) { <tr><td>{{ row.email || row.user?.email }}</td><td><span class="status-pill danger">{{ row.status }}</span></td><td>{{ row.reason || '-' }}</td><td>{{ row.ipAddress || '-' }}</td><td>{{ formatDate(row.createdAt) }}</td></tr> } @empty { <tr><td colspan="5" class="empty-state">No failed login attempts found.</td></tr> }</tbody></table></div>
+          </article>
+        </section>
+      } @else if (activeSection() === 'general-settings') {
+        <section class="workspace-grid">
+          <article class="panel span-2"><div class="panel-heading"><div><h2>Platform General Settings</h2><p>Only platform identity, support contact, registration and maintenance controls.</p></div><button class="primary-action" type="button" (click)="loadPlatformSettings()">Refresh</button></div>
+            <form class="form-grid" [formGroup]="platformGeneralForm" (ngSubmit)="savePlatformGeneralSettings()"><label>App name<input formControlName="appName" /></label><label>Company name<input formControlName="companyName" /></label><label>Support email<input formControlName="supportEmail" /></label><label>Support phone<input formControlName="supportPhone" /></label><label>Timezone<input formControlName="defaultTimezone" /></label><label class="check-line"><input type="checkbox" formControlName="registrationEnabled" /> Registration enabled</label><label class="check-line"><input type="checkbox" formControlName="maintenanceMode" /> Maintenance mode</label><button class="primary-action" type="submit" [disabled]="platformGeneralForm.invalid || isPlatformSaving()">Save Platform Settings</button></form>
+          </article>
+          <article class="panel"><div class="panel-heading"><div><h2>Theme</h2><p>Maximal Super Admin visual theme controls.</p></div></div><form class="theme-settings-grid" [formGroup]="platformThemeForm" (ngSubmit)="savePlatformTheme()"><label>Heading<input formControlName="primaryColor" type="color" /></label><label>Accent<input formControlName="accentColor" type="color" /></label><label>Danger<input formControlName="dangerColor" type="color" /></label><label>Sidebar Start<input formControlName="sidebarStart" type="color" /></label><label>Sidebar End<input formControlName="sidebarEnd" type="color" /></label><button class="primary-action" type="submit">Save Theme</button><button class="ghost-btn" type="button" (click)="resetPlatformTheme()">Reset</button></form></article>
+        </section>
+      } @else if (activeSection() === 'security') {
+        <section class="workspace-grid">
+          <article class="panel span-2"><div class="panel-heading"><div><h2>Security Settings</h2><p>Only password policy, session timeout, lockout and 2FA enforcement settings.</p></div><button class="primary-action" type="button" (click)="loadPlatformSettings()">Refresh</button></div>
+            <form class="form-grid" [formGroup]="securitySettingsForm" (ngSubmit)="saveSecuritySettings()"><label>Password min length<input type="number" formControlName="passwordMinLength" /></label><label>Session timeout minutes<input type="number" formControlName="sessionTimeoutMinutes" /></label><label>Max login attempts<input type="number" formControlName="maxLoginAttempts" /></label><label>Lockout minutes<input type="number" formControlName="lockoutMinutes" /></label><label class="check-line"><input type="checkbox" formControlName="requireStrongPassword" /> Strong password required</label><label class="check-line"><input type="checkbox" formControlName="enforceTwoFactor" /> Enforce 2FA</label><button class="primary-action" type="submit" [disabled]="securitySettingsForm.invalid || isPlatformSaving()">Save Security Settings</button></form>
+          </article>
+        </section>
+      } @else if (activeSection() === 'backup') {
+        <section class="workspace-grid">
+          <article class="panel"><div class="panel-heading"><div><h2>Backup & Data Export</h2><p>Only backup generation, export type and history.</p></div><button class="primary-action" type="button" (click)="loadBackupHistory()">Refresh</button></div><form class="form-grid" [formGroup]="backupExportForm" (ngSubmit)="createBackupExport()"><label>Export type<select formControlName="type"><option value="full">Full</option><option value="companies">Companies</option><option value="users">Users</option><option value="billing">Billing</option><option value="audit">Audit</option></select></label><label>Format<select formControlName="format"><option value="json">JSON</option><option value="csv">CSV</option></select></label><label class="span-2">Notes<input formControlName="notes" /></label><button class="primary-action" type="submit" [disabled]="isPlatformSaving()">Generate Export</button></form></article>
+          <article class="panel span-2"><div class="panel-heading"><div><h2>Export History</h2><p>Generated backup/export records only.</p></div></div><div class="table-wrap"><table><thead><tr><th>File</th><th>Type</th><th>Format</th><th>Records</th><th>Status</th><th>Created</th></tr></thead><tbody>@for (row of backupRows(); track row._id || row.fileName) { <tr><td>{{ row.fileName }}</td><td>{{ row.type }}</td><td>{{ row.format }}</td><td>{{ row.recordCount || 0 }}</td><td><span class="status-pill success">{{ row.status }}</span></td><td>{{ formatDate(row.createdAt) }}</td></tr> } @empty { <tr><td colspan="6" class="empty-state">No backup exports found.</td></tr> }</tbody></table></div></article>
+        </section>
+      } @else if (activeSection() === 'profile') {
+        <section class="workspace-grid"><article class="panel span-2"><div class="panel-heading"><div><h2>Profile Settings</h2><p>Only Super Admin profile fields and account metadata.</p></div><button class="primary-action" type="button" (click)="patchProfileFormFromUser()">Reload</button></div><form class="form-grid" [formGroup]="profileSettingsForm" (ngSubmit)="saveProfileSettings()"><label>Name<input formControlName="name" /></label><label>Mobile<input formControlName="mobile" /></label><label>Department<input formControlName="department" /></label><label>Designation<input formControlName="designation" /></label><button class="primary-action" type="submit" [disabled]="profileSettingsForm.invalid || isPlatformSaving()">Save Profile</button></form></article><article class="panel"><div class="panel-heading"><div><h2>Account</h2><p>Current signed-in profile.</p></div></div><div class="summary-grid"><span><strong>{{ userName() }}</strong>Name</span><span><strong>{{ userEmail() }}</strong>Email</span><span><strong>{{ user()?.role || 'super_admin' }}</strong>Role</span></div></article></section>
+      } @else if (activeSection() === 'change-password') {
+        <section class="workspace-grid"><article class="panel span-2"><div class="panel-heading"><div><h2>Change Password</h2><p>Only password update. Active sessions are revoked after successful change.</p></div></div><form class="form-grid" [formGroup]="superAdminPasswordForm" (ngSubmit)="changeSuperAdminPassword()"><label>Current password<input type="password" formControlName="currentPassword" /></label><label>New password<input type="password" formControlName="newPassword" /></label><label>Confirm password<input type="password" formControlName="confirmPassword" /></label><button class="primary-action" type="submit" [disabled]="superAdminPasswordForm.invalid || isPlatformSaving()">Change Password</button></form></article></section>
+      } @else if (activeSection() === 'my-activity') {
+        <section class="workspace-grid"><article class="panel span-2"><div class="panel-heading"><div><h2>Activity Log</h2><p>Only this Super Admin login, session and export activity.</p></div><button class="primary-action" type="button" (click)="loadProfileActivity()">Refresh</button></div><div class="table-wrap"><table><thead><tr><th>Type</th><th>Status</th><th>Detail</th><th>When</th></tr></thead><tbody>@for (row of profileLoginRows(); track row._id || row.createdAt) { <tr><td>Login Audit</td><td>{{ row.status }}</td><td>{{ row.reason || row.ipAddress || '-' }}</td><td>{{ formatDate(row.createdAt) }}</td></tr> } @for (row of profileBackupRows(); track row._id || row.fileName) { <tr><td>Backup</td><td>{{ row.status }}</td><td>{{ row.fileName }}</td><td>{{ formatDate(row.createdAt) }}</td></tr> } @empty { <tr><td colspan="4" class="empty-state">No profile activity found.</td></tr> }</tbody></table></div></article><article class="panel"><div class="panel-heading"><div><h2>My Sessions</h2><p>Session history only.</p></div></div><div class="plan-admin-list">@for (row of profileSessionRows(); track row._id) { <span><strong>{{ row.deviceName || 'Session' }}</strong><em>{{ row.isRevoked ? 'revoked' : 'active' }} · {{ row.ipAddress || '-' }}</em><small>{{ formatDate(row.createdAt) }}</small></span> } @empty { <div class="empty-state">No sessions found.</div> }</div></article></section>      } @else {
+        <article class="panel">
+          <div class="panel-heading">
+            <div>
+              <h2>{{ sectionTitle() }}</h2>
+              <p>Minimal workspace ready for this platform module.</p>
+            </div>
+            <span class="phase-pill">{{ phaseLabel() }}</span>
+          </div>
+
+          <div class="module-grid">
+            @for (row of placeholderRows(); track row) {
+              <span>
+                <strong>{{ row }}</strong>
+                <em>Configured from super admin console</em>
+              </span>
+            }
+          </div>
+        </article>
+      }
+    </main>
+  </div>
+</section>
+
+
+
+
+
+

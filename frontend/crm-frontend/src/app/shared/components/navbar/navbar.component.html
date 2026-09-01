@@ -1,0 +1,37 @@
+<header class="topbar">
+  <button class="icon-btn menu-btn" type="button" (click)="menuToggle.emit()" aria-label="Open menu">
+    <span class="hamburger"></span>
+  </button>
+
+  <div class="page-title">
+    <span>Workspace</span>
+    <h1>{{ pageTitle() }}</h1>
+  </div>
+
+  <label class="search-box" aria-label="Global search">
+    <span>Search</span>
+    <input type="search" placeholder="Search leads, contacts, invoices..." />
+  </label>
+
+  <button class="icon-btn notification-btn" type="button" aria-label="Notifications">
+    <span class="bell"></span>
+    <span class="notification-count">{{ notifications() }}</span>
+  </button>
+
+  <div class="dropdown">
+    <button class="user-trigger" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+      @if (companyLogoUrl()) {
+        <img [src]="companyLogoUrl()" alt="Company logo" />
+      } @else {
+        <span>{{ userName().charAt(0).toUpperCase() }}</span>
+      }
+      <strong>{{ userName() }}</strong>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end">
+      <li><a class="dropdown-item" routerLink="/settings/profile">Profile</a></li>
+      <li><a class="dropdown-item" routerLink="/settings/company">Settings</a></li>
+      <li><hr class="dropdown-divider" /></li>
+      <li><button class="dropdown-item text-danger" type="button" (click)="logout()">Logout</button></li>
+    </ul>
+  </div>
+</header>

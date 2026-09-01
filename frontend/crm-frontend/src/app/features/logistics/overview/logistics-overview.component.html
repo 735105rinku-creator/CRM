@@ -1,0 +1,129 @@
+﻿<section class="logistics-overview-page">
+  <header class="overview-header">
+    <div>
+      <span>LOGISTICS WORK STATUS</span>
+      <h1>Logistics Overview</h1>
+      <p>Live scope: {{ overview().viewScope || 'own' }}</p>
+    </div>
+    <button type="button" (click)="loadOverview()">Refresh</button>
+  </header>
+
+  @if (error()) {
+    <div class="notice">{{ error() }}</div>
+  }
+
+  <section class="status-grid">
+    @for (card of cards(); track card.label) {
+      <article class="status-card" [attr.data-tone]="card.tone">
+        <span>{{ card.icon }}</span>
+        <div>
+          <small>{{ card.label }}</small>
+          <strong>{{ card.value }}</strong>
+        </div>
+      </article>
+    }
+  </section>
+
+  <div class="overview-grid">
+    <section class="neo-panel shipments-panel">
+      <header>
+        <div>
+          <span>SHIPMENTS</span>
+          <h2>Current Work</h2>
+        </div>
+      </header>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Shipment</th>
+              <th>Customer</th>
+              <th>Mode</th>
+              <th>Status</th>
+              <th>Location</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (shipment of overview().recentShipments || []; track shipment._id || shipment.shipmentNumber) {
+              <tr [class.selected]="selectedShipment()?._id === shipment._id">
+                <td>{{ shipment.shipmentNumber || '-' }}</td>
+                <td>{{ shipment.customerName || '-' }}</td>
+                <td>{{ shipment.shipmentMode || '-' }}</td>
+                <td><span class="status-pill">{{ shipment.status || '-' }}</span></td>
+                <td>{{ shipment.currentLocation || '-' }}</td>
+                <td><button type="button" (click)="openHistory(shipment)">&#8250;</button></td>
+              </tr>
+            } @empty {
+              <tr><td colspan="6">No shipments found.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <aside class="neo-panel timeline-panel">
+      <header>
+        <div>
+          <span>AUDIT TRAIL</span>
+          <h2>Status History</h2>
+        </div>
+      </header>
+
+      @if (selectedShipment()) {
+        <div class="timeline">
+          @for (item of history(); track item.changedAt || item.status) {
+            <article>
+              <b>{{ item.status }}</b>
+              <p>{{ item.remarks || '-' }}</p>
+              <small>{{ changedBy(item) }} | {{ item.changedAt | date: 'medium' }}</small>
+            </article>
+          } @empty {
+            <p class="muted">No history available.</p>
+          }
+        </div>
+
+        @if (canUpdateStatus()) {
+          <div class="status-form">
+            <select [ngModel]="statusForm().status" (ngModelChange)="setStatus($event)">
+              <option value="booking_created">Assigned</option>
+              <option value="in_transit">In Progress</option>
+              <option value="documents_pending">Pending</option>
+              <option value="delivered">Completed</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+            <input [ngModel]="statusForm().currentLocation" (ngModelChange)="setCurrentLocation($event)" placeholder="Location" />
+            <textarea [ngModel]="statusForm().remarks" (ngModelChange)="setRemarks($event)" placeholder="Remarks"></textarea>
+            <button type="button" [disabled]="statusUpdating()" (click)="updateStatus()">Update Status</button>
+          </div>
+        }
+      } @else {
+        <p class="muted">Select a shipment to view full timeline.</p>
+      }
+    </aside>
+  </div>
+
+  @if (canShowEmployeeBreakdown()) {
+    <section class="neo-panel employee-panel">
+      <header>
+        <div>
+          <span>EMPLOYEE WISE</span>
+          <h2>Work Breakdown</h2>
+        </div>
+      </header>
+      <div class="employee-grid">
+        @for (row of overview().employeeBreakdown || []; track row.employeeId || row.employeeCode) {
+          <article>
+            <strong>{{ employeeName(row) }}</strong>
+            <small>{{ row.employeeCode || '-' }}</small>
+            <div><span>Total</span><b>{{ row.total || 0 }}</b></div>
+            <div><span>Pending</span><b>{{ row.pending || 0 }}</b></div>
+            <div><span>Progress</span><b>{{ row.inProgress || 0 }}</b></div>
+            <div><span>Done</span><b>{{ row.completed || 0 }}</b></div>
+          </article>
+        }
+      </div>
+    </section>
+  }
+</section>

@@ -1,0 +1,610 @@
+<div class="sea-page">
+
+    <header class="page-header">
+      <div>
+        <div class="breadcrumb">
+          Logistics <b>&rsaquo;</b> Sea Freight
+        </div>
+  
+        <div class="title-row">
+          <span class="title-icon">&#9875;</span>
+  
+          <div>
+            <h1>Sea Freight Management</h1>
+            <p>
+              Manage FCL, LCL, containers, vessels and ocean freight shipments.
+            </p>
+          </div>
+        </div>
+      </div>
+  
+      <button
+        type="button"
+        class="gold-button"
+        (click)="openNewShipment()"
+      >
+        &#43; New Sea Shipment
+      </button>
+    </header>
+  
+    <main class="page-content">
+  
+      <section class="summary-grid">
+        <article>
+          <span>&#9875;</span>
+          <div>
+            <small>Total Shipments</small>
+            <strong>{{ summary().total }}</strong>
+            <p>Sea freight records</p>
+          </div>
+        </article>
+  
+        <article>
+          <span>&nearr;</span>
+          <div>
+            <small>In Transit</small>
+            <strong>{{ summary().transit }}</strong>
+            <p>Currently at sea</p>
+          </div>
+        </article>
+  
+        <article>
+          <span>&#9673;</span>
+          <div>
+            <small>Customs</small>
+            <strong>{{ summary().customs }}</strong>
+            <p>Under clearance</p>
+          </div>
+        </article>
+  
+        <article>
+          <span>&#10003;</span>
+          <div>
+            <small>Delivered</small>
+            <strong>{{ summary().delivered }}</strong>
+            <p>Completed shipments</p>
+          </div>
+        </article>
+      </section>
+  
+      @if (showForm()) {
+        <section class="form-card">
+  
+          <header class="section-header">
+            <div>
+              <span>NEW BOOKING</span>
+              <h2>Create Sea Freight Shipment</h2>
+              <p>Enter complete ocean freight information.</p>
+            </div>
+  
+            <button
+              type="button"
+              class="close-button"
+              (click)="closeForm()"
+            >
+              &times;
+            </button>
+          </header>
+  
+          <div class="section-block">
+            <h3>1. Customer Details</h3>
+  
+            <div class="form-grid">
+              <div class="field span-2">
+                <label><span class="field-label-icon icon-customer" aria-hidden="true"></span>Customer <span class="required-star">*</span></label>
+  
+                <select [(ngModel)]="form.customer" (change)="onCustomerSelected()">
+                  <option value="">Select Customer</option>
+  
+                  @for (option of customers; track option.value) {
+                    <option [value]="option.value">
+                      {{ option.label }}
+                    </option>
+                  }
+                </select>
+  
+                @if (form.customer === 'other') {
+                  <input
+                    class="other-input"
+                    [(ngModel)]="form.customerOther"
+                    placeholder="Enter customer name"
+                  />
+                }
+              </div>
+  
+              <div class="field">
+                <label>Contact Person</label>
+                <input
+                  [(ngModel)]="form.contactPerson"
+                  placeholder="Enter contact person"
+                />
+              </div>
+  
+              <div class="field">
+                <label>Mobile</label>
+                <input
+                  [(ngModel)]="form.mobile"
+                  placeholder="Enter mobile number"
+                />
+              </div>
+  
+              <div class="field span-2">
+                <label>Email</label>
+                <input
+                  type="email"
+                  [(ngModel)]="form.email"
+                  placeholder="Enter email"
+                />
+              </div>
+            </div>
+          </div>
+  
+          <div class="section-block">
+            <h3>2. Cargo & Container Details</h3>
+  
+            <div class="form-grid">
+              <div class="field">
+                <label>Shipment Type *</label>
+  
+                <select [(ngModel)]="form.shipmentType">
+                  <option value="">Select Type</option>
+  
+                  @for (option of shipmentTypes; track option.value) {
+                    <option [value]="option.value">
+                      {{ option.label }}
+                    </option>
+                  }
+                </select>
+  
+                @if (form.shipmentType === 'other') {
+                  <input
+                    class="other-input"
+                    [(ngModel)]="form.shipmentTypeOther"
+                    placeholder="Enter shipment type"
+                  />
+                }
+              </div>
+  
+              <div class="field">
+                <label>Commodity *</label>
+  
+                <select [(ngModel)]="form.commodity">
+                  <option value="">Select Commodity</option>
+  
+                  @for (option of commodityTypes; track option.value) {
+                    <option [value]="option.value">
+                      {{ option.label }}
+                    </option>
+                  }
+                </select>
+  
+                @if (form.commodity === 'other') {
+                  <input
+                    class="other-input"
+                    [(ngModel)]="form.commodityOther"
+                    placeholder="Enter commodity"
+                  />
+                }
+              </div>
+  
+              <div class="field">
+                <label>Quantity</label>
+                <input
+                  type="number"
+                  [(ngModel)]="form.quantity"
+                />
+              </div>
+  
+              <div class="field">
+                <label>Gross Weight (Kg)</label>
+                <input
+                  type="number"
+                  [(ngModel)]="form.grossWeight"
+                />
+              </div>
+  
+              <div class="field">
+                <label>Container Type *</label>
+  
+                <select [(ngModel)]="form.containerType">
+                  <option value="">Select Container</option>
+  
+                  @for (option of containerTypes; track option.value) {
+                    <option [value]="option.value">
+                      {{ option.label }}
+                    </option>
+                  }
+                </select>
+  
+                @if (form.containerType === 'other') {
+                  <input
+                    class="other-input"
+                    [(ngModel)]="form.containerTypeOther"
+                    placeholder="Enter container type"
+                  />
+                }
+              </div>
+  
+              <div class="field">
+                <label>Container Count</label>
+                <input
+                  type="number"
+                  min="1"
+                  [(ngModel)]="form.containerCount"
+                />
+              </div>
+  
+              <div class="field">
+                <label>Container Number</label>
+                <input
+                  [(ngModel)]="form.containerNumber"
+                  placeholder="Enter container no."
+                />
+              </div>
+  
+              <div class="field">
+                <label>Seal Number</label>
+                <input
+                  [(ngModel)]="form.sealNumber"
+                  placeholder="Enter seal no."
+                />
+              </div>
+            </div>
+          </div>
+  
+          <div class="section-block">
+            <h3>3. Route & Vessel Details</h3>
+  
+            <div class="form-grid">
+              <div class="field">
+                <label>Origin Port *</label>
+  
+                <select [(ngModel)]="form.originPort">
+                  <option value="">Select Origin</option>
+  
+                  @for (option of ports; track option.value) {
+                    <option [value]="option.value">
+                      {{ option.label }}
+                    </option>
+                  }
+                </select>
+  
+                @if (form.originPort === 'other') {
+                  <input
+                    class="other-input"
+                    [(ngModel)]="form.originPortOther"
+                    placeholder="Enter origin port"
+                  />
+                }
+              </div>
+  
+              <div class="field">
+                <label>Destination Port *</label>
+  
+                <select [(ngModel)]="form.destinationPort">
+                  <option value="">Select Destination</option>
+  
+                  @for (option of ports; track option.value) {
+                    <option [value]="option.value">
+                      {{ option.label }}
+                    </option>
+                  }
+                </select>
+  
+                @if (form.destinationPort === 'other') {
+                  <input
+                    class="other-input"
+                    [(ngModel)]="form.destinationPortOther"
+                    placeholder="Enter destination port"
+                  />
+                }
+              </div>
+  
+              <div class="field">
+                <label>Shipping Line *</label>
+  
+                <select [(ngModel)]="form.shippingLine">
+                  <option value="">Select Shipping Line</option>
+  
+                  @for (option of shippingLines; track option.value) {
+                    <option [value]="option.value">
+                      {{ option.label }}
+                    </option>
+                  }
+                </select>
+  
+                @if (form.shippingLine === 'other') {
+                  <input
+                    class="other-input"
+                    [(ngModel)]="form.shippingLineOther"
+                    placeholder="Enter shipping line"
+                  />
+                }
+              </div>
+  
+              <div class="field">
+                <label>Vessel Name</label>
+                <input
+                  [(ngModel)]="form.vesselName"
+                  placeholder="Enter vessel name"
+                />
+              </div>
+  
+              <div class="field">
+                <label>Voyage Number</label>
+                <input
+                  [(ngModel)]="form.voyageNumber"
+                  placeholder="Enter voyage number"
+                />
+              </div>
+  
+              <div class="field">
+                <label>Booking Number</label>
+                <input
+                  [(ngModel)]="form.bookingNumber"
+                  placeholder="Enter booking number"
+                />
+              </div>
+  
+              <div class="field">
+                <label>Bill of Lading</label>
+                <input
+                  [(ngModel)]="form.billOfLading"
+                  placeholder="Enter B/L number"
+                />
+              </div>
+  
+              <div class="field">
+                <label>ETD</label>
+                <input
+                  type="date"
+                  [(ngModel)]="form.etd"
+                />
+              </div>
+  
+              <div class="field">
+                <label>ETA</label>
+                <input
+                  type="date"
+                  [(ngModel)]="form.eta"
+                />
+              </div>
+            </div>
+          </div>
+  
+          <div class="section-block">
+            <h3>4. Charges</h3>
+  
+            <div class="form-grid">
+              <div class="field">
+                <label>Ocean Freight</label>
+                <input
+                  type="number"
+                  [(ngModel)]="form.freightAmount"
+                />
+              </div>
+  
+              <div class="field">
+                <label>Documentation Charge</label>
+                <input
+                  type="number"
+                  [(ngModel)]="form.documentationCharge"
+                />
+              </div>
+  
+              <div class="field">
+                <label>CHA Charge</label>
+                <input
+                  type="number"
+                  [(ngModel)]="form.chaCharge"
+                />
+              </div>
+  
+              <div class="field">
+                <label>Transportation Charge</label>
+                <input
+                  type="number"
+                  [(ngModel)]="form.transportationCharge"
+                />
+              </div>
+  
+              <div class="field">
+                <label>Other Charge</label>
+                <input
+                  type="number"
+                  [(ngModel)]="form.otherCharge"
+                />
+              </div>
+            </div>
+          </div>
+  
+          <div class="section-block">
+            <h3>5. Shipment Status</h3>
+  
+            <div class="form-grid">
+              <div class="field span-2">
+                <label>Status *</label>
+  
+                <select [(ngModel)]="form.status">
+                  @for (option of statusOptions; track option.value) {
+                    <option [value]="option.value">
+                      {{ option.label }}
+                    </option>
+                  }
+                </select>
+  
+                @if (form.status === 'other') {
+                  <input
+                    class="other-input"
+                    [(ngModel)]="form.statusOther"
+                    placeholder="Enter shipment status"
+                  />
+                }
+              </div>
+            </div>
+          </div>
+  
+          <!-- REMARKS MUST REMAIN LAST -->
+          <div class="section-block remarks-block">
+            <h3>6. Remarks</h3>
+  
+            <div class="field">
+              <label>Remarks</label>
+              <textarea
+                rows="5"
+                [(ngModel)]="form.remarks"
+                placeholder="Enter final shipment remarks..."
+              ></textarea>
+            </div>
+          </div>
+  
+          <footer class="form-footer">
+            <button
+              type="button"
+              class="soft-button"
+              (click)="closeForm()"
+            >
+              Cancel
+            </button>
+  
+            <button
+              type="button"
+              class="gold-button"
+              (click)="saveShipment()"
+            >
+              Save Sea Shipment
+            </button>
+          </footer>
+  
+        </section>
+      }
+  
+      <section class="filter-card">
+        <div class="search-box">
+          <span>&#8981;</span>
+  
+          <input
+            #searchInput
+            [value]="search()"
+            (input)="search.set(searchInput.value)"
+            placeholder="Search shipment, customer, container or vessel..."
+          />
+        </div>
+  
+        <select
+          #status
+          [value]="statusFilter()"
+          (change)="statusFilter.set(status.value)"
+        >
+          <option value="all">All Status</option>
+  
+          @for (option of statusOptions; track option.value) {
+            @if (option.value !== 'other') {
+              <option [value]="option.value">
+                {{ option.label }}
+              </option>
+            }
+          }
+        </select>
+        <input type="date" [value]="fromDate()" (input)="fromDate.set($any($event.target).value)" aria-label="From Date" />
+        <input type="date" [value]="toDate()" (input)="toDate.set($any($event.target).value)" aria-label="To Date" />
+        <button type="button" class="gold-button" (click)="applyDateFilter()">Apply</button>
+        <button type="button" class="soft-button" (click)="clearDateFilter()">Clear</button>
+      </section>
+  
+      <section class="table-card">
+        <header>
+          <div>
+            <span>SEA FREIGHT</span>
+            <h2>Shipment Register</h2>
+          </div>
+  
+          <strong>
+            {{ filteredShipments().length }} Records
+          </strong>
+        </header>
+  
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Shipment</th>
+                <th>Customer</th>
+                <th>Route</th>
+                <th>Vessel</th>
+                <th>Container</th>
+                <th>ETD</th>
+                <th>ETA</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+  
+            <tbody>
+              @for (
+                shipment of filteredShipments();
+                track shipment.id
+              ) {
+                <tr>
+                  <td>
+                    <strong>{{ shipment.shipmentNo }}</strong>
+                  </td>
+  
+                  <td>{{ shipment.customer }}</td>
+  
+                  <td>
+                    {{ shipment.origin }}
+                    <b class="route-arrow">&rarr;</b>
+                    {{ shipment.destination }}
+                  </td>
+  
+                  <td>{{ shipment.vessel }}</td>
+  
+                  <td>
+                    <span class="container-chip">
+                      {{ shipment.containerNo }}
+                    </span>
+                  </td>
+  
+                  <td>{{ shipment.etd }}</td>
+                  <td>{{ shipment.eta }}</td>
+  
+                  <td>
+                    <span
+                      class="status"
+                      [class]="
+                        'status ' + shipment.status
+                      "
+                    >
+                      {{ statusLabel(shipment.status) }}
+                    </span>
+                  </td>
+  
+                  <td>
+                    <div class="actions">
+                      <button
+                        type="button"
+                        (click)="viewShipment(shipment)"
+                      >
+                        &#43;
+                      </button>
+  
+                      <button
+                        type="button"
+                        (click)="editShipment(shipment)"
+                      >
+                        &#43;
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+  
+    </main>
+  </div>
+
+

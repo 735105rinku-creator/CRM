@@ -1,0 +1,326 @@
+<section class="accounts-dashboard">
+
+  <!-- =====================================================
+       PAGE HEADER
+  ====================================================== -->
+
+  <div class="dashboard-header">
+
+    <div>
+
+      <span class="eyebrow">
+        Accounts & Finance
+      </span>
+
+      <h1>
+        Accounts Dashboard
+      </h1>
+
+      <p>
+        Review receivables, payables, income, expenses,
+        cash position and accounting activity.
+      </p>
+
+    </div>
+
+
+    <div class="financial-year-card">
+
+      <span>
+        Financial Year
+      </span>
+
+      <strong>
+        {{ financialYear() }}
+      </strong>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       SUMMARY CARDS
+  ====================================================== -->
+
+  <div class="summary-grid">
+
+    @for (
+      card of summaryCards();
+      track trackSummaryCard($index, card)
+    ) {
+
+      <a
+        class="summary-card"
+        [routerLink]="card.route || '/accounts/dashboard'"
+      >
+
+        <div class="summary-card-top">
+
+          <span class="summary-title">
+            {{ card.title }}
+          </span>
+
+          <span class="summary-arrow">
+            →
+          </span>
+
+        </div>
+
+
+        <strong class="summary-value">
+
+          @if (
+            card.type === 'currency'
+          ) {
+
+            {{ formatCurrency(card.value) }}
+
+          } @else {
+
+            {{ card.value }}
+
+          }
+
+        </strong>
+
+
+        <span class="summary-subtitle">
+          {{ card.subtitle }}
+        </span>
+
+      </a>
+
+    }
+
+  </div>
+
+
+  <!-- =====================================================
+       PROFIT / LOSS
+  ====================================================== -->
+
+  <div
+    class="profit-card"
+    [class.profit]="profitStatus() === 'profit'"
+    [class.loss]="profitStatus() === 'loss'"
+    [class.neutral]="profitStatus() === 'neutral'"
+  >
+
+    <div>
+
+      <span class="profit-label">
+        Net Profit / Loss
+      </span>
+
+      <strong>
+        {{ formatCurrency(netProfit()) }}
+      </strong>
+
+    </div>
+
+
+    <div class="profit-status">
+
+      @switch (
+        profitStatus()
+      ) {
+
+        @case ('profit') {
+          <span>
+            Profit
+          </span>
+        }
+
+        @case ('loss') {
+          <span>
+            Loss
+          </span>
+        }
+
+        @default {
+          <span>
+            No movement
+          </span>
+        }
+
+      }
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       QUICK ACTIONS
+  ====================================================== -->
+
+  <section class="dashboard-section">
+
+    <div class="section-header">
+
+      <div>
+
+        <span class="section-eyebrow">
+          Quick Actions
+        </span>
+
+        <h2>
+          Common Transactions
+        </h2>
+
+      </div>
+
+    </div>
+
+
+    <div class="quick-actions-grid">
+
+      @for (
+        action of quickActions;
+        track trackQuickAction($index, action)
+      ) {
+
+        <a
+          class="quick-action-card"
+          [routerLink]="action.route"
+        >
+
+          <div class="quick-action-icon">
+            {{ action.shortCode }}
+          </div>
+
+
+          <div class="quick-action-content">
+
+            <strong>
+              {{ action.label }}
+            </strong>
+
+            <p>
+              {{ action.description }}
+            </p>
+
+          </div>
+
+
+          <span class="quick-action-arrow">
+            →
+          </span>
+
+        </a>
+
+      }
+
+    </div>
+
+  </section>
+
+
+  <!-- =====================================================
+       ACCOUNTING MODULES
+  ====================================================== -->
+
+  <section class="dashboard-section">
+
+    <div class="section-header">
+
+      <div>
+
+        <span class="section-eyebrow">
+          Accounting
+        </span>
+
+        <h2>
+          Finance Workspace
+        </h2>
+
+      </div>
+
+    </div>
+
+
+    <div class="module-grid">
+
+      @for (
+        module of moduleShortcuts;
+        track trackModuleShortcut($index, module)
+      ) {
+
+        <a
+          class="module-card"
+          [routerLink]="module.route"
+        >
+
+          <div class="module-card-header">
+
+            <div class="module-code">
+              {{ module.shortCode }}
+            </div>
+
+            <span class="module-arrow">
+              →
+            </span>
+
+          </div>
+
+
+          <h3>
+            {{ module.title }}
+          </h3>
+
+
+          <p>
+            {{ module.description }}
+          </p>
+
+        </a>
+
+      }
+
+    </div>
+
+  </section>
+
+
+  <!-- =====================================================
+       FOUNDATION STATUS
+  ====================================================== -->
+
+  <section class="foundation-card">
+
+    <div class="foundation-icon">
+      AC
+    </div>
+
+
+    <div class="foundation-content">
+
+      <span class="foundation-label">
+        Accounts Foundation
+      </span>
+
+      <h2>
+        Core finance workspace is ready
+      </h2>
+
+      <p>
+        The dedicated Accounts routes, workspace shell and
+        navigation are now in place. Chart of Accounts,
+        Journal and Ledger will provide the accounting engine
+        used by CRM, HRM and Logistics transactions.
+      </p>
+
+    </div>
+
+
+    <a
+      routerLink="/accounts/chart-of-accounts"
+      class="foundation-link"
+    >
+      Chart of Accounts
+    </a>
+
+  </section>
+
+</section>

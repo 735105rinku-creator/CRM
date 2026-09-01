@@ -1,0 +1,1218 @@
+<div class="reports-page">
+
+    <!-- ====================================================
+         HEADER
+    ===================================================== -->
+    <header class="page-header">
+  
+      <div>
+  
+        <div class="breadcrumb">
+          Logistics
+          <b>›</b>
+          Reports
+        </div>
+  
+        <div class="title-row">
+  
+          <span class="title-icon">
+            ▥
+          </span>
+  
+          <div>
+  
+            <h1>
+              Logistics Reports
+            </h1>
+  
+            <p>
+              Analyse shipment performance,
+              revenue, outstanding,
+              GST and vendor payments.
+            </p>
+  
+          </div>
+  
+        </div>
+  
+      </div>
+  
+      <div class="header-actions">
+  
+        <button
+          type="button"
+          class="soft-button"
+          (click)="exportExcel()"
+        >
+          ⇩ Excel
+        </button>
+  
+        <button
+          type="button"
+          class="soft-button"
+          (click)="exportPdf()"
+        >
+          ⇩ PDF
+        </button>
+  
+        <button
+          type="button"
+          class="gold-button"
+          (click)="printReport()"
+        >
+          ▣ Print
+        </button>
+  
+      </div>
+  
+    </header>
+  
+    <main class="page-content">
+  
+      <!-- ====================================================
+           REPORT TYPE
+      ===================================================== -->
+      <section class="report-selector">
+  
+        @for (
+          report of reportTypes;
+          track report.value
+        ) {
+  
+          <button
+            type="button"
+            [class.active]="
+              reportType() ===
+              report.value
+            "
+            (click)="
+              setReportType(
+                report.value
+              )
+            "
+          >
+  
+            <span>
+              @switch (report.value) {
+  
+                @case (
+                  'shipment-performance'
+                ) {
+                  ↗
+                }
+  
+                @case ('sales') {
+                  ₹
+                }
+  
+                @case ('outstanding') {
+                  ◷
+                }
+  
+                @case ('gst') {
+                  %
+                }
+  
+                @case ('vendor-payment') {
+                  ♙
+                }
+  
+              }
+            </span>
+  
+            <strong>
+              {{ report.label }}
+            </strong>
+  
+          </button>
+  
+        }
+  
+      </section>
+  
+      <!-- ====================================================
+           SUMMARY CARDS
+      ===================================================== -->
+      <section class="summary-grid">
+  
+        <article>
+  
+          <span class="summary-icon">
+            ✈
+          </span>
+  
+          <div>
+            <small>
+              Shipments
+            </small>
+  
+            <strong>
+              {{ summary().shipments }}
+            </strong>
+  
+            <p>
+              Matching records
+            </p>
+          </div>
+  
+        </article>
+  
+        <article>
+  
+          <span class="summary-icon sales">
+            ₹
+          </span>
+  
+          <div>
+  
+            <small>
+              Total Sales
+            </small>
+  
+            <strong>
+              {{
+                formatCurrency(
+                  summary().sales
+                )
+              }}
+            </strong>
+  
+            <p>
+              Customer invoice value
+            </p>
+  
+          </div>
+  
+        </article>
+  
+        <article>
+  
+          <span class="summary-icon received">
+            ✓
+          </span>
+  
+          <div>
+  
+            <small>
+              Amount Received
+            </small>
+  
+            <strong>
+              {{
+                formatCurrency(
+                  summary().received
+                )
+              }}
+            </strong>
+  
+            <p>
+              Customer collections
+            </p>
+  
+          </div>
+  
+        </article>
+  
+        <article>
+  
+          <span class="summary-icon outstanding">
+            ◷
+          </span>
+  
+          <div>
+  
+            <small>
+              Outstanding
+            </small>
+  
+            <strong>
+              {{
+                formatCurrency(
+                  summary().outstanding
+                )
+              }}
+            </strong>
+  
+            <p>
+              Customer balance
+            </p>
+  
+          </div>
+  
+        </article>
+  
+        <article>
+  
+          <span class="summary-icon vendor">
+            ♙
+          </span>
+  
+          <div>
+  
+            <small>
+              Vendor Payable
+            </small>
+  
+            <strong>
+              {{
+                formatCurrency(
+                  summary().vendorPayable
+                )
+              }}
+            </strong>
+  
+            <p>
+              Supplier balance
+            </p>
+  
+          </div>
+  
+        </article>
+  
+        <article>
+  
+          <span class="summary-icon tax">
+            %
+          </span>
+  
+          <div>
+  
+            <small>
+              GST
+            </small>
+  
+            <strong>
+              {{
+                formatCurrency(
+                  summary().gst
+                )
+              }}
+            </strong>
+  
+            <p>
+              GST value
+            </p>
+  
+          </div>
+  
+        </article>
+  
+      </section>
+  
+      <!-- ====================================================
+           FILTERS
+      ===================================================== -->
+      <section class="filter-card">
+  
+        <header>
+  
+          <div>
+            <span>
+              REPORT CONTROL
+            </span>
+  
+            <h2>
+              {{ reportTitle() }}
+            </h2>
+  
+            <p>
+              Apply filters to generate
+              the required logistics report.
+            </p>
+          </div>
+  
+          <button
+            type="button"
+            class="clear-button"
+            (click)="clearFilters()"
+          >
+            Clear Filters
+          </button>
+  
+        </header>
+  
+        <div class="filter-grid">
+  
+          <div class="search-box">
+  
+            <span>⌕</span>
+  
+            <input
+              #reportSearch
+              type="search"
+              [value]="search()"
+              (input)="
+                search.set(
+                  reportSearch.value
+                )
+              "
+              placeholder="
+                Search shipment,
+                customer, vendor or route...
+              "
+            />
+  
+          </div>
+  
+          <div class="field">
+  
+            <label>
+              From Date
+            </label>
+  
+            <input
+              #fromDate
+              type="date"
+              [value]="dateFrom()"
+              (change)="
+                dateFrom.set(
+                  fromDate.value
+                )
+              "
+            />
+  
+          </div>
+  
+          <div class="field">
+  
+            <label>
+              To Date
+            </label>
+  
+            <input
+              #toDate
+              type="date"
+              [value]="dateTo()"
+              (change)="
+                dateTo.set(
+                  toDate.value
+                )
+              "
+            />
+  
+          </div>
+  
+          <div class="field">
+  
+            <label>
+              Shipment Mode
+            </label>
+  
+            <select
+              #modeBox
+              [value]="modeFilter()"
+              (change)="
+                modeFilter.set(
+                  modeBox.value
+                )
+              "
+            >
+  
+              <option value="all">
+                All Modes
+              </option>
+  
+              @for (
+                option of shipmentModes;
+                track option.value
+              ) {
+  
+                <option
+                  [value]="option.value"
+                >
+                  {{ option.label }}
+                </option>
+  
+              }
+  
+            </select>
+  
+          </div>
+  
+          <div class="field">
+  
+            <label>
+              Status
+            </label>
+  
+            <select
+              #statusBox
+              [value]="statusFilter()"
+              (change)="
+                statusFilter.set(
+                  statusBox.value
+                )
+              "
+            >
+  
+              <option value="all">
+                All Status
+              </option>
+  
+              @for (
+                option of shipmentStatuses;
+                track option.value
+              ) {
+  
+                <option
+                  [value]="option.value"
+                >
+                  {{ option.label }}
+                </option>
+  
+              }
+  
+            </select>
+  
+          </div>
+  
+        </div>
+  
+      </section>
+  
+      <!-- ====================================================
+           SHIPMENT PERFORMANCE
+      ===================================================== -->
+      @if (
+        reportType() ===
+        'shipment-performance'
+      ) {
+  
+        <section class="analytics-grid">
+  
+          <article class="analytics-card">
+  
+            <header>
+              <div>
+                <span>
+                  MODE BREAKDOWN
+                </span>
+  
+                <h2>
+                  Shipment Distribution
+                </h2>
+              </div>
+            </header>
+  
+            <div class="metric-list">
+  
+              <div>
+  
+                <span>
+                  Air Cargo
+                </span>
+  
+                <div>
+                  <i
+                    [style.width.%]="
+                      summary().shipments
+                        ? (
+                            modeSummary().air /
+                            summary().shipments *
+                            100
+                          )
+                        : 0
+                    "
+                  ></i>
+                </div>
+  
+                <strong>
+                  {{ modeSummary().air }}
+                </strong>
+  
+              </div>
+  
+              <div>
+  
+                <span>
+                  Sea Freight
+                </span>
+  
+                <div>
+                  <i
+                    [style.width.%]="
+                      summary().shipments
+                        ? (
+                            modeSummary().sea /
+                            summary().shipments *
+                            100
+                          )
+                        : 0
+                    "
+                  ></i>
+                </div>
+  
+                <strong>
+                  {{ modeSummary().sea }}
+                </strong>
+  
+              </div>
+  
+              <div>
+  
+                <span>
+                  Road
+                </span>
+  
+                <div>
+                  <i
+                    [style.width.%]="
+                      summary().shipments
+                        ? (
+                            modeSummary().road /
+                            summary().shipments *
+                            100
+                          )
+                        : 0
+                    "
+                  ></i>
+                </div>
+  
+                <strong>
+                  {{ modeSummary().road }}
+                </strong>
+  
+              </div>
+  
+            </div>
+  
+          </article>
+  
+          <article class="analytics-card">
+  
+            <header>
+              <div>
+                <span>
+                  STATUS BREAKDOWN
+                </span>
+  
+                <h2>
+                  Delivery Performance
+                </h2>
+              </div>
+            </header>
+  
+            <div class="status-metric-grid">
+  
+              <article>
+                <span>✓</span>
+  
+                <strong>
+                  {{
+                    deliverySummary()
+                      .delivered
+                  }}
+                </strong>
+  
+                <small>
+                  Delivered
+                </small>
+              </article>
+  
+              <article>
+                <span>↗</span>
+  
+                <strong>
+                  {{
+                    deliverySummary()
+                      .transit
+                  }}
+                </strong>
+  
+                <small>
+                  In Transit
+                </small>
+              </article>
+  
+              <article>
+                <span>◆</span>
+  
+                <strong>
+                  {{
+                    deliverySummary()
+                      .customs
+                  }}
+                </strong>
+  
+                <small>
+                  Customs
+                </small>
+              </article>
+  
+              <article>
+                <span>×</span>
+  
+                <strong>
+                  {{
+                    deliverySummary()
+                      .cancelled
+                  }}
+                </strong>
+  
+                <small>
+                  Cancelled
+                </small>
+              </article>
+  
+            </div>
+  
+          </article>
+  
+        </section>
+  
+      }
+  
+      <!-- ====================================================
+           REPORT TABLE
+      ===================================================== -->
+      <section class="table-card">
+  
+        <header>
+  
+          <div>
+            <span>
+              REPORT RESULT
+            </span>
+  
+            <h2>
+              {{ reportTitle() }}
+            </h2>
+          </div>
+  
+          <strong>
+            {{
+              filteredRecords().length
+            }}
+            records
+          </strong>
+  
+        </header>
+  
+        <div class="table-scroll">
+  
+          <!-- SHIPMENT PERFORMANCE -->
+          @if (
+            reportType() ===
+            'shipment-performance'
+          ) {
+  
+            <table>
+  
+              <thead>
+                <tr>
+                  <th>Shipment</th>
+                  <th>Date</th>
+                  <th>Customer</th>
+                  <th>Mode</th>
+                  <th>Route</th>
+                  <th>Invoice Value</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+  
+              <tbody>
+  
+                @for (
+                  row of filteredRecords();
+                  track row.id
+                ) {
+  
+                  <tr>
+  
+                    <td>
+                      <strong>
+                        {{ row.shipmentNo }}
+                      </strong>
+                    </td>
+  
+                    <td>
+                      {{
+                        formatDate(
+                          row.date
+                        )
+                      }}
+                    </td>
+  
+                    <td>
+                      {{ row.customer }}
+                    </td>
+  
+                    <td>
+                      <span class="mode-chip">
+                        {{
+                          modeLabel(
+                            row.mode
+                          )
+                        }}
+                      </span>
+                    </td>
+  
+                    <td>
+                      <div class="route">
+                        {{ row.origin }}
+                        <b>→</b>
+                        {{ row.destination }}
+                      </div>
+                    </td>
+  
+                    <td>
+                      <strong>
+                        {{
+                          formatCurrency(
+                            row.invoiceAmount
+                          )
+                        }}
+                      </strong>
+                    </td>
+  
+                    <td>
+                      <span
+                        class="status"
+                        [class]="
+                          'status ' +
+                          row.status
+                        "
+                      >
+                        {{
+                          statusLabel(
+                            row.status
+                          )
+                        }}
+                      </span>
+                    </td>
+  
+                  </tr>
+  
+                }
+  
+              </tbody>
+  
+            </table>
+  
+          }
+  
+          <!-- SALES REPORT -->
+          @if (
+            reportType() ===
+            'sales'
+          ) {
+  
+            <table>
+  
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Shipment</th>
+                  <th>Customer</th>
+                  <th>Mode</th>
+                  <th>Invoice Amount</th>
+                  <th>Received</th>
+                  <th>Outstanding</th>
+                  <th>Collection</th>
+                </tr>
+              </thead>
+  
+              <tbody>
+  
+                @for (
+                  row of filteredRecords();
+                  track row.id
+                ) {
+  
+                  <tr>
+  
+                    <td>
+                      {{
+                        formatDate(
+                          row.date
+                        )
+                      }}
+                    </td>
+  
+                    <td>
+                      <strong>
+                        {{ row.shipmentNo }}
+                      </strong>
+                    </td>
+  
+                    <td>
+                      {{ row.customer }}
+                    </td>
+  
+                    <td>
+                      {{
+                        modeLabel(
+                          row.mode
+                        )
+                      }}
+                    </td>
+  
+                    <td>
+                      <strong>
+                        {{
+                          formatCurrency(
+                            row.invoiceAmount
+                          )
+                        }}
+                      </strong>
+                    </td>
+  
+                    <td class="positive">
+                      {{
+                        formatCurrency(
+                          row.receivedAmount
+                        )
+                      }}
+                    </td>
+  
+                    <td
+                      [class.danger-value]="
+                        row.outstandingAmount
+                      "
+                    >
+                      {{
+                        formatCurrency(
+                          row.outstandingAmount
+                        )
+                      }}
+                    </td>
+  
+                    <td>
+  
+                      <div class="progress">
+                        <span>
+                          <i
+                            [style.width.%]="
+                              receivedPercentage(
+                                row
+                              )
+                            "
+                          ></i>
+                        </span>
+  
+                        <strong>
+                          {{
+                            receivedPercentage(
+                              row
+                            )
+                          }}%
+                        </strong>
+                      </div>
+  
+                    </td>
+  
+                  </tr>
+  
+                }
+  
+              </tbody>
+  
+            </table>
+  
+          }
+  
+          <!-- OUTSTANDING REPORT -->
+          @if (
+            reportType() ===
+            'outstanding'
+          ) {
+  
+            <table>
+  
+              <thead>
+                <tr>
+                  <th>Shipment</th>
+                  <th>Customer</th>
+                  <th>Invoice Amount</th>
+                  <th>Received</th>
+                  <th>Outstanding</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+  
+              <tbody>
+  
+                @for (
+                  row of filteredRecords();
+                  track row.id
+                ) {
+  
+                  @if (
+                    row.outstandingAmount > 0
+                  ) {
+  
+                    <tr>
+  
+                      <td>
+                        <strong>
+                          {{ row.shipmentNo }}
+                        </strong>
+                      </td>
+  
+                      <td>
+                        {{ row.customer }}
+                      </td>
+  
+                      <td>
+                        {{
+                          formatCurrency(
+                            row.invoiceAmount
+                          )
+                        }}
+                      </td>
+  
+                      <td class="positive">
+                        {{
+                          formatCurrency(
+                            row.receivedAmount
+                          )
+                        }}
+                      </td>
+  
+                      <td>
+                        <strong class="danger-value">
+                          {{
+                            formatCurrency(
+                              row.outstandingAmount
+                            )
+                          }}
+                        </strong>
+                      </td>
+  
+                      <td>
+                        <span class="status pending">
+                          Payment Pending
+                        </span>
+                      </td>
+  
+                    </tr>
+  
+                  }
+  
+                }
+  
+              </tbody>
+  
+            </table>
+  
+          }
+  
+          <!-- GST REPORT -->
+          @if (
+            reportType() ===
+            'gst'
+          ) {
+  
+            <table>
+  
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Shipment</th>
+                  <th>Customer</th>
+                  <th>Taxable Value</th>
+                  <th>GST Amount</th>
+                  <th>Total Invoice</th>
+                </tr>
+              </thead>
+  
+              <tbody>
+  
+                @for (
+                  row of filteredRecords();
+                  track row.id
+                ) {
+  
+                  <tr>
+  
+                    <td>
+                      {{
+                        formatDate(
+                          row.date
+                        )
+                      }}
+                    </td>
+  
+                    <td>
+                      <strong>
+                        {{ row.shipmentNo }}
+                      </strong>
+                    </td>
+  
+                    <td>
+                      {{ row.customer }}
+                    </td>
+  
+                    <td>
+                      {{
+                        formatCurrency(
+                          row.invoiceAmount -
+                          row.gstAmount
+                        )
+                      }}
+                    </td>
+  
+                    <td>
+                      <strong class="tax-value">
+                        {{
+                          formatCurrency(
+                            row.gstAmount
+                          )
+                        }}
+                      </strong>
+                    </td>
+  
+                    <td>
+                      <strong>
+                        {{
+                          formatCurrency(
+                            row.invoiceAmount
+                          )
+                        }}
+                      </strong>
+                    </td>
+  
+                  </tr>
+  
+                }
+  
+              </tbody>
+  
+            </table>
+  
+          }
+  
+          <!-- VENDOR PAYMENT REPORT -->
+          @if (
+            reportType() ===
+            'vendor-payment'
+          ) {
+  
+            <table>
+  
+              <thead>
+                <tr>
+                  <th>Shipment</th>
+                  <th>Vendor</th>
+                  <th>Vendor Invoice</th>
+                  <th>Paid</th>
+                  <th>Balance</th>
+                  <th>Payment Progress</th>
+                </tr>
+              </thead>
+  
+              <tbody>
+  
+                @for (
+                  row of filteredRecords();
+                  track row.id
+                ) {
+  
+                  <tr>
+  
+                    <td>
+                      <strong>
+                        {{ row.shipmentNo }}
+                      </strong>
+                    </td>
+  
+                    <td>
+                      {{ row.vendor }}
+                    </td>
+  
+                    <td>
+                      {{
+                        formatCurrency(
+                          row.vendorAmount
+                        )
+                      }}
+                    </td>
+  
+                    <td class="positive">
+                      {{
+                        formatCurrency(
+                          row.vendorPaid
+                        )
+                      }}
+                    </td>
+  
+                    <td>
+                      <strong
+                        [class.danger-value]="
+                          row.vendorBalance
+                        "
+                      >
+                        {{
+                          formatCurrency(
+                            row.vendorBalance
+                          )
+                        }}
+                      </strong>
+                    </td>
+  
+                    <td>
+  
+                      <div class="progress">
+  
+                        <span>
+                          <i
+                            [style.width.%]="
+                              vendorPaidPercentage(
+                                row
+                              )
+                            "
+                          ></i>
+                        </span>
+  
+                        <strong>
+                          {{
+                            vendorPaidPercentage(
+                              row
+                            )
+                          }}%
+                        </strong>
+  
+                      </div>
+  
+                    </td>
+  
+                  </tr>
+  
+                }
+  
+              </tbody>
+  
+            </table>
+  
+          }
+  
+        </div>
+  
+        @if (
+          !filteredRecords().length
+        ) {
+  
+          <div class="empty-state">
+  
+            <span>
+              ▥
+            </span>
+  
+            <strong>
+              No report data found
+            </strong>
+  
+            <p>
+              Change filters to see
+              matching logistics records.
+            </p>
+  
+          </div>
+  
+        }
+  
+      </section>
+  
+    </main>
+  
+  </div>

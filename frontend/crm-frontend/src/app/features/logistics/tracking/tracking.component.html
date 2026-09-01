@@ -1,0 +1,525 @@
+﻿<div class="tracking-page">
+
+    <header class="page-header">
+      <div>
+        <div class="breadcrumb">
+          Logistics <b>&rsaquo;</b> Tracking
+        </div>
+  
+        <div class="title-row">
+          <span class="title-icon">&#9673;</span>
+  
+          <div>
+            <h1>Shipment Tracking</h1>
+            <p>
+              Monitor air, sea and road shipment movement from one workspace.
+            </p>
+          </div>
+        </div>
+      </div>
+  
+      <button
+        type="button"
+        class="gold-button"
+        (click)="openUpdate()"
+      >
+        &#43; Add Tracking Update
+      </button>
+    </header>
+  
+    <main class="page-content">
+  
+      <section class="summary-grid">
+        <article>
+          <span>&#9673;</span>
+  
+          <div>
+            <small>Total Tracked</small>
+            <strong>{{ summary().total }}</strong>
+            <p>Active tracking records</p>
+          </div>
+        </article>
+  
+        <article>
+          <span>&nearr;</span>
+  
+          <div>
+            <small>In Transit</small>
+            <strong>{{ summary().transit }}</strong>
+            <p>Currently moving</p>
+          </div>
+        </article>
+  
+        <article>
+          <span>&#9673;</span>
+  
+          <div>
+            <small>Customs</small>
+            <strong>{{ summary().customs }}</strong>
+            <p>Under clearance</p>
+          </div>
+        </article>
+  
+        <article>
+          <span>&#10003;</span>
+  
+          <div>
+            <small>Delivered</small>
+            <strong>{{ summary().delivered }}</strong>
+            <p>Completed movement</p>
+          </div>
+        </article>
+      </section>
+  
+      @if (showForm()) {
+        <section class="form-card">
+  
+          <header class="section-header">
+            <div>
+              <span>TRACKING EVENT</span>
+              <h2>Add Shipment Tracking Update</h2>
+              <p>
+                Record movement, status, location and expected arrival.
+              </p>
+            </div>
+  
+            <button
+              type="button"
+              class="close-button"
+              (click)="closeForm()"
+            >
+              &times;
+            </button>
+          </header>
+  
+          <section class="form-section">
+            <h3>1. Shipment Details</h3>
+  
+            <div class="form-grid">
+  
+              <div class="field span-2">
+                <label>Shipment Mode <span class="required-star">*</span></label>
+
+                <select
+                  [(ngModel)]="form.shipmentMode"
+                  (change)="onTrackingModeChanged()"
+                >
+                  <option value="">Select Mode</option>
+
+                  @for (option of shipmentModes; track option.value) {
+                    <option [value]="option.value">
+                      {{ option.label }}
+                    </option>
+                  }
+                </select>
+
+                @if (form.shipmentMode === 'other') {
+                  <input
+                    class="other-input"
+                    [(ngModel)]="form.shipmentModeOther"
+                    placeholder="Enter shipment mode"
+                  />
+                }
+              </div>
+
+              <div class="field span-2">
+                <label>Shipment No. <span class="required-star">*</span></label>
+
+                <select
+                  [(ngModel)]="form.shipmentNo"
+                  (change)="onTrackingShipmentSelected(form.shipmentNo)"
+                  [disabled]="!form.shipmentMode"
+                >
+                  <option value="">Select Shipment Number</option>
+
+                  @for (option of shipmentOptions(); track option.value) {
+                    <option [value]="option.value">
+                      {{ option.label }}
+                    </option>
+                  }
+                </select>
+              </div>
+  
+            </div>
+          </section>
+  
+          <section class="form-section">
+            <h3>2. Movement Details</h3>
+  
+            <div class="form-grid">
+  
+              <div class="field span-2">
+                <label>Current Location <span class="required-star">*</span></label>
+  
+                <input
+                  [(ngModel)]="form.currentLocation"
+                  placeholder="Enter current city, airport, port or warehouse"
+                />
+              </div>
+  
+              <div class="field span-2">
+                <label>Current Status <span class="required-star">*</span></label>
+  
+                <select [(ngModel)]="form.currentStatus">
+                  @for (option of statusOptions; track option.value) {
+                    <option [value]="option.value">
+                      {{ option.label }}
+                    </option>
+                  }
+                </select>
+  
+                @if (form.currentStatus === 'other') {
+                  <input
+                    class="other-input"
+                    [(ngModel)]="form.currentStatusOther"
+                    placeholder="Enter custom status"
+                  />
+                }
+              </div>
+  
+              <div class="field">
+                <label>Tracking Reference</label>
+  
+                <input
+                  [(ngModel)]="form.trackingReference"
+                  placeholder="AWB / BL / LR / reference"
+                />
+              </div>
+  
+              <div class="field">
+                <label>Event Date</label>
+  
+                <input
+                  type="date"
+                  [(ngModel)]="form.eventDate"
+                />
+              </div>
+  
+              <div class="field">
+                <label>Event Time</label>
+  
+                <input
+                  type="time"
+                  [(ngModel)]="form.eventTime"
+                />
+              </div>
+  
+              <div class="field">
+                <label>Estimated Arrival</label>
+  
+                <input
+                  type="date"
+                  [(ngModel)]="form.estimatedArrival"
+                />
+              </div>
+  
+            </div>
+          </section>
+  
+          <section class="form-section">
+            <h3>3. GPS / Location Coordinates</h3>
+  
+            <div class="form-grid">
+  
+              <div class="field">
+                <label>Latitude</label>
+  
+                <input
+                  [(ngModel)]="form.gpsLatitude"
+                  placeholder="Enter latitude"
+                />
+              </div>
+  
+              <div class="field">
+                <label>Longitude</label>
+  
+                <input
+                  [(ngModel)]="form.gpsLongitude"
+                  placeholder="Enter longitude"
+                />
+              </div>
+  
+              <div class="field span-2">
+                <label>Handled / Updated By</label>
+  
+                <input
+                  [(ngModel)]="form.handledBy"
+                  placeholder="Enter employee / agent name"
+                />
+              </div>
+  
+            </div>
+          </section>
+  
+          <!-- REMARKS LAST -->
+          <section class="form-section remarks-section">
+            <h3>4. Remarks</h3>
+  
+            <div class="field">
+              <label>Remarks <span class="required-star">*</span></label>
+  
+              <textarea
+                rows="5"
+                [(ngModel)]="form.remarks"
+                placeholder="
+                  Enter delay note,
+                  hold reason,
+                  location instruction
+                  or final tracking remarks...
+                "
+              ></textarea>
+            </div>
+          </section>
+  
+          <footer class="form-footer">
+  
+            <button
+              type="button"
+              class="soft-button"
+              (click)="closeForm()"
+            >
+              Cancel
+            </button>
+  
+            <button
+              type="button"
+              class="gold-button"
+              (click)="saveTrackingUpdate()"
+            >
+              Save Tracking Update
+            </button>
+  
+          </footer>
+  
+        </section>
+      }
+  
+      <section class="filter-card">
+  
+        <div class="search-box">
+          <span>&#8981;</span>
+  
+          <input
+            #searchBox
+            [value]="search()"
+            (input)="search.set(searchBox.value)"
+            placeholder="
+              Search shipment, customer,
+              route or current location...
+            "
+          />
+        </div>
+  
+        <select
+          #statusBox
+          [value]="statusFilter()"
+          (change)="statusFilter.set(statusBox.value)"
+        >
+          <option value="all">
+            All Status
+          </option>
+  
+          @for (option of statusOptions; track option.value) {
+            @if (option.value !== 'other') {
+              <option [value]="option.value">
+                {{ option.label }}
+              </option>
+            }
+          }
+        </select>
+  
+      </section>
+  
+      <section class="table-card">
+  
+        <header>
+          <div>
+            <span>LIVE MOVEMENT</span>
+            <h2>Tracking Register</h2>
+          </div>
+  
+          <strong>
+            {{ filteredRecords().length }} records
+          </strong>
+        </header>
+  
+        <div class="table-scroll">
+  
+          <table>
+            <thead>
+              <tr>
+                <th>Shipment</th>
+                <th>Mode</th>
+                <th>Customer</th>
+                <th>Route</th>
+                <th>Current Location</th>
+                <th>Status</th>
+                <th>Last Updated</th>
+                <th>ETA</th>
+                <th>Timeline</th>
+              </tr>
+            </thead>
+  
+            <tbody>
+              @for (item of filteredRecords(); track item.id) {
+                <tr>
+  
+                  <td>
+                    <strong>{{ item.shipmentNo }}</strong>
+                  </td>
+  
+                  <td>
+                    <span class="mode-chip">
+                      {{ item.mode }}
+                    </span>
+                  </td>
+  
+                  <td>
+                    {{ item.customer }}
+                  </td>
+  
+                  <td>
+                    <div class="route">
+                      {{ item.origin }}
+                      <b>&rarr;</b>
+                      {{ item.destination }}
+                    </div>
+                  </td>
+  
+                  <td>
+                    {{ item.currentLocation }}
+                  </td>
+  
+                  <td>
+                    <span
+                      class="status"
+                      [class]="
+                        'status ' +
+                        item.currentStatus
+                      "
+                    >
+                      {{ statusLabel(item.currentStatus) }}
+                    </span>
+                  </td>
+  
+                  <td>
+                    {{ item.lastUpdated }}
+                  </td>
+  
+                  <td>
+                    {{ item.eta }}
+                  </td>
+  
+                  <td>
+                    <div class="timeline-actions">
+                      <button
+                        type="button"
+                        class="timeline-button"
+                        (click)="viewTimeline(item)"
+                      >
+                        View
+                      </button>
+
+                      <button
+                        type="button"
+                        class="timeline-button"
+                        (click)="updateExisting(item)"
+                      >
+                        Update
+                      </button>
+                    </div>
+                  </td>
+  
+                </tr>
+              }
+            </tbody>
+          </table>
+  
+        </div>
+  
+      </section>
+  
+    </main>
+  
+    @if (selectedShipment()) {
+      <div class="timeline-overlay">
+        <section class="timeline-panel">
+  
+          <header>
+            <div>
+              <span>SHIPMENT TIMELINE</span>
+  
+              <h2>
+                {{ selectedShipment()?.shipmentNo }}
+              </h2>
+  
+              <p>
+                {{ selectedShipment()?.origin }}
+                &rarr;
+                {{ selectedShipment()?.destination }}
+              </p>
+            </div>
+  
+            <button
+              type="button"
+              (click)="closeTimeline()"
+            >
+              &times;
+            </button>
+          </header>
+  
+          <div class="timeline">
+
+            @for (
+              event of selectedShipment()?.history || [];
+              track $index
+            ) {
+              <article
+                [class.complete]="$index < (selectedShipment()?.history?.length || 0) - 1"
+                [class.current]="$index === (selectedShipment()?.history?.length || 0) - 1"
+              >
+                <span>{{ $index + 1 }}</span>
+
+                <div>
+                  <strong>
+                    {{ timelineStatusLabel(event) }}
+                  </strong>
+
+                  <small>
+                    {{ event.location || '-' }}
+                  </small>
+
+                  @if (event.changedAt) {
+                    <small>
+                      {{ event.changedAt }}
+                    </small>
+                  }
+
+                  @if (event.remarks) {
+                    <small>
+                      {{ event.remarks }}
+                    </small>
+                  }
+                </div>
+              </article>
+            } @empty {
+              <article class="current">
+                <span>1</span>
+                <div>
+                  <strong>No timeline events yet</strong>
+                  <small>
+                    Add the first tracking update for this shipment.
+                  </small>
+                </div>
+              </article>
+            }
+
+          </div>
+
+        </section>
+      </div>
+    }
+
+  </div>
+
+

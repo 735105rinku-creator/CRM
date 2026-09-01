@@ -1,0 +1,1018 @@
+<section class="chart-of-accounts-page">
+
+  <!-- =====================================================
+       PAGE HEADER
+  ====================================================== -->
+
+  <div class="page-header">
+
+    <div class="page-heading">
+
+      <span class="eyebrow">
+        Accounting Master
+      </span>
+
+      <h1>
+        Chart of Accounts
+      </h1>
+
+      <p>
+        Create and manage the financial accounts used by
+        journals, ledgers, CRM, HRM and Logistics transactions.
+      </p>
+
+    </div>
+
+
+    <button
+      type="button"
+      class="primary-button"
+      (click)="openCreateForm()"
+    >
+      + Add Account
+    </button>
+
+  </div>
+
+
+  <!-- =====================================================
+       MESSAGES
+  ====================================================== -->
+
+  @if (errorMessage()) {
+
+    <div class="message error-message">
+
+      <span>
+        {{ errorMessage() }}
+      </span>
+
+      <button
+        type="button"
+        (click)="clearMessages()"
+      >
+        ×
+      </button>
+
+    </div>
+
+  }
+
+
+  @if (successMessage()) {
+
+    <div class="message success-message">
+
+      <span>
+        {{ successMessage() }}
+      </span>
+
+      <button
+        type="button"
+        (click)="clearMessages()"
+      >
+        ×
+      </button>
+
+    </div>
+
+  }
+
+
+  <!-- =====================================================
+       SUMMARY
+  ====================================================== -->
+
+  <div class="summary-grid">
+
+    <div class="summary-card">
+
+      <span class="summary-label">
+        Total Accounts
+      </span>
+
+      <strong>
+        {{ totalAccounts() }}
+      </strong>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <span class="summary-label">
+        Active Accounts
+      </span>
+
+      <strong>
+        {{ activeAccounts() }}
+      </strong>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <span class="summary-label">
+        Assets
+      </span>
+
+      <strong>
+        {{ assetAccounts() }}
+      </strong>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <span class="summary-label">
+        Liabilities
+      </span>
+
+      <strong>
+        {{ liabilityAccounts() }}
+      </strong>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <span class="summary-label">
+        Income
+      </span>
+
+      <strong>
+        {{ incomeAccounts() }}
+      </strong>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <span class="summary-label">
+        Expenses
+      </span>
+
+      <strong>
+        {{ expenseAccounts() }}
+      </strong>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       FILTERS
+  ====================================================== -->
+
+  <div class="filter-card">
+
+    <div class="filter-grid">
+
+      <!-- SEARCH -->
+
+      <div class="filter-field search-field">
+
+        <label for="accountSearch">
+          Search
+        </label>
+
+        <input
+          id="accountSearch"
+          type="search"
+          placeholder="Code, account name or description"
+          [value]="searchText()"
+          (input)="onSearch($event)"
+        />
+
+      </div>
+
+
+      <!-- NATURE -->
+
+      <div class="filter-field">
+
+        <label for="natureFilter">
+          Nature
+        </label>
+
+        <select
+          id="natureFilter"
+          [value]="selectedNature()"
+          (change)="onNatureFilter($event)"
+        >
+
+          <option value="all">
+            All Natures
+          </option>
+
+          @for (
+            nature of natureOptions;
+            track trackNature($index, nature)
+          ) {
+
+            <option
+              [value]="nature.value"
+            >
+              {{ nature.label }}
+            </option>
+
+          }
+
+        </select>
+
+      </div>
+
+
+      <!-- STATUS -->
+
+      <div class="filter-field">
+
+        <label for="statusFilter">
+          Status
+        </label>
+
+        <select
+          id="statusFilter"
+          [value]="selectedStatus()"
+          (change)="onStatusFilter($event)"
+        >
+
+          <option value="all">
+            All Statuses
+          </option>
+
+          <option value="active">
+            Active
+          </option>
+
+          <option value="inactive">
+            Inactive
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <!-- RESET -->
+
+      <div class="filter-action">
+
+        <button
+          type="button"
+          class="secondary-button"
+          (click)="resetFilters()"
+        >
+          Reset
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       ACCOUNT NATURE GUIDE
+  ====================================================== -->
+
+  <div class="nature-guide">
+
+    @for (
+      nature of natureOptions;
+      track trackNature($index, nature)
+    ) {
+
+      <div class="nature-guide-item">
+
+        <div>
+
+          <strong>
+            {{ nature.label }}
+          </strong>
+
+          <p>
+            {{ nature.description }}
+          </p>
+
+        </div>
+
+
+        <span class="balance-badge">
+          Normal:
+          {{ nature.normalBalance | titlecase }}
+        </span>
+
+      </div>
+
+    }
+
+  </div>
+
+
+  <!-- =====================================================
+       ACCOUNTS TABLE
+  ====================================================== -->
+
+  <div class="accounts-card">
+
+    <div class="accounts-card-header">
+
+      <div>
+
+        <span class="section-eyebrow">
+          Financial Masters
+        </span>
+
+        <h2>
+          Accounts
+        </h2>
+
+      </div>
+
+
+      <span class="result-count">
+        {{ filteredAccounts().length }}
+        result(s)
+      </span>
+
+    </div>
+
+
+    @if (loading()) {
+
+      <div class="loading-state">
+
+        <div class="loader"></div>
+
+        <p>
+          Loading Chart of Accounts...
+        </p>
+
+      </div>
+
+    } @else if (
+      filteredAccounts().length === 0
+    ) {
+
+      <div class="empty-state">
+
+        <div class="empty-icon">
+          COA
+        </div>
+
+        <h3>
+          No accounts found
+        </h3>
+
+        <p>
+          Create your first financial account or change
+          the current search and filter options.
+        </p>
+
+        <button
+          type="button"
+          class="primary-button"
+          (click)="openCreateForm()"
+        >
+          Add Account
+        </button>
+
+      </div>
+
+    } @else {
+
+      <div class="table-wrapper">
+
+        <table class="accounts-table">
+
+          <thead>
+
+            <tr>
+
+              <th>
+                Code
+              </th>
+
+              <th>
+                Account
+              </th>
+
+              <th>
+                Nature
+              </th>
+
+              <th>
+                Type
+              </th>
+
+              <th>
+                Parent
+              </th>
+
+              <th class="amount-column">
+                Balance
+              </th>
+
+              <th>
+                Status
+              </th>
+
+              <th class="action-column">
+                Actions
+              </th>
+
+            </tr>
+
+          </thead>
+
+
+          <tbody>
+
+            @for (
+              account of filteredAccounts();
+              track trackAccount($index, account)
+            ) {
+
+              <tr>
+
+                <!-- CODE -->
+
+                <td>
+
+                  <span class="account-code">
+                    {{ account.accountCode }}
+                  </span>
+
+                </td>
+
+
+                <!-- NAME -->
+
+                <td>
+
+                  <div class="account-name-cell">
+
+                    <strong>
+                      {{ account.accountName }}
+                    </strong>
+
+                    @if (account.description) {
+
+                      <span>
+                        {{ account.description }}
+                      </span>
+
+                    }
+
+                    @if (account.isSystemAccount) {
+
+                      <span class="system-badge">
+                        System
+                      </span>
+
+                    }
+
+                  </div>
+
+                </td>
+
+
+                <!-- NATURE -->
+
+                <td>
+
+                  <span
+                    class="nature-badge"
+                    [attr.data-nature]="account.nature"
+                  >
+                    {{ getNatureLabel(account.nature) }}
+                  </span>
+
+                </td>
+
+
+                <!-- TYPE -->
+
+                <td>
+
+                  {{ getAccountTypeLabel(account.accountType) }}
+
+                </td>
+
+
+                <!-- PARENT -->
+
+                <td>
+
+                  <span class="parent-account">
+                    {{ getParentAccountName(account) }}
+                  </span>
+
+                </td>
+
+
+                <!-- BALANCE -->
+
+                <td class="amount-column">
+
+                  <div class="balance-cell">
+
+                    <strong>
+                      {{
+                        formatBalance(
+                          account.currentBalance ??
+                          account.openingBalance
+                        )
+                      }}
+                    </strong>
+
+                    <span>
+                      {{
+                        account.openingBalanceType
+                          | titlecase
+                      }}
+                    </span>
+
+                  </div>
+
+                </td>
+
+
+                <!-- STATUS -->
+
+                <td>
+
+                  <span
+                    class="status-badge"
+                    [class.active]="
+                      account.status === 'active'
+                    "
+                    [class.inactive]="
+                      account.status === 'inactive'
+                    "
+                  >
+                    {{ account.status | titlecase }}
+                  </span>
+
+                </td>
+
+
+                <!-- ACTIONS -->
+
+                <td class="action-column">
+
+                  <div class="row-actions">
+
+                    <button
+                      type="button"
+                      class="table-action"
+                      (click)="openEditForm(account)"
+                    >
+                      Edit
+                    </button>
+
+
+                    @if (!account.isSystemAccount) {
+
+                      <button
+                        type="button"
+                        class="table-action status-action"
+                        [class.activate]="
+                          account.status === 'inactive'
+                        "
+                        [class.deactivate]="
+                          account.status === 'active'
+                        "
+                        (click)="toggleStatus(account)"
+                      >
+
+                        @if (
+                          account.status === 'active'
+                        ) {
+
+                          Deactivate
+
+                        } @else {
+
+                          Activate
+
+                        }
+
+                      </button>
+
+                    }
+
+                  </div>
+
+                </td>
+
+              </tr>
+
+            }
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    }
+
+  </div>
+
+
+  <!-- =====================================================
+       CREATE / EDIT DRAWER OVERLAY
+  ====================================================== -->
+
+  @if (formOpen()) {
+
+    <button
+      type="button"
+      class="drawer-overlay"
+      aria-label="Close account form"
+      (click)="closeForm()"
+    ></button>
+
+
+    <aside class="account-drawer">
+
+      <!-- DRAWER HEADER -->
+
+      <div class="drawer-header">
+
+        <div>
+
+          <span class="section-eyebrow">
+
+            @if (editingAccount()) {
+              Update Account
+            } @else {
+              New Account
+            }
+
+          </span>
+
+          <h2>
+
+            @if (editingAccount()) {
+              Edit Chart of Account
+            } @else {
+              Add Chart of Account
+            }
+
+          </h2>
+
+        </div>
+
+
+        <button
+          type="button"
+          class="drawer-close"
+          aria-label="Close"
+          (click)="closeForm()"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      <!-- DRAWER FORM -->
+
+      <form
+        class="account-form"
+        [formGroup]="accountForm"
+        (ngSubmit)="saveAccount()"
+      >
+
+        <div class="drawer-body">
+
+          <!-- ACCOUNT CODE -->
+
+          <div class="form-field">
+
+            <label for="accountCode">
+              Account Code
+              <span>*</span>
+            </label>
+
+            <input
+              id="accountCode"
+              type="text"
+              formControlName="accountCode"
+              placeholder="Example: 1001"
+              autocomplete="off"
+            />
+
+            @if (
+              accountForm.controls.accountCode.touched &&
+              accountForm.controls.accountCode.invalid
+            ) {
+
+              <small class="field-error">
+                Account code is required.
+              </small>
+
+            }
+
+          </div>
+
+
+          <!-- ACCOUNT NAME -->
+
+          <div class="form-field">
+
+            <label for="accountName">
+              Account Name
+              <span>*</span>
+            </label>
+
+            <input
+              id="accountName"
+              type="text"
+              formControlName="accountName"
+              placeholder="Example: Cash in Hand"
+              autocomplete="off"
+            />
+
+            @if (
+              accountForm.controls.accountName.touched &&
+              accountForm.controls.accountName.invalid
+            ) {
+
+              <small class="field-error">
+                Account name is required.
+              </small>
+
+            }
+
+          </div>
+
+
+          <!-- DESCRIPTION -->
+
+          <div class="form-field full-width">
+
+            <label for="description">
+              Description
+            </label>
+
+            <textarea
+              id="description"
+              formControlName="description"
+              rows="3"
+              placeholder="Optional account description"
+            ></textarea>
+
+          </div>
+
+
+          <!-- NATURE -->
+
+          <div class="form-field">
+
+            <label for="accountNature">
+              Account Nature
+              <span>*</span>
+            </label>
+
+            <select
+              id="accountNature"
+              formControlName="nature"
+            >
+
+              @for (
+                nature of natureOptions;
+                track trackNature($index, nature)
+              ) {
+
+                <option
+                  [value]="nature.value"
+                >
+                  {{ nature.label }}
+                </option>
+
+              }
+
+            </select>
+
+          </div>
+
+
+          <!-- ACCOUNT TYPE -->
+
+          <div class="form-field">
+
+            <label for="accountType">
+              Account Type
+              <span>*</span>
+            </label>
+
+            <select
+              id="accountType"
+              formControlName="accountType"
+            >
+
+              @for (
+                option of availableAccountTypes();
+                track trackAccountType($index, option)
+              ) {
+
+                <option
+                  [value]="option.value"
+                >
+                  {{ option.label }}
+                </option>
+
+              }
+
+            </select>
+
+          </div>
+
+
+          <!-- PARENT ACCOUNT -->
+
+          <div class="form-field full-width">
+
+            <label for="parentAccount">
+              Parent Account
+            </label>
+
+            <select
+              id="parentAccount"
+              formControlName="parentAccountId"
+            >
+
+              <option value="">
+                Primary / No Parent
+              </option>
+
+              @for (
+                parent of parentAccountOptions();
+                track trackAccount($index, parent)
+              ) {
+
+                <option
+                  [value]="parent._id"
+                >
+                  {{ parent.accountCode }}
+                  -
+                  {{ parent.accountName }}
+                </option>
+
+              }
+
+            </select>
+
+          </div>
+
+
+          <!-- OPENING BALANCE -->
+
+          <div class="form-field">
+
+            <label for="openingBalance">
+              Opening Balance
+            </label>
+
+            <input
+              id="openingBalance"
+              type="number"
+              min="0"
+              step="0.01"
+              formControlName="openingBalance"
+              placeholder="0.00"
+            />
+
+          </div>
+
+
+          <!-- OPENING BALANCE TYPE -->
+
+          <div class="form-field">
+
+            <label for="openingBalanceType">
+              Balance Type
+            </label>
+
+            <select
+              id="openingBalanceType"
+              formControlName="openingBalanceType"
+            >
+
+              <option value="debit">
+                Debit
+              </option>
+
+              <option value="credit">
+                Credit
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <!-- STATUS -->
+
+          <div class="form-field full-width">
+
+            <label for="accountStatus">
+              Status
+            </label>
+
+            <select
+              id="accountStatus"
+              formControlName="status"
+            >
+
+              <option value="active">
+                Active
+              </option>
+
+              <option value="inactive">
+                Inactive
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <!-- EDIT INFO -->
+
+          @if (editingAccount()) {
+
+            <div class="edit-information">
+
+              <strong>
+                Protected accounting fields
+              </strong>
+
+              <p>
+                Account code, nature and opening balance
+                are locked while editing to protect
+                historical financial integrity.
+              </p>
+
+            </div>
+
+          }
+
+        </div>
+
+
+        <!-- DRAWER FOOTER -->
+
+        <div class="drawer-footer">
+
+          <button
+            type="button"
+            class="secondary-button"
+            [disabled]="saving()"
+            (click)="closeForm()"
+          >
+            Cancel
+          </button>
+
+
+          <button
+            type="submit"
+            class="primary-button"
+            [disabled]="saving()"
+          >
+
+            @if (saving()) {
+
+              Saving...
+
+            } @else if (editingAccount()) {
+
+              Update Account
+
+            } @else {
+
+              Create Account
+
+            }
+
+          </button>
+
+        </div>
+
+      </form>
+
+    </aside>
+
+  }
+
+</section>

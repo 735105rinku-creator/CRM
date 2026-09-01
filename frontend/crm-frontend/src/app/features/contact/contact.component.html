@@ -1,0 +1,33 @@
+<app-public-header />
+
+<main class="contact-page">
+  <section class="desk">
+    <div class="letter">
+      <p class="stamp">Contact</p>
+      <h1>Talk to Opas Bizz Pvt. Ltd.</h1>
+      <p class="intro">For CRM setup, HRMS onboarding, workspace configuration and product support.</p>
+
+      <div class="contact-list">
+        @for (item of contacts; track item.label) {
+          <a [href]="item.href">
+            <span>{{ item.label }}</span>
+            <strong>{{ item.value }}</strong>
+          </a>
+        }
+      </div>
+    </div>
+
+    <aside class="address-card">
+      <span>Corporate Office</span>
+      <strong>Office No. F09, 1st floor, Anjuman House</strong>
+      <p>Sector 63, Noida</p>
+      <div class="notches">
+        <i></i>
+        <i></i>
+        <i></i>
+      </div>
+    </aside>
+  </section>
+</main>
+
+<app-public-footer />

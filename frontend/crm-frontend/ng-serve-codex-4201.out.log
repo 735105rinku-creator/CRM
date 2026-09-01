@@ -1,0 +1,5 @@
+
+> crm-frontend@0.0.0 start
+> ng serve --host 127.0.0.1 --port 4201
+
+[33m>[39m Building...

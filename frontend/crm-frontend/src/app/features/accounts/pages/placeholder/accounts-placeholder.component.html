@@ -1,0 +1,138 @@
+<section class="accounts-placeholder">
+
+  <!-- =====================================================
+       PAGE HEADER
+  ====================================================== -->
+
+  <div class="page-header">
+
+    <div class="page-header-left">
+
+      <div class="feature-icon">
+        {{ featureIcon() }}
+      </div>
+
+      <div class="page-heading">
+
+        <span class="section-label">
+          {{ section() }}
+        </span>
+
+        <h1>
+          {{ title() }}
+        </h1>
+
+        <p>
+          {{ description() }}
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <!-- ===================================================
+         HEADER ACTION
+    ==================================================== -->
+
+    <a
+      class="dashboard-link"
+      [routerLink]="dashboardRoute"
+    >
+      Back to Dashboard
+    </a>
+
+  </div>
+
+
+  <!-- =====================================================
+       STATUS CARD
+  ====================================================== -->
+
+  <div class="status-card">
+
+    <div class="status-card-left">
+
+      <div class="status-indicator">
+        <span></span>
+      </div>
+
+      <div>
+
+        <span class="status-label">
+          Current Status
+        </span>
+
+        <strong>
+          {{ statusLabel() }}
+        </strong>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       CONTENT CARD
+  ====================================================== -->
+
+  <div class="feature-card">
+
+    <div class="feature-card-header">
+
+      <div>
+
+        <span class="card-eyebrow">
+          Accounts Module
+        </span>
+
+        <h2>
+          {{ title() }}
+        </h2>
+
+      </div>
+
+      <div class="module-badge">
+        {{ featureIcon() }}
+      </div>
+
+    </div>
+
+
+    <div class="feature-card-body">
+
+      <div class="empty-state">
+
+        <div class="empty-state-icon">
+          {{ featureIcon() }}
+        </div>
+
+        <h3>
+          {{ title() }}
+        </h3>
+
+        <p>
+          {{ description() }}
+        </p>
+
+        <div class="foundation-note">
+
+          <span class="foundation-note-label">
+            Workspace
+          </span>
+
+          <strong>
+            Accounts & Finance
+          </strong>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>

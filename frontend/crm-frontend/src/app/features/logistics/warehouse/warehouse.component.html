@@ -1,0 +1,78 @@
+<div class="warehouse-page">
+  <header class="page-header">
+    <div>
+      <div class="breadcrumb">Logistics <b>&rsaquo;</b> Warehouse</div>
+      <div class="title-row"><span class="title-icon">&#8962;</span><div><h1>{{ tableTitle() === 'Warehouse Receipts' ? 'Warehouse Management' : tableTitle() }}</h1><p>Manage warehouse masters, receipts, stock, inspection and dispatch.</p></div></div>
+    </div>
+    <div class="header-actions"><button type="button" class="soft-button" (click)="go('/logistics/warehouse/master/new')"><span class="button-icon">&#10010;</span>Add Warehouse</button><button type="button" class="gold-button" (click)="go('/logistics/warehouse/receipt/new')"><span class="button-icon">&#10010;</span>New Receipt</button></div>
+  </header>
+
+  <main class="page-content">
+    <section class="warehouse-tabs"><button type="button" (click)="go('/logistics/warehouse')">&#9636; Dashboard</button><button type="button" (click)="go('/logistics/warehouse/master')">&#8962; Warehouse Master</button><button type="button" (click)="go('/logistics/warehouse/receipt/new')">&#10010; New Receipt</button><button type="button" (click)="go('/logistics/warehouse/stock')">&#9638; Current Stock</button><button type="button" (click)="go('/logistics/warehouse/inspection')">&#9673; Inspection</button><button type="button" (click)="go('/logistics/warehouse/ready-dispatch')">&#8599; Ready for Dispatch</button><button type="button" (click)="go('/logistics/warehouse/dispatch-history')">&#10003; Dispatch History</button></section>
+
+    @if (currentView() === 'dashboard') {
+      <section class="summary-grid">
+        <article><span>&#8962;</span><div><small>Total Warehouses</small><strong>{{ summary().warehouses }}</strong><p>Master records</p></div></article>
+        <article><span>&#9636;</span><div><small>Total Receipts</small><strong>{{ summary().total }}</strong><p>Warehouse movements</p></div></article>
+        <article><span>&#9638;</span><div><small>Currently Stored</small><strong>{{ summary().stored }}</strong><p>Currently in storage</p></div></article>
+        <article><span>&#9673;</span><div><small>Inspection Pending</small><strong>{{ summary().inspection }}</strong><p>Under checking</p></div></article>
+        <article><span>&#8599;</span><div><small>Ready for Dispatch</small><strong>{{ summary().ready }}</strong><p>Awaiting outbound</p></div></article>
+        <article><span>&#9888;</span><div><small>On Hold</small><strong>{{ summary().hold }}</strong><p>Damage or hold</p></div></article>
+      </section>
+      <section class="quick-actions"><button type="button" (click)="go('/logistics/warehouse/master/new')"><span>&#10010;</span>Add Warehouse</button><button type="button" (click)="go('/logistics/warehouse/receipt/new')"><span>&#10010;</span>New Receipt</button><button type="button" (click)="go('/logistics/warehouse/stock')"><span>&#9638;</span>View Current Stock</button><button type="button" (click)="go('/logistics/warehouse/ready-dispatch')"><span>&#8599;</span>Ready for Dispatch</button></section>
+    }
+
+    @if (showForm()) {
+      <section class="form-card">
+        <header class="section-header"><div><span>WAREHOUSE RECEIPT</span><h2>New Warehouse Entry</h2><p>Select a live shipment and receive physical goods into a live warehouse.</p></div><button type="button" class="close-button" (click)="closeForm()">&times;</button></header>
+
+        <section class="form-section"><h3>1. Receipt & Shipment Details</h3><div class="form-grid">
+          <div class="field"><label>Receipt No.</label><input [(ngModel)]="form.receiptNo" readonly /></div>
+          <div class="field"><label>Receipt Date</label><input type="date" [(ngModel)]="form.receiptDate" /></div>
+          <div class="field span-2"><label>Shipment No. *</label><input class="other-input" [value]="shipmentSearch()" (input)="shipmentSearch.set($any($event.target).value)" placeholder="Search shipment, customer or route..." /><select [(ngModel)]="form.shipmentId" (change)="onShipmentSelected()"><option value="">Select Shipment</option>@for (shipment of shipmentOptions(); track shipment._id) { <option [value]="shipment._id">{{ shipmentLabel(shipment) }}</option> }</select>@if (!shipmentOptions().length) { <small class="field-hint">No eligible shipment found. Create a shipment first before creating a warehouse receipt.</small> }</div>
+          <div class="field"><label>Shipment Number</label><input [(ngModel)]="form.shipmentNo" readonly /></div>
+          <div class="field"><label>Customer</label><input [(ngModel)]="form.customer" readonly /></div>
+          <div class="field"><label>Shipment Mode</label><input [(ngModel)]="form.shipmentMode" readonly /></div>
+          <div class="field"><label>Origin</label><input [(ngModel)]="form.origin" readonly /></div>
+          <div class="field"><label>Destination</label><input [(ngModel)]="form.destination" readonly /></div>
+        </div></section>
+
+        <section class="form-section"><h3>2. Warehouse</h3><div class="form-grid">
+          <div class="field span-2"><label>Warehouse *</label><select [(ngModel)]="form.warehouseId" (change)="onWarehouseSelected()"><option value="">Select Warehouse</option>@for (warehouse of warehouseOptions(); track warehouse._id) { <option [value]="warehouse._id">{{ warehouse.warehouseCode }} | {{ warehouse.warehouseName }}</option> }</select>@if (!warehouseOptions().length) { <div class="empty-inline"><strong>No active warehouse found.</strong><span>Create a Warehouse Master before creating a receipt.</span><button type="button" class="gold-button" (click)="go('/logistics/warehouse/master/new')"><span class="button-icon">&#10010;</span>Add Warehouse</button></div> }</div>
+          <div class="field"><label>Warehouse Code</label><input [(ngModel)]="form.warehouseCode" readonly /></div><div class="field"><label>Warehouse Type</label><input [(ngModel)]="form.warehouseType" readonly /></div>
+          <div class="field"><label>City</label><input [(ngModel)]="form.warehouseCity" readonly /></div><div class="field"><label>Capacity</label><input [(ngModel)]="form.warehouseCapacity" readonly /></div>
+          <div class="field span-2"><label>Storage Capabilities</label><input [(ngModel)]="form.warehouseCapabilities" readonly /></div>
+          <div class="field span-2"><label>Warehouse Address</label><input [(ngModel)]="form.warehouseAddress" readonly /></div>
+          <div class="field"><label>Movement Type *</label><select [(ngModel)]="form.movementType">@for (option of movementTypes; track option.value) { <option [value]="option.value">{{ option.label }}</option> }</select>@if (form.movementType === 'other') { <input class="other-input" [(ngModel)]="form.movementTypeOther" placeholder="Enter movement type" /> }</div>
+          <div class="field"><label>Storage Type *</label><select [(ngModel)]="form.storageType">@for (option of storageTypes; track option.value) { <option [value]="option.value">{{ option.label }}</option> }</select>@if (form.storageType === 'other') { <input class="other-input" [(ngModel)]="form.storageTypeOther" placeholder="Enter storage type" /> }</div>
+        </div></section>
+
+        <section class="form-section"><h3>3. Product & Storage Details</h3><div class="form-grid">
+          <div class="field"><label>Product / Cargo</label><input [(ngModel)]="form.productName" /></div><div class="field"><label>Batch No.</label><input [(ngModel)]="form.batchNo" /></div><div class="field"><label>Lot No.</label><input [(ngModel)]="form.lotNo" /></div>
+          <div class="field"><label>Expected Packages</label><input type="number" [(ngModel)]="form.expectedPackages" readonly /></div><div class="field"><label>Received Packages</label><input type="number" [(ngModel)]="form.receivedPackages" /></div><div class="field"><label>Damaged Packages</label><input type="number" [(ngModel)]="form.damagedPackages" /></div><div class="field"><label>Short Packages</label><input type="number" [(ngModel)]="form.shortageQuantity" /></div>
+          <div class="field"><label>Expected Weight</label><input type="number" [(ngModel)]="form.expectedWeight" readonly /></div><div class="field"><label>Actual Weight</label><input type="number" [(ngModel)]="form.actualWeight" /></div><div class="field"><label>Weight Unit</label><input [(ngModel)]="form.weightUnit" readonly /></div><div class="field"><label>Pallet Count</label><input type="number" [(ngModel)]="form.palletCount" /></div>
+          <div class="field"><label>Zone</label><input [(ngModel)]="form.zone" /></div><div class="field"><label>Rack Location</label><input [(ngModel)]="form.rackLocation" /></div><div class="field"><label>Bin Location</label><input [(ngModel)]="form.binLocation" /></div><div class="field"><label>Entry Date</label><input type="date" [(ngModel)]="form.entryDate" /></div><div class="field"><label>Expected Exit Date</label><input type="date" [(ngModel)]="form.exitDate" /></div>
+        </div>@if (packageMismatch()) { <div class="warehouse-warning"><strong>Quantity mismatch</strong><span>Expected: {{ form.expectedPackages }} | Received: {{ form.receivedPackages }}</span></div> } @if (weightMismatch()) { <div class="warehouse-warning"><strong>Weight mismatch</strong><span>Expected: {{ form.expectedWeight }} {{ form.weightUnit }} | Actual: {{ form.actualWeight }} {{ form.weightUnit }}</span></div> }</section>
+
+        <section class="form-section"><h3>4. Inspection & Status</h3><div class="form-grid">
+          <div class="field"><label>Received By</label><input [(ngModel)]="form.receivedBy" /></div><div class="field"><label>Inspected By</label><input [(ngModel)]="form.inspectedBy" /></div><div class="field span-2"><label>Inspection Remarks</label><input [(ngModel)]="form.inspectionRemarks" /></div>
+          <div class="field span-2"><label>Status *</label><select [(ngModel)]="form.status">@for (option of statusOptions; track option.value) { <option [value]="option.value">{{ option.label }}</option> }</select>@if (form.status === 'other') { <input class="other-input" [(ngModel)]="form.statusOther" placeholder="Enter warehouse status" /> }</div>
+        </div></section>
+
+        <section class="form-section"><h3>5. Charges</h3><div class="form-grid"><div class="field"><label>Storage Days</label><input type="number" [(ngModel)]="form.storageDays" /></div><div class="field"><label>Storage Rate / Day</label><input type="number" [(ngModel)]="form.storageRatePerDay" /></div><div class="field"><label>Total Storage Charge</label><input
+          type="number"
+          [value]="totalWarehouseCharge"
+          readonly /></div><div class="field"><label>Handling Charge</label><input type="number" [(ngModel)]="form.handlingCharge" /></div><div class="field"><label>Loading Charge</label><input type="number" [(ngModel)]="form.loadingCharge" /></div><div class="field"><label>Unloading Charge</label><input type="number" [(ngModel)]="form.unloadingCharge" /></div></div></section>
+
+        <section class="form-section remarks-section"><h3>6. Remarks</h3><div class="field"><label>Warehouse Remarks *</label><textarea rows="5" [(ngModel)]="form.remarks" placeholder="Enter shortage, damage, storage, dispatch or final remarks..."></textarea></div></section>
+        <footer class="form-footer"><button type="button" class="soft-button" (click)="closeForm()"><span class="button-icon">&#10005;</span>Cancel</button><button type="button" class="gold-button" [disabled]="isSaving()" (click)="saveReceipt()"><span class="button-icon">&#10003;</span>{{ isSaving() ? 'Saving...' : 'Save Warehouse Receipt' }}</button></footer>
+      </section>
+    }
+
+    @if (!showForm()) {
+      <section class="filter-card"><div class="search-box"><span>&#8981;</span><input #warehouseSearch [value]="search()" (input)="search.set(warehouseSearch.value)" placeholder="Search receipt, shipment, customer, cargo or warehouse..." /></div><select #status [value]="statusFilter()" (change)="statusFilter.set(status.value)"><option value="all">All Status</option>@for (option of statusOptions; track option.value) { @if (option.value !== 'other') { <option [value]="option.value">{{ option.label }}</option> } }</select></section>
+
+      <section class="table-card"><header><div><span>WAREHOUSE REGISTER</span><h2>{{ tableTitle() }}</h2></div><strong>{{ filteredReceipts().length }} records</strong></header><div class="table-scroll"><table><thead><tr><th>Receipt</th><th>Shipment</th><th>Warehouse</th><th>Customer</th><th>Cargo</th><th>Received Packages</th><th>Actual Weight</th><th>Rack</th><th>Bin</th><th>Entry Date</th><th>Days Stored</th><th>Status</th><th>Action</th></tr></thead><tbody>@for (item of filteredReceipts(); track item.id) { <tr><td><strong>{{ item.receiptNo }}</strong></td><td>{{ item.shipmentNo }}</td><td>{{ item.warehouse }}</td><td>{{ item.customer }}</td><td>{{ item.cargo }}</td><td>{{ item.packages }}</td><td><strong>{{ item.weight }} Kg</strong></td><td>{{ item.rack }}</td><td>{{ item.bin }}</td><td>{{ item.entryDate }}</td><td>{{ daysStored(item) }}</td><td><span class="status" [class]="'status ' + item.status">{{ statusLabel(item.status) }}</span></td><td><div class="actions"><button type="button" title="Inspection Pending" (click)="updateReceiptStatus(item, 'inspection_pending')">&#9673;</button><button type="button" title="Inspected" (click)="updateReceiptStatus(item, 'inspected')">&#128065;</button><button type="button" title="Stored" (click)="updateReceiptStatus(item, 'stored')">&#9638;</button><button type="button" title="Damaged" (click)="updateReceiptStatus(item, 'damaged')">&#9888;</button><button type="button" title="Hold" (click)="updateReceiptStatus(item, 'hold')">&#9208;</button><button type="button" title="Ready for Dispatch" (click)="updateReceiptStatus(item, 'ready_for_dispatch')">&#8599;</button><button type="button" title="Dispatched" (click)="updateReceiptStatus(item, 'dispatched')">&#10003;</button></div></td></tr> } @empty { <tr><td colspan="13"><div class="empty-state"><strong>No warehouse records found</strong><p>Create a warehouse receipt from a live shipment.</p>@if (!warehouses().length) { <button type="button" class="gold-button" (click)="go('/logistics/warehouse/master/new')"><span class="button-icon">&#10010;</span>Create First Warehouse</button> }</div></td></tr> }</tbody></table></div></section>
+    }
+  </main>
+</div>

@@ -1,0 +1,380 @@
+.dashboard-page {
+  color: var(--color-text);
+  display: grid;
+  gap: var(--space-xl);
+}
+
+.card-shell {
+  backdrop-filter: var(--glass-blur);
+  background: var(--glass-surface);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.stats-grid {
+  display: grid;
+  gap: var(--space-lg);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 150px;
+  padding: var(--space-xl);
+}
+
+.stat-card span,
+.card-heading p {
+  color: var(--color-muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.stat-card strong {
+  color: var(--color-primary);
+  display: block;
+  font-size: clamp(1.8rem, 3vw, 2.35rem);
+  line-height: 1;
+  margin-top: var(--space-md);
+}
+
+.stat-card small {
+  color: var(--color-success);
+  font-weight: 800;
+}
+
+.stat-card small.negative {
+  color: var(--color-danger);
+}
+
+.revenue-card {
+  gap: var(--space-lg);
+}
+
+.sparkline {
+  align-items: end;
+  display: flex;
+  gap: 5px;
+  height: 62px;
+}
+
+.sparkline i {
+  background: linear-gradient(180deg, var(--color-accent), var(--color-primary));
+  border-radius: var(--radius-pill) var(--radius-pill) var(--radius-sm) var(--radius-sm);
+  display: block;
+  flex: 1;
+  min-width: 6px;
+}
+
+.dashboard-grid {
+  align-items: start;
+  display: grid;
+  gap: var(--space-lg);
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr) minmax(320px, 0.78fr);
+  grid-template-areas:
+    "revenue source activity"
+    "leads leads activity"
+    "invoices invoices activity";
+}
+
+.revenue-chart {
+  grid-area: revenue;
+}
+
+.source-chart {
+  grid-area: source;
+}
+
+.leads-table {
+  grid-area: leads;
+}
+
+.invoices-table {
+  grid-area: invoices;
+}
+
+.activity-card {
+  grid-area: activity;
+  position: sticky;
+  top: 92px;
+}
+
+.chart-card,
+.table-card,
+.activity-card {
+  padding: var(--space-xl);
+}
+
+.card-heading {
+  align-items: center;
+  display: flex;
+  gap: var(--space-lg);
+  justify-content: space-between;
+  margin-bottom: var(--space-lg);
+}
+
+.card-heading h2 {
+  color: var(--color-primary);
+  font-size: 1.1rem;
+  font-weight: 800;
+  margin: var(--space-xs) 0 0;
+}
+
+.card-heading a {
+  color: var(--color-accent);
+  font-size: 0.88rem;
+  font-weight: 800;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.chart-frame {
+  height: 300px;
+}
+
+.source-chart .chart-frame {
+  height: 270px;
+}
+
+.crm-table {
+  margin: 0;
+}
+
+.crm-table th {
+  color: var(--color-muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.crm-table td {
+  color: var(--color-text);
+  font-size: 0.92rem;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.status-badge {
+  background: rgba(13, 148, 136, 0.1);
+  border: 1px solid rgba(13, 148, 136, 0.24);
+  border-radius: var(--radius-pill);
+  color: var(--color-accent);
+  display: inline-flex;
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 4px 9px;
+}
+
+.invoice-status {
+  background: rgba(26, 60, 94, 0.1);
+  border-color: rgba(26, 60, 94, 0.22);
+  color: var(--color-primary);
+}
+
+.activity-list {
+  display: grid;
+  gap: var(--space-md);
+}
+
+.activity-item {
+  align-items: start;
+  border-bottom: 1px solid var(--glass-border);
+  display: grid;
+  gap: var(--space-md);
+  grid-template-columns: 34px minmax(0, 1fr) 36px;
+  padding-bottom: var(--space-md);
+}
+
+.activity-item:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.activity-icon,
+.activity-avatar,
+.activity-avatar span {
+  align-items: center;
+  border-radius: var(--radius-pill);
+  display: inline-flex;
+  justify-content: center;
+}
+
+.activity-icon {
+  background: rgba(13, 148, 136, 0.12);
+  color: var(--color-accent);
+  font-size: 0.78rem;
+  font-weight: 900;
+  height: 34px;
+  width: 34px;
+}
+
+.activity-copy {
+  min-width: 0;
+}
+
+.activity-copy strong,
+.activity-copy span,
+.activity-copy small {
+  display: block;
+}
+
+.activity-copy strong {
+  color: var(--color-primary);
+  font-size: 0.92rem;
+}
+
+.activity-copy span {
+  color: var(--color-muted);
+  font-size: 0.84rem;
+  line-height: 1.4;
+  margin-top: 2px;
+}
+
+.activity-copy small {
+  color: #94a3b8;
+  font-size: 0.76rem;
+  margin-top: 5px;
+}
+
+.activity-avatar img,
+.activity-avatar span {
+  height: 36px;
+  width: 36px;
+}
+
+.activity-avatar img {
+  border-radius: var(--radius-pill);
+  object-fit: cover;
+}
+
+.activity-avatar span {
+  background: var(--color-primary);
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.empty-cell {
+  color: var(--color-muted);
+  padding: var(--space-xl);
+  text-align: center;
+}
+
+.error-state {
+  padding: var(--space-2xl);
+}
+
+.error-state h2 {
+  color: var(--color-danger);
+  margin: 0 0 var(--space-sm);
+}
+
+.error-state p {
+  color: var(--color-muted);
+  margin: 0;
+}
+
+.skeleton-card,
+.skeleton-panel {
+  overflow: hidden;
+  position: relative;
+}
+
+.skeleton-card {
+  min-height: 150px;
+  padding: var(--space-xl);
+}
+
+.skeleton-panel {
+  min-height: 320px;
+}
+
+.skeleton-line {
+  background: #e2e8f0;
+  border-radius: var(--radius-pill);
+  display: block;
+  height: 14px;
+  margin-bottom: var(--space-lg);
+}
+
+.skeleton-line.short {
+  width: 44%;
+}
+
+.skeleton-line.medium {
+  width: 62%;
+}
+
+.skeleton-line.large {
+  height: 34px;
+  width: 72%;
+}
+
+.skeleton-card::after,
+.skeleton-panel::after {
+  animation: shimmer 1.4s infinite;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.72), transparent);
+  content: "";
+  inset: 0;
+  position: absolute;
+  transform: translateX(-100%);
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@media (max-width: 1280px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "revenue source"
+      "leads leads"
+      "invoices invoices"
+      "activity activity";
+  }
+
+  .activity-card {
+    position: static;
+  }
+}
+
+@media (max-width: 992px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .dashboard-grid,
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-grid {
+    grid-template-areas:
+      "revenue"
+      "source"
+      "leads"
+      "invoices"
+      "activity";
+  }
+
+  .chart-card,
+  .table-card,
+  .activity-card,
+  .stat-card {
+    padding: var(--space-lg);
+  }
+}
+

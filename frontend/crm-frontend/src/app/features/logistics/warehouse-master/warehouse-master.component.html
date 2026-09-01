@@ -1,0 +1,61 @@
+<div class="warehouse-page">
+  <header class="page-header">
+    <div>
+      <div class="breadcrumb">Logistics <b>&rsaquo;</b> Warehouse <b>&rsaquo;</b> Master</div>
+      <div class="title-row"><span class="title-icon">&#8962;</span><div><h1>{{ mode === 'detail' ? (selected()?.warehouseName || 'Warehouse Details') : mode === 'new' ? (selectedId ? 'Edit Warehouse' : 'Add Warehouse') : 'Warehouse Master' }}</h1><p>Create and manage warehouse master records for receipt operations.</p></div></div>
+    </div>
+    @if (mode === 'list') {
+      <button type="button" class="gold-button" (click)="addWarehouse()"><span class="button-icon">&#10010;</span>Add Warehouse</button>
+    } @else {
+      <button type="button" class="soft-button" (click)="cancel()"><span class="button-icon">&#8592;</span>Back to Master</button>
+    }
+  </header>
+
+  <main class="page-content">
+    @if (mode === 'list') {
+      <section class="summary-grid">
+        <article><span>&#8962;</span><div><small>Total Warehouses</small><strong>{{ summary().total }}</strong><p>Master records</p></div></article>
+        <article><span>&#10003;</span><div><small>Active</small><strong>{{ summary().active }}</strong><p>Available for receipts</p></div></article>
+        <article><span>&#9633;</span><div><small>Inactive</small><strong>{{ summary().inactive }}</strong><p>Not available</p></div></article>
+        <article><span>&#9638;</span><div><small>Capacity Used</small><strong>{{ summary().capacityUsed }}%</strong><p>Occupied capacity</p></div></article>
+      </section>
+
+      <section class="filter-card master-filter">
+        <div class="search-box"><span>&#8981;</span><input #searchBox [value]="search()" (input)="search.set(searchBox.value)" placeholder="Search code, name, city, contact person..." /></div>
+        <select #status [value]="statusFilter()" (change)="statusFilter.set(status.value)"><option value="all">All Status</option><option value="active">Active</option><option value="inactive">Inactive</option></select>
+        <select #type [value]="typeFilter()" (change)="typeFilter.set(type.value)"><option value="all">All Types</option>@for (item of warehouseTypes; track item.value) { @if (item.value !== 'other') { <option [value]="item.value">{{ item.label }}</option> } }</select>
+      </section>
+
+      <section class="table-card">
+        <header><div><span>WAREHOUSE REGISTER</span><h2>All Warehouses</h2></div><strong>{{ filteredRecords().length }} records</strong></header>
+        <div class="table-scroll"><table><thead><tr><th>Warehouse Code</th><th>Warehouse Name</th><th>Type</th><th>City</th><th>Contact Person</th><th>Mobile</th><th>Capacity</th><th>Available Capacity</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+          @for (row of filteredRecords(); track row._id || row.warehouseCode) {
+            <tr><td><strong>{{ row.warehouseCode || '-' }}</strong></td><td>{{ row.warehouseName || '-' }}</td><td>{{ typeLabel(row.storage?.storageType) }}</td><td>{{ row.address?.city || '-' }}</td><td>{{ row.contact?.contactPerson || '-' }}</td><td>{{ row.contact?.mobile || '-' }}</td><td>{{ row.storage?.totalCapacity || 0 }} {{ unitLabel(row.storage?.capacityUnit, row.storage?.capacityUnitOther) }}</td><td>{{ availableCapacity(row) }} {{ unitLabel(row.storage?.capacityUnit, row.storage?.capacityUnitOther) }}</td><td><span class="status" [class]="'status ' + (row.status || 'active')">{{ statusLabel(row.status) }}</span></td><td><div class="actions"><button type="button" title="View" (click)="viewWarehouse(row)">&#128065;</button><button type="button" title="Edit" (click)="editWarehouse(row)">&#9998;</button><button type="button" title="Activate / Deactivate" (click)="updateStatus(row)">&#8645;</button></div></td></tr>
+          } @empty {
+            <tr><td colspan="10"><div class="empty-state"><strong>No Warehouse Master exists yet.</strong><p>Warehouse Receipt requires an existing Warehouse.</p><button type="button" class="gold-button" (click)="addWarehouse()"><span class="button-icon">&#10010;</span>Create First Warehouse</button></div></td></tr>
+          }
+        </tbody></table></div>
+      </section>
+    }
+
+    @if (mode === 'new') {
+      <section class="form-card">
+        <header class="section-header"><div><span>WAREHOUSE MASTER</span><h2>{{ selectedId ? 'Edit Warehouse' : 'Add Warehouse' }}</h2></div></header>
+        <section class="form-section"><h3>Basic Details</h3><div class="form-grid"><div class="field"><label>Warehouse Code</label><input [(ngModel)]="form.warehouseCode" readonly /></div><div class="field"><label>Warehouse Name *</label><input [(ngModel)]="form.warehouseName" /></div><div class="field"><label>Warehouse Type *</label><select [(ngModel)]="form.storage.storageType"><option value="general">General</option>@for (item of warehouseTypes; track item.value) { <option [value]="item.value">{{ item.label }}</option> }</select></div><div class="field"><label>Company / Operator Name</label><input [(ngModel)]="form.companyName" /></div><div class="field"><label>Status *</label><select [(ngModel)]="form.status">@for (item of statuses; track item.value) { <option [value]="item.value">{{ item.label }}</option> }</select></div></div></section>
+        <section class="form-section"><h3>Contact</h3><div class="form-grid"><div class="field"><label>Contact Person *</label><input [(ngModel)]="form.contact.contactPerson" /></div><div class="field"><label>Mobile *</label><input [(ngModel)]="form.contact.mobile" /></div><div class="field"><label>Alternate Mobile</label><input [(ngModel)]="form.contact.alternateMobile" /></div><div class="field"><label>Email</label><input type="email" [(ngModel)]="form.contact.email" /></div></div></section>
+        <section class="form-section"><h3>Address</h3><div class="form-grid"><div class="field span-2"><label>Address Line 1 *</label><input [(ngModel)]="form.address.addressLine1" /></div><div class="field span-2"><label>Address Line 2</label><input [(ngModel)]="form.address.addressLine2" /></div><div class="field"><label>City *</label><input [(ngModel)]="form.address.city" /></div><div class="field"><label>State *</label><input [(ngModel)]="form.address.state" /></div><div class="field"><label>Country *</label><input [(ngModel)]="form.address.country" /></div><div class="field"><label>Pincode</label><input [(ngModel)]="form.address.pincode" /></div></div></section>
+        <section class="form-section"><h3>Capacity</h3><div class="form-grid"><div class="field"><label>Total Capacity</label><input type="number" [(ngModel)]="form.storage.totalCapacity" /></div><div class="field"><label>Capacity Unit</label><select [(ngModel)]="form.storage.capacityUnit">@for (item of capacityUnits; track item.label) { <option [value]="item.value">{{ item.label }}</option> }</select></div>@if (form.storage.capacityUnit === 'other') { <div class="field"><label>Other Unit</label><input [(ngModel)]="form.storage.capacityUnitOther" /></div> }<div class="field"><label>Available Capacity</label><input type="number" [value]="form.storage.totalCapacity - form.storage.occupiedCapacity" readonly /></div></div></section>
+        <section class="form-section"><h3>Storage Capabilities</h3><div class="document-grid">@for (item of capabilityOptions; track item.value) { <label><input type="checkbox" [checked]="hasCapability(item.value)" (change)="toggleCapability(item.value)" /><span>&#9671;</span>{{ item.label }}</label> }</div></section>
+        <section class="form-section"><h3>Operational Information</h3><div class="form-grid"><div class="field"><label>Operating Hours</label><input [(ngModel)]="form.operatingHours" /></div><div class="field"><label>Number of Docks</label><input type="number" [(ngModel)]="form.numberOfDocks" /></div><label class="check-field"><input type="checkbox" [(ngModel)]="form.forkliftAvailable" />Forklift Available</label><label class="check-field"><input type="checkbox" [(ngModel)]="form.operations24x7" />24x7 Operations</label><label class="check-field"><input type="checkbox" [(ngModel)]="form.temperatureMonitoring" />Temperature Monitoring</label></div><small class="field-hint">Operational fields are shown for user entry; current backend stores only supported warehouse master fields.</small></section>
+        <section class="form-section"><h3>Registration</h3><div class="form-grid"><div class="field"><label>GST Number</label><input [(ngModel)]="form.gstNumber" /></div><div class="field"><label>License Number</label><input [(ngModel)]="form.licenseNumber" /></div></div></section>
+        <section class="form-section remarks-section"><h3>Remarks</h3><div class="field"><label>Remarks *</label><textarea rows="4" [(ngModel)]="form.remarks"></textarea></div></section>
+        <footer class="form-footer"><button type="button" class="soft-button" (click)="cancel()"><span class="button-icon">&#10005;</span>Cancel</button><button type="button" class="gold-button" [disabled]="isSaving()" (click)="saveWarehouse()"><span class="button-icon">&#10003;</span>{{ isSaving() ? 'Saving...' : 'Save Warehouse' }}</button></footer>
+      </section>
+    }
+
+    @if (mode === 'detail' && selected(); as row) {
+      <section class="detail-card"><div><span>WAREHOUSE PROFILE</span><h2>{{ row.warehouseName }}</h2><p>{{ row.warehouseCode }} | {{ statusLabel(row.status) }}</p></div><button type="button" class="gold-button" (click)="editWarehouse(row)"><span class="button-icon">&#9998;</span>Edit</button></section>
+      <section class="detail-grid"><article><h3>Type</h3><p>{{ typeLabel(row.storage?.storageType) }}</p></article><article><h3>Contact</h3><p>{{ row.contact?.contactPerson || '-' }}<br />{{ row.contact?.mobile || '-' }}<br />{{ row.contact?.email || '-' }}</p></article><article><h3>Address</h3><p>{{ addressText(row) }}</p></article><article><h3>Capacity</h3><p>{{ row.storage?.totalCapacity || 0 }} {{ unitLabel(row.storage?.capacityUnit, row.storage?.capacityUnitOther) }}<br />Available: {{ availableCapacity(row) }}</p></article><article><h3>Storage Capabilities</h3><p>{{ typeLabel(row.storage?.storageType) }}</p></article><article><h3>Registration</h3><p>GST: {{ row.gstNumber || '-' }}<br />License: {{ row.licenseNumber || '-' }}</p></article><article class="span-2"><h3>Remarks</h3><p>{{ row.remarks || '-' }}</p></article></section>
+    }
+  </main>
+</div>

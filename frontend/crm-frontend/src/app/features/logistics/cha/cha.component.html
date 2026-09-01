@@ -1,0 +1,70 @@
+<div class="cha-page">
+  <header class="page-header">
+    <div><div class="breadcrumb">Logistics <b>&rsaquo;</b> CHA / Customs</div><div class="title-row"><span class="title-icon">&#9878;</span><div><h1>CHA & Customs Dashboard</h1><p>Monitor CHA masters and operational customs clearance jobs.</p></div></div></div>
+    <div class="header-actions"><button type="button" class="soft-button" (click)="goMaster()"><span class="button-icon">&#9817;</span>View CHA Master</button><button type="button" class="soft-button" (click)="goNewClearance()"><span class="button-icon">&#10010;</span>New Clearance Job</button><button type="button" class="gold-button" (click)="router.navigateByUrl('/logistics/cha/master/new')"><span class="button-icon">&#10010;</span>Add CHA</button></div>
+  </header>
+
+  <main class="page-content">
+    <section class="summary-grid">
+      <article><span>&#9817;</span><div><small>Total CHA</small><strong>{{ summary().totalCha }}</strong><p>Master records</p></div></article>
+      <article><span>&#8599;</span><div><small>Active Clearance Jobs</small><strong>{{ summary().activeJobs }}</strong><p>In process</p></div></article>
+      <article><span>&#9633;</span><div><small>Documents Pending</small><strong>{{ summary().documentsPending }}</strong><p>Awaiting documents</p></div></article>
+      <article><span>&#9888;</span><div><small>Under Assessment</small><strong>{{ summary().assessment }}</strong><p>Customs review</p></div></article>
+      <article><span>&#9888;</span><div><small>On Hold</small><strong>{{ summary().hold }}</strong><p>Query or hold</p></div></article>
+      <article><span>&#10003;</span><div><small>Cleared</small><strong>{{ summary().cleared }}</strong><p>Completed</p></div></article>
+    </section>
+
+    <section class="quick-actions"><button type="button" (click)="router.navigateByUrl('/logistics/cha/master/new')"><span>&#10010;</span>Add CHA</button><button type="button" (click)="goNewClearance()"><span>&#8599;</span>New Clearance Job</button><button type="button" (click)="goMaster()"><span>&#9817;</span>View CHA Master</button></section>
+
+
+    @if (selectedCase(); as item) {
+      <section class="detail-card">
+        <div>
+          <span>CHA CASE</span>
+          <h2>{{ item.caseNumber || item.shipmentNumber || item.shipmentNo || 'Clearance Job' }}</h2>
+          <p>{{ item.customerName || item.customer || '-' }} · {{ item.chaAgent || '-' }} · {{ statusLabel(item.status) }}</p>
+        </div>
+        <div class="detail-actions">
+          <button type="button" class="gold-button" (click)="editCase(item)"><span class="button-icon">&#9998;</span>Edit</button>
+          <button type="button" class="soft-button" (click)="deleteCase(item)"><span class="button-icon">&#128465;</span>Delete</button>
+          <button type="button" class="soft-button" (click)="selectedCase.set(null)"><span class="button-icon">&#10005;</span>Close</button>
+        </div>
+      </section>
+    }
+    @if (showForm()) {
+      <section class="form-card">
+        <header class="section-header"><div><span>NEW CLEARANCE JOB</span><h2>{{ editingCaseId ? 'Edit Clearance Job' : 'Shipment & CHA' }}</h2><p>Select a live shipment and CHA master record.</p></div><button type="button" class="close-button" (click)="closeForm()">&times;</button></header>
+        <section class="form-section"><h3>1. Shipment</h3><div class="form-grid">
+          <div class="field span-2"><label>Shipment *</label><select [(ngModel)]="form.shipmentId" (change)="onShipmentSelected()"><option value="">Select Shipment</option>@for (option of shipmentOptions; track option.value) { <option [value]="option.value">{{ option.label }}</option> }</select></div>
+          <div class="field"><label>Shipment Number</label><input [(ngModel)]="form.shipmentNo" readonly /></div><div class="field"><label>Customer</label><input [(ngModel)]="form.customer" readonly /></div>
+          <div class="field"><label>Shipment Mode</label><input [(ngModel)]="form.shipmentType" readonly /></div><div class="field"><label>Origin</label><input [(ngModel)]="form.origin" readonly /></div><div class="field"><label>Destination</label><input [(ngModel)]="form.destination" readonly /></div><div class="field"><label>Import / Export</label><select [(ngModel)]="form.tradeType"><option value="export">Export</option><option value="import">Import</option></select></div>
+          <div class="field"><label>CHA Required</label><input [(ngModel)]="form.chaRequired" readonly /></div><div class="field"><label>AWB / BL</label><input [(ngModel)]="form.awbBlNumber" readonly /></div>
+        </div></section>
+
+        <section class="form-section"><h3>2. CHA & Customs</h3><div class="form-grid">
+          <div class="field span-2"><label>CHA *</label><select [(ngModel)]="form.chaAgent" (change)="onChaSelected()"><option value="">Select CHA</option>@for (option of chaAgents; track option.value) { <option [value]="option.value">{{ option.label }}</option> }</select>@if (form.chaAgent === 'other') { <input class="other-input" [(ngModel)]="form.chaAgentOther" placeholder="Enter CHA name" /> }</div>
+          <div class="field"><label>CHA Contact</label><input [(ngModel)]="form.chaContact" readonly /></div><div class="field"><label>Mobile</label><input [(ngModel)]="form.chaMobile" readonly /></div><div class="field"><label>Email</label><input [(ngModel)]="form.chaEmail" readonly /></div><div class="field"><label>License Number</label><input [(ngModel)]="form.chaLicenseNumber" readonly /></div>
+          <div class="field span-2"><label>Customs Location *</label><select [(ngModel)]="form.customsLocation"><option value="">Select Location</option>@for (option of customsLocations; track option.value) { <option [value]="option.value">{{ option.label }}</option> }</select>@if (form.customsLocation === 'other') { <input class="other-input" [(ngModel)]="form.customsLocationOther" placeholder="Enter customs location" /> }</div>
+          <div class="field"><label>Assigned Date</label><input type="date" [(ngModel)]="form.assignedDate" /></div><div class="field"><label>Expected Clearance</label><input type="date" [(ngModel)]="form.expectedClearanceDate" /></div>
+        </div></section>
+
+        <section class="form-section"><h3>3. Customs Fields</h3><div class="form-grid">
+          @if (form.tradeType === 'export') { <div class="field"><label>Shipping Bill Number</label><input [(ngModel)]="form.shippingBillNo" /></div><div class="field"><label>Shipping Bill Date</label><input type="date" [(ngModel)]="form.shippingBillDate" /></div> }
+          @if (form.tradeType === 'import') { <div class="field"><label>Bill of Entry Number</label><input [(ngModel)]="form.billOfEntryNo" /></div><div class="field"><label>Bill of Entry Date</label><input type="date" [(ngModel)]="form.billOfEntryDate" /></div><div class="field"><label>Assessable Value</label><input type="number" [(ngModel)]="form.assessableValue" /></div><div class="field"><label>Customs Duty</label><input type="number" [(ngModel)]="form.customsDuty" /></div> }
+          <div class="field"><label>IGST</label><input type="number" [(ngModel)]="form.igst" /></div><div class="field"><label>Cess</label><input type="number" [(ngModel)]="form.cess" /></div><div class="field"><label>CHA Charge</label><input type="number" [(ngModel)]="form.chaCharge" /></div><div class="field"><label>Examination Charge</label><input type="number" [(ngModel)]="form.examinationCharge" /></div><div class="field"><label>Miscellaneous Charge</label><input type="number" [(ngModel)]="form.miscellaneousCharge" /></div>
+        </div></section>
+
+        <section class="form-section"><h3>4. Document Checklist</h3><div class="document-grid"><label><input type="checkbox" [(ngModel)]="form.documentInvoice" /><span>&#128196;</span>Commercial Invoice</label><label><input type="checkbox" [(ngModel)]="form.documentPackingList" /><span>&#9636;</span>Packing List</label><label><input type="checkbox" [(ngModel)]="form.documentCertificateOrigin" /><span>&#9878;</span>Certificate of Origin</label><label><input type="checkbox" [(ngModel)]="form.documentShippingBill" /><span>&#8679;</span>Shipping Bill</label><label><input type="checkbox" [(ngModel)]="form.documentBillOfEntry" /><span>&#8681;</span>Bill of Entry</label><label><input type="checkbox" [(ngModel)]="form.documentAirwayBill" /><span>&#9992;</span>AWB</label><label><input type="checkbox" [(ngModel)]="form.documentBillOfLading" /><span>&#9875;</span>Bill of Lading</label><label><input type="checkbox" [(ngModel)]="form.documentOther" /><span>&#9671;</span>Other</label></div></section>
+
+        <section class="form-section"><h3>5. Clearance Status</h3><div class="form-grid"><div class="field span-2"><label>Status *</label><select [(ngModel)]="form.status">@for (option of statusOptions; track option.value) { <option [value]="option.value">{{ option.label }}</option> }</select>@if (form.status === 'other') { <input class="other-input" [(ngModel)]="form.statusOther" placeholder="Enter customs status" /> }</div></div></section>
+        <section class="form-section remarks-section"><h3>6. Remarks</h3><div class="field"><label>Remarks</label><textarea rows="5" [(ngModel)]="form.remarks"></textarea></div></section>
+        <footer class="form-footer"><button type="button" class="soft-button" (click)="closeForm()"><span class="button-icon">&#10005;</span>Cancel</button><button type="button" class="gold-button" [disabled]="isSaving()" (click)="saveCase()"><span class="button-icon">&#10003;</span>{{ isSaving() ? 'Saving...' : 'Save Clearance Job' }}</button></footer>
+      </section>
+    }
+
+    <section class="filter-card"><span>&#8981;</span><input #searchBox [value]="search()" (input)="search.set(searchBox.value)" placeholder="Search job, shipment, customer or CHA..." /></section>
+    <section class="table-card"><header><div><span>CLEARANCE JOBS</span><h2>Recent Clearance Jobs</h2></div><strong>{{ filteredCases().length }} records</strong></header><div class="table-scroll"><table><thead><tr><th>Job No</th><th>Shipment</th><th>Customer</th><th>CHA</th><th>Location</th><th>Status</th><th>Assigned Date</th><th>Expected Clearance</th><th>Actions</th></tr></thead><tbody>@for (item of filteredCases(); track item._id || item.caseNumber) { <tr><td><strong>{{ item.caseNumber || '-' }}</strong></td><td>{{ item.shipmentNumber || item.shipmentNo || '-' }}</td><td>{{ item.customerName || item.customer || '-' }}</td><td>{{ item.chaAgent || '-' }}</td><td>{{ item.customsLocationOther || item.customsLocation || '-' }}</td><td><span class="status" [class]="'status ' + (item.status || 'documents_pending')">{{ statusLabel(item.status) }}</span></td><td>{{ item.assignedDate ? (item.assignedDate | date:'dd/MM/yyyy') : '-' }}</td><td>{{ item.expectedClearanceDate ? (item.expectedClearanceDate | date:'dd/MM/yyyy') : '-' }}</td><td><div class="actions"><button type="button" title="View" (click)="viewCase(item)">&#128065;</button><button type="button" title="Edit" (click)="editCase(item)">&#9998;</button><button type="button" title="Delete" (click)="deleteCase(item)">&#128465;</button></div></td></tr> } @empty { <tr><td colspan="9"><div class="empty-state"><strong>No clearance jobs found</strong><p>Create a clearance job from a live shipment.</p></div></td></tr> }</tbody></table></div></section>
+  </main>
+</div>
+
+

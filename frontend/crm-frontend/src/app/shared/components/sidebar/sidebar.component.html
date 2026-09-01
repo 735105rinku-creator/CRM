@@ -1,0 +1,59 @@
+<aside class="sidebar" [class.collapsed]="collapsed()">
+  <div class="brand">
+    <div class="brand-logo">
+      <img [src]="companyLogoUrl()" [alt]="companyName() + ' logo'" />
+    </div>
+    <div class="brand-text">
+      <strong>{{ companyName() }}</strong>
+      <span>Workspace</span>
+    </div>
+    <button class="collapse-btn" type="button" (click)="collapseToggle.emit()" aria-label="Toggle sidebar">
+      &lt;
+    </button>
+  </div>
+
+  <nav class="menu" aria-label="Primary navigation">
+    @for (section of visibleMenuSections(); track section.title) {
+      <section class="menu-section">
+        <p>{{ section.title }}</p>
+        @for (item of section.items; track item.route) {
+          @if (item.roles?.length) {
+            <a
+              *appHasRole="item.roles ?? null"
+              [routerLink]="item.route"
+              routerLinkActive="active"
+              [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
+              class="menu-link"
+              (click)="navigateItem.emit()"
+              [title]="collapsed() ? item.label : ''"
+            >
+              <span class="menu-icon">{{ item.icon }}</span>
+              <span class="menu-label">{{ item.label }}</span>
+            </a>
+          } @else {
+            <a
+              [routerLink]="item.route"
+              routerLinkActive="active"
+              [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
+              class="menu-link"
+              (click)="navigateItem.emit()"
+              [title]="collapsed() ? item.label : ''"
+            >
+              <span class="menu-icon">{{ item.icon }}</span>
+              <span class="menu-label">{{ item.label }}</span>
+            </a>
+          }
+        }
+      </section>
+    }
+  </nav>
+
+  <div class="user-box">
+    <div class="avatar">{{ initials() }}</div>
+    <div class="user-copy">
+      <strong>{{ userName() }}</strong>
+      <span>{{ user()?.role || 'Team Member' }}</span>
+    </div>
+    <button class="logout-btn" type="button" (click)="logout()" aria-label="Log out">Log out</button>
+  </div>
+</aside>

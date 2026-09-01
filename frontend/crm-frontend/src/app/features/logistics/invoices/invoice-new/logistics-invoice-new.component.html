@@ -1,0 +1,1887 @@
+<div class="invoice-page">
+
+    <!-- ======================================================
+         HEADER
+    ======================================================= -->
+    <header class="page-header">
+  
+      <div>
+        <div class="breadcrumb">
+          <span>Logistics</span>
+          <b>›</b>
+          <span>Invoice</span>
+          <b>›</b>
+          <strong>New Invoice</strong>
+        </div>
+  
+        <div class="page-title">
+          <span class="title-icon">
+            ▤
+          </span>
+  
+          <div>
+            <h1>
+              Create Logistics Invoice
+            </h1>
+  
+            <p>
+              Generate customer invoices for
+              freight, CHA, transportation,
+              warehouse and logistics services.
+            </p>
+          </div>
+        </div>
+      </div>
+  
+      <div class="header-actions">
+  
+        <button
+          type="button"
+          class="soft-btn"
+          (click)="saveDraft()"
+        >
+          Save Draft
+        </button>
+  
+        <button
+          type="button"
+          class="soft-btn"
+          (click)="previewPdf()"
+        >
+          PDF Preview
+        </button>
+  
+        <button
+          type="button"
+          class="gold-btn"
+          (click)="submitInvoice()"
+        >
+          Save Invoice
+        </button>
+  
+      </div>
+  
+    </header>
+  
+    <div class="invoice-layout">
+  
+      <!-- ====================================================
+           MAIN CONTENT
+      ===================================================== -->
+      <main class="invoice-main">
+  
+        <!-- ==================================================
+             1 CUSTOMER & INVOICE
+        =================================================== -->
+        <section class="form-card">
+  
+          <header class="section-heading">
+            <span>1</span>
+  
+            <div>
+              <h2>
+                Customer & Invoice Details
+              </h2>
+  
+              <p>
+                Customer, shipment and invoice
+                information
+              </p>
+            </div>
+          </header>
+  
+          <div class="form-grid">
+  
+            <!-- CUSTOMER -->
+            <div class="field span-2">
+  
+              <label>
+                Customer
+                <b>*</b>
+              </label>
+  
+              <select
+                [(ngModel)]="form.customer"
+              
+                (change)="onCustomerSelected()"
+              >
+                <option value="">
+                  Select Customer
+                </option>
+  
+                @for (
+                  option of customers;
+                  track option.value
+                ) {
+  
+                  <option
+                    [value]="option.value"
+                  >
+                    {{ option.label }}
+                  </option>
+  
+                }
+              </select>
+  
+              @if (
+                form.customer === 'other'
+              ) {
+  
+                <input
+                  type="text"
+                  class="other-input"
+                  [(ngModel)]="
+                    form.customerOther
+                  "
+                  placeholder="Enter customer name"
+                />
+  
+              }
+  
+            </div>
+  
+            <!-- CONTACT -->
+            <div class="field">
+  
+              <label>
+                Contact Person
+              </label>
+  
+              <input
+                type="text"
+                [(ngModel)]="
+                  form.contactPerson
+                "
+                placeholder="Enter contact person"
+              />
+  
+            </div>
+  
+            <!-- MOBILE -->
+            <div class="field">
+  
+              <label>
+                Mobile Number
+              </label>
+  
+              <input
+                type="tel"
+                [(ngModel)]="
+                  form.mobile
+                "
+                placeholder="Enter mobile number"
+              />
+  
+            </div>
+  
+            <!-- EMAIL -->
+            <div class="field">
+  
+              <label>
+                Email
+              </label>
+  
+              <input
+                type="email"
+                [(ngModel)]="
+                  form.email
+                "
+                placeholder="Enter email"
+              />
+  
+            </div>
+  
+            <!-- GST -->
+            <div class="field">
+  
+              <label>
+                GST Number
+              </label>
+  
+              <input
+                type="text"
+                [(ngModel)]="
+                  form.gstNumber
+                "
+                placeholder="Enter GST number"
+              />
+  
+            </div>
+  
+            <!-- INVOICE NUMBER -->
+            <div class="field">
+  
+              <label>
+                Invoice Number
+                <b>*</b>
+              </label>
+  
+              <input
+                type="text"
+                class="readonly"
+                [(ngModel)]="
+                  form.invoiceNumber
+                "
+                readonly
+              />
+  
+            </div>
+  
+            <!-- INVOICE DATE -->
+            <div class="field">
+  
+              <label>
+                Invoice Date
+                <b>*</b>
+              </label>
+  
+              <input
+                type="date"
+                [(ngModel)]="
+                  form.invoiceDate
+                "
+              />
+  
+            </div>
+  
+            <!-- DUE DATE -->
+            <div class="field">
+  
+              <label>
+                Due Date
+                <b>*</b>
+              </label>
+  
+              <input
+                type="date"
+                [(ngModel)]="
+                  form.dueDate
+                "
+              />
+  
+            </div>
+  
+            <!-- INVOICE TYPE -->
+            <div class="field">
+  
+              <label>
+                Invoice Type
+                <b>*</b>
+              </label>
+  
+              <select
+                [(ngModel)]="
+                  form.invoiceType
+                "
+              >
+  
+                @for (
+                  option of invoiceTypes;
+                  track option.value
+                ) {
+  
+                  <option
+                    [value]="option.value"
+                  >
+                    {{ option.label }}
+                  </option>
+  
+                }
+  
+              </select>
+  
+              @if (
+                form.invoiceType === 'other'
+              ) {
+  
+                <input
+                  type="text"
+                  class="other-input"
+                  [(ngModel)]="
+                    form.invoiceTypeOther
+                  "
+                  placeholder="Enter invoice type"
+                />
+  
+              }
+  
+            </div>
+  
+            <!-- SHIPMENT -->
+            <div class="field span-2">
+  
+              <label>
+                Related Shipment
+              </label>
+  
+              <select
+                [(ngModel)]="
+                  form.shipment
+                "
+              >
+  
+                <option value="">
+                  Select Shipment
+                </option>
+  
+                @for (
+                  option of shipmentOptions;
+                  track option.value
+                ) {
+  
+                  <option
+                    [value]="option.value"
+                  >
+                    {{ option.label }}
+                  </option>
+  
+                }
+  
+              </select>
+  
+              @if (
+                form.shipment === 'other'
+              ) {
+  
+                <input
+                  type="text"
+                  class="other-input"
+                  [(ngModel)]="
+                    form.shipmentOther
+                  "
+                  placeholder="Enter shipment reference"
+                />
+  
+              }
+  
+            </div>
+  
+            <!-- CUSTOMER REF -->
+            <div class="field">
+  
+              <label>
+                Customer Reference
+              </label>
+  
+              <input
+                type="text"
+                [(ngModel)]="
+                  form.customerReference
+                "
+                placeholder="PO / reference number"
+              />
+  
+            </div>
+  
+            <!-- PLACE OF SUPPLY -->
+            <div class="field">
+  
+              <label>
+                Place of Supply
+              </label>
+  
+              <input
+                type="text"
+                [(ngModel)]="
+                  form.placeOfSupply
+                "
+                placeholder="Enter place of supply"
+              />
+  
+            </div>
+  
+            <!-- CURRENCY -->
+            <div class="field">
+  
+              <label>
+                Currency
+                <b>*</b>
+              </label>
+  
+              <select
+                [(ngModel)]="
+                  form.currency
+                "
+              >
+  
+                @for (
+                  option of currencies;
+                  track option.value
+                ) {
+  
+                  <option
+                    [value]="option.value"
+                  >
+                    {{ option.label }}
+                  </option>
+  
+                }
+  
+              </select>
+  
+              @if (
+                form.currency === 'other'
+              ) {
+  
+                <input
+                  type="text"
+                  class="other-input"
+                  [(ngModel)]="
+                    form.currencyOther
+                  "
+                  placeholder="Enter currency"
+                />
+  
+              }
+  
+            </div>
+  
+            <!-- REVERSE CHARGE -->
+            <div class="field">
+  
+              <label>
+                Reverse Charge
+              </label>
+  
+              <div class="radio-group">
+  
+                <label>
+                  <input
+                    type="radio"
+                    name="reverseCharge"
+                    value="yes"
+                    [(ngModel)]="
+                      form.reverseCharge
+                    "
+                  />
+                  <span></span>
+                  Yes
+                </label>
+  
+                <label>
+                  <input
+                    type="radio"
+                    name="reverseCharge"
+                    value="no"
+                    [(ngModel)]="
+                      form.reverseCharge
+                    "
+                  />
+                  <span></span>
+                  No
+                </label>
+  
+              </div>
+  
+            </div>
+  
+            <!-- BILLING -->
+            <div class="field span-2">
+  
+              <label>
+                Billing Address
+                <b>*</b>
+              </label>
+  
+              <textarea
+                rows="3"
+                [(ngModel)]="
+                  form.billingAddress
+                "
+                placeholder="Enter billing address"
+              ></textarea>
+  
+            </div>
+  
+            <!-- SHIPPING -->
+            <div class="field span-2">
+  
+              <label>
+                Shipping Address
+              </label>
+  
+              <textarea
+                rows="3"
+                [(ngModel)]="
+                  form.shippingAddress
+                "
+                placeholder="Enter shipping address"
+              ></textarea>
+  
+            </div>
+  
+          </div>
+  
+        </section>
+  
+        <!-- ==================================================
+             2 ITEM / CHARGE DETAILS
+        =================================================== -->
+        <section class="form-card">
+  
+          <header class="section-heading">
+            <span>2</span>
+  
+            <div>
+              <h2>
+                Item / Charge Details
+              </h2>
+  
+              <p>
+                Add freight and logistics service
+                charges
+              </p>
+            </div>
+  
+            <button
+              type="button"
+              class="section-action"
+              (click)="addItem()"
+            >
+              ＋ Add Item
+            </button>
+          </header>
+  
+          <div class="item-list">
+  
+            @for (
+              item of items;
+              track $index;
+              let index = $index
+            ) {
+  
+              <article class="invoice-item">
+  
+                <header class="item-header">
+  
+                  <div>
+                    <span>
+                      ITEM {{ index + 1 }}
+                    </span>
+  
+                    <strong>
+                      Logistics Service
+                    </strong>
+                  </div>
+  
+                  <button
+                    type="button"
+                    class="delete-item"
+                    [disabled]="items.length === 1"
+                    (click)="removeItem(index)"
+                  >
+                    ×
+                  </button>
+  
+                </header>
+  
+                <div class="item-grid">
+  
+                  <!-- SERVICE -->
+                  <div class="field span-2">
+  
+                    <label>
+                      Service / Charge
+                      <b>*</b>
+                    </label>
+  
+                    <select
+                      [(ngModel)]="
+                        item.description
+                      "
+                    
+                      (change)="onProductServiceSelected(item)"
+                    >
+  
+                      <option value="">
+                        Select Service
+                      </option>
+  
+                      @for (
+                        option of serviceOptions;
+                        track option.value
+                      ) {
+  
+                        <option
+                          [value]="option.value"
+                        >
+                          {{ option.label }}
+                        </option>
+  
+                      }
+  
+                    </select>
+  
+                    @if (
+                      item.description === 'other'
+                    ) {
+  
+                      <input
+                        type="text"
+                        class="other-input"
+                        [(ngModel)]="
+                          item.descriptionOther
+                        "
+                        placeholder="Enter service / charge"
+                      />
+  
+                    }
+  
+                  </div>
+  
+                  <!-- HSN -->
+                  <div class="field">
+  
+                    <label>
+                      HSN / SAC
+                    </label>
+  
+                    <input
+                      type="text"
+                      [(ngModel)]="
+                        item.hsnSac
+                      "
+                      placeholder="Enter HSN / SAC"
+                    />
+  
+                  </div>
+  
+                  <!-- QTY -->
+                  <div class="field">
+  
+                    <label>
+                      Quantity
+                      <b>*</b>
+                    </label>
+  
+                    <input
+                      type="number"
+                      min="0"
+                      [(ngModel)]="
+                        item.quantity
+                      "
+                    />
+  
+                  </div>
+  
+                  <!-- UNIT -->
+                  <div class="field">
+  
+                    <label>
+                      Unit
+                      <b>*</b>
+                    </label>
+  
+                    <select
+                      [(ngModel)]="
+                        item.unit
+                      "
+                    >
+  
+                      @for (
+                        option of units;
+                        track option.value
+                      ) {
+  
+                        <option
+                          [value]="option.value"
+                        >
+                          {{ option.label }}
+                        </option>
+  
+                      }
+  
+                    </select>
+  
+                    @if (
+                      item.unit === 'other'
+                    ) {
+  
+                      <input
+                        type="text"
+                        class="other-input"
+                        [(ngModel)]="
+                          item.unitOther
+                        "
+                        placeholder="Enter unit"
+                      />
+  
+                    }
+  
+                  </div>
+  
+                  <!-- RATE -->
+                  <div class="field">
+  
+                    <label>
+                      Rate
+                      <b>*</b>
+                    </label>
+  
+                    <div class="money-input">
+                      <span>
+                        {{ form.currency === 'INR' ? '₹' : '' }}
+                      </span>
+  
+                      <input
+                        type="number"
+                        min="0"
+                        [(ngModel)]="
+                          item.rate
+                        "
+                      />
+                    </div>
+  
+                  </div>
+  
+                  <!-- DISCOUNT -->
+                  <div class="field">
+  
+                    <label>
+                      Discount
+                    </label>
+  
+                    <div class="money-input">
+                      <span>
+                        {{ form.currency === 'INR' ? '₹' : '' }}
+                      </span>
+  
+                      <input
+                        type="number"
+                        min="0"
+                        [(ngModel)]="
+                          item.discount
+                        "
+                      />
+                    </div>
+  
+                  </div>
+  
+                  <!-- GST -->
+                  <div class="field">
+  
+                    <label>
+                      GST
+                      <b>*</b>
+                    </label>
+  
+                    <select
+                      [(ngModel)]="
+                        item.gstRate
+                      "
+                    >
+  
+                      @for (
+                        option of gstRates;
+                        track option.value
+                      ) {
+  
+                        <option
+                          [value]="option.value"
+                        >
+                          {{ option.label }}
+                        </option>
+  
+                      }
+  
+                    </select>
+  
+                    @if (
+                      item.gstRate === 'other'
+                    ) {
+  
+                      <input
+                        type="number"
+                        class="other-input"
+                        [(ngModel)]="
+                          item.gstRateOther
+                        "
+                        placeholder="Enter GST %"
+                      />
+  
+                    }
+  
+                  </div>
+  
+                </div>
+  
+                <footer class="item-total-row">
+  
+                  <div>
+                    <span>
+                      Base Amount
+                    </span>
+  
+                    <strong>
+                      {{
+                        formatCurrency(
+                          itemBaseAmount(item)
+                        )
+                      }}
+                    </strong>
+                  </div>
+  
+                  <div>
+                    <span>
+                      Taxable
+                    </span>
+  
+                    <strong>
+                      {{
+                        formatCurrency(
+                          itemTaxableAmount(item)
+                        )
+                      }}
+                    </strong>
+                  </div>
+  
+                  <div>
+                    <span>
+                      GST
+                    </span>
+  
+                    <strong>
+                      {{
+                        formatCurrency(
+                          itemTaxAmount(item)
+                        )
+                      }}
+                    </strong>
+                  </div>
+  
+                  <div class="item-total">
+                    <span>
+                      Item Total
+                    </span>
+  
+                    <strong>
+                      {{
+                        formatCurrency(
+                          itemTotal(item)
+                        )
+                      }}
+                    </strong>
+                  </div>
+  
+                </footer>
+  
+              </article>
+  
+            }
+  
+          </div>
+  
+        </section>
+  
+        <!-- ==================================================
+             3 TAX DETAILS
+        =================================================== -->
+        <section class="form-card">
+  
+          <header class="section-heading">
+            <span>3</span>
+  
+            <div>
+              <h2>
+                Tax & Discount Details
+              </h2>
+  
+              <p>
+                Invoice-level adjustment and tax
+                summary
+              </p>
+            </div>
+          </header>
+  
+          <div class="form-grid">
+  
+            <div class="field">
+  
+              <label>
+                Discount Type
+              </label>
+  
+              <select
+                [(ngModel)]="
+                  form.discountType
+                "
+              >
+                <option value="amount">
+                  Fixed Amount
+                </option>
+  
+                <option value="percentage">
+                  Percentage
+                </option>
+              </select>
+  
+            </div>
+  
+            <div class="field">
+  
+              <label>
+                Overall Discount
+              </label>
+  
+              <div
+                class="money-input"
+                [class.percent-input]="
+                  form.discountType ===
+                  'percentage'
+                "
+              >
+  
+                <span>
+                  {{
+                    form.discountType ===
+                    'percentage'
+                      ? '%'
+                      : (
+                          form.currency === 'INR'
+                            ? '₹'
+                            : ''
+                        )
+                  }}
+                </span>
+  
+                <input
+                  type="number"
+                  min="0"
+                  [(ngModel)]="
+                    form.overallDiscount
+                  "
+                />
+  
+              </div>
+  
+            </div>
+  
+            <div class="field">
+  
+              <label>
+                Round Off
+              </label>
+  
+              <div class="money-input">
+  
+                <span>
+                  {{ form.currency === 'INR' ? '₹' : '' }}
+                </span>
+  
+                <input
+                  type="number"
+                  [(ngModel)]="
+                    form.roundOff
+                  "
+                />
+  
+              </div>
+  
+            </div>
+  
+          </div>
+  
+        </section>
+  
+        <!-- ==================================================
+             4 ADDITIONAL CHARGES
+        =================================================== -->
+        <section class="form-card">
+  
+          <header class="section-heading">
+            <span>4</span>
+  
+            <div>
+              <h2>
+                Additional Charges
+              </h2>
+  
+              <p>
+                Add miscellaneous invoice charges
+              </p>
+            </div>
+  
+            <button
+              type="button"
+              class="section-action"
+              (click)="addAdditionalCharge()"
+            >
+              ＋ Add Charge
+            </button>
+          </header>
+  
+          @if (!additionalCharges.length) {
+  
+            <div class="empty-additional-charge">
+  
+              <span>＋</span>
+  
+              <strong>
+                No additional charges
+              </strong>
+  
+              <p>
+                Use Add Charge for miscellaneous
+                expenses.
+              </p>
+  
+            </div>
+  
+          }
+  
+          @for (
+            charge of additionalCharges;
+            track $index;
+            let index = $index
+          ) {
+  
+            <div class="additional-charge-row">
+  
+              <div class="field">
+  
+                <label>
+                  Charge Type
+                </label>
+  
+                <select
+                  [(ngModel)]="
+                    charge.description
+                  "
+                >
+  
+                  <option value="">
+                    Select Charge
+                  </option>
+  
+                  <option value="handling">
+                    Handling Charge
+                  </option>
+  
+                  <option value="insurance">
+                    Insurance
+                  </option>
+  
+                  <option value="storage">
+                    Storage Charge
+                  </option>
+  
+                  <option value="demurrage">
+                    Demurrage
+                  </option>
+  
+                  <option value="other">
+                    Other
+                  </option>
+  
+                </select>
+  
+                @if (
+                  charge.description === 'other'
+                ) {
+  
+                  <input
+                    type="text"
+                    class="other-input"
+                    [(ngModel)]="
+                      charge.descriptionOther
+                    "
+                    placeholder="Enter charge"
+                  />
+  
+                }
+  
+              </div>
+  
+              <div class="field">
+  
+                <label>
+                  Amount
+                </label>
+  
+                <div class="money-input">
+  
+                  <span>
+                    {{ form.currency === 'INR' ? '₹' : '' }}
+                  </span>
+  
+                  <input
+                    type="number"
+                    min="0"
+                    [(ngModel)]="
+                      charge.amount
+                    "
+                  />
+  
+                </div>
+  
+              </div>
+  
+              <div class="field">
+  
+                <label>
+                  Taxable?
+                </label>
+  
+                <select
+                  [(ngModel)]="
+                    charge.taxable
+                  "
+                >
+                  <option value="yes">
+                    Yes
+                  </option>
+  
+                  <option value="no">
+                    No
+                  </option>
+                </select>
+  
+              </div>
+  
+              <button
+                type="button"
+                class="remove-charge"
+                (click)="
+                  removeAdditionalCharge(index)
+                "
+              >
+                ×
+              </button>
+  
+            </div>
+  
+          }
+  
+        </section>
+  
+        <!-- ==================================================
+             5 PAYMENT DETAILS
+        =================================================== -->
+        <section class="form-card">
+  
+          <header class="section-heading">
+            <span>5</span>
+  
+            <div>
+              <h2>
+                Payment Details
+              </h2>
+  
+              <p>
+                Payment status, received amount and
+                banking information
+              </p>
+            </div>
+          </header>
+  
+          <div class="form-grid">
+  
+            <!-- STATUS -->
+            <div class="field">
+  
+              <label>
+                Payment Status
+                <b>*</b>
+              </label>
+  
+              <select
+                [(ngModel)]="
+                  form.paymentStatus
+                "
+              >
+  
+                @for (
+                  option of paymentStatuses;
+                  track option.value
+                ) {
+  
+                  <option
+                    [value]="option.value"
+                  >
+                    {{ option.label }}
+                  </option>
+  
+                }
+  
+              </select>
+  
+              @if (
+                form.paymentStatus === 'other'
+              ) {
+  
+                <input
+                  type="text"
+                  class="other-input"
+                  [(ngModel)]="
+                    form.paymentStatusOther
+                  "
+                  placeholder="Enter payment status"
+                />
+  
+              }
+  
+            </div>
+  
+            <!-- MODE -->
+            <div class="field">
+  
+              <label>
+                Payment Mode
+              </label>
+  
+              <select
+                [(ngModel)]="
+                  form.paymentMode
+                "
+              >
+  
+                <option value="">
+                  Select Payment Mode
+                </option>
+  
+                @for (
+                  option of paymentModes;
+                  track option.value
+                ) {
+  
+                  <option
+                    [value]="option.value"
+                  >
+                    {{ option.label }}
+                  </option>
+  
+                }
+  
+              </select>
+  
+              @if (
+                form.paymentMode === 'other'
+              ) {
+  
+                <input
+                  type="text"
+                  class="other-input"
+                  [(ngModel)]="
+                    form.paymentModeOther
+                  "
+                  placeholder="Enter payment mode"
+                />
+  
+              }
+  
+            </div>
+  
+            <!-- RECEIVED -->
+            <div class="field">
+  
+              <label>
+                Amount Received
+              </label>
+  
+              <div class="money-input">
+  
+                <span>
+                  {{ form.currency === 'INR' ? '₹' : '' }}
+                </span>
+  
+                <input
+                  type="number"
+                  min="0"
+                  [(ngModel)]="
+                    form.amountReceived
+                  "
+                />
+  
+              </div>
+  
+            </div>
+  
+            <!-- PAYMENT DATE -->
+            <div class="field">
+  
+              <label>
+                Payment Date
+              </label>
+  
+              <input
+                type="date"
+                [(ngModel)]="
+                  form.paymentDate
+                "
+              />
+  
+            </div>
+  
+            <!-- REF -->
+            <div class="field span-2">
+  
+              <label>
+                Payment Reference
+              </label>
+  
+              <input
+                type="text"
+                [(ngModel)]="
+                  form.paymentReference
+                "
+                placeholder="
+                  UTR / transaction / cheque number
+                "
+              />
+  
+            </div>
+  
+            <div class="field">
+  
+              <label>
+                Bank Name
+              </label>
+  
+              <input
+                type="text"
+                [(ngModel)]="
+                  form.bankName
+                "
+                placeholder="Enter bank name"
+              />
+  
+            </div>
+  
+            <div class="field">
+  
+              <label>
+                Account Name
+              </label>
+  
+              <input
+                type="text"
+                [(ngModel)]="
+                  form.accountName
+                "
+                placeholder="Enter account name"
+              />
+  
+            </div>
+  
+            <div class="field">
+  
+              <label>
+                Account Number
+              </label>
+  
+              <input
+                type="text"
+                [(ngModel)]="
+                  form.accountNumber
+                "
+                placeholder="Enter account number"
+              />
+  
+            </div>
+  
+            <div class="field">
+  
+              <label>
+                IFSC Code
+              </label>
+  
+              <input
+                type="text"
+                [(ngModel)]="
+                  form.ifscCode
+                "
+                placeholder="Enter IFSC"
+              />
+  
+            </div>
+  
+            <div class="field span-2">
+  
+              <label>
+                Branch Name
+              </label>
+  
+              <input
+                type="text"
+                [(ngModel)]="
+                  form.branchName
+                "
+                placeholder="Enter branch name"
+              />
+  
+            </div>
+  
+          </div>
+  
+        </section>
+  
+        <!-- ==================================================
+             6 TERMS
+        =================================================== -->
+        <section class="form-card">
+  
+          <header class="section-heading">
+            <span>6</span>
+  
+            <div>
+              <h2>
+                Terms & Conditions
+              </h2>
+  
+              <p>
+                Commercial and payment terms
+              </p>
+            </div>
+          </header>
+  
+          <div class="field">
+  
+            <label>
+              Terms & Conditions
+            </label>
+  
+            <textarea
+              rows="5"
+              [(ngModel)]="
+                form.termsAndConditions
+              "
+            ></textarea>
+  
+          </div>
+  
+        </section>
+  
+        <!-- ==================================================
+             7 REMARKS - ALWAYS LAST
+        =================================================== -->
+        <section class="form-card remarks-card">
+  
+          <header class="section-heading">
+            <span>7</span>
+  
+            <div>
+              <h2>
+                Remarks
+              </h2>
+  
+              <p>
+                Final invoice notes and internal
+                instructions
+              </p>
+            </div>
+          </header>
+  
+          <div class="field">
+  
+            <label>
+              Remarks
+            </label>
+  
+            <textarea
+              rows="5"
+              [(ngModel)]="
+                form.remarks
+              "
+              placeholder="
+                Enter invoice remarks,
+                shipment note,
+                payment note or special instruction...
+              "
+            ></textarea>
+  
+          </div>
+  
+        </section>
+  
+      </main>
+  
+      <!-- ====================================================
+           RIGHT PANEL
+      ===================================================== -->
+      <aside class="invoice-sidebar">
+  
+        <!-- SUMMARY -->
+        <section class="side-card summary-card">
+  
+          <header>
+            <span>₹</span>
+  
+            <div>
+              <h3>
+                Invoice Summary
+              </h3>
+  
+              <p>
+                Live calculation
+              </p>
+            </div>
+          </header>
+  
+          <div class="summary-line">
+  
+            <span>
+              Service Subtotal
+            </span>
+  
+            <strong>
+              {{
+                formatCurrency(
+                  itemsSubtotal
+                )
+              }}
+            </strong>
+  
+          </div>
+  
+          <div class="summary-line">
+  
+            <span>
+              Additional Charges
+            </span>
+  
+            <strong>
+              {{
+                formatCurrency(
+                  additionalChargeSubtotal
+                )
+              }}
+            </strong>
+  
+          </div>
+  
+          <div class="summary-line discount">
+  
+            <span>
+              Overall Discount
+            </span>
+  
+            <strong>
+              -
+              {{
+                formatCurrency(
+                  overallDiscountAmount
+                )
+              }}
+            </strong>
+  
+          </div>
+  
+          <div class="summary-line">
+  
+            <span>
+              Taxable Amount
+            </span>
+  
+            <strong>
+              {{
+                formatCurrency(
+                  totalBeforeTax
+                )
+              }}
+            </strong>
+  
+          </div>
+  
+          <div class="summary-line">
+  
+            <span>
+              Tax
+            </span>
+  
+            <strong>
+              {{
+                formatCurrency(
+                  taxTotal
+                )
+              }}
+            </strong>
+  
+          </div>
+  
+          <div class="summary-line">
+  
+            <span>
+              Round Off
+            </span>
+  
+            <strong>
+              {{
+                formatCurrency(
+                  form.roundOff
+                )
+              }}
+            </strong>
+  
+          </div>
+  
+          <div class="invoice-total">
+  
+            <span>
+              Invoice Total
+            </span>
+  
+            <strong>
+              {{
+                formatCurrency(
+                  invoiceTotal
+                )
+              }}
+            </strong>
+  
+          </div>
+  
+          <div class="received-line">
+  
+            <span>
+              Amount Received
+            </span>
+  
+            <strong>
+              {{
+                formatCurrency(
+                  form.amountReceived
+                )
+              }}
+            </strong>
+  
+          </div>
+  
+          <div
+            class="balance-due"
+            [class.paid]="
+              balanceDue === 0
+            "
+          >
+  
+            <span>
+              Balance Due
+            </span>
+  
+            <strong>
+              {{
+                formatCurrency(
+                  balanceDue
+                )
+              }}
+            </strong>
+  
+          </div>
+  
+        </section>
+  
+        <!-- QUICK ACTION -->
+        <section class="side-card">
+  
+          <header>
+            <span>⚡</span>
+  
+            <div>
+              <h3>
+                Quick Actions
+              </h3>
+  
+              <p>
+                Invoice operations
+              </p>
+            </div>
+          </header>
+  
+          <div class="quick-actions">
+  
+            <button
+              type="button"
+              (click)="previewPdf()"
+            >
+              <span>◉</span>
+              PDF Preview
+            </button>
+  
+            <button
+              type="button"
+              (click)="downloadPdf()"
+            >
+              <span>⇩</span>
+              Download PDF
+            </button>
+  
+            <button
+              type="button"
+              (click)="printInvoice()"
+            >
+              <span>▣</span>
+              Print Invoice
+            </button>
+  
+            <button
+              type="button"
+              (click)="sendInvoice()"
+            >
+              <span>➤</span>
+              Send to Customer
+            </button>
+  
+            <button
+              type="button"
+              (click)="saveDraft()"
+            >
+              <span>▱</span>
+              Save Draft
+            </button>
+  
+          </div>
+  
+        </section>
+  
+        <!-- INVOICE META -->
+        <section class="side-card">
+  
+          <header>
+            <span>▤</span>
+  
+            <div>
+              <h3>
+                Invoice Information
+              </h3>
+  
+              <p>
+                Current document
+              </p>
+            </div>
+          </header>
+  
+          <div class="meta-list">
+  
+            <div>
+              <span>
+                Invoice No.
+              </span>
+  
+              <strong>
+                {{ form.invoiceNumber }}
+              </strong>
+            </div>
+  
+            <div>
+              <span>
+                Invoice Date
+              </span>
+  
+              <strong>
+                {{ form.invoiceDate || '-' }}
+              </strong>
+            </div>
+  
+            <div>
+              <span>
+                Shipment
+              </span>
+  
+              <strong>
+                {{ form.shipment || '-' }}
+              </strong>
+            </div>
+  
+            <div>
+              <span>
+                Currency
+              </span>
+  
+              <strong>
+                {{
+                  form.currency === 'other'
+                    ? form.currencyOther
+                    : form.currency
+                }}
+              </strong>
+            </div>
+  
+          </div>
+  
+        </section>
+  
+        <!-- RECENT -->
+        <section class="side-card recent-invoices">
+  
+          <header>
+            <span>◷</span>
+  
+            <div>
+              <h3>
+                Recent Invoices
+              </h3>
+  
+              <p>
+                Latest logistics invoices
+              </p>
+            </div>
+          </header>
+  
+          <article>
+  
+            <div>
+              <strong>
+                LINV-250808-0008
+              </strong>
+  
+              <span>
+                Global Traders
+              </span>
+            </div>
+  
+            <b>
+              ₹1.85L
+            </b>
+  
+          </article>
+  
+          <article>
+  
+            <div>
+              <strong>
+                LINV-250807-0007
+              </strong>
+  
+              <span>
+                Sunrise Enterprises
+              </span>
+            </div>
+  
+            <b>
+              ₹96.5K
+            </b>
+  
+          </article>
+  
+          <article>
+  
+            <div>
+              <strong>
+                LINV-250806-0006
+              </strong>
+  
+              <span>
+                Apex Exports
+              </span>
+            </div>
+  
+            <b>
+              ₹2.14L
+            </b>
+  
+          </article>
+  
+        </section>
+  
+        <button
+          type="button"
+          class="reset-invoice"
+          (click)="resetInvoice()"
+        >
+          Reset Invoice
+        </button>
+  
+      </aside>
+  
+    </div>
+  
+  </div>

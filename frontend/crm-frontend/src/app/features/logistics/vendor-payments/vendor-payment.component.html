@@ -1,0 +1,1258 @@
+<div class="vendor-payment-page">
+
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+    <header class="page-header">
+  
+      <div>
+  
+        <div class="breadcrumb">
+          <span>Logistics</span>
+          <b>›</b>
+          <span>Payments</span>
+          <b>›</b>
+          <strong>Vendor / Supplier Payment</strong>
+        </div>
+  
+        <div class="title-row">
+  
+          <span class="title-icon">
+            ₹
+          </span>
+  
+          <div>
+            <h1>
+              Vendor / Supplier Payment
+            </h1>
+  
+            <p>
+              Record supplier invoices, advances,
+              deductions and outstanding balances.
+            </p>
+          </div>
+  
+        </div>
+  
+      </div>
+  
+      <div class="header-actions">
+  
+        <button
+          type="button"
+          class="soft-button"
+          (click)="exportPayments()"
+        >
+          ⇩ Export
+        </button>
+  
+        <button
+          type="button"
+          class="gold-button"
+          (click)="resetForm()"
+        >
+          ＋ New Entry
+        </button>
+  
+      </div>
+  
+    </header>
+  
+    <main class="page-content">
+  
+      <!-- =====================================================
+           SUMMARY
+      ====================================================== -->
+      <section class="summary-grid">
+  
+        <article>
+  
+          <span class="summary-icon">
+            ₹
+          </span>
+  
+          <div>
+            <small>Total Amount</small>
+  
+            <strong>
+              {{
+                formatCurrency(
+                  summary().totalAmount
+                )
+              }}
+            </strong>
+  
+            <p>
+              Total supplier invoices
+            </p>
+          </div>
+  
+        </article>
+  
+        <article>
+  
+          <span class="summary-icon advance">
+            ↘
+          </span>
+  
+          <div>
+            <small>Previous Advance</small>
+  
+            <strong>
+              {{
+                formatCurrency(
+                  summary().previousAdvance
+                )
+              }}
+            </strong>
+  
+            <p>
+              Advance already adjusted
+            </p>
+          </div>
+  
+        </article>
+  
+        <article>
+  
+          <span class="summary-icon paid">
+            ✓
+          </span>
+  
+          <div>
+            <small>Paid Amount</small>
+  
+            <strong>
+              {{
+                formatCurrency(
+                  summary().paidAmount
+                )
+              }}
+            </strong>
+  
+            <p>
+              Total vendor payments
+            </p>
+          </div>
+  
+        </article>
+  
+        <article>
+  
+          <span class="summary-icon pending">
+            ◷
+          </span>
+  
+          <div>
+            <small>Supplier Balance</small>
+  
+            <strong>
+              {{
+                formatCurrency(
+                  summary().supplierBalance
+                )
+              }}
+            </strong>
+  
+            <p>
+              Outstanding supplier amount
+            </p>
+          </div>
+  
+        </article>
+  
+      </section>
+  
+      <!-- =====================================================
+           FORM
+      ====================================================== -->
+      <section class="form-card">
+  
+        <header class="section-header">
+  
+          <div>
+            <span>PAYMENT ENTRY</span>
+  
+            <h2>
+              Vendor Payment Details
+            </h2>
+  
+            <p>
+              Fields based on the Logistics
+              Manager payment sheet.
+            </p>
+          </div>
+  
+          <div class="live-balance">
+  
+            <small>
+              Current Supplier Balance
+            </small>
+  
+            <strong>
+              {{
+                formatCurrency(
+                  currentSupplierBalance
+                )
+              }}
+            </strong>
+  
+          </div>
+  
+        </header>
+  
+        <div class="form-grid">
+  
+          <!-- Vendor -->
+          <div class="field span-2">
+  
+            <label>
+              Vendor
+              <b>*</b>
+            </label>
+  
+            <select
+              [(ngModel)]="form.vendor"
+              (change)="onVendorSelected()"
+            >
+              <option value="">
+                Select Vendor
+              </option>
+  
+              @for (
+                vendor of vendors;
+                track vendor.value
+              ) {
+  
+                <option
+                  [value]="vendor.value"
+                >
+                  {{ vendor.label }}
+                </option>
+  
+              }
+  
+            </select>
+  
+            @if (
+              form.vendor === 'other'
+            ) {
+  
+              <input
+                type="text"
+                class="other-input"
+                [(ngModel)]="
+                  form.vendorOther
+                "
+                placeholder="Enter vendor name"
+              />
+  
+            }
+  
+          </div>
+  
+          <!-- Export Invoice -->
+          <div class="field">
+  
+            <label>
+              Export Invoice No.
+              <b>*</b>
+            </label>
+  
+            <input
+              type="text"
+              [(ngModel)]="
+                form.exportInvoiceNo
+              "
+              placeholder="Enter export invoice no."
+            />
+  
+          </div>
+  
+          <!-- Invoice Date -->
+          <div class="field">
+  
+            <label>
+              Invoice Date
+              <b>*</b>
+            </label>
+  
+            <input
+              type="date"
+              [(ngModel)]="
+                form.invoiceDate
+              "
+            />
+  
+          </div>
+  
+          <!-- From -->
+          <div class="field">
+  
+            <label>
+              From
+              <b>*</b>
+            </label>
+  
+            <select
+              [(ngModel)]="form.from"
+            >
+              <option value="">
+                Select Source
+              </option>
+  
+              @for (
+                option of sourceOptions;
+                track option.value
+              ) {
+  
+                <option
+                  [value]="option.value"
+                >
+                  {{ option.label }}
+                </option>
+  
+              }
+  
+            </select>
+  
+            @if (
+              form.from === 'other'
+            ) {
+  
+              <input
+                type="text"
+                class="other-input"
+                [(ngModel)]="
+                  form.fromOther
+                "
+                placeholder="Enter source"
+              />
+  
+            }
+  
+          </div>
+  
+          <!-- Vendor Invoice -->
+          <div class="field">
+  
+            <label>
+              Vendor Invoice No.
+              <b>*</b>
+            </label>
+  
+            <input
+              type="text"
+              [(ngModel)]="
+                form.vendorInvoiceNo
+              "
+              placeholder="Enter vendor invoice no."
+            />
+  
+          </div>
+  
+          <!-- Vendor Invoice Date -->
+          <div class="field">
+  
+            <label>
+              Vendor Invoice Date
+              <b>*</b>
+            </label>
+  
+            <input
+              type="date"
+              [(ngModel)]="
+                form.vendorInvoiceDate
+              "
+            />
+  
+          </div>
+  
+          <!-- Weight -->
+          <div class="field">
+  
+            <label>
+              Weight
+            </label>
+  
+            <div class="unit-input">
+  
+              <input
+                type="number"
+                min="0"
+                [(ngModel)]="
+                  form.weight
+                "
+                placeholder="0.00"
+              />
+  
+              <span>
+                KG
+              </span>
+  
+            </div>
+  
+          </div>
+  
+          <!-- Total Amount -->
+          <div class="field">
+  
+            <label>
+              Total Amount
+              <b>*</b>
+            </label>
+  
+            <div class="money-input">
+  
+              <span>₹</span>
+  
+              <input
+                type="number"
+                min="0"
+                [(ngModel)]="
+                  form.totalAmount
+                "
+                placeholder="0.00"
+              />
+  
+            </div>
+  
+          </div>
+  
+          <!-- Previous Advance -->
+          <div class="field">
+  
+            <label>
+              Previous Advance
+            </label>
+  
+            <div class="money-input">
+  
+              <span>₹</span>
+  
+              <input
+                type="number"
+                min="0"
+                [(ngModel)]="
+                  form.previousAdvance
+                "
+                placeholder="0.00"
+              />
+  
+            </div>
+  
+          </div>
+  
+          <!-- Pending -->
+          <div class="field">
+  
+            <label>
+              Pending Amount
+            </label>
+  
+            <div class="
+              money-input
+              calculated-input
+            ">
+  
+              <span>₹</span>
+  
+              <input
+                type="number"
+                readonly
+                [value]="
+                  currentPendingAmount
+                "
+              />
+  
+            </div>
+  
+            <small class="calculation-note">
+              Total Amount − Previous Advance
+            </small>
+  
+          </div>
+  
+          <!-- Paid -->
+          <div class="field">
+  
+            <label>
+              Paid Amount
+            </label>
+  
+            <div class="money-input">
+  
+              <span>₹</span>
+  
+              <input
+                type="number"
+                min="0"
+                [(ngModel)]="
+                  form.paidAmount
+                "
+                placeholder="0.00"
+              />
+  
+            </div>
+  
+          </div>
+  
+          <!-- Deduction -->
+          <div class="field">
+  
+            <label>
+              Deduction
+            </label>
+  
+            <div class="money-input">
+  
+              <span>₹</span>
+  
+              <input
+                type="number"
+                min="0"
+                [(ngModel)]="
+                  form.deduction
+                "
+                placeholder="0.00"
+              />
+  
+            </div>
+  
+          </div>
+  
+          <!-- Supplier Balance -->
+          <div class="field">
+  
+            <label>
+              Supplier Balance
+            </label>
+  
+            <div class="
+              money-input
+              balance-input
+            ">
+  
+              <span>₹</span>
+  
+              <input
+                type="number"
+                readonly
+                [value]="
+                  currentSupplierBalance
+                "
+              />
+  
+            </div>
+  
+            <small class="calculation-note">
+              Pending − Paid − Deduction
+            </small>
+  
+          </div>
+  
+          <!-- Status -->
+          <div class="field">
+  
+            <label>
+              Status
+              <b>*</b>
+            </label>
+  
+            <select
+              [(ngModel)]="
+                form.status
+              "
+            >
+  
+              @for (
+                option of statusOptions;
+                track option.value
+              ) {
+  
+                <option
+                  [value]="option.value"
+                >
+                  {{ option.label }}
+                </option>
+  
+              }
+  
+            </select>
+  
+            @if (
+              form.status === 'other'
+            ) {
+  
+              <input
+                type="text"
+                class="other-input"
+                [(ngModel)]="
+                  form.statusOther
+                "
+                placeholder="Enter custom status"
+              />
+  
+            }
+  
+          </div>
+  
+          <!-- Remarks MUST BE LAST -->
+          <div class="
+            field
+            remarks-field
+            span-4
+          ">
+  
+            <label>
+              Remarks
+            </label>
+  
+            <textarea
+              rows="4"
+              [(ngModel)]="
+                form.remarks
+              "
+              placeholder="
+                Enter final remarks,
+                payment notes,
+                deduction reason,
+                approval information, etc.
+              "
+            ></textarea>
+  
+          </div>
+  
+        </div>
+  
+        <!-- FORM FOOTER -->
+        <footer class="form-footer">
+  
+          <div class="payment-calculation">
+  
+            <article>
+  
+              <span>
+                Total
+              </span>
+  
+              <strong>
+                {{
+                  formatCurrency(
+                    form.totalAmount
+                  )
+                }}
+              </strong>
+  
+            </article>
+  
+            <i>−</i>
+  
+            <article>
+  
+              <span>
+                Advance
+              </span>
+  
+              <strong>
+                {{
+                  formatCurrency(
+                    form.previousAdvance
+                  )
+                }}
+              </strong>
+  
+            </article>
+  
+            <i>−</i>
+  
+            <article>
+  
+              <span>
+                Paid
+              </span>
+  
+              <strong>
+                {{
+                  formatCurrency(
+                    form.paidAmount
+                  )
+                }}
+              </strong>
+  
+            </article>
+  
+            <i>−</i>
+  
+            <article>
+  
+              <span>
+                Deduction
+              </span>
+  
+              <strong>
+                {{
+                  formatCurrency(
+                    form.deduction
+                  )
+                }}
+              </strong>
+  
+            </article>
+  
+            <i>=</i>
+  
+            <article class="final-balance">
+  
+              <span>
+                Balance
+              </span>
+  
+              <strong>
+                {{
+                  formatCurrency(
+                    currentSupplierBalance
+                  )
+                }}
+              </strong>
+  
+            </article>
+  
+          </div>
+  
+          <div class="form-actions">
+  
+            <button
+              type="button"
+              class="soft-button"
+              (click)="resetForm()"
+            >
+              Reset
+            </button>
+  
+            <button
+              type="button"
+              class="gold-button"
+              (click)="addPayment()"
+            >
+              Save Payment
+            </button>
+  
+          </div>
+  
+        </footer>
+  
+      </section>
+  
+      <!-- =====================================================
+           SEARCH
+      ====================================================== -->
+      <section class="filter-card">
+  
+        <div class="filter-title">
+  
+          <div>
+            <span>
+              PAYMENT CONTROL
+            </span>
+  
+            <h2>
+              Vendor Payment Register
+            </h2>
+  
+            <p>
+              Search and review all
+              supplier payment records.
+            </p>
+          </div>
+  
+          <button
+            type="button"
+            class="clear-filter"
+            (click)="clearFilters()"
+          >
+            Clear Filters
+          </button>
+  
+        </div>
+  
+        <div class="filters">
+  
+          <div class="search-box">
+  
+            <span>⌕</span>
+  
+            <input
+              #paymentSearch
+              type="search"
+              [value]="searchTerm()"
+              (input)="
+                setSearch(
+                  paymentSearch.value
+                )
+              "
+              placeholder="
+                Search vendor or invoice number...
+              "
+            />
+  
+          </div>
+  
+          <select
+            #paymentStatus
+            [value]="statusFilter()"
+            (change)="
+              setStatusFilter(
+                paymentStatus.value
+              )
+            "
+          >
+  
+            <option value="all">
+              All Status
+            </option>
+  
+            <option value="pending">
+              Pending
+            </option>
+  
+            <option value="partial">
+              Partial
+            </option>
+  
+            <option value="paid">
+              Paid
+            </option>
+  
+            <option value="on-hold">
+              On Hold
+            </option>
+  
+            <option value="cancelled">
+              Cancelled
+            </option>
+  
+          </select>
+  
+        </div>
+  
+      </section>
+  
+      <!-- =====================================================
+           REGISTER
+      ====================================================== -->
+      <section class="table-card">
+  
+        <header class="table-header">
+  
+          <div>
+  
+            <span>
+              PAYMENT DETAIL
+            </span>
+  
+            <h2>
+              Supplier Payment Records
+            </h2>
+  
+          </div>
+  
+          <p>
+            {{
+              filteredPayments().length
+            }}
+            records
+          </p>
+  
+        </header>
+  
+        <div class="table-scroll">
+  
+          <table>
+  
+            <thead>
+  
+              <tr>
+                <th>S.No.</th>
+  
+                <th>Vendor</th>
+  
+                <th>
+                  Export Invoice No.
+                </th>
+  
+                <th>
+                  Invoice Date
+                </th>
+  
+                <th>
+                  From
+                </th>
+  
+                <th>
+                  Vendor Invoice No.
+                </th>
+  
+                <th>
+                  Vendor Invoice Date
+                </th>
+  
+                <th>
+                  Weight
+                </th>
+  
+                <th>
+                  Total Amount
+                </th>
+  
+                <th>
+                  Previous Advance
+                </th>
+  
+                <th>
+                  Pending Amount
+                </th>
+  
+                <th>
+                  Paid Amount
+                </th>
+  
+                <th>
+                  Deduction
+                </th>
+  
+                <th>
+                  Supplier Balance
+                </th>
+  
+                <th>
+                  Status
+                </th>
+  
+                <th>
+                  Remarks
+                </th>
+  
+                <th>
+                  Action
+                </th>
+              </tr>
+  
+            </thead>
+  
+            <tbody>
+  
+              @for (
+                payment of filteredPayments();
+                track payment.id;
+                let serial = $index
+              ) {
+  
+                <tr>
+  
+                  <!-- S.No -->
+                  <td>
+                    <span class="serial">
+                      {{
+                        serial + 1
+                      }}
+                    </span>
+                  </td>
+  
+                  <!-- Vendor -->
+                  <td>
+  
+                    <div class="primary-cell">
+  
+                      <strong>
+                        {{
+                          resolveVendorName(
+                            payment
+                          )
+                        }}
+                      </strong>
+  
+                      <span>
+                        Supplier
+                      </span>
+  
+                    </div>
+  
+                  </td>
+  
+                  <!-- Export Invoice -->
+                  <td>
+  
+                    <strong class="invoice-number">
+                      {{
+                        payment.exportInvoiceNo
+                      }}
+                    </strong>
+  
+                  </td>
+  
+                  <!-- Invoice Date -->
+                  <td>
+                    {{
+                      formatDate(
+                        payment.invoiceDate
+                      )
+                    }}
+                  </td>
+  
+                  <!-- From -->
+                  <td>
+  
+                    <span class="from-chip">
+                      {{
+                        resolveSourceName(
+                          payment
+                        )
+                      }}
+                    </span>
+  
+                  </td>
+  
+                  <!-- Vendor Invoice -->
+                  <td>
+  
+                    <strong class="invoice-number">
+                      {{
+                        payment.vendorInvoiceNo
+                      }}
+                    </strong>
+  
+                  </td>
+  
+                  <!-- Vendor Invoice Date -->
+                  <td>
+                    {{
+                      formatDate(
+                        payment.vendorInvoiceDate
+                      )
+                    }}
+                  </td>
+  
+                  <!-- Weight -->
+                  <td>
+  
+                    <strong class="weight">
+                      {{
+                        payment.weight
+                      }}
+                      Kg
+                    </strong>
+  
+                  </td>
+  
+                  <!-- Total -->
+                  <td>
+  
+                    <strong class="money">
+                      {{
+                        formatCurrency(
+                          payment.totalAmount
+                        )
+                      }}
+                    </strong>
+  
+                  </td>
+  
+                  <!-- Advance -->
+                  <td>
+  
+                    {{
+                      formatCurrency(
+                        payment.previousAdvance
+                      )
+                    }}
+  
+                  </td>
+  
+                  <!-- Pending -->
+                  <td>
+  
+                    <strong>
+                      {{
+                        formatCurrency(
+                          getPendingAmount(
+                            payment
+                          )
+                        )
+                      }}
+                    </strong>
+  
+                  </td>
+  
+                  <!-- Paid -->
+                  <td>
+  
+                    <span class="paid-value">
+                      {{
+                        formatCurrency(
+                          payment.paidAmount
+                        )
+                      }}
+                    </span>
+  
+                  </td>
+  
+                  <!-- Deduction -->
+                  <td>
+  
+                    {{
+                      formatCurrency(
+                        payment.deduction
+                      )
+                    }}
+  
+                  </td>
+  
+                  <!-- Balance -->
+                  <td>
+  
+                    <strong
+                      class="supplier-balance"
+                      [class.zero]="
+                        getSupplierBalance(
+                          payment
+                        ) === 0
+                      "
+                    >
+                      {{
+                        formatCurrency(
+                          getSupplierBalance(
+                            payment
+                          )
+                        )
+                      }}
+                    </strong>
+  
+                  </td>
+  
+                  <!-- Status -->
+                  <td>
+  
+                    <span
+                      class="status"
+                      [class]="
+                        'status ' +
+                        statusClass(
+                          payment.status
+                        )
+                      "
+                    >
+  
+                      {{
+                        resolveStatusName(
+                          payment
+                        )
+                      }}
+  
+                    </span>
+  
+                  </td>
+  
+                  <!-- Remarks -->
+                  <td>
+  
+                    <div
+                      class="remarks-cell"
+                      [title]="payment.remarks"
+                    >
+                      {{
+                        payment.remarks ||
+                        '-'
+                      }}
+                    </div>
+  
+                  </td>
+  
+                  <!-- Action -->
+                  <td>
+  
+                    <div class="actions">
+  
+                      <button
+                        type="button"
+                        title="View"
+                        (click)="
+                          viewPayment(
+                            payment
+                          )
+                        "
+                      >
+                        ◉
+                      </button>
+  
+                      <button
+                        type="button"
+                        title="Edit"
+                        (click)="
+                          editPayment(
+                            payment
+                          )
+                        "
+                      >
+                        ✎
+                      </button>
+  
+                      <button
+                        type="button"
+                        class="delete"
+                        title="Delete"
+                        (click)="
+                          deletePayment(
+                            payment
+                          )
+                        "
+                      >
+                        ×
+                      </button>
+  
+                    </div>
+  
+                  </td>
+  
+                </tr>
+  
+              } @empty {
+  
+                <tr>
+  
+                  <td colspan="17">
+  
+                    <div class="empty-state">
+  
+                      <span>
+                        ₹
+                      </span>
+  
+                      <strong>
+                        No vendor payments found
+                      </strong>
+  
+                      <p>
+                        Add a payment or
+                        change your search filters.
+                      </p>
+  
+                    </div>
+  
+                  </td>
+  
+                </tr>
+  
+              }
+  
+            </tbody>
+  
+          </table>
+  
+        </div>
+  
+      </section>
+  
+    </main>
+  
+  </div>

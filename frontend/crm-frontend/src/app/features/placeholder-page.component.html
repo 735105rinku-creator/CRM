@@ -1,0 +1,21 @@
+<section class="placeholder-page">
+  <p>{{ eyebrow() }}</p>
+  <h1>{{ title() }}</h1>
+
+  @if (isLoading()) {
+    <span>Loading backend data...</span>
+  } @else if (errorMessage()) {
+    <span class="error">{{ errorMessage() }}</span>
+  } @else {
+    <div class="module-grid">
+      <article>
+        <span>Total Records</span>
+        <strong>{{ totalRecords() }}</strong>
+      </article>
+      <article>
+        <span>API Endpoint</span>
+        <strong class="endpoint">{{ endpoint() || 'Configured soon' }}</strong>
+      </article>
+    </div>
+  }
+</section>

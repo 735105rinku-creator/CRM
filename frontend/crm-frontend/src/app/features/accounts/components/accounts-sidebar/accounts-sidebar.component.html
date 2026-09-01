@@ -1,0 +1,212 @@
+<div class="accounts-sidebar">
+
+  <!-- =====================================================
+       BRAND / WORKSPACE
+  ====================================================== -->
+
+  <div class="sidebar-header">
+
+    <div class="workspace-icon">
+      ₹
+    </div>
+
+    <div class="workspace-text">
+      <h2>
+        {{ workspaceName }}
+      </h2>
+
+      <p>
+        {{ workspaceSubtitle }}
+      </p>
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       NAVIGATION
+  ====================================================== -->
+
+  <nav
+    class="sidebar-nav"
+    aria-label="Accounts navigation"
+  >
+
+    @for (
+      group of menuGroups;
+      track trackGroup($index, group)
+    ) {
+
+      <section class="sidebar-group">
+
+        <h3 class="group-title">
+          {{ group.title }}
+        </h3>
+
+        <div class="group-menu">
+
+          @for (
+            item of group.items;
+            track trackItem($index, item)
+          ) {
+
+            <a
+              class="sidebar-link"
+              [routerLink]="item.route"
+              routerLinkActive="active"
+              [routerLinkActiveOptions]="{
+                exact: item.exact ?? false
+              }"
+            >
+
+              <!-- =========================================
+                   ICON
+              ========================================== -->
+
+              <span
+                class="menu-icon"
+                [attr.data-icon]="item.icon"
+              >
+
+                @switch (item.icon) {
+
+                  @case ('dashboard') {
+                    <span>⌂</span>
+                  }
+
+                  @case ('customers') {
+                    <span>👥</span>
+                  }
+
+                  @case ('vendors') {
+                    <span>🏢</span>
+                  }
+
+                  @case ('chart') {
+                    <span>☷</span>
+                  }
+
+                  @case ('invoice') {
+                    <span>▤</span>
+                  }
+
+                  @case ('receipt') {
+                    <span>₹</span>
+                  }
+
+                  @case ('credit') {
+                    <span>↩</span>
+                  }
+
+                  @case ('bill') {
+                    <span>▧</span>
+                  }
+
+                  @case ('payment') {
+                    <span>⇄</span>
+                  }
+
+                  @case ('debit') {
+                    <span>↪</span>
+                  }
+
+                  @case ('expense') {
+                    <span>−</span>
+                  }
+
+                  @case ('journal') {
+                    <span>✎</span>
+                  }
+
+                  @case ('ledger') {
+                    <span>☰</span>
+                  }
+
+                  @case ('customer-ledger') {
+                    <span>◉</span>
+                  }
+
+                  @case ('vendor-ledger') {
+                    <span>◎</span>
+                  }
+
+                  @case ('bank') {
+                    <span>🏦</span>
+                  }
+
+                  @case ('tax') {
+                    <span>%</span>
+                  }
+
+                  @case ('reports') {
+                    <span>▥</span>
+                  }
+
+                  @case ('settings') {
+                    <span>⚙</span>
+                  }
+
+                  @default {
+                    <span>•</span>
+                  }
+
+                }
+
+              </span>
+
+
+              <!-- =========================================
+                   LABEL
+              ========================================== -->
+
+              <span class="menu-label">
+                {{ item.label }}
+              </span>
+
+
+              <!-- =========================================
+                   ACTIVE INDICATOR
+              ========================================== -->
+
+              <span class="active-indicator"></span>
+
+            </a>
+
+          }
+
+        </div>
+
+      </section>
+
+    }
+
+  </nav>
+
+
+  <!-- =====================================================
+       FOOTER
+  ====================================================== -->
+
+  <div class="sidebar-footer">
+
+    <div class="footer-card">
+
+      <div class="footer-icon">
+        FY
+      </div>
+
+      <div>
+        <span class="footer-label">
+          Financial Year
+        </span>
+
+        <strong>
+          2026–27
+        </strong>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

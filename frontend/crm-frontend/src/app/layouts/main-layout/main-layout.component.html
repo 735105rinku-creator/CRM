@@ -1,0 +1,35 @@
+<div
+  class="layout"
+  [class.sidebar-collapsed]="isCollapsed()"
+  [class.sidebar-mobile-open]="isMobileOpen()"
+  [class.hr-workspace-layout]="isHrWorkspace()"
+  [class.super-admin-workspace-layout]="isSuperAdminWorkspace()"
+  [class.company-admin-workspace-layout]="isCompanyAdminWorkspace()"
+  [class.logistics-workspace-layout]="isLogisticsWorkspace()"
+>
+  @if (usesGlobalNavigation()) {
+    <app-sidebar
+      [collapsed]="isCollapsed()"
+      (collapseToggle)="toggleCollapse()"
+      (navigateItem)="closeMobileMenu()"
+    />
+  }
+
+  <div
+    class="mobile-backdrop"
+    (click)="closeMobileMenu()"
+    aria-hidden="true"
+  ></div>
+
+  <section class="layout-main">
+    @if (usesGlobalNavigation()) {
+      <app-navbar
+        (menuToggle)="toggleSidebar()"
+      />
+    }
+
+    <main class="content-area">
+      <router-outlet />
+    </main>
+  </section>
+</div>

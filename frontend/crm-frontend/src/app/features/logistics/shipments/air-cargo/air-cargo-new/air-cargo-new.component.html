@@ -1,0 +1,1550 @@
+<div class="air-cargo-page">
+
+    <!-- ========================================================
+         HEADER
+    ========================================================= -->
+    <header class="page-header">
+      <div>
+        <div class="breadcrumb">
+          <span>Logistics</span>
+          <b>&rsaquo;</b>
+          <span>Air Cargo</span>
+          <b>&rsaquo;</b>
+          <strong>New Shipment</strong>
+        </div>
+  
+        <div class="page-title-row">
+          <span class="cargo-badge">✈</span>
+  
+          <div>
+            <h1>New Air Cargo Shipment</h1>
+            <p>Create and manage a complete air-freight booking.</p>
+          </div>
+        </div>
+      </div>
+  
+      <div class="page-actions">
+        <button
+          type="button"
+          class="btn btn-soft"
+          (click)="saveDraft()"
+        >
+          Save Draft
+        </button>
+  
+        <button
+          type="button"
+          class="btn btn-soft"
+          (click)="resetForm()"
+        >
+          Reset
+        </button>
+      </div>
+    </header>
+  
+    <div class="page-grid">
+  
+      <!-- ======================================================
+           MAIN FORM
+      ======================================================= -->
+      <main class="form-area">
+  
+        <!-- 1 CUSTOMER -->
+        <section class="form-section">
+          <div class="section-title">
+            <span>1</span>
+            <div>
+              <h2>Customer Details</h2>
+              <p>Customer, contact and billing information</p>
+            </div>
+          </div>
+  
+          <div class="form-grid form-grid-4">
+  
+            <div class="field field-span-2">
+              <label><span class="field-label-icon icon-customer" aria-hidden="true"></span>Customer Name <b class="required-star">*</b></label>
+  
+              <select [(ngModel)]="form.customer" (change)="onCustomerSelected()">
+                <option value="">Select Customer</option>
+  
+                @for (customer of customers; track customer.value) {
+                  <option [value]="customer.value">
+                    {{ customer.label }}
+                  </option>
+                }
+              </select>
+  
+              @if (form.customer === 'other') {
+                <input
+                  type="text"
+                  [(ngModel)]="form.customerOther"
+                  placeholder="Enter customer name"
+                  class="other-input"
+                />
+              }
+            </div>
+  
+            <div class="field">
+              <label>
+                Contact Person
+                <b class="required-star">*</b>
+              </label>
+  
+              <input
+                type="text"
+                [(ngModel)]="form.contactPerson"
+                placeholder="Enter contact person"
+              />
+            </div>
+  
+            <div class="field">
+              <label>
+                Mobile Number
+                <b class="required-star">*</b>
+              </label>
+  
+              <input
+                type="tel"
+                [(ngModel)]="form.mobile"
+                placeholder="Enter mobile number"
+              />
+            </div>
+  
+            <div class="field">
+              <label>
+                Email
+                <b class="required-star">*</b>
+              </label>
+  
+              <input
+                type="email"
+                [(ngModel)]="form.email"
+                placeholder="Enter email"
+              />
+            </div>
+  
+            <div class="field">
+              <label>GST Number</label>
+  
+              <input
+                type="text"
+                [(ngModel)]="form.gstNumber"
+                placeholder="Enter GST number"
+              />
+            </div>
+  
+            <div class="field field-span-2">
+              <label>
+                Billing Address
+                <b class="required-star">*</b>
+              </label>
+  
+              <textarea
+                rows="3"
+                [(ngModel)]="form.billingAddress"
+                placeholder="Enter billing address"
+              ></textarea>
+            </div>
+  
+            <div class="field field-span-2">
+              <label>
+                Pickup Address
+                <b class="required-star">*</b>
+              </label>
+  
+              <textarea
+                rows="3"
+                [(ngModel)]="form.pickupAddress"
+                placeholder="Enter pickup address"
+              ></textarea>
+            </div>
+  
+          </div>
+        </section>
+  
+        <!-- 2 SHIPMENT -->
+        <section class="form-section">
+          <div class="section-title">
+            <span>2</span>
+  
+            <div>
+              <h2>Shipment Details</h2>
+              <p>Booking type and shipment preferences</p>
+            </div>
+          </div>
+  
+          <div class="form-grid form-grid-4">
+  
+            <div class="field">
+              <label>Shipment ID</label>
+  
+              <input
+                type="text"
+                [(ngModel)]="form.shipmentId"
+                readonly
+                class="readonly"
+              />
+            </div>
+  
+            <div class="field">
+              <label>
+                Booking Date
+                <b class="required-star">*</b>
+              </label>
+  
+              <input
+                type="date"
+                [(ngModel)]="form.bookingDate"
+              />
+            </div>
+  
+            <div class="field">
+              <label>
+                Shipment Type
+                <b class="required-star">*</b>
+              </label>
+  
+              <select [(ngModel)]="form.shipmentType">
+                <option value="">Select Type</option>
+  
+                @for (option of shipmentTypes; track option.value) {
+                  <option [value]="option.value">
+                    {{ option.label }}
+                  </option>
+                }
+              </select>
+  
+              @if (form.shipmentType === 'other') {
+                <input
+                  class="other-input"
+                  type="text"
+                  [(ngModel)]="form.shipmentTypeOther"
+                  placeholder="Enter shipment type"
+                />
+              }
+            </div>
+  
+            <div class="field">
+              <label>
+                Mode
+                <b class="required-star">*</b>
+              </label>
+  
+              <select [(ngModel)]="form.mode">
+                <option value="">Select Mode</option>
+  
+                @for (option of shipmentModes; track option.value) {
+                  <option [value]="option.value">
+                    {{ option.label }}
+                  </option>
+                }
+              </select>
+  
+              @if (form.mode === 'other') {
+                <input
+                  class="other-input"
+                  type="text"
+                  [(ngModel)]="form.modeOther"
+                  placeholder="Enter shipment mode"
+                />
+              }
+            </div>
+  
+            <div class="field field-span-2">
+              <label>
+                Priority
+                <b class="required-star">*</b>
+              </label>
+  
+              <div class="radio-group">
+                <label>
+                  <input
+                    type="radio"
+                    name="priority"
+                    value="normal"
+                    [(ngModel)]="form.priority"
+                  />
+                  <span></span>
+                  Normal
+                </label>
+  
+                <label>
+                  <input
+                    type="radio"
+                    name="priority"
+                    value="express"
+                    [(ngModel)]="form.priority"
+                  />
+                  <span></span>
+                  Express
+                </label>
+  
+                <label>
+                  <input
+                    type="radio"
+                    name="priority"
+                    value="urgent"
+                    [(ngModel)]="form.priority"
+                  />
+                  <span></span>
+                  Urgent
+                </label>
+              </div>
+            </div>
+  
+            <div class="field field-span-2">
+              <label>Reference Number</label>
+  
+              <input
+                type="text"
+                [(ngModel)]="form.referenceNumber"
+                placeholder="Enter reference number"
+              />
+            </div>
+  
+            <div class="field field-span-4">
+              <label>Special Instructions</label>
+  
+              <textarea
+                rows="3"
+                [(ngModel)]="form.specialInstructions"
+                placeholder="Enter special handling or shipment instructions"
+              ></textarea>
+            </div>
+  
+          </div>
+        </section>
+  
+        <!-- 3 PRODUCT -->
+        <section class="form-section">
+          <div class="section-title">
+            <span>3</span>
+  
+            <div>
+              <h2>Product Details</h2>
+              <p>Cargo, packing, weight and dimensions</p>
+            </div>
+          </div>
+  
+          <div class="form-grid form-grid-4">
+  
+            <div class="field field-span-2">
+              <label>
+                Product Name
+                <b class="required-star">*</b>
+              </label>
+  
+              <select [(ngModel)]="form.product" (change)="onProductServiceSelected()">
+                <option value="">Select Product</option>
+  
+                @for (option of products; track option.value) {
+                  <option [value]="option.value">
+                    {{ option.label }}
+                  </option>
+                }
+              </select>
+  
+              @if (form.product === 'other') {
+                <input
+                  class="other-input"
+                  type="text"
+                  [(ngModel)]="form.productOther"
+                  placeholder="Enter product name"
+                />
+              }
+            </div>
+  
+            <div class="field">
+              <label>HSN Code</label>
+  
+              <input
+                type="text"
+                [(ngModel)]="form.hsnCode"
+                placeholder="Enter HSN code"
+              />
+            </div>
+  
+            <div class="field">
+              <label>
+                Product Category
+                <b class="required-star">*</b>
+              </label>
+  
+              <select [(ngModel)]="form.productCategory">
+                <option value="">Select Category</option>
+  
+                @for (option of productCategories; track option.value) {
+                  <option [value]="option.value">
+                    {{ option.label }}
+                  </option>
+                }
+              </select>
+  
+              @if (form.productCategory === 'other') {
+                <input
+                  class="other-input"
+                  type="text"
+                  [(ngModel)]="form.productCategoryOther"
+                  placeholder="Enter product category"
+                />
+              }
+            </div>
+  
+            <div class="field">
+              <label>
+                Quantity
+                <b class="required-star">*</b>
+              </label>
+  
+              <input
+                type="number"
+                [(ngModel)]="form.quantity"
+                placeholder="Enter quantity"
+              />
+            </div>
+  
+            <div class="field">
+              <label>
+                Unit
+                <b class="required-star">*</b>
+              </label>
+  
+              <select [(ngModel)]="form.unit">
+                <option value="">Select Unit</option>
+  
+                @for (option of units; track option.value) {
+                  <option [value]="option.value">
+                    {{ option.label }}
+                  </option>
+                }
+              </select>
+  
+              @if (form.unit === 'other') {
+                <input
+                  class="other-input"
+                  type="text"
+                  [(ngModel)]="form.unitOther"
+                  placeholder="Enter unit"
+                />
+              }
+            </div>
+  
+            <div class="field">
+              <label>Number of Packages</label>
+  
+              <input
+                type="number"
+                [(ngModel)]="form.packages"
+                placeholder="Enter packages"
+              />
+            </div>
+  
+            <div class="field">
+              <label>
+                Gross Weight (Kg)
+                <b class="required-star">*</b>
+              </label>
+  
+              <input
+                type="number"
+                [(ngModel)]="form.grossWeight"
+                placeholder="Enter gross weight"
+              />
+            </div>
+  
+            <div class="field">
+              <label>
+                Chargeable Weight (Kg)
+                <b class="required-star">*</b>
+              </label>
+  
+              <input
+                type="number"
+                [(ngModel)]="form.chargeableWeight"
+                placeholder="Enter chargeable weight"
+              />
+            </div>
+  
+            <div class="field field-span-2">
+              <label>Dimensions L &times; W &times; H (cm)</label>
+  
+              <div class="dimension-grid">
+                <input
+                  type="number"
+                  [(ngModel)]="form.length"
+                  placeholder="Length"
+                />
+  
+                <span>&times;</span>
+  
+                <input
+                  type="number"
+                  [(ngModel)]="form.width"
+                  placeholder="Width"
+                />
+  
+                <span>&times;</span>
+  
+                <input
+                  type="number"
+                  [(ngModel)]="form.height"
+                  placeholder="Height"
+                />
+              </div>
+            </div>
+  
+            <div class="field field-span-2">
+              <label>Packing Type</label>
+  
+              <select [(ngModel)]="form.packingType">
+                <option value="">Select Packing Type</option>
+  
+                @for (option of packingTypes; track option.value) {
+                  <option [value]="option.value">
+                    {{ option.label }}
+                  </option>
+                }
+              </select>
+  
+              @if (form.packingType === 'other') {
+                <input
+                  class="other-input"
+                  type="text"
+                  [(ngModel)]="form.packingTypeOther"
+                  placeholder="Enter packing type"
+                />
+              }
+            </div>
+  
+          </div>
+        </section>
+  
+        <!-- 4 ROUTE -->
+        <section class="form-section">
+          <div class="section-title">
+            <span>4</span>
+  
+            <div>
+              <h2>Route Details</h2>
+              <p>Origin, destination and expected dates</p>
+            </div>
+          </div>
+  
+          <div class="form-grid form-grid-4">
+  
+            <div class="field">
+              <label>
+                Source Airport / City
+                <b class="required-star">*</b>
+              </label>
+  
+              <select [(ngModel)]="form.source">
+                <option value="">Select Source</option>
+  
+                @for (option of locations; track option.value) {
+                  <option [value]="option.value">
+                    {{ option.label }}
+                  </option>
+                }
+              </select>
+  
+              @if (form.source === 'other') {
+                <input
+                  class="other-input"
+                  type="text"
+                  [(ngModel)]="form.sourceOther"
+                  placeholder="Enter source"
+                />
+              }
+            </div>
+  
+            <div class="field">
+              <label>
+                Destination Airport / City
+                <b class="required-star">*</b>
+              </label>
+  
+              <select [(ngModel)]="form.destination">
+                <option value="">Select Destination</option>
+  
+                @for (option of locations; track option.value) {
+                  <option [value]="option.value">
+                    {{ option.label }}
+                  </option>
+                }
+              </select>
+  
+              @if (form.destination === 'other') {
+                <input
+                  class="other-input"
+                  type="text"
+                  [(ngModel)]="form.destinationOther"
+                  placeholder="Enter destination"
+                />
+              }
+            </div>
+  
+            <div class="field">
+              <label>Pickup Date</label>
+  
+              <input
+                type="date"
+                [(ngModel)]="form.pickupDate"
+              />
+            </div>
+  
+            <div class="field">
+              <label>Expected Flight Date</label>
+  
+              <input
+                type="date"
+                [(ngModel)]="form.expectedFlightDate"
+              />
+            </div>
+  
+            <div class="field">
+              <label>Delivery Date</label>
+  
+              <input
+                type="date"
+                [(ngModel)]="form.deliveryDate"
+              />
+            </div>
+  
+            <div class="field">
+              <label>Transit Time (Days)</label>
+  
+              <input
+                type="number"
+                [(ngModel)]="form.transitDays"
+                placeholder="Enter days"
+              />
+            </div>
+  
+          </div>
+        </section>
+  
+        <!-- 5 AIRLINE -->
+        <section class="form-section">
+          <div class="section-title">
+            <span>5</span>
+  
+            <div>
+              <h2>Airline Details</h2>
+              <p>Carrier, flight and AWB information</p>
+            </div>
+          </div>
+  
+          <div class="form-grid form-grid-4">
+  
+            <div class="field">
+              <label>
+                Airline Name
+                <b class="required-star">*</b>
+              </label>
+  
+              <select [(ngModel)]="form.airline">
+                <option value="">Select Airline</option>
+  
+                @for (option of airlines; track option.value) {
+                  <option [value]="option.value">
+                    {{ option.label }}
+                  </option>
+                }
+              </select>
+  
+              @if (form.airline === 'other') {
+                <input
+                  class="other-input"
+                  type="text"
+                  [(ngModel)]="form.airlineOther"
+                  placeholder="Enter airline"
+                />
+              }
+            </div>
+  
+            <div class="field">
+              <label>
+                Flight Number
+                <b class="required-star">*</b>
+              </label>
+  
+              <input
+                type="text"
+                [(ngModel)]="form.flightNumber"
+                placeholder="Enter flight number"
+              />
+            </div>
+  
+            <div class="field">
+              <label>Flight Date</label>
+  
+              <input
+                type="date"
+                [(ngModel)]="form.flightDate"
+              />
+            </div>
+  
+            <div class="field">
+              <label>Airline Booking Reference</label>
+  
+              <input
+                type="text"
+                [(ngModel)]="form.airlineBookingReference"
+                placeholder="Enter booking reference"
+              />
+            </div>
+  
+            <div class="field">
+              <label>Departure Time</label>
+  
+              <input
+                type="time"
+                [(ngModel)]="form.departureTime"
+              />
+            </div>
+  
+            <div class="field">
+              <label>Arrival Time</label>
+  
+              <input
+                type="time"
+                [(ngModel)]="form.arrivalTime"
+              />
+            </div>
+  
+            <div class="field field-span-2">
+              <label>
+                AWB Number
+                <b class="required-star">*</b>
+              </label>
+  
+              <input
+                type="text"
+                [(ngModel)]="form.awbNumber"
+                placeholder="Enter airway bill number"
+              />
+            </div>
+  
+          </div>
+        </section>
+  
+        <!-- 6 CHA -->
+        <section class="form-section">
+          <div class="section-title">
+            <span>6</span>
+  
+            <div>
+              <h2>CHA & Customs Details</h2>
+              <p>Customs handling and clearance information</p>
+            </div>
+          </div>
+  
+          <div class="form-grid form-grid-4">
+  
+            <div class="field field-span-2">
+              <label>CHA Required?</label>
+  
+              <div class="radio-group">
+                <label>
+                  <input
+                    type="radio"
+                    name="chaRequired"
+                    value="yes"
+                    [(ngModel)]="form.chaRequired"
+                    (change)="onChaRequiredChanged()"
+                  />
+  
+                  <span></span>
+                  Yes
+                </label>
+  
+                <label>
+                  <input
+                    type="radio"
+                    name="chaRequired"
+                    value="no"
+                    [(ngModel)]="form.chaRequired"
+                    (change)="onChaRequiredChanged()"
+                  />
+  
+                  <span></span>
+                  No
+                </label>
+              </div>
+            </div>
+  
+            @if (form.chaRequired === 'yes') {
+              <div class="field field-span-2">
+                <label>
+                  CHA Name
+                  <b class="required-star">*</b>
+                </label>
+  
+                <select [(ngModel)]="form.cha" (change)="onChaSelected()">
+                  <option value="">Select CHA</option>
+  
+                  @for (option of chaOptions; track option.value) {
+                    <option [value]="option.value">
+                      {{ option.label }}
+                    </option>
+                  }
+                </select>
+  
+                @if (form.cha === 'other') {
+                  <input
+                    class="other-input"
+                    type="text"
+                    [(ngModel)]="form.chaOther"
+                    placeholder="Enter CHA name"
+                  />
+                }
+              </div>
+            }
+  
+            <div class="field">
+              <label>CHA Contact</label>
+  
+              <input
+                type="text"
+                [(ngModel)]="form.chaContact"
+                placeholder="Enter CHA contact"
+              />
+            </div>
+  
+            <div class="field">
+              <label>Bill of Entry No.</label>
+  
+              <input
+                type="text"
+                [(ngModel)]="form.billOfEntryNumber"
+                placeholder="Enter bill of entry no."
+              />
+            </div>
+  
+            <div class="field">
+              <label>Shipping Bill No.</label>
+  
+              <input
+                type="text"
+                [(ngModel)]="form.shippingBillNumber"
+                placeholder="Enter shipping bill no."
+              />
+            </div>
+  
+            <div class="field">
+              <label>Customs Clearance Status</label>
+  
+              <select [(ngModel)]="form.customsStatus">
+                <option value="">Select Status</option>
+  
+                @for (option of customsStatuses; track option.value) {
+                  <option [value]="option.value">
+                    {{ option.label }}
+                  </option>
+                }
+              </select>
+  
+              @if (form.customsStatus === 'other') {
+                <input
+                  class="other-input"
+                  type="text"
+                  [(ngModel)]="form.customsStatusOther"
+                  placeholder="Enter customs status"
+                />
+              }
+            </div>
+  
+          </div>
+        </section>
+  
+        <!-- 7 TRANSPORTER -->
+        <section class="form-section">
+          <div class="section-title">
+            <span>7</span>
+  
+            <div>
+              <h2>Transporter Details</h2>
+              <p>Pickup vehicle and driver information</p>
+            </div>
+          </div>
+  
+          <div class="form-grid form-grid-4">
+  
+            <div class="field">
+              <label>
+                Transporter Name
+                <b class="required-star">*</b>
+              </label>
+  
+              <select [(ngModel)]="form.transporter" (change)="onTransporterSelected()">
+                <option value="">Select Transporter</option>
+  
+                @for (option of transporters; track option.value) {
+                  <option [value]="option.value">
+                    {{ option.label }}
+                  </option>
+                }
+              </select>
+  
+              @if (form.transporter === 'other') {
+                <input
+                  class="other-input"
+                  type="text"
+                  [(ngModel)]="form.transporterOther"
+                  placeholder="Enter transporter name"
+                />
+              }
+            </div>
+  
+            <div class="field">
+              <label>
+                Driver Name
+                <b class="required-star">*</b>
+              </label>
+  
+              <input
+                type="text"
+                [(ngModel)]="form.driverName"
+                placeholder="Enter driver name"
+              />
+            </div>
+  
+            <div class="field">
+              <label>
+                Driver Mobile
+                <b class="required-star">*</b>
+              </label>
+  
+              <input
+                type="tel"
+                [(ngModel)]="form.driverMobile"
+                placeholder="Enter driver mobile"
+              />
+            </div>
+  
+            <div class="field">
+              <label>
+                Vehicle Number
+                <b class="required-star">*</b>
+              </label>
+  
+              <input
+                type="text"
+                [(ngModel)]="form.vehicleNumber"
+                placeholder="Enter vehicle number"
+              />
+            </div>
+  
+            <div class="field">
+              <label>LR Number</label>
+  
+              <input
+                type="text"
+                [(ngModel)]="form.lrNumber"
+                placeholder="Enter LR number"
+              />
+            </div>
+  
+            <div class="field">
+              <label>Pickup Time</label>
+  
+              <input
+                type="time"
+                [(ngModel)]="form.pickupTime"
+              />
+            </div>
+  
+            <div class="field">
+              <label>Delivery Time</label>
+  
+              <input
+                type="time"
+                [(ngModel)]="form.deliveryTime"
+              />
+            </div>
+  
+          </div>
+        </section>
+  
+        <!-- 8 PRICING -->
+        <section class="form-section">
+          <div class="section-title">
+            <span>8</span>
+  
+            <div>
+              <h2>Pricing Details</h2>
+              <p>Freight and service charge calculation</p>
+            </div>
+          </div>
+  
+          <div class="form-grid form-grid-4">
+  
+            <div class="field">
+              <label>Air Freight Rate / Kg</label>
+  
+              <div class="money-input">
+                <span>₹</span>
+  
+                <input
+                  type="number"
+                  [(ngModel)]="form.airFreightRate"
+                />
+              </div>
+            </div>
+  
+            <div class="field">
+              <label>Freight Amount</label>
+  
+              <div class="money-input">
+                <span>₹</span>
+  
+                <input
+                  type="number"
+                  [(ngModel)]="form.freightAmount"
+                />
+              </div>
+            </div>
+  
+            <div class="field">
+              <label>Fuel Surcharge</label>
+  
+              <div class="money-input">
+                <span>₹</span>
+  
+                <input
+                  type="number"
+                  [(ngModel)]="form.fuelSurcharge"
+                />
+              </div>
+            </div>
+  
+            <div class="field">
+              <label>Security Charge</label>
+  
+              <div class="money-input">
+                <span>₹</span>
+  
+                <input
+                  type="number"
+                  [(ngModel)]="form.securityCharge"
+                />
+              </div>
+            </div>
+  
+            <div class="field">
+              <label>Terminal Handling Charge</label>
+  
+              <div class="money-input">
+                <span>₹</span>
+  
+                <input
+                  type="number"
+                  [(ngModel)]="form.terminalHandlingCharge"
+                />
+              </div>
+            </div>
+  
+            <div class="field">
+              <label>Documentation Charge</label>
+  
+              <div class="money-input">
+                <span>₹</span>
+  
+                <input
+                  type="number"
+                  [(ngModel)]="form.documentationCharge"
+                />
+              </div>
+            </div>
+  
+          </div>
+  
+          <!-- OTHER CHARGE -->
+          <div class="other-charge-area">
+            <div class="subheading">
+              <div>
+                <strong>Other Charges</strong>
+                <span>Add additional shipment charges if required.</span>
+              </div>
+  
+              <button
+                type="button"
+                class="small-action"
+                (click)="addOtherCharge()"
+              >
+                &#43; Add Other Charge
+              </button>
+            </div>
+  
+            @for (
+              charge of otherCharges;
+              track $index;
+              let index = $index
+            ) {
+              <div class="other-charge-row">
+  
+                <input
+                  type="text"
+                  [(ngModel)]="charge.description"
+                  placeholder="Enter charge description"
+                />
+  
+                <div class="money-input">
+                  <span>₹</span>
+  
+                  <input
+                    type="number"
+                    [(ngModel)]="charge.amount"
+                  />
+                </div>
+  
+                <button
+                  type="button"
+                  class="remove-button"
+                  (click)="removeOtherCharge(index)"
+                >
+                  &times;
+                </button>
+              </div>
+            }
+          </div>
+        </section>
+  
+        <!-- 9 TAX -->
+        <section class="form-section">
+          <div class="section-title">
+            <span>9</span>
+  
+            <div>
+              <h2>Tax & Total</h2>
+              <p>Final shipment amount calculation</p>
+            </div>
+          </div>
+  
+          <div class="tax-layout">
+  
+            <div class="form-grid form-grid-3">
+  
+              <div class="field">
+                <label>Discount</label>
+  
+                <div class="money-input">
+                  <span>₹</span>
+  
+                  <input
+                    type="number"
+                    [(ngModel)]="form.discount"
+                  />
+                </div>
+              </div>
+  
+              <div class="field">
+                <label>
+                  GST %
+                  <b class="required-star">*</b>
+                </label>
+  
+                <select [(ngModel)]="form.gstRate">
+                  <option value="">Select GST</option>
+  
+                  @for (option of gstRates; track option.value) {
+                    <option [value]="option.value">
+                      {{ option.label }}
+                    </option>
+                  }
+                </select>
+  
+                @if (form.gstRate === 'other') {
+                  <input
+                    class="other-input"
+                    type="number"
+                    [(ngModel)]="form.gstRateOther"
+                    placeholder="Enter GST percentage"
+                  />
+                }
+              </div>
+  
+              <div class="field">
+                <label>Other Tax / Charges</label>
+  
+                <div class="money-input">
+                  <span>₹</span>
+  
+                  <input
+                    type="number"
+                    [(ngModel)]="form.otherTax"
+                  />
+                </div>
+              </div>
+  
+            </div>
+  
+            <div class="invoice-summary">
+              <div>
+                <span>Subtotal</span>
+                <strong>{{ formatCurrency(subtotal) }}</strong>
+              </div>
+  
+              <div>
+                <span>Discount</span>
+                <strong>
+                  - {{ formatCurrency(form.discount) }}
+                </strong>
+              </div>
+  
+              <div>
+                <span>Taxable Amount</span>
+                <strong>{{ formatCurrency(taxableAmount) }}</strong>
+              </div>
+  
+              <div>
+                <span>GST {{ gstPercentage }}%</span>
+                <strong>{{ formatCurrency(gstAmount) }}</strong>
+              </div>
+  
+              <div>
+                <span>Other Tax / Charges</span>
+                <strong>{{ formatCurrency(form.otherTax) }}</strong>
+              </div>
+  
+              <div class="grand-total">
+                <span>Grand Total</span>
+                <strong>{{ formatCurrency(grandTotal) }}</strong>
+              </div>
+            </div>
+  
+          </div>
+        </section>
+  
+        <!-- 10 DOCUMENT -->
+        <section class="form-section">
+          <div class="section-title">
+            <span>10</span>
+  
+            <div>
+              <h2>Documents</h2>
+              <p>Attach shipment and compliance documents</p>
+            </div>
+          </div>
+  
+          <label class="upload-zone">
+            <input
+              type="file"
+              multiple
+              hidden
+              (change)="onFilesSelected($event)"
+            />
+  
+            <span class="upload-icon">&#8679;</span>
+  
+            <strong>Upload Shipment Documents</strong>
+  
+            <small>
+              PDF, JPG, JPEG or PNG &mdash; maximum size will be controlled by backend
+            </small>
+          </label>
+  
+          @if (uploadedFiles.length) {
+            <div class="uploaded-list">
+  
+              @for (
+                file of uploadedFiles;
+                track file.name;
+                let index = $index
+              ) {
+                <article>
+                  <span>&#9633;</span>
+  
+                  <div>
+                    <strong>{{ file.name }}</strong>
+  
+                    <small>
+                      {{ (file.size / 1024).toFixed(1) }} KB
+                    </small>
+                  </div>
+  
+                  <button
+                    type="button"
+                    (click)="removeFile(index)"
+                  >
+                    &times;
+                  </button>
+                </article>
+              }
+  
+            </div>
+          }
+        </section>
+  
+        <!-- 11 STATUS -->
+        <section class="form-section">
+          <div class="section-title">
+            <span>11</span>
+  
+            <div>
+              <h2>Status Tracking</h2>
+              <p>Initial shipment workflow</p>
+            </div>
+          </div>
+  
+          <div class="status-track">
+  
+            <div class="status-step active">
+              <span>1</span>
+              <strong>Booking Created</strong>
+            </div>
+  
+            <i></i>
+  
+            <div class="status-step">
+              <span>2</span>
+              <strong>Pickup Pending</strong>
+            </div>
+  
+            <i></i>
+  
+            <div class="status-step">
+              <span>3</span>
+              <strong>At Warehouse</strong>
+            </div>
+  
+            <i></i>
+  
+            <div class="status-step">
+              <span>4</span>
+              <strong>Customs</strong>
+            </div>
+  
+            <i></i>
+  
+            <div class="status-step">
+              <span>5</span>
+              <strong>Airline Booked</strong>
+            </div>
+  
+            <i></i>
+  
+            <div class="status-step">
+              <span>6</span>
+              <strong>In Transit</strong>
+            </div>
+  
+            <i></i>
+  
+            <div class="status-step">
+              <span>7</span>
+              <strong>Delivered</strong>
+            </div>
+  
+          </div>
+        </section>
+  
+        <!-- =====================================================
+             12 REMARKS - ALWAYS LAST
+        ====================================================== -->
+        <section class="form-section remarks-section">
+          <div class="section-title">
+            <span>12</span>
+  
+            <div>
+              <h2>Remarks</h2>
+              <p>Internal and customer-facing notes</p>
+            </div>
+          </div>
+  
+          <div class="remarks-grid">
+  
+            <div class="field">
+              <label>Internal Remarks</label>
+  
+              <textarea
+                rows="5"
+                [(ngModel)]="form.internalRemarks"
+                placeholder="Enter internal remarks..."
+              ></textarea>
+            </div>
+  
+            <div class="field">
+              <label>Customer Remarks</label>
+  
+              <textarea
+                rows="5"
+                [(ngModel)]="form.customerRemarks"
+                placeholder="Enter customer remarks..."
+              ></textarea>
+            </div>
+  
+          </div>
+        </section>
+
+        <section class="form-section form-submit-section">
+          <div class="bottom-actions">
+            <button
+              type="button"
+              class="btn btn-soft"
+              [disabled]="isSaving()"
+              (click)="saveDraft()"
+            >
+              Save Draft
+            </button>
+
+            <button
+              type="button"
+              class="btn btn-soft"
+              [disabled]="isSaving()"
+              (click)="resetForm()"
+            >
+              Reset
+            </button>
+
+            <button
+              type="button"
+              class="btn btn-gold"
+              [disabled]="isSaving()"
+              (click)="submitShipment()"
+            >
+              {{ isSaving() ? 'Submitting...' : 'Submit Shipment' }}
+            </button>
+          </div>
+        </section>  
+      </main>
+  
+      <!-- ======================================================
+           RIGHT SIDEBAR
+      ======================================================= -->
+      <aside class="right-panel">
+  
+        <section class="side-card">
+          <div class="side-card-title">
+            <span>&#9889;</span>
+            <h3>Quick Actions</h3>
+          </div>
+  
+          <div class="quick-actions">
+            <button
+              type="button"
+              (click)="generateAwb()"
+            >
+              <span>&#9633;</span>
+              Generate AWB
+            </button>
+  
+            <button
+              type="button"
+              (click)="generateInvoice()"
+            >
+              <span>&#9636;</span>
+              Generate Invoice
+            </button>
+  
+            <button
+              type="button"
+              (click)="printBooking()"
+            >
+              <span>&#9635;</span>
+              Print Booking
+            </button>
+  
+            <button
+              type="button"
+              (click)="sendToCustomer()"
+            >
+              <span>&#10148;</span>
+              Send to Customer
+            </button>
+  
+            <button
+              type="button"
+              (click)="updateStatus()"
+            >
+              <span>◎</span>
+              Update Status
+            </button>
+          </div>
+        </section>
+  
+        <section class="side-card total-card">
+          <div class="side-card-title">
+            <span>₹</span>
+            <h3>Shipment Summary</h3>
+          </div>
+  
+          <div class="summary-row">
+            <span>Subtotal</span>
+            <strong>{{ formatCurrency(subtotal) }}</strong>
+          </div>
+  
+          <div class="summary-row">
+            <span>Discount</span>
+            <strong>{{ formatCurrency(form.discount) }}</strong>
+          </div>
+  
+          <div class="summary-row">
+            <span>Taxable Amount</span>
+            <strong>{{ formatCurrency(taxableAmount) }}</strong>
+          </div>
+  
+          <div class="summary-row">
+            <span>GST</span>
+            <strong>{{ formatCurrency(gstAmount) }}</strong>
+          </div>
+  
+          <div class="summary-row">
+            <span>Other Charges</span>
+            <strong>{{ formatCurrency(form.otherTax) }}</strong>
+          </div>
+  
+          <div class="side-grand-total">
+            <span>Grand Total</span>
+            <strong>{{ formatCurrency(grandTotal) }}</strong>
+          </div>
+        </section>
+  
+        <section class="side-card recent-card">
+          <div class="side-card-title">
+            <span>✈</span>
+            <h3>Recent Shipments</h3>
+          </div>
+  
+          <article>
+            <div>
+              <strong>AC-250808-0012</strong>
+              <small>Global Traders</small>
+            </div>
+  
+            <span class="mini-status transit">
+              In Transit
+            </span>
+          </article>
+  
+          <article>
+            <div>
+              <strong>AC-250808-0011</strong>
+              <small>Sunrise Enterprises</small>
+            </div>
+  
+            <span class="mini-status delivered">
+              Delivered
+            </span>
+          </article>
+  
+          <article>
+            <div>
+              <strong>AC-250808-0010</strong>
+              <small>ABC Corporation</small>
+            </div>
+  
+            <span class="mini-status customs">
+              Customs
+            </span>
+          </article>
+        </section>
+  
+      </aside>
+  
+    </div>
+  </div>
+
+
+

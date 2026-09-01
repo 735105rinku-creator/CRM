@@ -1,0 +1,40 @@
+<app-public-header />
+
+<main class="about-page">
+  <section class="about-hero">
+    <div>
+      <p class="eyebrow">About Opas Bizz</p>
+      <h1>CRM and HRMS operations shaped for growing companies.</h1>
+      <p class="intro">
+        Opas Bizz Pvt. Ltd. brings sales, HR, attendance, leave, meetings, payroll records and role-based dashboards into one calm workspace.
+      </p>
+      <a class="primary-link" routerLink="/register-company">Register Company</a>
+    </div>
+    <figure>
+      <img src="/assets/home/team-collaboration.jpg" alt="Team collaborating around business dashboards" />
+    </figure>
+  </section>
+
+  <section class="metric-band" aria-label="Platform facts">
+    @for (item of highlights; track item.label) {
+      <article>
+        <strong>{{ item.value }}</strong>
+        <span>{{ item.label }}</span>
+      </article>
+    }
+  </section>
+
+  <section class="clay-grid" aria-label="Platform highlights">
+    @for (pillar of pillars; track pillar.title) {
+      <article>
+        <img [src]="pillar.image" [alt]="pillar.title" />
+        <div>
+          <h2>{{ pillar.title }}</h2>
+          <p>{{ pillar.copy }}</p>
+        </div>
+      </article>
+    }
+  </section>
+</main>
+
+<app-public-footer />

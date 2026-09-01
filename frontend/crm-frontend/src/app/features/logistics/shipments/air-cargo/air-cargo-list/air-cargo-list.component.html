@@ -1,0 +1,419 @@
+﻿<div class="shipment-page">
+
+    <header class="page-header">
+      <div>
+        <div class="breadcrumb">
+          <span>Logistics</span>
+          <b>&rsaquo;</b>
+          <span>Air Cargo</span>
+          <b>&rsaquo;</b>
+          <strong>All Shipments</strong>
+        </div>
+  
+        <div class="heading-row">
+          <div class="title-icon">&#9992;</div>
+  
+          <div>
+            <h1>{{ pageTitle() }}</h1>
+            <p>
+              Search, filter and manage all air cargo shipments.
+            </p>
+          </div>
+        </div>
+      </div>
+  
+      <div class="header-actions">
+        <button
+          type="button"
+          class="soft-button"
+          (click)="exportShipments()"
+        >
+          &#8681; Export
+        </button>
+  
+        <button
+          type="button"
+          class="gold-button"
+          (click)="newShipment()"
+        >
+          &#43; New Shipment
+        </button>
+      </div>
+    </header>
+  
+    <main class="page-content">
+  
+      <!-- SUMMARY -->
+      <section class="summary-grid">
+  
+        <article>
+          <div class="summary-icon blue">&#9992;</div>
+  
+          <div>
+            <span>Total Shipments</span>
+            <strong>{{ summary().total }}</strong>
+            <small>All air cargo bookings</small>
+          </div>
+        </article>
+  
+        <article>
+          <div class="summary-icon gold">&#9671;</div>
+  
+          <div>
+            <span>Pending</span>
+            <strong>{{ summary().pending }}</strong>
+            <small>Require processing</small>
+          </div>
+        </article>
+  
+        <article>
+          <div class="summary-icon purple">&#8599;</div>
+  
+          <div>
+            <span>In Transit</span>
+            <strong>{{ summary().inTransit }}</strong>
+            <small>Currently moving</small>
+          </div>
+        </article>
+  
+        <article>
+          <div class="summary-icon green">&#10003;</div>
+  
+          <div>
+            <span>Delivered</span>
+            <strong>{{ summary().delivered }}</strong>
+            <small>Successfully completed</small>
+          </div>
+        </article>
+  
+      </section>
+  
+      <!-- FILTERS -->
+      <section class="filter-card">
+  
+        <div class="filter-heading">
+          <div>
+            <span>SHIPMENT CONTROL</span>
+            <h2>Search & Filters</h2>
+          </div>
+  
+          <button
+            type="button"
+            class="clear-button"
+            (click)="clearFilters()"
+          >
+            Clear Filters
+          </button>
+        </div>
+  
+        <div class="filter-grid">
+  
+          <div class="search-field">
+            <span>&#9906;</span>
+  
+            <input
+              #searchInput
+              type="search"
+              [value]="searchTerm()"
+              (input)="setSearch(searchInput.value)"
+              placeholder="Shipment ID, customer, AWB, origin..."
+            />
+          </div>
+  
+          <select
+            #statusSelect
+            [value]="statusFilter()"
+            (change)="setStatus(statusSelect.value)"
+          >
+            <option value="all">All Status</option>
+            <option value="booking-created">Booking Created</option>
+            <option value="pickup-pending">Pickup Pending</option>
+            <option value="at-warehouse">At Warehouse</option>
+            <option value="customs">Customs</option>
+            <option value="airline-booked">Airline Booked</option>
+            <option value="in-transit">In Transit</option>
+            <option value="delivered">Delivered</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+  
+          <select
+            #prioritySelect
+            [value]="priorityFilter()"
+            (change)="setPriority(prioritySelect.value)"
+          >
+            <option value="all">All Priority</option>
+            <option value="normal">Normal</option>
+            <option value="express">Express</option>
+            <option value="urgent">Urgent</option>
+          </select>
+
+          <input type="date" [value]="fromDate()" (input)="fromDate.set($any($event.target).value)" aria-label="From Date" />
+          <input type="date" [value]="toDate()" (input)="toDate.set($any($event.target).value)" aria-label="To Date" />
+          <button type="button" class="gold-button" (click)="applyDateFilter()">Apply</button>
+  
+        </div>
+      </section>
+  
+      <!-- TABLE -->
+      <section class="shipment-card">
+  
+        <header class="card-header">
+          <div>
+            <span>AIR CARGO</span>
+            <h2>Shipment Records</h2>
+          </div>
+  
+          <p>
+            Showing
+            <strong>{{ filteredShipments().length }}</strong>
+            records
+          </p>
+        </header>
+  
+        <div class="table-scroll">
+  
+          <table>
+  
+            <thead>
+              <tr>
+                <th>Shipment</th>
+                <th>Customer</th>
+                <th>Route</th>
+                <th>Airline / AWB</th>
+                <th>Weight</th>
+                <th>Amount</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+  
+            <tbody>
+  
+              @for (
+                shipment of paginatedShipments();
+                track shipment.shipmentId
+              ) {
+  
+                <tr>
+  
+                  <td>
+                    <div class="primary-cell">
+                      <strong>{{ shipment.shipmentId }}</strong>
+                      <span>{{ shipment.bookingDate }}</span>
+                    </div>
+                  </td>
+  
+                  <td>
+                    <div class="primary-cell">
+                      <strong>{{ shipment.customer }}</strong>
+                      <span>
+                        {{ shipment.contactPerson }}
+                        &middot;
+                        {{ shipment.mobile }}
+                      </span>
+                    </div>
+                  </td>
+  
+                  <td>
+                    <div class="route">
+                      <span>{{ shipment.origin }}</span>
+                      <i>&#8594;</i>
+                      <span>{{ shipment.destination }}</span>
+                    </div>
+                  </td>
+  
+                  <td>
+                    <div class="primary-cell">
+                      <strong>{{ shipment.airline }}</strong>
+                      <span>{{ shipment.awbNumber }}</span>
+                    </div>
+                  </td>
+  
+                  <td>
+                    <div class="primary-cell">
+                      <strong>
+                        {{ shipment.chargeableWeight }} Kg
+                      </strong>
+  
+                      <span>
+                        Gross:
+                        {{ shipment.grossWeight }} Kg
+                      </span>
+                    </div>
+                  </td>
+  
+                  <td>
+                    <strong class="amount">
+                      {{ formatCurrency(shipment.amount) }}
+                    </strong>
+                  </td>
+  
+                  <td>
+                    <span
+                      class="priority"
+                      [class]="
+                        'priority ' +
+                        priorityClass(shipment.priority)
+                      "
+                    >
+                      {{ shipment.priority }}
+                    </span>
+                  </td>
+  
+                  <td>
+                    <span
+                      class="status"
+                      [class]="
+                        'status ' +
+                        statusClass(shipment.status)
+                      "
+                    >
+                      {{ shipment.status }}
+                    </span>
+                  </td>
+  
+                  <td>
+                    <div class="action-buttons">
+  
+                      <button
+                        type="button"
+                        title="View"
+                        (click)="viewShipment(shipment)"
+                      >
+                        &#9673;
+                      </button>
+  
+                      <button
+                        type="button"
+                        title="Edit"
+                        (click)="editShipment(shipment)"
+                      >
+                        &#9998;
+                      </button>
+  
+                      <div class="action-menu">
+  
+                        <details>
+                          <summary>&#8942;</summary>
+  
+                          <div class="action-dropdown">
+  
+                            <button
+                              type="button"
+                              (click)="duplicateShipment(shipment)"
+                            >
+                              Duplicate Shipment
+                            </button>
+  
+                            <button
+                              type="button"
+                            >
+                              Generate AWB
+                            </button>
+  
+                            <button
+                              type="button"
+                            >
+                              Generate Invoice
+                            </button>
+  
+                            <button
+                              type="button"
+                            >
+                              Update Status
+                            </button>
+  
+                            <button
+                              type="button"
+                              class="danger"
+                              (click)="deleteShipment(shipment)"
+                            >
+                              Delete Shipment
+                            </button>
+  
+                          </div>
+                        </details>
+  
+                      </div>
+  
+                    </div>
+                  </td>
+  
+                </tr>
+  
+              } @empty {
+  
+                <tr>
+                  <td colspan="9">
+  
+                    <div class="empty-state">
+                      <span>&#9992;</span>
+  
+                      <strong>
+                        No shipments found
+                      </strong>
+  
+                      <p>
+                        Change your filters or create a new shipment.
+                      </p>
+  
+                      <button
+                        type="button"
+                        class="gold-button"
+                        (click)="newShipment()"
+                      >
+                        &#43; New Shipment
+                      </button>
+                    </div>
+  
+                  </td>
+                </tr>
+  
+              }
+  
+            </tbody>
+  
+          </table>
+  
+        </div>
+  
+        <footer class="pagination">
+  
+          <p>
+            Page
+            <strong>{{ currentPage() }}</strong>
+            of
+            <strong>{{ totalPages() }}</strong>
+          </p>
+  
+          <div>
+  
+            <button
+              type="button"
+              [disabled]="currentPage() === 1"
+              (click)="previousPage()"
+            >
+              &lsaquo; Previous
+            </button>
+  
+            <span>{{ currentPage() }}</span>
+  
+            <button
+              type="button"
+              [disabled]="currentPage() === totalPages()"
+              (click)="nextPage()"
+            >
+              Next &rsaquo;
+            </button>
+  
+          </div>
+  
+        </footer>
+  
+      </section>
+  
+    </main>
+  </div>
+
+

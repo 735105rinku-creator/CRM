@@ -1,0 +1,135 @@
+:host {
+  display: block;
+  min-height: 100dvh;
+}
+
+.layout {
+  min-height: 100dvh;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.12),
+      rgba(255, 255, 255, 0)
+    ),
+    var(--color-background);
+}
+
+app-sidebar {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+
+  z-index: 1040;
+
+  width: var(--sidebar-width);
+}
+
+.layout-main {
+  min-height: 100dvh;
+
+  margin-left: var(--sidebar-width);
+
+  transition:
+    margin-left 0.25s ease;
+}
+
+.content-area {
+  padding: var(--space-xl);
+}
+
+.sidebar-collapsed app-sidebar {
+  width: var(--sidebar-collapsed);
+}
+
+.sidebar-collapsed .layout-main {
+  margin-left: var(--sidebar-collapsed);
+}
+
+/* ==========================================================
+   SELF-CONTAINED WORKSPACES
+========================================================== */
+
+.hr-workspace-layout .layout-main,
+.sidebar-collapsed.hr-workspace-layout .layout-main,
+
+.super-admin-workspace-layout .layout-main,
+.sidebar-collapsed.super-admin-workspace-layout .layout-main,
+
+.company-admin-workspace-layout .layout-main,
+.sidebar-collapsed.company-admin-workspace-layout .layout-main,
+
+.logistics-workspace-layout .layout-main,
+.sidebar-collapsed.logistics-workspace-layout .layout-main {
+  margin-left: 0;
+}
+
+.hr-workspace-layout .content-area,
+.super-admin-workspace-layout .content-area,
+.company-admin-workspace-layout .content-area,
+.logistics-workspace-layout .content-area {
+  padding: 0;
+}
+
+/*
+ * Logistics components already provide their own
+ * page background, header spacing and responsive layout.
+ */
+.logistics-workspace-layout {
+  background: #edf1f6;
+}
+
+.logistics-workspace-layout .content-area {
+  min-height: 100dvh;
+}
+
+.mobile-backdrop {
+  display: none;
+}
+
+/* ==========================================================
+   MOBILE
+========================================================== */
+
+@media (max-width: 992px) {
+  app-sidebar {
+    width: var(--sidebar-collapsed);
+
+    transform: translateX(-100%);
+
+    transition:
+      transform 0.25s ease;
+  }
+
+  .layout-main {
+    margin-left: 0;
+  }
+
+  .sidebar-mobile-open app-sidebar {
+    transform: translateX(0);
+  }
+
+  .sidebar-mobile-open .mobile-backdrop {
+    position: fixed;
+    inset: 0;
+
+    z-index: 1030;
+
+    display: block;
+
+    background:
+      rgba(15, 23, 42, 0.42);
+  }
+
+  .content-area {
+    padding: var(--space-lg);
+  }
+
+  .hr-workspace-layout .content-area,
+  .super-admin-workspace-layout .content-area,
+  .company-admin-workspace-layout .content-area,
+  .logistics-workspace-layout .content-area {
+    padding: 0;
+  }
+}

@@ -1,0 +1,678 @@
+<div class="master-page">
+
+    <header class="page-header">
+      <div>
+        <div class="breadcrumb">
+          Logistics <b>&rsaquo;</b> Customers
+        </div>
+  
+        <div class="title-row">
+          <span class="title-icon">&#9817;</span>
+  
+          <div>
+            <h1>Logistics Customers</h1>
+            <p>
+              Manage logistics customers, credit terms,
+              shipping preferences and outstanding balances.
+            </p>
+          </div>
+        </div>
+      </div>
+  
+      <button
+        type="button"
+        class="gold-button"
+        (click)="openForm()"
+      >
+        &#43; Add Customer
+      </button>
+    </header>
+  
+    <main class="page-content">
+  
+      <section class="summary-grid">
+  
+        <article>
+          <span>&#9817;</span>
+          <div>
+            <small>Total Customers</small>
+            <strong>{{ summary().total }}</strong>
+            <p>Logistics customers</p>
+          </div>
+        </article>
+  
+        <article>
+          <span>&#10003;</span>
+          <div>
+            <small>Active</small>
+            <strong>{{ summary().active }}</strong>
+            <p>Currently active</p>
+          </div>
+        </article>
+  
+        <article>
+          <span>&#9992;</span>
+          <div>
+            <small>Total Shipments</small>
+            <strong>{{ summary().shipments }}</strong>
+            <p>Customer shipments</p>
+          </div>
+        </article>
+  
+        <article>
+          <span>&#8377;</span>
+          <div>
+            <small>Outstanding</small>
+            <strong>
+              {{ formatCurrency(summary().outstanding) }}
+            </strong>
+            <p>Pending customer balance</p>
+          </div>
+        </article>
+  
+      </section>
+  
+
+      @if (selectedCustomer(); as item) {
+        <section class="detail-card">
+          <div>
+            <span class="detail-icon">&#128065;</span>
+            <div>
+              <small>CUSTOMER DETAILS</small>
+              <h2>{{ item.customerName || '-' }}</h2>
+              <p>{{ item.customerCode || '-' }} · {{ item.contactPerson || '-' }} · {{ item.mobile || '-' }}</p>
+            </div>
+          </div>
+          <div class="detail-actions">
+            <button type="button" class="soft-button" (click)="editCustomer(item)">&#9998; Edit</button>
+            <button type="button" class="soft-button" (click)="selectedCustomer.set(null)">&#10005; Close</button>
+          </div>
+        </section>
+      }
+      @if (showForm()) {
+        <section class="form-card">
+  
+          <header class="section-header">
+            <div>
+              <span>CUSTOMER MASTER</span>
+              <h2>{{ editingId ? 'Edit Logistics Customer' : 'Add Logistics Customer' }}</h2>
+              <p>
+                Enter business, shipping,
+                taxation and payment information.
+              </p>
+            </div>
+  
+            <button
+              type="button"
+              class="close-button"
+              (click)="closeForm()"
+            >
+              &times;
+            </button>
+          </header>
+  
+          <section class="form-section">
+            <h3>1. Customer Details</h3>
+  
+            <div class="form-grid">
+  
+              <div class="field">
+                <label>Customer Code</label>
+  
+                <input
+                  [(ngModel)]="form.customerCode"
+                  readonly
+                />
+              </div>
+  
+              <div class="field">
+                <label>Customer Name <span class="required-star">*</span></label>
+  
+                <input
+                  [(ngModel)]="form.customerName"
+                  placeholder="Enter customer name"
+                />
+              </div>
+  
+              <div class="field">
+                <label>Company Name</label>
+  
+                <input
+                  [(ngModel)]="form.companyName"
+                  placeholder="Enter company name"
+                />
+              </div>
+  
+              <div class="field">
+                <label>Customer Type <span class="required-star">*</span></label>
+  
+                <select [(ngModel)]="form.customerType">
+                  <option value="">
+                    Select Customer Type
+                  </option>
+  
+                  @for (
+                    option of customerTypes;
+                    track option.value
+                  ) {
+                    <option [value]="option.value">
+                      {{ option.label }}
+                    </option>
+                  }
+                </select>
+  
+                @if (form.customerType === 'other') {
+                  <input
+                    class="other-input"
+                    [(ngModel)]="form.customerTypeOther"
+                    placeholder="Enter customer type"
+                  />
+                }
+              </div>
+  
+              <div class="field">
+                <label>Contact Person <span class="required-star">*</span></label>
+  
+                <input
+                  [(ngModel)]="form.contactPerson"
+                  placeholder="Enter contact person"
+                />
+              </div>
+  
+              <div class="field">
+                <label>Mobile <span class="required-star">*</span></label>
+  
+                <input
+                  [(ngModel)]="form.mobile"
+                  placeholder="Enter mobile number"
+                />
+              </div>
+  
+              <div class="field">
+                <label>Alternate Mobile</label>
+  
+                <input
+                  [(ngModel)]="form.alternateMobile"
+                  placeholder="Enter alternate mobile"
+                />
+              </div>
+  
+              <div class="field">
+                <label>Email</label>
+  
+                <input
+                  type="email"
+                  [(ngModel)]="form.email"
+                  placeholder="Enter email"
+                />
+              </div>
+  
+            </div>
+          </section>
+  
+          <section class="form-section">
+            <h3>2. Tax & Registration</h3>
+  
+            <div class="form-grid">
+  
+              <div class="field">
+                <label>GST Number</label>
+  
+                <input
+                  [(ngModel)]="form.gstNumber"
+                  placeholder="Enter GST number"
+                />
+              </div>
+  
+              <div class="field">
+                <label>PAN Number</label>
+  
+                <input
+                  [(ngModel)]="form.panNumber"
+                  placeholder="Enter PAN number"
+                />
+              </div>
+  
+              <div class="field">
+                <label>IEC Code</label>
+  
+                <input
+                  [(ngModel)]="form.iecCode"
+                  placeholder="Enter IEC code"
+                />
+              </div>
+  
+            </div>
+          </section>
+  
+          <section class="form-section">
+            <h3>3. Address Details</h3>
+  
+            <div class="form-grid">
+  
+              <div class="field span-2">
+                <label>Billing Address</label>
+  
+                <textarea
+                  rows="3"
+                  [(ngModel)]="form.billingAddress"
+                  placeholder="Enter billing address"
+                ></textarea>
+              </div>
+  
+              <div class="field span-2">
+                <label>Shipping Address</label>
+  
+                <textarea
+                  rows="3"
+                  [(ngModel)]="form.shippingAddress"
+                  placeholder="Enter shipping address"
+                ></textarea>
+              </div>
+  
+              <div class="field">
+                <label>City</label>
+  
+                <input
+                  [(ngModel)]="form.city"
+                  placeholder="Enter city"
+                />
+              </div>
+  
+              <div class="field">
+                <label>State</label>
+  
+                <input
+                  [(ngModel)]="form.state"
+                  placeholder="Enter state"
+                />
+              </div>
+  
+              <div class="field">
+                <label>Country</label>
+  
+                <input
+                  [(ngModel)]="form.country"
+                  placeholder="Enter country"
+                />
+              </div>
+  
+              <div class="field">
+                <label>Pincode</label>
+  
+                <input
+                  [(ngModel)]="form.pincode"
+                  placeholder="Enter pincode"
+                />
+                
+              </div>
+  
+            </div>
+          </section>
+  
+          <section class="form-section">
+            <h3>4. Logistics Preferences</h3>
+  
+            <div class="form-grid">
+  
+              <div class="field span-2">
+                <label>Preferred Shipment Mode</label>
+  
+                <select
+                  [(ngModel)]="form.preferredMode"
+                >
+                  <option value="">
+                    Select Preferred Mode
+                  </option>
+  
+                  @for (
+                    option of preferredModes;
+                    track option.value
+                  ) {
+                    <option [value]="option.value">
+                      {{ option.label }}
+                    </option>
+                  }
+                </select>
+  
+                @if (form.preferredMode === 'other') {
+                  <input
+                    class="other-input"
+                    [(ngModel)]="form.preferredModeOther"
+                    placeholder="Enter shipment mode"
+                  />
+                }
+              </div>
+  
+              <div class="field">
+                <label>Credit Terms</label>
+  
+                <select
+                  [(ngModel)]="form.creditTerm"
+                >
+                  @for (
+                    option of creditTerms;
+                    track option.value
+                  ) {
+                    <option [value]="option.value">
+                      {{ option.label }}
+                    </option>
+                  }
+                </select>
+  
+                @if (form.creditTerm === 'other') {
+                  <input
+                    class="other-input"
+                    [(ngModel)]="form.creditTermOther"
+                    placeholder="Enter credit term"
+                  />
+                }
+              </div>
+  
+              <div class="field">
+                <label>Credit Limit</label>
+  
+                <input
+                  type="number"
+                  [(ngModel)]="form.creditLimit"
+                />
+              </div>
+  
+            </div>
+          </section>
+  
+          <section class="form-section">
+            <h3>5. Banking Details</h3>
+  
+            <div class="form-grid">
+  
+              <div class="field">
+                <label>Bank Name</label>
+  
+                <input
+                  [(ngModel)]="form.bankName"
+                  placeholder="Enter bank name"
+                />
+              </div>
+  
+              <div class="field">
+                <label>Account Name</label>
+  
+                <input
+                  [(ngModel)]="form.accountName"
+                  placeholder="Enter account name"
+                />
+              </div>
+  
+              <div class="field">
+                <label>Account Number</label>
+  
+                <input
+                  [(ngModel)]="form.accountNumber"
+                  placeholder="Enter account number"
+                />
+              </div>
+  
+              <div class="field">
+                <label>IFSC / SWIFT</label>
+  
+                <input
+                  [(ngModel)]="form.ifscSwift"
+                  placeholder="Enter IFSC / SWIFT"
+                />
+              </div>
+  
+            </div>
+          </section>
+  
+          <section class="form-section">
+            <h3>6. Status</h3>
+  
+            <div class="form-grid">
+  
+              <div class="field span-2">
+                <label>Status <span class="required-star">*</span></label>
+  
+                <select [(ngModel)]="form.status">
+                  @for (
+                    option of statuses;
+                    track option.value
+                  ) {
+                    <option [value]="option.value">
+                      {{ option.label }}
+                    </option>
+                  }
+                </select>
+  
+                @if (form.status === 'other') {
+                  <input
+                    class="other-input"
+                    [(ngModel)]="form.statusOther"
+                    placeholder="Enter customer status"
+                  />
+                }
+              </div>
+  
+            </div>
+          </section>
+  
+          <!-- REMARKS ALWAYS LAST -->
+          <section class="form-section remarks-section">
+            <h3>7. Remarks</h3>
+  
+            <div class="field">
+              <label>Remarks</label>
+  
+              <textarea
+                rows="5"
+                [(ngModel)]="form.remarks"
+                placeholder="
+                  Enter customer notes,
+                  payment instructions,
+                  shipment preferences
+                  or final remarks...
+                "
+              ></textarea>
+            </div>
+          </section>
+  
+          <footer class="form-footer">
+  
+            <button
+              type="button"
+              class="soft-button"
+              (click)="closeForm()"
+            >
+              Cancel
+            </button>
+  
+            <button
+              type="button"
+              class="gold-button"
+              (click)="saveCustomer()"
+            >
+              Save Customer
+            </button>
+  
+          </footer>
+  
+        </section>
+      }
+  
+      <section class="filter-card">
+  
+        <div class="search-box">
+          <span>&#8981;</span>
+  
+          <input
+            #customerSearch
+            [value]="search()"
+            (input)="search.set(customerSearch.value)"
+            placeholder="
+              Search customer,
+              company, mobile or email...
+            "
+          />
+        </div>
+  
+        <select
+          #customerStatus
+          [value]="statusFilter()"
+          (change)="statusFilter.set(customerStatus.value)"
+        >
+          <option value="all">
+            All Status
+          </option>
+  
+          @for (
+            option of statuses;
+            track option.value
+          ) {
+            @if (option.value !== 'other') {
+              <option [value]="option.value">
+                {{ option.label }}
+              </option>
+            }
+          }
+        </select>
+  
+      </section>
+  
+      <section class="table-card">
+  
+        <header>
+          <div>
+            <span>CUSTOMER MASTER</span>
+            <h2>Customer Register</h2>
+          </div>
+  
+          <strong>
+            {{ filteredRecords().length }}
+            records
+          </strong>
+        </header>
+  
+        <div class="table-scroll">
+  
+          <table>
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Customer</th>
+                <th>Contact</th>
+                <th>Mobile</th>
+                <th>City / Country</th>
+                <th>GST</th>
+                <th>Shipments</th>
+                <th>Outstanding</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+  
+            <tbody>
+  
+              @for (
+                item of filteredRecords();
+                track item.id
+              ) {
+  
+                <tr>
+  
+                  <td>
+                    <strong>
+                      {{ item.customerCode }}
+                    </strong>
+                  </td>
+  
+                  <td>
+                    <div class="primary-cell">
+                      <strong>
+                        {{ item.customerName }}
+                      </strong>
+  
+                      <span>
+                        {{ item.companyName }}
+                      </span>
+                    </div>
+                  </td>
+  
+                  <td>
+                    {{ item.contactPerson }}
+                  </td>
+  
+                  <td>
+                    {{ item.mobile }}
+                  </td>
+  
+                  <td>
+                    {{ item.city }},
+                    {{ item.country }}
+                  </td>
+  
+                  <td>
+                    {{ item.gstNumber }}
+                  </td>
+  
+                  <td>
+                    <span class="count-chip">
+                      {{ item.totalShipments }}
+                    </span>
+                  </td>
+  
+                  <td>
+                    <strong
+                      class="outstanding"
+                      [class.zero]="
+                        item.outstandingAmount === 0
+                      "
+                    >
+                      {{
+                        formatCurrency(
+                          item.outstandingAmount
+                        )
+                      }}
+                    </strong>
+                  </td>
+  
+                  <td>
+                    <span
+                      class="status"
+                      [class]="
+                        'status ' +
+                        item.status
+                      "
+                    >
+                      {{
+                        statusLabel(
+                          item.status
+                        )
+                      }}
+                    </span>
+                  </td>
+  
+                  <td>
+                    <div class="actions">
+  
+                      <button type="button" title="View" (click)="viewCustomer(item)">&#128065;</button>
+  
+                      <button type="button" title="Edit" (click)="editCustomer(item)">&#9998;</button>
+  
+                    </div>
+                  </td>
+  
+                </tr>
+  
+              }
+  
+            </tbody>
+          </table>
+  
+        </div>
+  
+      </section>
+  
+    </main>
+  </div>
+
+

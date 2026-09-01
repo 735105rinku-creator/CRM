@@ -1,0 +1,1305 @@
+:host {
+  --navy-950: #050b14;
+  --navy-900: #07111f;
+  --navy-800: #0d2038;
+  --navy-700: #173654;
+
+  --gold-700: #98703a;
+  --gold-600: #b38a4e;
+  --gold-500: #c9a86a;
+  --gold-400: #dbc086;
+
+  --surface: #edf1f6;
+  --text: #152033;
+  --muted: #7c8998;
+
+  display: block;
+
+  min-height: 100%;
+
+  font-family:
+    Inter,
+    "Segoe UI",
+    Arial,
+    sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+.shipment-page {
+  min-height: 100vh;
+
+  background:
+    radial-gradient(
+      circle at 84% 3%,
+      rgba(201, 168, 106, 0.1),
+      transparent 24%
+    ),
+    #edf1f6;
+}
+
+/* HEADER */
+
+.page-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+
+  min-height: 92px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+
+  padding: 17px 25px;
+
+  border-bottom:
+    1px solid rgba(201, 168, 106, 0.14);
+
+  background:
+    rgba(237, 241, 246, 0.92);
+
+  backdrop-filter: blur(18px);
+}
+
+.breadcrumb {
+  display: flex;
+  gap: 8px;
+
+  margin-bottom: 8px;
+
+  color: #8793a1;
+
+  font-size: 0.65rem;
+}
+
+.breadcrumb b {
+  color: var(--gold-600);
+}
+
+.breadcrumb strong {
+  color: var(--navy-900);
+}
+
+.heading-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.title-icon {
+  width: 43px;
+  height: 43px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 13px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #d9bd82,
+      #a97e45
+    );
+
+  color: var(--navy-950);
+
+  box-shadow:
+    5px 5px 11px rgba(166, 177, 189, 0.5),
+    -5px -5px 11px rgba(255, 255, 255, 0.94);
+
+  font-size: 1.05rem;
+}
+
+.heading-row h1 {
+  margin: 0;
+
+  color: var(--navy-900);
+
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+
+  font-size: 1.35rem;
+}
+
+.heading-row p {
+  margin: 4px 0 0;
+
+  color: var(--muted);
+
+  font-size: 0.66rem;
+}
+
+.header-actions {
+  display: flex;
+  gap: 9px;
+}
+
+.soft-button,
+.gold-button {
+  min-height: 41px;
+
+  padding: 0 15px;
+
+  border: 0;
+  border-radius: 12px;
+
+  cursor: pointer;
+
+  font-size: 0.67rem;
+  font-weight: 800;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.soft-button:hover,
+.gold-button:hover {
+  transform: translateY(-2px);
+}
+
+.soft-button {
+  background: #edf1f6;
+
+  color: var(--navy-800);
+
+  box-shadow:
+    5px 5px 11px rgba(167, 178, 190, 0.5),
+    -5px -5px 11px rgba(255, 255, 255, 0.95);
+}
+
+.gold-button {
+  background:
+    linear-gradient(
+      145deg,
+      #d9bd82,
+      #aa8046
+    );
+
+  color: var(--navy-950);
+
+  box-shadow:
+    5px 6px 12px rgba(166, 177, 189, 0.5),
+    -4px -4px 10px rgba(255, 255, 255, 0.92);
+}
+
+/* PAGE */
+
+.page-content {
+  display: grid;
+  gap: 18px;
+
+  max-width: 1800px;
+
+  margin: auto;
+
+  padding: 20px 23px 36px;
+}
+
+/* SUMMARY */
+
+.summary-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.summary-grid article {
+  min-height: 112px;
+
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  padding: 17px;
+
+  border:
+    1px solid rgba(255, 255, 255, 0.76);
+
+  border-radius: 19px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #f5f7fa,
+      #e2e8ee
+    );
+
+  box-shadow:
+    8px 8px 17px rgba(168, 179, 192, 0.5),
+    -8px -8px 17px rgba(255, 255, 255, 0.95);
+}
+
+.summary-icon {
+  width: 44px;
+  height: 44px;
+
+  display: grid;
+  place-items: center;
+
+  flex: 0 0 44px;
+
+  border-radius: 14px;
+
+  background: #e9edf2;
+
+  color: #356b9d;
+
+  box-shadow:
+    inset 4px 4px 8px rgba(169, 180, 192, 0.4),
+    inset -4px -4px 8px rgba(255, 255, 255, 0.96);
+
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.summary-icon.gold {
+  color: #a37638;
+}
+
+.summary-icon.purple {
+  color: #725a99;
+}
+
+.summary-icon.green {
+  color: #387b5d;
+}
+
+.summary-grid span,
+.summary-grid small {
+  display: block;
+}
+
+.summary-grid span {
+  color: #7e8b9a;
+
+  font-size: 0.64rem;
+  font-weight: 700;
+}
+
+.summary-grid strong {
+  display: block;
+
+  margin: 3px 0;
+
+  color: var(--navy-900);
+
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+
+  font-size: 1.42rem;
+}
+
+.summary-grid small {
+  color: #9aa4b0;
+
+  font-size: 0.57rem;
+}
+
+/* FILTER */
+
+.filter-card,
+.shipment-card {
+  padding: 18px;
+
+  border:
+    1px solid rgba(255, 255, 255, 0.77);
+
+  border-radius: 20px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #f5f7fa,
+      #e3e8ee
+    );
+
+  box-shadow:
+    8px 8px 18px rgba(168, 179, 192, 0.48),
+    -8px -8px 18px rgba(255, 255, 255, 0.94);
+}
+
+.filter-heading,
+.card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 15px;
+
+  margin-bottom: 15px;
+}
+
+.filter-heading span,
+.card-header span {
+  color: var(--gold-600);
+
+  font-size: 0.57rem;
+  font-weight: 900;
+
+  letter-spacing: 0.14em;
+}
+
+.filter-heading h2,
+.card-header h2 {
+  margin: 4px 0 0;
+
+  color: var(--navy-900);
+
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+
+  font-size: 0.93rem;
+}
+
+.card-header p {
+  margin: 4px 0 0;
+
+  color: #8b97a5;
+
+  font-size: 0.62rem;
+}
+
+.card-header p strong {
+  color: var(--navy-900);
+}
+
+.clear-button {
+  padding: 7px;
+
+  border: 0;
+
+  background: transparent;
+
+  color: #9b743d;
+
+  cursor: pointer;
+
+  font-size: 0.61rem;
+  font-weight: 800;
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns:
+    minmax(260px, 1.5fr)
+    minmax(170px, 0.6fr)
+    minmax(170px, 0.6fr);
+  gap: 12px;
+}
+
+.search-field {
+  position: relative;
+}
+
+.search-field > span {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+
+  transform: translateY(-50%);
+
+  color: var(--gold-700);
+}
+
+.search-field input {
+  padding-left: 35px;
+}
+
+input,
+select {
+  width: 100%;
+  height: 42px;
+
+  padding: 0 12px;
+
+  border:
+    1px solid rgba(255, 255, 255, 0.84);
+
+  border-radius: 11px;
+
+  outline: 0;
+
+  background: #edf1f6;
+
+  color: #536174;
+
+  box-shadow:
+    inset 3px 3px 7px rgba(168, 179, 191, 0.38),
+    inset -3px -3px 7px rgba(255, 255, 255, 0.95);
+
+  font-size: 0.65rem;
+}
+
+input:focus,
+select:focus {
+  border-color:
+    rgba(201, 168, 106, 0.45);
+
+  box-shadow:
+    inset 2px 2px 5px rgba(168, 179, 191, 0.36),
+    inset -2px -2px 5px rgba(255, 255, 255, 0.95),
+    0 0 0 3px rgba(201, 168, 106, 0.09);
+}
+
+/* TABLE */
+
+.table-scroll {
+  overflow-x: auto;
+
+  border-radius: 15px;
+
+  background: rgba(255, 255, 255, 0.25);
+
+  box-shadow:
+    inset 3px 3px 8px rgba(170, 181, 193, 0.24),
+    inset -3px -3px 8px rgba(255, 255, 255, 0.76);
+}
+
+table {
+  width: 100%;
+
+  min-width: 1240px;
+
+  border-collapse: collapse;
+}
+
+th {
+  padding: 12px 11px;
+
+  border-bottom:
+    1px solid rgba(8, 34, 57, 0.07);
+
+  color: #83909f;
+
+  font-size: 0.56rem;
+  font-weight: 850;
+
+  letter-spacing: 0.045em;
+
+  text-align: left;
+  text-transform: uppercase;
+}
+
+td {
+  padding: 13px 11px;
+
+  border-bottom:
+    1px solid rgba(8, 34, 57, 0.055);
+
+  color: #5b6879;
+
+  font-size: 0.63rem;
+}
+
+tbody tr {
+  transition:
+    background 0.18s ease;
+}
+
+tbody tr:hover {
+  background:
+    rgba(201, 168, 106, 0.045);
+}
+
+tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.primary-cell strong,
+.primary-cell span {
+  display: block;
+}
+
+.primary-cell strong {
+  color: var(--navy-900);
+
+  font-size: 0.64rem;
+}
+
+.primary-cell span {
+  margin-top: 3px;
+
+  color: #929dab;
+
+  font-size: 0.56rem;
+}
+
+.route {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  white-space: nowrap;
+}
+
+.route i {
+  color: var(--gold-600);
+
+  font-style: normal;
+}
+
+.amount {
+  color: var(--navy-900);
+
+  white-space: nowrap;
+}
+
+/* PRIORITY */
+
+.priority,
+.status {
+  display: inline-flex;
+
+  padding: 5px 8px;
+
+  border-radius: 8px;
+
+  white-space: nowrap;
+
+  font-size: 0.54rem;
+  font-weight: 800;
+}
+
+.priority.normal {
+  background: #e6ebf1;
+  color: #5f6d7d;
+}
+
+.priority.express {
+  background: #e1ebf7;
+  color: #376c9d;
+}
+
+.priority.urgent {
+  background: #f6dddd;
+  color: #a43e45;
+}
+
+/* STATUS */
+
+.status.booking-created {
+  background: #e7edf4;
+  color: #546d86;
+}
+
+.status.pickup-pending {
+  background: #eee7fa;
+  color: #6e5997;
+}
+
+.status.at-warehouse {
+  background: #e5edf5;
+  color: #496c8d;
+}
+
+.status.customs {
+  background: #fff0d4;
+  color: #996d27;
+}
+
+.status.airline-booked {
+  background: #e9e5f8;
+  color: #6f5b99;
+}
+
+.status.in-transit {
+  background: #dfeaf8;
+  color: #386e9e;
+}
+
+.status.delivered {
+  background: #def1e6;
+  color: #387a5b;
+}
+
+.status.cancelled {
+  background: #f6dede;
+  color: #a44047;
+}
+
+/* ACTIONS */
+
+.action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.action-buttons > button,
+.action-menu summary {
+  width: 29px;
+  height: 29px;
+
+  display: grid;
+  place-items: center;
+
+  padding: 0;
+
+  border: 0;
+  border-radius: 9px;
+
+  background: #edf1f6;
+
+  color: var(--gold-700);
+
+  cursor: pointer;
+
+  box-shadow:
+    3px 3px 7px rgba(168, 179, 192, 0.44),
+    -3px -3px 7px rgba(255, 255, 255, 0.95);
+
+  font-size: 0.67rem;
+}
+
+.action-menu {
+  position: relative;
+}
+
+.action-menu details {
+  position: relative;
+}
+
+.action-menu summary {
+  list-style: none;
+}
+
+.action-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.action-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  z-index: 30;
+
+  width: 180px;
+
+  display: grid;
+
+  padding: 7px;
+
+  border:
+    1px solid rgba(255, 255, 255, 0.84);
+
+  border-radius: 13px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #f6f8fa,
+      #e5eaf0
+    );
+
+  box-shadow:
+    10px 12px 26px rgba(93, 105, 120, 0.25),
+    -5px -5px 14px rgba(255, 255, 255, 0.75);
+}
+
+.action-dropdown button {
+  min-height: 34px;
+
+  padding: 0 9px;
+
+  border: 0;
+  border-radius: 8px;
+
+  background: transparent;
+
+  color: #536174;
+
+  cursor: pointer;
+
+  text-align: left;
+
+  font-size: 0.59rem;
+  font-weight: 700;
+}
+
+.action-dropdown button:hover {
+  background:
+    rgba(201, 168, 106, 0.09);
+
+  color: var(--navy-900);
+}
+
+.action-dropdown .danger {
+  color: #a53d44;
+}
+
+/* PAGINATION */
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 15px;
+
+  padding-top: 15px;
+}
+
+.pagination p {
+  margin: 0;
+
+  color: #8793a0;
+
+  font-size: 0.61rem;
+}
+
+.pagination p strong {
+  color: var(--navy-900);
+}
+
+.pagination > div {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.pagination button,
+.pagination > div > span {
+  min-height: 34px;
+
+  display: grid;
+  place-items: center;
+
+  padding: 0 11px;
+
+  border: 0;
+  border-radius: 9px;
+
+  background: #edf1f6;
+
+  color: #536174;
+
+  box-shadow:
+    3px 3px 7px rgba(168, 179, 192, 0.43),
+    -3px -3px 7px rgba(255, 255, 255, 0.94);
+
+  font-size: 0.59rem;
+  font-weight: 750;
+}
+
+.pagination button {
+  cursor: pointer;
+}
+
+.pagination button:disabled {
+  opacity: 0.45;
+
+  cursor: not-allowed;
+}
+
+.pagination > div > span {
+  min-width: 35px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #d9bd82,
+      #aa8046
+    );
+
+  color: var(--navy-950);
+}
+
+/* EMPTY */
+
+.empty-state {
+  min-height: 280px;
+
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 8px;
+
+  text-align: center;
+}
+
+.empty-state > span {
+  width: 52px;
+  height: 52px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 16px;
+
+  background: #e8edf2;
+
+  color: var(--gold-700);
+
+  box-shadow:
+    inset 4px 4px 8px rgba(169, 180, 192, 0.42),
+    inset -4px -4px 8px rgba(255, 255, 255, 0.96);
+
+  font-size: 1.2rem;
+}
+
+.empty-state strong {
+  color: var(--navy-900);
+}
+
+.empty-state p {
+  margin: 0 0 6px;
+
+  color: #8d99a6;
+
+  font-size: 0.62rem;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1100px) {
+  .summary-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .page-header {
+    position: static;
+
+    display: grid;
+
+    padding: 14px;
+  }
+
+  .header-actions {
+    width: 100%;
+  }
+
+  .header-actions button {
+    flex: 1;
+  }
+
+  .page-content {
+    padding: 14px;
+  }
+
+  .filter-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pagination {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 520px) {
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .filter-card,
+  .shipment-card {
+    padding: 14px;
+  }
+
+  .heading-row h1 {
+    font-size: 1.1rem;
+  }
+
+  .heading-row p {
+    display: none;
+  }
+}
+
+
+/* ============================================================
+ LAYOUT WIDTH FIX — PERSISTENT LOGISTICS SIDEBAR
+ Keeps the complete Air Cargo page inside the routed content
+ area without pushing controls/tables outside the viewport.
+============================================================ */
+
+:host {
+width: 100%;
+min-width: 0;
+max-width: 100%;
+overflow-x: hidden;
+}
+
+.shipment-page {
+width: 100%;
+min-width: 0;
+max-width: 100%;
+overflow-x: hidden;
+}
+
+.page-header {
+width: 100%;
+min-width: 0;
+max-width: 100%;
+flex-wrap: wrap;
+box-sizing: border-box;
+}
+
+.page-header > * {
+min-width: 0;
+}
+
+.heading-row {
+min-width: 0;
+}
+
+.heading-row > div {
+min-width: 0;
+}
+
+.heading-row h1,
+.heading-row p {
+overflow-wrap: anywhere;
+}
+
+.header-actions {
+flex: 0 0 auto;
+flex-wrap: wrap;
+justify-content: flex-end;
+}
+
+.page-content {
+width: 100%;
+min-width: 0;
+max-width: 100%;
+margin: 0;
+box-sizing: border-box;
+overflow-x: hidden;
+}
+
+/* ============================================================
+ SUMMARY CARDS
+============================================================ */
+
+.summary-grid {
+width: 100%;
+min-width: 0;
+grid-template-columns: repeat(4, minmax(150px, 1fr));
+}
+
+.summary-grid article {
+min-width: 0;
+overflow: hidden;
+}
+
+.summary-grid article > div:last-child {
+min-width: 0;
+}
+
+.summary-grid span,
+.summary-grid strong,
+.summary-grid small {
+max-width: 100%;
+overflow-wrap: anywhere;
+}
+
+/* ============================================================
+ FILTERS
+============================================================ */
+
+.filter-card,
+.shipment-card {
+width: 100%;
+min-width: 0;
+max-width: 100%;
+overflow: hidden;
+box-sizing: border-box;
+}
+
+.filter-grid {
+width: 100%;
+min-width: 0;
+grid-template-columns:
+  minmax(220px, 1.5fr)
+  minmax(135px, 0.6fr)
+  minmax(135px, 0.6fr);
+}
+
+.filter-grid > * {
+min-width: 0;
+}
+
+.search-field,
+.search-field input,
+.filter-grid select {
+min-width: 0;
+max-width: 100%;
+}
+
+/* ============================================================
+ TABLE — FIT DESKTOP WITHOUT PAGE HORIZONTAL SCROLL
+============================================================ */
+
+.table-scroll {
+width: 100%;
+min-width: 0;
+max-width: 100%;
+overflow-x: hidden;
+overflow-y: visible;
+}
+
+table {
+width: 100%;
+min-width: 0;
+max-width: 100%;
+table-layout: fixed;
+}
+
+th,
+td {
+min-width: 0;
+max-width: 100%;
+overflow: hidden;
+text-overflow: ellipsis;
+vertical-align: middle;
+}
+
+th {
+padding: 11px 8px;
+white-space: normal;
+overflow-wrap: anywhere;
+}
+
+td {
+padding: 12px 8px;
+white-space: normal;
+overflow-wrap: anywhere;
+}
+
+.primary-cell strong,
+.primary-cell span {
+overflow: hidden;
+text-overflow: ellipsis;
+}
+
+.route {
+min-width: 0;
+white-space: normal;
+flex-wrap: wrap;
+}
+
+.amount,
+.priority,
+.status {
+max-width: 100%;
+}
+
+/*
+* Keep action buttons compact so the action column does not
+* force the table wider than the available page.
+*/
+.action-buttons {
+min-width: 0;
+flex-wrap: wrap;
+}
+
+/* ============================================================
+ COLUMN BALANCE
+ These widths add up to a responsive table that fits the
+ available Logistics content area beside the sidebar.
+============================================================ */
+
+table th:nth-child(1),
+table td:nth-child(1) {
+width: 13%;
+}
+
+table th:nth-child(2),
+table td:nth-child(2) {
+width: 13%;
+}
+
+table th:nth-child(3),
+table td:nth-child(3) {
+width: 13%;
+}
+
+table th:nth-child(4),
+table td:nth-child(4) {
+width: 14%;
+}
+
+table th:nth-child(5),
+table td:nth-child(5) {
+width: 9%;
+}
+
+table th:nth-child(6),
+table td:nth-child(6) {
+width: 10%;
+}
+
+table th:nth-child(7),
+table td:nth-child(7) {
+width: 8%;
+}
+
+table th:nth-child(8),
+table td:nth-child(8) {
+width: 10%;
+}
+
+table th:nth-child(9),
+table td:nth-child(9) {
+width: 10%;
+}
+
+/* ============================================================
+ LAPTOP
+============================================================ */
+
+@media (max-width: 1280px) {
+.page-header {
+  padding: 15px 18px;
+}
+
+.page-content {
+  padding: 18px 18px 32px;
+}
+
+.summary-grid {
+  gap: 11px;
+}
+
+.summary-grid article {
+  padding: 14px;
+  gap: 10px;
+}
+
+.summary-icon {
+  width: 39px;
+  height: 39px;
+  flex-basis: 39px;
+}
+
+.summary-grid strong {
+  font-size: 1.22rem;
+}
+
+.filter-grid {
+  grid-template-columns:
+    minmax(200px, 1.4fr)
+    minmax(125px, 0.6fr)
+    minmax(125px, 0.6fr);
+}
+
+th {
+  font-size: 0.52rem;
+  padding-inline: 6px;
+}
+
+td {
+  font-size: 0.58rem;
+  padding-inline: 6px;
+}
+}
+
+/* ============================================================
+ SMALL LAPTOP / TABLET
+============================================================ */
+
+@media (max-width: 1050px) {
+.summary-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.filter-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(135px, 0.45fr);
+}
+
+.filter-grid > :last-child {
+  grid-column: 1 / -1;
+}
+
+/*
+ * On narrower screens the table gets its own local scrollbar.
+ * The whole application still never horizontally scrolls.
+ */
+.table-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(83, 97, 116, 0.32) transparent;
+}
+
+.table-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.table-scroll::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(83, 97, 116, 0.28);
+}
+
+.table-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+table {
+  min-width: 920px;
+  table-layout: auto;
+}
+
+th,
+td {
+  white-space: nowrap;
+}
+
+.route {
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+}
+
+/* ============================================================
+ MOBILE
+============================================================ */
+
+@media (max-width: 760px) {
+.page-header {
+  gap: 12px;
+}
+
+.header-actions {
+  width: 100%;
+  justify-content: stretch;
+}
+
+.header-actions button {
+  min-width: 0;
+}
+
+.filter-grid {
+  grid-template-columns: 1fr;
+}
+
+.filter-grid > :last-child {
+  grid-column: auto;
+}
+}
+
+@media (max-width: 520px) {
+.summary-grid {
+  grid-template-columns: 1fr;
+}
+}

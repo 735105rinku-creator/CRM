@@ -1,0 +1,57 @@
+@use '../customers/logistics-customers.component.scss';
+
+.balance {
+  color: #a44347;
+}
+
+.balance.zero {
+  color: #37795a;
+}
+
+.type-chip {
+  display: inline-flex;
+
+  padding: 5px 8px;
+
+  border-radius: 8px;
+
+  background: rgba(42, 90, 137, 0.09);
+
+  color: #436c92;
+
+  font-size: 0.54rem;
+  font-weight: 800;
+}
+
+.status.active {
+  background: #def1e6;
+  color: #37795a;
+}
+
+.status.inactive {
+  background: #e6ebf1;
+  color: #65717f;
+}
+
+.status.hold {
+  background: #fff0d4;
+  color: #966921;
+}
+
+.status.blacklisted {
+  background: #f5dddd;
+  color: #a43e45;
+}
+
+.required-star {
+  color: #dc2626;
+  font-weight: 900;
+}
+.detail-card { align-items: center; background: #fff; border: 1px solid #e5ebf3; border-radius: 8px; display: flex; justify-content: space-between; padding: 16px 18px; }
+.detail-card > div:first-child { align-items: center; display: flex; gap: 12px; }
+.detail-icon { align-items: center; background: #edf1f6; border-radius: 8px; color: #98703a; display: inline-grid; height: 38px; place-items: center; width: 38px; }
+.detail-card small { color: #64748b; font-size: .68rem; font-weight: 900; letter-spacing: .08em; }
+.detail-card h2 { margin: 3px 0; }
+.detail-card p { color: #64748b; margin: 0; }
+.detail-actions { display: flex; gap: 8px; }
+.actions button { align-items: center; display: inline-grid; place-items: center; }

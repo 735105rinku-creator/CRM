@@ -1,0 +1,169 @@
+<main class="register-page">
+  <section class="register-card">
+    <a class="brand" routerLink="/">
+      <img src="/brand/opasbizz-crm.webp" alt="Opas Bizz Pvt Ltd logo" />
+    </a>
+    <p class="eyebrow">Start your CRM</p>
+    <h1>Register your company</h1>
+    <p class="intro">Create the first company admin account. Admin can create HR users, HR can create employees.</p>
+    <div class="selected-plan-banner">
+      <span>Selected Plan</span>
+      <strong>{{ selectedPlanCode() | uppercase }}</strong>
+      <a routerLink="/pricing">Change plan</a>
+    </div>
+
+    @if (errorMessage()) {
+      <div class="alert alert-danger">{{ errorMessage() }}</div>
+    }
+    @if (successMessage()) {
+      <div class="alert alert-success">{{ successMessage() }}</div>
+    }
+
+    <form [formGroup]="registerForm" (ngSubmit)="submit()">
+      <div class="form-grid">
+        <label>
+          Full Name
+          <input class="form-control" formControlName="fullName" placeholder="Admin full name" />
+          @if (registerForm.controls.fullName.touched && registerForm.controls.fullName.invalid) {
+            <span class="field-error">Full name is required.</span>
+          }
+        </label>
+        <label>
+          Admin Email
+          <input class="form-control" type="email" formControlName="email" placeholder="admin@company.com" />
+          @if (registerForm.controls.email.touched && registerForm.controls.email.invalid) {
+            <span class="field-error">Enter a valid admin email.</span>
+          }
+        </label>
+        <label>
+          Mobile No
+          <span class="phone-field">
+            <select class="form-select" formControlName="adminCountryCode">
+              @for (countryCode of countryCodes; track countryCode.code) {
+                <option [value]="countryCode.code">{{ countryCode.label }}</option>
+              }
+            </select>
+            <input class="form-control" formControlName="mobileNo" placeholder="9111001049" />
+          </span>
+          @if (registerForm.controls.mobileNo.touched && registerForm.controls.mobileNo.invalid) {
+            <span class="field-error">Enter a valid mobile number.</span>
+          }
+        </label>
+        <label>
+          Password
+          <input class="form-control" type="password" formControlName="password" placeholder="Admin@12345" />
+          @if (registerForm.controls.password.touched && registerForm.controls.password.invalid) {
+            <span class="field-error">Use 8-32 chars with uppercase, lowercase, number and special character.</span>
+          }
+        </label>
+        <label>
+          Confirm Password
+          <input class="form-control" type="password" formControlName="confirmPassword" placeholder="Re-enter password" />
+          @if (registerForm.errors?.['passwordMismatch'] && registerForm.controls.confirmPassword.touched) {
+            <span class="field-error">Password and confirm password must match.</span>
+          }
+        </label>
+        <label>
+          Company Name
+          <input class="form-control" formControlName="companyName" placeholder="Your company name" />
+          @if (registerForm.controls.companyName.touched && registerForm.controls.companyName.invalid) {
+            <span class="field-error">Company name is required.</span>
+          }
+        </label>
+        <label>
+          Company Logo <small>(optional)</small>
+          <input class="form-control" type="file" accept="image/*" (change)="onLogoSelected($event)" />
+          @if (logoPreview()) {
+            <span class="logo-preview">
+              <img [src]="logoPreview()" alt="Selected company logo preview" />
+              <span>Logo selected</span>
+            </span>
+          }
+        </label>
+        <label>
+          Company Code
+          <input class="form-control" formControlName="companyCode" placeholder="Auto generated" readonly />
+          @if (registerForm.controls.companyCode.touched && registerForm.controls.companyCode.invalid) {
+            <span class="field-error">Use 3-20 uppercase letters, numbers, dash or underscore.</span>
+          }
+        </label>
+        <label>
+          Company PAN Number <small>(optional)</small>
+          <input class="form-control" formControlName="companyPan" placeholder="ABCDE1234F" />
+          @if (registerForm.controls.companyPan.touched && registerForm.controls.companyPan.invalid) {
+            <span class="field-error">Enter a valid PAN number.</span>
+          }
+        </label>
+        <label>
+          Company GST Number <small>(optional)</small>
+          <input class="form-control" formControlName="companyGst" placeholder="22AAAAA0000A1Z5" />
+          @if (registerForm.controls.companyGst.touched && registerForm.controls.companyGst.invalid) {
+            <span class="field-error">Enter a valid GST number.</span>
+          }
+        </label>
+        <label>
+          Industry
+          <input class="form-control" formControlName="industry" placeholder="IT Services, Manufacturing..." />
+        </label>
+        <label>
+          Employee Count
+          <select class="form-select" formControlName="employeeCount">
+            <option value="">Select team size</option>
+            <option value="1-10">1-10</option>
+            <option value="11-50">11-50</option>
+            <option value="51-200">51-200</option>
+            <option value="200+">200+</option>
+          </select>
+        </label>
+        <label>
+          Company Email
+          <input class="form-control" type="email" formControlName="companyEmail" placeholder="info@company.com" />
+        </label>
+        <label>
+          Company Phone
+          <span class="phone-field">
+            <select class="form-select" formControlName="companyCountryCode">
+              @for (countryCode of countryCodes; track countryCode.code) {
+                <option [value]="countryCode.code">{{ countryCode.label }}</option>
+              }
+            </select>
+            <input class="form-control" formControlName="companyPhone" placeholder="Office phone" />
+          </span>
+          @if (registerForm.controls.companyPhone.touched && registerForm.controls.companyPhone.invalid) {
+            <span class="field-error">Enter a valid company phone number.</span>
+          }
+        </label>
+        <label>
+          Country
+          <input class="form-control" formControlName="country" placeholder="India" />
+        </label>
+        <label class="full">
+          Registered Address
+          <textarea class="form-control" formControlName="registeredAddress" rows="3" placeholder="Full company address"></textarea>
+          @if (registerForm.controls.registeredAddress.touched && registerForm.controls.registeredAddress.invalid) {
+            <span class="field-error">Registered address is required.</span>
+          }
+        </label>
+        <label class="full">
+          Website <small>(optional)</small>
+          <input class="form-control" formControlName="website" placeholder="https://company.com" />
+          @if (registerForm.controls.website.touched && registerForm.controls.website.invalid) {
+            <span class="field-error">Enter a valid website URL.</span>
+          }
+        </label>
+      </div>
+      <label class="terms">
+        <input type="checkbox" formControlName="acceptTerms" />
+        <span>I accept the <a routerLink="/terms">terms and conditions</a>.</span>
+      </label>
+      @if (registerForm.controls.acceptTerms.touched && registerForm.controls.acceptTerms.invalid) {
+        <span class="field-error terms-error">Please accept terms and conditions.</span>
+      }
+      <button class="btn btn-primary w-100" type="submit" [disabled]="registerForm.invalid || isLoading()">
+        {{ isLoading() ? 'Creating workspace...' : 'Create Company CRM' }}
+      </button>
+      <p class="signin-link">Already registered? <a routerLink="/login">Sign in</a></p>
+    </form>
+  </section>
+</main>
+

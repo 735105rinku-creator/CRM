@@ -1,0 +1,132 @@
+<div class="cha-page">
+  <header class="page-header">
+    <div>
+      <div class="breadcrumb">Logistics <b>&rsaquo;</b> CHA <b>&rsaquo;</b> Master</div>
+      <div class="title-row">
+        <span class="title-icon">&#9817;</span>
+        <div>
+          <h1>{{ mode === 'detail' ? (selectedCha()?.vendorName || 'CHA Details') : mode === 'new' ? 'Add CHA' : 'CHA Master' }}</h1>
+          <p>Maintain customs broker master records using CHA-type vendor data.</p>
+        </div>
+      </div>
+    </div>
+    @if (mode === 'list') {
+      <button type="button" class="gold-button" (click)="addCha()"><span class="button-icon">&#10010;</span>Add CHA</button>
+    } @else {
+      <button type="button" class="soft-button" (click)="cancel()"><span class="button-icon">&#8592;</span>Back to Master</button>
+    }
+  </header>
+
+  <main class="page-content">
+    @if (message()) { <div class="alert success">{{ message() }}</div> }
+    @if (errorMessage()) { <div class="alert error">{{ errorMessage() }}</div> }
+
+    @if (mode === 'list') {
+      <section class="summary-grid">
+        <article><span>&#9817;</span><div><small>Total CHA</small><strong>{{ summary().total }}</strong><p>Registered brokers</p></div></article>
+        <article><span>&#10003;</span><div><small>Active CHA</small><strong>{{ summary().active }}</strong><p>Available for jobs</p></div></article>
+        <article><span>&#9888;</span><div><small>Inactive CHA</small><strong>{{ summary().inactive }}</strong><p>Not active</p></div></article>
+        <article><span>&#9201;</span><div><small>License Expiring</small><strong>{{ summary().expiring }}</strong><p>Within 90 days</p></div></article>
+      </section>
+
+      <section class="filter-card master-filter">
+        <span>&#8981;</span>
+        <input #searchBox [value]="search()" (input)="search.set(searchBox.value)" placeholder="Search CHA code, name, contact, mobile, license or GST..." />
+        <select #statusSelect [value]="statusFilter()" (change)="statusFilter.set(statusSelect.value)">
+          <option value="all">All Status</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+        <select #locationSelect [value]="locationFilter()" (change)="locationFilter.set(locationSelect.value)">
+          <option value="all">All Locations</option>
+          @for (location of locationOptions(); track location) { <option [value]="location">{{ location }}</option> }
+        </select>
+      </section>
+
+      <section class="table-card">
+        <header><div><span>CHA REGISTER</span><h2>All CHA</h2></div><strong>{{ filteredRecords().length }} records</strong></header>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>CHA Code</th><th>CHA / Company Name</th><th>Contact Person</th><th>Mobile</th><th>Email</th><th>License Number</th><th>GSTIN</th><th>Primary Location</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+              @for (row of filteredRecords(); track row._id || row.vendorCode) {
+                <tr>
+                  <td><strong>{{ row.vendorCode || '-' }}</strong></td>
+                  <td>{{ row.vendorName || row.companyName || '-' }}</td>
+                  <td>{{ row.contactPerson || '-' }}</td>
+                  <td>{{ row.mobile || '-' }}</td>
+                  <td>{{ row.email || '-' }}</td>
+                  <td>{{ row.chaLicenseNumber || '-' }}</td>
+                  <td>{{ row.gstNumber || '-' }}</td>
+                  <td>{{ primaryLocation(row) }}</td>
+                  <td><span class="status" [class]="'status ' + (row.status || 'active')">{{ statusLabel(row.status) }}</span></td>
+                  <td><div class="actions"><button type="button" title="View" (click)="viewCha(row)">&#128065;</button><button type="button" title="Edit" (click)="editCha(row)">&#9998;</button><button type="button" title="Activate / Deactivate" (click)="updateStatus(row)">&#8645;</button><button type="button" title="Delete" (click)="deleteCha(row)">&#128465;</button></div></td>
+                </tr>
+              } @empty {
+                <tr><td colspan="10"><div class="empty-state"><strong>No CHA records found</strong><p>Add a CHA master to use it in shipments and clearance jobs.</p></div></td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+    }
+
+    @if (mode === 'new') {
+      <section class="form-card">
+        <header class="section-header"><div><span>CHA MASTER</span><h2>Basic Details</h2></div></header>
+        <div class="form-grid">
+          <div class="field"><label>CHA Code</label><input value="Auto generated" readonly /></div>
+          <div class="field span-2"><label>CHA / Company Name *</label><input [(ngModel)]="form.vendorName" /></div>
+          <div class="field"><label>Contact Person *</label><input [(ngModel)]="form.contactPerson" /></div>
+          <div class="field"><label>Mobile *</label><input [(ngModel)]="form.mobile" /></div>
+          <div class="field"><label>Alternate Mobile</label><input [(ngModel)]="form.alternateMobile" /></div>
+          <div class="field"><label>Email *</label><input type="email" [(ngModel)]="form.email" /></div>
+          <div class="field"><label>Website</label><input [(ngModel)]="form.website" /></div>
+          <div class="field"><label>Status</label><select [(ngModel)]="form.status">@for (status of statuses; track status.value) { <option [value]="status.value">{{ status.label }}</option> }</select></div>
+        </div>
+
+        <section class="form-section"><h3>Registration / License</h3><div class="form-grid">
+          <div class="field"><label>CHA License Number *</label><input [(ngModel)]="form.chaLicenseNumber" /></div>
+          <div class="field"><label>License Issue Date</label><input type="date" [(ngModel)]="form.licenseIssueDate" /></div>
+          <div class="field"><label>License Expiry Date</label><input type="date" [(ngModel)]="form.licenseExpiryDate" /></div>
+          <div class="field"><label>PAN Number</label><input [(ngModel)]="form.panNumber" /></div>
+          <div class="field"><label>GSTIN</label><input [(ngModel)]="form.gstNumber" /></div>
+          <div class="field"><label>IEC Number</label><input [(ngModel)]="form.iecNumber" /></div>
+          <div class="field"><label>Registration Number</label><input [(ngModel)]="form.registrationNumber" /></div>
+        </div></section>
+
+        <section class="form-section"><h3>Address</h3><div class="form-grid">
+          <div class="field span-2"><label>Address Line 1</label><input [(ngModel)]="form.addressLine1" /></div>
+          <div class="field span-2"><label>Address Line 2</label><input [(ngModel)]="form.addressLine2" /></div>
+          <div class="field"><label>City</label><input [(ngModel)]="form.city" /></div><div class="field"><label>State</label><input [(ngModel)]="form.state" /></div><div class="field"><label>Country</label><input [(ngModel)]="form.country" /></div><div class="field"><label>PIN Code</label><input [(ngModel)]="form.pincode" /></div>
+        </div></section>
+
+        <section class="form-section"><div class="subheading"><div><strong>Service Locations</strong><span>Airports, ports and customs stations served.</span></div><button type="button" class="small-action" (click)="addLocation()"><span class="button-icon">&#10010;</span>Add Location</button></div>
+          @for (loc of form.serviceLocations; track $index; let i = $index) {
+            <div class="location-row"><input placeholder="Location Name" [(ngModel)]="loc.locationName" /><select [(ngModel)]="loc.locationType">@for (type of locationTypes; track type.value) { <option [value]="type.value">{{ type.label }}</option> }</select><input placeholder="Port Code" [(ngModel)]="loc.locationCode" /><input placeholder="City" [(ngModel)]="loc.city" /><button type="button" title="Remove Location" (click)="removeLocation(i)">&#128465;</button></div>
+          }
+        </section>
+
+        <section class="form-section"><h3>Services Offered</h3><div class="document-grid">@for (service of serviceOptions; track service.value) { <label><input type="checkbox" [checked]="hasService(service.value)" (change)="toggleService(service.value)" /><span>&#9671;</span>{{ service.label }}</label> }</div></section>
+
+        <section class="form-section"><h3>Commercial Details</h3><div class="form-grid">
+          <div class="field"><label>Default Clearance Charge</label><input type="number" [(ngModel)]="form.chaCommercial.defaultClearanceCharge" /></div><div class="field"><label>Documentation Charge</label><input type="number" [(ngModel)]="form.chaCommercial.documentationCharge" /></div><div class="field"><label>Handling Charge</label><input type="number" [(ngModel)]="form.chaCommercial.handlingCharge" /></div><div class="field"><label>Examination Charge</label><input type="number" [(ngModel)]="form.chaCommercial.examinationCharge" /></div><div class="field"><label>GST Rate</label><input type="number" [(ngModel)]="form.chaCommercial.gstRate" /></div><div class="field"><label>Payment Terms</label><select [(ngModel)]="form.paymentTerms">@for (term of paymentTerms; track term.value) { <option [value]="term.value">{{ term.label }}</option> }</select></div><div class="field"><label>Credit Days</label><input type="number" [(ngModel)]="form.creditDays" /></div><div class="field"><label>Currency</label><input [(ngModel)]="form.currency" /></div>
+        </div></section>
+
+        <section class="form-section"><h3>Bank Details</h3><div class="form-grid"><div class="field"><label>Bank Name</label><input [(ngModel)]="form.bankName" /></div><div class="field"><label>Account Holder</label><input [(ngModel)]="form.accountHolderName" /></div><div class="field"><label>Account Number</label><input [(ngModel)]="form.accountNumber" /></div><div class="field"><label>IFSC</label><input [(ngModel)]="form.ifscCode" /></div><div class="field"><label>Branch</label><input [(ngModel)]="form.branchName" /></div></div></section>
+
+        <section class="form-section remarks-section"><h3>Remarks</h3><div class="field"><label>Internal Remarks *</label><textarea rows="4" [(ngModel)]="form.remarks"></textarea></div></section>
+        <footer class="form-footer"><button type="button" class="soft-button" (click)="cancel()"><span class="button-icon">&#10005;</span>Cancel</button><button type="button" class="gold-button" [disabled]="isSaving()" (click)="saveCha()"><span class="button-icon">&#10003;</span>{{ isSaving() ? 'Saving...' : 'Save CHA' }}</button></footer>
+      </section>
+    }
+
+    @if (mode === 'detail' && selectedCha(); as cha) {
+      <section class="detail-card"><div><span>CHA PROFILE</span><h2>{{ cha.vendorName }}</h2><p>{{ cha.vendorCode }} · {{ statusLabel(cha.status) }}</p></div><button type="button" class="gold-button" (click)="editCha(cha)"><span class="button-icon">&#9998;</span>Edit</button></section>
+      <section class="summary-grid"><article><span>&#8599;</span><div><small>Total Clearance Jobs</small><strong>{{ detailSummary().total }}</strong></div></article><article><span>&#9633;</span><div><small>Pending</small><strong>{{ detailSummary().pending }}</strong></div></article><article><span>&#9888;</span><div><small>On Hold</small><strong>{{ detailSummary().hold }}</strong></div></article><article><span>&#10003;</span><div><small>Cleared</small><strong>{{ detailSummary().cleared }}</strong></div></article></section>
+      <section class="detail-grid"><article><h3>Contact</h3><p>{{ cha.contactPerson }}<br />{{ cha.mobile }}<br />{{ cha.email }}</p></article><article><h3>License</h3><p>{{ cha.chaLicenseNumber || '-' }}<br />Expiry: {{ formatDate(cha.licenseExpiryDate) }}</p></article><article><h3>GST / PAN</h3><p>{{ cha.gstNumber || '-' }}<br />{{ cha.panNumber || '-' }}</p></article><article><h3>Address</h3><p>{{ cha.address?.addressLine1 || '-' }}<br />{{ cha.address?.city }} {{ cha.address?.state }}</p></article></section>
+      <section class="table-card"><header><div><span>LOCATIONS & SERVICES</span><h2>CHA Coverage</h2></div></header><div class="detail-grid"><article><h3>Locations</h3>@for (loc of cha.serviceLocations || []; track $index) { <p>{{ loc.locationName }} · {{ locationTypeLabel(loc.locationType) }} · {{ loc.locationCode }}</p> }</article><article><h3>Services</h3>@for (svc of cha.servicesOffered || []; track svc) { <p>{{ serviceLabel(svc) }}</p> }</article><article><h3>Bank</h3><p>{{ cha.bankDetails?.bankName || '-' }}<br />{{ cha.bankDetails?.accountNumber || '' }}<br />{{ cha.bankDetails?.ifscCode || '' }}</p></article><article><h3>Outstanding Amount</h3><strong>{{ formatCurrency(detailSummary().outstanding) }}</strong></article></div></section>
+    }
+  </main>
+</div>
+
+

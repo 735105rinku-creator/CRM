@@ -1,0 +1,22 @@
+<header class="site-header">
+  <a class="brand" routerLink="/" aria-label="Opas Bizz CRM home" (click)="closeMenu()">
+    <img src="/brand/opasbizz-crm.webp" alt="Opas Bizz Pvt. Ltd. logo" width="176" height="44" />
+  </a>
+
+  <button class="menu-toggle" type="button" (click)="toggleMenu()" aria-label="Toggle navigation">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+
+  <nav class="nav-links" [class.open]="isMenuOpen()" aria-label="Company navigation">
+    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">Home</a>
+    <a routerLink="/about" routerLinkActive="active" (click)="closeMenu()">About</a>
+    <a routerLink="/pricing" routerLinkActive="active" (click)="closeMenu()">Pricing</a>
+    <a routerLink="/contact" routerLinkActive="active" (click)="closeMenu()">Contact</a>
+    <div class="auth-actions">
+      <a class="auth-btn" routerLink="/login" (click)="closeMenu()">Login</a>
+      <a class="auth-btn primary" routerLink="/register-company" (click)="closeMenu()">Register</a>
+    </div>
+  </nav>
+</header>

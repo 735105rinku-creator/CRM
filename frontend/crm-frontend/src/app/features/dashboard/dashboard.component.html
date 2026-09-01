@@ -1,0 +1,198 @@
+<main class="dashboard-page">
+  @if (isLoading()) {
+    <section class="stats-grid" aria-label="Loading dashboard stats">
+      @for (item of [1, 2, 3, 4]; track item) {
+        <article class="card-shell skeleton-card">
+          <span class="skeleton-line short"></span>
+          <span class="skeleton-line large"></span>
+          <span class="skeleton-line medium"></span>
+        </article>
+      }
+    </section>
+
+    <section class="dashboard-grid">
+      <article class="card-shell chart-card skeleton-panel"></article>
+      <article class="card-shell chart-card skeleton-panel"></article>
+      <article class="card-shell table-card skeleton-panel"></article>
+      <article class="card-shell table-card skeleton-panel"></article>
+      <aside class="card-shell activity-card skeleton-panel"></aside>
+    </section>
+  } @else if (errorMessage()) {
+    <section class="card-shell error-state">
+      <h2>Dashboard unavailable</h2>
+      <p>{{ errorMessage() }}</p>
+    </section>
+  } @else if (stats()) {
+    <section class="stats-grid" aria-label="Dashboard stats">
+      <article class="card-shell stat-card">
+        <div>
+          <span>Total Leads this month</span>
+          <strong>{{ stats()?.totalLeadsThisMonth }}</strong>
+        </div>
+        <small [class.negative]="(stats()?.leadsChangePercent ?? 0) < 0">
+          {{ (stats()?.leadsChangePercent ?? 0) > 0 ? '+' : '' }}{{ stats()?.leadsChangePercent }}% vs last month
+        </small>
+      </article>
+
+      <article class="card-shell stat-card">
+        <div>
+          <span>Deals Won</span>
+          <strong>{{ stats()?.dealsWon }}</strong>
+        </div>
+        <small class="amount">{{ formatCurrency(stats()?.dealsWonRevenue ?? 0) }} revenue</small>
+      </article>
+
+      <article class="card-shell stat-card">
+        <div>
+          <span>Pending Invoices</span>
+          <strong>{{ stats()?.pendingInvoices }}</strong>
+        </div>
+        <small class="amount">{{ formatCurrency(stats()?.pendingInvoicesAmount ?? 0) }} total</small>
+      </article>
+
+      <article class="card-shell stat-card revenue-card">
+        <div>
+          <span>Monthly Revenue</span>
+          <strong class="amount">{{ formatCurrency(stats()?.monthlyRevenue ?? 0) }}</strong>
+        </div>
+        <div class="sparkline" aria-label="Monthly revenue sparkline">
+          @for (value of stats()?.revenueSparkline; track $index) {
+            <i [style.height.px]="sparklineHeight(value)"></i>
+          }
+        </div>
+      </article>
+    </section>
+
+    <section class="dashboard-grid">
+      <article class="card-shell chart-card revenue-chart">
+        <div class="card-heading">
+          <div>
+            <p>Revenue last 6 months</p>
+            <h2>Revenue Trend</h2>
+          </div>
+        </div>
+        <div class="chart-frame">
+          <canvas baseChart type="line" [data]="revenueChartData()" [options]="lineChartOptions"></canvas>
+        </div>
+      </article>
+
+      <article class="card-shell chart-card source-chart">
+        <div class="card-heading">
+          <div>
+            <p>Leads by source</p>
+            <h2>Lead Mix</h2>
+          </div>
+        </div>
+        <div class="chart-frame">
+          <canvas baseChart type="doughnut" [data]="leadSourceChartData()" [options]="doughnutChartOptions"></canvas>
+        </div>
+      </article>
+
+      <article class="card-shell table-card leads-table">
+        <div class="card-heading">
+          <div>
+            <p>Recent leads</p>
+            <h2>Latest Opportunities</h2>
+          </div>
+          <a routerLink="/leads">View All</a>
+        </div>
+        <div class="table-responsive">
+          <table class="table crm-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Company</th>
+                <th>Status</th>
+                <th>Assigned To</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (lead of recentLeads(); track lead.id) {
+                <tr>
+                  <td>{{ lead.name }}</td>
+                  <td>{{ lead.company }}</td>
+                  <td><span class="status-badge">{{ lead.status }}</span></td>
+                  <td>{{ lead.assignedTo }}</td>
+                  <td>{{ formatDate(lead.date) }}</td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="5" class="empty-cell">No recent leads.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </article>
+
+      <article class="card-shell table-card invoices-table">
+        <div class="card-heading">
+          <div>
+            <p>Recent invoices</p>
+            <h2>Billing Watch</h2>
+          </div>
+          <a routerLink="/invoices">View All</a>
+        </div>
+        <div class="table-responsive">
+          <table class="table crm-table">
+            <thead>
+              <tr>
+                <th>Invoice #</th>
+                <th>Client</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Due Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (invoice of recentInvoices(); track invoice.id) {
+                <tr>
+                  <td>{{ invoice.invoiceNumber }}</td>
+                  <td>{{ invoice.client }}</td>
+                  <td class="amount">{{ formatCurrency(invoice.amount) }}</td>
+                  <td><span class="status-badge invoice-status">{{ invoice.status }}</span></td>
+                  <td>{{ formatDate(invoice.dueDate) }}</td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="5" class="empty-cell">No recent invoices.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </article>
+
+      <aside class="card-shell activity-card">
+        <div class="card-heading">
+          <div>
+            <p>Activity feed</p>
+            <h2>Latest Updates</h2>
+          </div>
+        </div>
+        <div class="activity-list">
+          @for (activity of activities(); track activity.id) {
+            <article class="activity-item">
+              <span class="activity-icon">{{ activityIcon(activity.type) }}</span>
+              <div class="activity-copy">
+                <strong>{{ activity.title }}</strong>
+                <span>{{ activity.description }}</span>
+                <small>{{ formatTime(activity.timestamp) }}</small>
+              </div>
+              <div class="activity-avatar">
+                @if (activity.user.avatarUrl) {
+                  <img [src]="activity.user.avatarUrl" [alt]="activity.user.name" />
+                } @else {
+                  <span>{{ avatarInitials(activity.user.name) }}</span>
+                }
+              </div>
+            </article>
+          } @empty {
+            <p class="empty-cell">No activity yet.</p>
+          }
+        </div>
+      </aside>
+    </section>
+  }
+</main>

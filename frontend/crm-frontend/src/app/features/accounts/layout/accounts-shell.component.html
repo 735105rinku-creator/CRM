@@ -1,0 +1,118 @@
+<div class="accounts-shell">
+
+  <!-- =====================================================
+       SIDEBAR
+  ====================================================== -->
+
+  <aside
+    class="accounts-sidebar-wrapper"
+    [class.mobile-open]="mobileSidebarOpen()"
+  >
+    <app-accounts-sidebar></app-accounts-sidebar>
+  </aside>
+
+
+  <!-- =====================================================
+       MOBILE OVERLAY
+  ====================================================== -->
+
+  @if (mobileSidebarOpen()) {
+    <button
+      type="button"
+      class="sidebar-overlay"
+      aria-label="Close accounts menu"
+      (click)="closeMobileSidebar()"
+    ></button>
+  }
+
+
+  <!-- =====================================================
+       MAIN WORKSPACE
+  ====================================================== -->
+
+  <div class="accounts-main">
+
+    <!-- ===================================================
+         TOP HEADER
+    ==================================================== -->
+
+    <header class="accounts-header">
+
+      <div class="header-left">
+
+        <!-- Mobile Menu Button -->
+
+        <button
+          type="button"
+          class="mobile-menu-button"
+          aria-label="Open accounts menu"
+          (click)="toggleMobileSidebar()"
+        >
+          <span class="menu-line"></span>
+          <span class="menu-line"></span>
+          <span class="menu-line"></span>
+        </button>
+
+
+        <!-- Workspace Heading -->
+
+        <div class="header-title">
+
+          <div class="workspace-badge">
+            Accounts
+          </div>
+
+          <div>
+            <h1>
+              Accounts & Finance
+            </h1>
+
+            <p>
+              Manage accounting, ledgers, invoices,
+              payments and financial reports
+            </p>
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- =================================================
+           HEADER RIGHT
+      ================================================== -->
+
+      <div class="header-right">
+
+        <div class="financial-year">
+          <span class="financial-year-label">
+            Financial Year
+          </span>
+
+          <strong>
+            2026–27
+          </strong>
+        </div>
+
+      </div>
+
+    </header>
+
+
+    <!-- ===================================================
+         PAGE CONTENT
+    ==================================================== -->
+
+    <main class="accounts-content">
+
+      <div class="accounts-page-container">
+
+        <router-outlet></router-outlet>
+
+      </div>
+
+    </main>
+
+  </div>
+
+</div>

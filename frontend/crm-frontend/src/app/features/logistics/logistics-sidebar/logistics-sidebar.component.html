@@ -1,0 +1,193 @@
+<aside
+  class="logistics-sidebar"
+  [class.collapsed]="collapsed()"
+>
+  <!-- =========================================================
+       BRAND
+  ========================================================== -->
+
+  <div class="sidebar-brand">
+    <div class="brand-mark">
+      @if (companyLogoUrl()) {
+        <img [src]="companyLogoUrl()" [alt]="companyName() + ' logo'" />
+      } @else {
+        O
+      }
+    </div>
+
+    @if (!collapsed()) {
+      <div class="brand-copy">
+        <strong>{{ companyName() }}</strong>
+        <span>LOGISTICS CRM</span>
+      </div>
+    }
+
+    <button
+      type="button"
+      class="collapse-btn"
+      (click)="toggleSidebar()"
+      [attr.aria-label]="
+        collapsed()
+          ? 'Expand sidebar'
+          : 'Collapse sidebar'
+      "
+    >
+      {{ collapsed() ? '&#8250;' : '&#8249;' }}
+    </button>
+  </div>
+
+
+  <!-- =========================================================
+       USER
+  ========================================================== -->
+
+  <div class="sidebar-user">
+    <div class="user-avatar">
+      @if (employeePhotoUrl()) {
+        <img [src]="employeePhotoUrl()" [alt]="userName() + ' profile photo'" />
+      } @else {
+        {{ userInitial() }}
+      }
+    </div>
+
+    @if (!collapsed()) {
+      <div class="user-copy">
+        <strong>{{ userName() }}</strong>
+        <span>{{ userDesignation() }}</span>
+      </div>
+    }
+  </div>
+
+
+  <!-- =========================================================
+       NAVIGATION
+  ========================================================== -->
+
+  <nav
+    class="sidebar-nav"
+    aria-label="Logistics navigation"
+  >
+    @for (
+      group of visibleMenuGroups();
+      track group.title
+    ) {
+      <section class="nav-group">
+
+        @if (!collapsed()) {
+          <p class="nav-group-title">
+            {{ group.title }}
+          </p>
+        }
+
+        @for (
+          item of group.items;
+          track item.id
+        ) {
+
+          <div class="nav-item-wrap">
+
+            <button
+              type="button"
+              class="nav-item"
+              [class.active]="isActive(item)"
+              [class.has-children]="
+                !!item.children?.length
+              "
+              (click)="
+                item.children?.length
+                  ? toggleMenu(item.id, $event)
+                  : navigate(item.route)
+              "
+            >
+              <span class="nav-icon">
+                {{ item.icon }}
+              </span>
+
+              @if (!collapsed()) {
+                <span class="nav-label">
+                  {{ item.label }}
+                </span>
+
+                @if (
+                  item.children?.length
+                ) {
+                  <span
+                    class="nav-chevron"
+                    [class.open]="
+                      isExpanded(item.id)
+                    "
+                  >
+                    &#8250;
+                  </span>
+                }
+              }
+            </button>
+
+
+            <!-- =================================================
+                 CHILD MENU
+            ================================================== -->
+
+            @if (
+              !collapsed() &&
+              item.children?.length &&
+              isExpanded(item.id)
+            ) {
+              <div class="nav-children">
+
+                @for (
+                  child of item.children;
+                  track child.id
+                ) {
+                  <button
+                    type="button"
+                    class="nav-child"
+                    [class.active]="
+                      isChildActive(child)
+                    "
+                    (click)="
+                      navigate(child.route)
+                    "
+                  >
+                    <span
+                      class="nav-child-dot"
+                    ></span>
+
+                    {{ child.label }}
+                  </button>
+                }
+
+              </div>
+            }
+
+          </div>
+        }
+
+      </section>
+    }
+  </nav>
+
+
+  <!-- =========================================================
+       FOOTER
+  ========================================================== -->
+
+  <div class="sidebar-footer">
+
+    <button
+      type="button"
+      class="logout-link"
+      (click)="logout()"
+    >
+      <span class="logout-icon">&#8618;</span>
+
+      @if (!collapsed()) {
+        <span>
+          Logout
+        </span>
+      }
+    </button>
+
+  </div>
+</aside>
+

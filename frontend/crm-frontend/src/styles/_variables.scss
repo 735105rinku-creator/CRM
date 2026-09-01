@@ -1,0 +1,72 @@
+:root {
+  --color-primary: #1A2942;
+  --color-primary-rgb: 26, 41, 66;
+  --color-accent: #243B55;
+  --color-accent-rgb: 36, 59, 85;
+  --color-success: #16a34a;
+  --color-success-rgb: 22, 163, 74;
+  --color-warning: #d97706;
+  --color-warning-rgb: 217, 119, 6;
+  --color-danger: #C1121F;
+  --color-danger-rgb: 193, 18, 31;
+  --color-background: #F3F7FB;
+  --color-sidebar: #141E30;
+  --color-sidebar-rgb: 20, 30, 48;
+  --color-text: #1e293b;
+  --color-text-rgb: 30, 41, 59;
+  --color-muted: #6B7A90;
+  --color-border: rgba(26, 41, 66, 0.12);
+  --color-surface: rgba(255, 255, 255, 0.86);
+  --glass-surface: rgba(255, 255, 255, 0.86);
+  --glass-surface-strong: rgba(255, 255, 255, 0.94);
+  --glass-surface-soft: rgba(255, 255, 255, 0.34);
+  --glass-border: rgba(255, 255, 255, 0.56);
+  --glass-blur: blur(18px) saturate(150%);
+
+  --font-primary: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
+  --font-mono: "Roboto Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 0.75rem;
+  --space-lg: 1rem;
+  --space-xl: 1.5rem;
+  --space-2xl: 2rem;
+
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-pill: 999px;
+
+  --shadow-card: 0 18px 44px rgba(30, 64, 111, 0.12);
+  --shadow-dropdown: 0 22px 54px rgba(30, 64, 111, 0.18);
+  --shadow-modal: 0 30px 76px rgba(30, 64, 111, 0.26);
+
+  --sidebar-width: 260px;
+  --sidebar-collapsed: 72px;
+
+  --bs-primary: var(--color-primary);
+  --bs-primary-rgb: var(--color-primary-rgb);
+  --bs-secondary: var(--color-muted);
+  --bs-secondary-rgb: 100, 116, 139;
+  --bs-success: var(--color-success);
+  --bs-success-rgb: var(--color-success-rgb);
+  --bs-info: var(--color-accent);
+  --bs-info-rgb: var(--color-accent-rgb);
+  --bs-warning: var(--color-warning);
+  --bs-warning-rgb: var(--color-warning-rgb);
+  --bs-danger: var(--color-danger);
+  --bs-danger-rgb: var(--color-danger-rgb);
+  --bs-light: var(--color-background);
+  --bs-dark: var(--color-sidebar);
+  --bs-dark-rgb: var(--color-sidebar-rgb);
+  --bs-body-bg: var(--color-background);
+  --bs-body-color: var(--color-text);
+  --bs-body-font-family: var(--font-primary);
+  --bs-border-color: var(--color-border);
+  --bs-border-radius: var(--radius-md);
+  --bs-border-radius-sm: var(--radius-sm);
+  --bs-border-radius-lg: var(--radius-lg);
+  --bs-box-shadow: var(--shadow-card);
+}

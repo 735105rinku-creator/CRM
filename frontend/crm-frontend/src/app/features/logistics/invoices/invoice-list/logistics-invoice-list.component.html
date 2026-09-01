@@ -1,0 +1,165 @@
+﻿<div class="invoice-list-page">
+  <header class="page-header">
+    <div>
+      <div class="breadcrumb">
+        <span>Logistics</span>
+        <b>&rsaquo;</b>
+        <strong>Invoices</strong>
+      </div>
+
+      <div class="page-title">
+        <span class="title-icon">&#128196;</span>
+        <div>
+          <h1>Logistics Invoices</h1>
+          <p>Manage customer invoices, payments, balances and shipment billing.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button type="button" class="soft-btn" (click)="exportInvoices()">&#8681; Export</button>
+      <button type="button" class="gold-btn" (click)="newInvoice()">&#43; New Invoice</button>
+    </div>
+  </header>
+
+  <main class="page-content">
+    @if (message()) {
+      <div class="notice success">{{ message() }}</div>
+    }
+
+    @if (errorMessage()) {
+      <div class="notice error">{{ errorMessage() }}</div>
+    }
+
+    <section class="summary-grid">
+      <article>
+        <span class="summary-icon blue">&#128196;</span>
+        <div><small>Total Invoices</small><strong>{{ summary().totalInvoices || 0 }}</strong></div>
+      </article>
+      <article>
+        <span class="summary-icon green">&#8377;</span>
+        <div><small>Total Billed</small><strong>{{ formatCurrency(summary().totalBilled) }}</strong></div>
+      </article>
+      <article>
+        <span class="summary-icon gold">&#10003;</span>
+        <div><small>Received</small><strong>{{ formatCurrency(summary().totalReceived) }}</strong></div>
+      </article>
+      <article>
+        <span class="summary-icon red">&#9888;</span>
+        <div><small>Outstanding</small><strong>{{ formatCurrency(summary().totalOutstanding) }}</strong></div>
+      </article>
+    </section>
+
+    <section class="filter-card">
+      <div class="filter-heading">
+        <div>
+          <span>INVOICE CONTROL</span>
+          <h2>Search & Filters</h2>
+        </div>
+        <button type="button" class="soft-btn" (click)="clearFilters()">Clear Filters</button>
+      </div>
+
+      <div class="filter-grid">
+        <div class="search-field">
+          <span>&#9906;</span>
+          <input
+            #searchInput
+            type="search"
+            [value]="searchTerm()"
+            (input)="searchTerm.set(searchInput.value); applyFilters()"
+            placeholder="Invoice, customer, shipment, email..."
+          />
+        </div>
+
+        <select #statusSelect [value]="statusFilter()" (change)="statusFilter.set(statusSelect.value); applyFilters()">
+          <option value="">All Invoice Status</option>
+          <option value="draft">Draft</option>
+          <option value="issued">Issued</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+
+        <select #paymentSelect [value]="paymentFilter()" (change)="paymentFilter.set(paymentSelect.value); applyFilters()">
+          <option value="">All Payment Status</option>
+          <option value="unpaid">Unpaid</option>
+          <option value="partial">Partially Paid</option>
+          <option value="paid">Paid</option>
+          <option value="overdue">Overdue</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </div>
+    </section>
+
+    <section class="table-card">
+      <header class="card-header">
+        <div>
+          <span>INVOICE REGISTER</span>
+          <h2>All Invoice Records</h2>
+        </div>
+        <p>Showing <strong>{{ totalRecords() }}</strong> records</p>
+      </header>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Invoice</th>
+              <th>Customer</th>
+              <th>Shipment</th>
+              <th>Date</th>
+              <th>Total</th>
+              <th>Balance</th>
+              <th>Status</th>
+              <th>Payment</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (invoice of filteredInvoices(); track invoice._id || invoice.invoiceNumber) {
+              <tr>
+                <td><strong>{{ invoice.invoiceNumber || '-' }}</strong></td>
+                <td>
+                  <div class="stack"><strong>{{ invoice.customerName || '-' }}</strong><span>{{ invoice.mobile || invoice.email || '-' }}</span></div>
+                </td>
+                <td>{{ invoice.shipmentNumber || '-' }}</td>
+                <td>
+                  <div class="stack"><strong>{{ formatDate(invoice.invoiceDate) }}</strong><span>Due {{ formatDate(invoice.dueDate) }}</span></div>
+                </td>
+                <td><strong>{{ formatCurrency(invoice.invoiceTotal, invoice.currency) }}</strong></td>
+                <td>{{ formatCurrency(invoice.balanceDue, invoice.currency) }}</td>
+                <td><span class="pill" [class]="'pill ' + statusClass(invoice.status)">{{ label(invoice.status) }}</span></td>
+                <td><span class="pill muted">{{ label(invoice.paymentStatus) }}</span></td>
+                <td>
+                  <div class="actions">
+                    <button type="button" title="View" (click)="viewInvoice(invoice)">&#9673;</button>
+                    <button type="button" title="Edit" (click)="editInvoice(invoice)">&#9998;</button>
+                    <button type="button" title="Delete" class="danger" (click)="deleteInvoice(invoice)">&#128465;</button>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="9">
+                  <div class="empty-state">
+                    <span>&#128196;</span>
+                    <strong>No invoices found</strong>
+                    <p>Create an invoice or change filters.</p>
+                    <button type="button" class="gold-btn" (click)="newInvoice()">&#43; New Invoice</button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <footer class="pagination">
+        <p>Page <strong>{{ currentPage() }}</strong> of <strong>{{ serverTotalPages() }}</strong></p>
+        <div>
+          <button type="button" [disabled]="currentPage() === 1" (click)="previousPage()">&lsaquo; Previous</button>
+          <span>{{ currentPage() }}</span>
+          <button type="button" [disabled]="currentPage() === serverTotalPages()" (click)="nextPage()">Next &rsaquo;</button>
+        </div>
+      </footer>
+    </section>
+  </main>
+</div>

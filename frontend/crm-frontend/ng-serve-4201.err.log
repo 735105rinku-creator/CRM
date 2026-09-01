@@ -1,0 +1,733 @@
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'checkEmployeeCode' does not exist on type 'HrDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:287:75:
+[37m      287 │ ..." type="text" (input)="[32mcheckEmployeeCode[37m()" placeholder="EMP-0...
+          ╵                           [32m~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'employeeCodeCheckStatus' does not exist on type 'HrDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:288:21:
+[37m      288 │                 @if ([32memployeeCodeCheckStatus[37m() === 'checking') {
+          ╵                      [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'employeeCodeCheckStatus' does not exist on type 'HrDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:291:21:
+[37m      291 │                 @if ([32memployeeCodeCheckStatus[37m() === 'available') {
+          ╵                      [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'employeeCodeCheckStatus' does not exist on type 'HrDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:294:21:
+[37m      294 │                 @if ([32memployeeCodeCheckStatus[37m() === 'taken') {
+          ╵                      [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'employeeCodeMessage' does not exist on type 'HrDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:381:17:
+[37m      381 │             @if ([32memployeeCodeMessage[37m()) {
+          ╵                  [32m~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'employeeCodeCheckStatus' does not exist on type 'HrDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:382:54:
+[37m      382 │ ...ull" [class.error]="[32memployeeCodeCheckStatus[37m() === 'taken' || e...
+          ╵                        [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'employeeCodeCheckStatus' does not exist on type 'HrDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:382:95:
+[37m      382 │ ...ckStatus() === 'taken' || [32memployeeCodeCheckStatus[37m() === 'error'">
+          ╵                              [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'employeeCodeMessage' does not exist on type 'HrDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:383:19:
+[37m      383 │                 {{ [32memployeeCodeMessage[37m() }}
+          ╵                    [32m~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'employeeCodeCheckStatus' does not exist on type 'HrDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:389:106:
+[37m      389 │ ...alid || isSaving() || [32memployeeCodeCheckStatus[37m() !== 'available'">
+          ╵                          [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'available' does not exist on type 'EmployeeCodeAvailability | { employeeCode: string; }'.
+  Property 'available' does not exist on type '{ employeeCode: string; }'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:1038:21:
+[37m      1038 │           if (result.[32mavailable[37m) {
+           ╵                      [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'available' does not exist on type 'EmployeeCodeAvailability | { employeeCode: string; }'.
+  Property 'available' does not exist on type '{ employeeCode: string; }'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:1044:21:
+[37m      1044 │           if (result.[32mavailable[37m === undefined) {
+           ╵                      [32m~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2741: Property 'messages' is missing in type '{ dashboard: string; profile: string; hr: string; attendance: string; employee: string; payroll: string; leave: string; recruitment: string; events: string; meetings: string; holidays: string; reports: string; analytics: string; settings: string; access: string; }' but required in type 'Record<HrFeature, string>'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:987:10:
+[37m      987 │     const [32mcopy[37m: Record<HrFeature, string> = {
+          ╵           [32m~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2741: Property 'messages' is missing in type '{ dashboard: never[]; profile: { label: string; value: string; }[]; hr: never[]; attendance: { label: string; value: number; }[]; employee: { label: string; value: number; }[]; payroll: ({ label: string; value: string; } | { ...; })[]; ... 8 more ...; access: ({ ...; } | { ...; })[]; }' but required in type 'Record<HrFeature, { label: string; value: string | number; }[]>'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:1009:10:
+[37m      1009 │     const [32mmap[37m: Record<HrFeature, Array<{ label: string; value: s...
+           ╵           [32m~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'messageForm' does not exist on type 'HrDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:783:29:
+[37m      783 │           <form [formGroup]="[32mmessageForm[37m" (ngSubmit)="sendMessage...
+          ╵                              [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'sendMessage' does not exist on type 'HrDashboardComponent'. Did you mean 'selfMessage'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:783:54:
+[37m      783 │ ..."messageForm" (ngSubmit)="[32msendMessage[37m()" class="form-grid sing...
+          ╵                              [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'messageForm' does not exist on type 'HrDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:794:71:
+[37m      794 │ ...type="submit" [disabled]="[32mmessageForm[37m.invalid || isMessageSend...
+          ╵                              [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'isMessageSending' does not exist on type 'HrDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:794:94:
+[37m      794 │ ..."messageForm.invalid || [32misMessageSending[37m()">Send message</button>
+          ╵                            [32m~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'messages' does not exist on type 'HrDashboardComponent'. Did you mean 'message'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:801:26:
+[37m      801 │             @for (item of [32mmessages[37m(); track item._id) {
+          ╵                           [32m~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'userLabel' does not exist on type 'HrDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:809:32:
+[37m      809 │ ...             <span>From {{ [32muserLabel[37m(item.senderUserId) }}</span>
+          ╵                               [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'userLabel' does not exist on type 'HrDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:810:30:
+[37m      810 │                   <span>To {{ [32muserLabel[37m(item.recipientUserId) }}<...
+          ╵                               [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'replyDraft' does not exist on type 'HrDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:813:34:
+[37m      813 │ ...          <input [value]="[32mreplyDraft[37m(item._id)" (input)="setRe...
+          ╵                              [32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'setReplyDraft' does not exist on type 'HrDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:813:65:
+[37m      813 │ ...raft(item._id)" (input)="[32msetReplyDraft[37m(item._id, $any($event.t...
+          ╵                             [32m~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'sendReply' does not exist on type 'HrDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:814:67:
+[37m      814 │ ...class="table-btn" (click)="[32msendReply[37m(item)" [disabled]="isMess...
+          ╵                               [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'isMessageSending' does not exist on type 'HrDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:814:96:
+[37m      814 │ ...="sendReply(item)" [disabled]="[32misMessageSending[37m()">Reply</button>
+          ╵                                   [32m~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2741: Property 'messages' is missing in type '{ dashboard: string; profile: string; hr: string; attendance: string; employee: string; payroll: string; leave: string; recruitment: string; events: string; meetings: string; holidays: string; reports: string; analytics: string; settings: string; access: string; }' but required in type 'Record<HrFeature, string>'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:1051:10:
+[37m      1051 │     const [32mcopy[37m: Record<HrFeature, string> = {
+           ╵           [32m~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2741: Property 'messages' is missing in type '{ dashboard: never[]; profile: { label: string; value: string; }[]; hr: never[]; attendance: { label: string; value: number; }[]; employee: { label: string; value: number; }[]; payroll: ({ label: string; value: string; } | { ...; })[]; ... 8 more ...; access: ({ ...; } | { ...; })[]; }' but required in type 'Record<HrFeature, { label: string; value: string | number; }[]>'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:1073:10:
+[37m      1073 │     const [32mmap[37m: Record<HrFeature, Array<{ label: string; value: s...
+           ╵           [32m~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'sendMessage' does not exist on type 'HrDashboardComponent'. Did you mean 'selfMessage'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:783:54:
+[37m      783 │ ..."messageForm" (ngSubmit)="[32msendMessage[37m()" class="form-grid sing...
+          ╵                              [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'userLabel' does not exist on type 'HrDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:809:32:
+[37m      809 │ ...             <span>From {{ [32muserLabel[37m(item.senderUserId) }}</span>
+          ╵                               [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'userLabel' does not exist on type 'HrDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:810:30:
+[37m      810 │                   <span>To {{ [32muserLabel[37m(item.recipientUserId) }}<...
+          ╵                               [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'replyDraft' does not exist on type 'HrDashboardComponent'. Did you mean 'replyDrafts'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:813:34:
+[37m      813 │ ...          <input [value]="[32mreplyDraft[37m(item._id)" (input)="setRe...
+          ╵                              [32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'setReplyDraft' does not exist on type 'HrDashboardComponent'. Did you mean 'replyDrafts'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:813:65:
+[37m      813 │ ...raft(item._id)" (input)="[32msetReplyDraft[37m(item._id, $any($event.t...
+          ╵                             [32m~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'sendReply' does not exist on type 'HrDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:814:67:
+[37m      814 │ ...class="table-btn" (click)="[32msendReply[37m(item)" [disabled]="isMess...
+          ╵                               [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'loadMessages' does not exist on type 'HrDashboardComponent'. Did you mean 'messages'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:1007:9:
+[37m      1007 │     this.[32mloadMessages[37m();
+           ╵          [32m~~~~~~~~~~~~[0m
+
+  'messages' is declared here.
+
+    src/app/features/hr/hr-dashboard.component.ts:872:21:
+[37m      872 │   protected readonly [32mmessages[37m = signal<MessageRow[]>([]);
+          ╵                      [32m~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'messagePopup' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:149:11:
+[37m      149 │       @if ([32mmessagePopup[37m()) {
+          ╵            [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'messagePopup' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:150:38:
+[37m      150 │         <div class="message-popup">{{ [32mmessagePopup[37m() }}</div>
+          ╵                                       [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'messages' does not exist on type 'EmployeeDashboardComponent'. Did you mean 'message'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:441:28:
+[37m      441 │               @for (item of [32mmessages[37m(); track item._id) {
+          ╵                             [32m~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'userLabel' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:449:34:
+[37m      449 │ ...             <span>From {{ [32muserLabel[37m(item.senderUserId) }}</span>
+          ╵                               [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'userLabel' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:450:32:
+[37m      450 │ ...               <span>To {{ [32muserLabel[37m(item.recipientUserId) }}<...
+          ╵                               [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'replyDraft' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:453:36:
+[37m      453 │ ...          <input [value]="[32mreplyDraft[37m(item._id)" (input)="setRe...
+          ╵                              [32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'setReplyDraft' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:453:67:
+[37m      453 │ ...raft(item._id)" (input)="[32msetReplyDraft[37m(item._id, $any($event.t...
+          ╵                             [32m~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'sendReply' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:454:78:
+[37m      454 │ ...bmit-btn compact" (click)="[32msendReply[37m(item)" [disabled]="isMess...
+          ╵                               [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'isMessageSending' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:454:107:
+[37m      454 │ ...="sendReply(item)" [disabled]="[32misMessageSending[37m()">Reply</button>
+          ╵                                   [32m~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'userLabel' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:449:34:
+[37m      449 │ ...             <span>From {{ [32muserLabel[37m(item.senderUserId) }}</span>
+          ╵                               [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'userLabel' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:450:32:
+[37m      450 │ ...               <span>To {{ [32muserLabel[37m(item.recipientUserId) }}<...
+          ╵                               [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'replyDraft' does not exist on type 'EmployeeDashboardComponent'. Did you mean 'replyDrafts'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:453:36:
+[37m      453 │ ...          <input [value]="[32mreplyDraft[37m(item._id)" (input)="setRe...
+          ╵                              [32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'setReplyDraft' does not exist on type 'EmployeeDashboardComponent'. Did you mean 'replyDrafts'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:453:67:
+[37m      453 │ ...raft(item._id)" (input)="[32msetReplyDraft[37m(item._id, $any($event.t...
+          ╵                             [32m~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'sendReply' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:454:78:
+[37m      454 │ ...bmit-btn compact" (click)="[32msendReply[37m(item)" [disabled]="isMess...
+          ╵                               [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'loadMessages' does not exist on type 'EmployeeDashboardComponent'. Did you mean 'messages'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:584:48:
+[37m      584 │ ...essagePollId = setInterval(() => this.[32mloadMessages[37m(true), 10000);
+          ╵                                          [32m~~~~~~~~~~~~[0m
+
+  'messages' is declared here.
+
+    src/app/features/employee/employee-dashboard.component.ts:525:21:
+[37m      525 │   protected readonly [32mmessages[37m = signal<MessageRow[]>([]);
+          ╵                      [32m~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'applyMessages' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:614:11:
+[37m      614 │       this.[32mapplyMessages[37m(messages.messages ?? [], false);
+          ╵            [32m~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'applyMessages' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:614:11:
+[37m      614 │       this.[32mapplyMessages[37m(messages.messages ?? [], false);
+          ╵            [32m~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'applyMessages' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:632:32:
+[37m      632 │ ...subscribe((data) => this.[32mapplyMessages[37m(data.messages ?? [], sh...
+          ╵                             [32m~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'visibleHolidayRows' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:489:31:
+[37m      489 │ ...     @for (holiday of [32mvisibleHolidayRows[37m(); track holiday._id ...
+          ╵                          [32m~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'holidayTextColor' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:493:33:
+[37m      493 │ ...           [style.color]="[32mholidayTextColor[37m(holiday.holidayColor)"
+          ╵                              [32m~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'currentMonthLabel' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:495:42:
+[37m      495 │ ...         <div class="month-title">{{ [32mcurrentMonthLabel[37m() }}</div>
+          ╵                                         [32m~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'weekDays' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:497:29:
+[37m      497 │                 @for (day of [32mweekDays[37m; track day) {
+          ╵                              [32m~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'calendarDays' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:500:30:
+[37m      500 │ ...           @for (cell of [32mcalendarDays[37m(); track cell.dateKey ||...
+          ╵                             [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'currentMonthLabel' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:517:46:
+[37m      517 │ ... class="month-list-title">{{ [32mcurrentMonthLabel[37m() }} holidays</h3>
+          ╵                                 [32m~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'leaveHistory' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:370:31:
+[37m      370 │                 @for (leave of [32mleaveHistory[37m(); track leave._id) {
+          ╵                                [32m~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'chatMessages' does not exist on type 'HrDashboardComponent'. Did you mean 'messages'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:801:26:
+[37m      801 │             @for (item of [32mchatMessages[37m(); track item._id) {
+          ╵                           [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'isOwnMessage' does not exist on type 'HrDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:802:62:
+[37m      802 │ ...-item" [class.outgoing]="[32misOwnMessage[37m(item)" [class.incoming]=...
+          ╵                             [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'isOwnMessage' does not exist on type 'HrDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:802:101:
+[37m      802 │ ...ing]="isOwnMessage(item)" [class.incoming]="![32misOwnMessage[37m(item)">
+          ╵                                                 [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'isOwnMessage' does not exist on type 'HrDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:809:27:
+[37m      809 │                   <span>{{ [32misOwnMessage[37m(item) ? 'You' : userLabel...
+          ╵                            [32m~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'chatMessages' does not exist on type 'EmployeeDashboardComponent'. Did you mean 'messages'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:475:28:
+[37m      475 │               @for (item of [32mchatMessages[37m(); track item._id) {
+          ╵                             [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'isOwnMessage' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:476:64:
+[37m      476 │ ...-item" [class.outgoing]="[32misOwnMessage[37m(item)" [class.incoming]=...
+          ╵                             [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'isOwnMessage' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:476:103:
+[37m      476 │ ...ing]="isOwnMessage(item)" [class.incoming]="![32misOwnMessage[37m(item)">
+          ╵                                                 [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'isOwnMessage' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:483:29:
+[37m      483 │ ...                <span>{{ [32misOwnMessage[37m(item) ? 'You' : userLabe...
+          ╵                             [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'chatMessages' does not exist on type 'HrDashboardComponent'. Did you mean 'messages'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:801:26:
+[37m      801 │             @for (item of [32mchatMessages[37m(); track item._id) {
+          ╵                           [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'isOwnMessage' does not exist on type 'HrDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:802:62:
+[37m      802 │ ...-item" [class.outgoing]="[32misOwnMessage[37m(item)" [class.incoming]=...
+          ╵                             [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'isOwnMessage' does not exist on type 'HrDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:802:101:
+[37m      802 │ ...ing]="isOwnMessage(item)" [class.incoming]="![32misOwnMessage[37m(item)">
+          ╵                                                 [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'isOwnMessage' does not exist on type 'HrDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:809:27:
+[37m      809 │                   <span>{{ [32misOwnMessage[37m(item) ? 'You' : userLabel...
+          ╵                            [32m~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'chatMessages' does not exist on type 'EmployeeDashboardComponent'. Did you mean 'messages'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:475:28:
+[37m      475 │               @for (item of [32mchatMessages[37m(); track item._id) {
+          ╵                             [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'isOwnMessage' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:476:64:
+[37m      476 │ ...-item" [class.outgoing]="[32misOwnMessage[37m(item)" [class.incoming]=...
+          ╵                             [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'isOwnMessage' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:476:103:
+[37m      476 │ ...ing]="isOwnMessage(item)" [class.incoming]="![32misOwnMessage[37m(item)">
+          ╵                                                 [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'isOwnMessage' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:483:29:
+[37m      483 │ ...                <span>{{ [32misOwnMessage[37m(item) ? 'You' : userLabe...
+          ╵                             [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property '_id' does not exist on type 'User'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:1362:46:
+[37m      1362 │     const currentId = current?.id || current?.[32m_id[37m;
+           ╵                                               [32m~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property '_id' does not exist on type 'User'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:1362:46:
+[37m      1362 │     const currentId = current?.id || current?.[32m_id[37m;
+           ╵                                               [32m~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'messagePopup' does not exist on type 'HrDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:177:11:
+[37m      177 │       @if ([32mmessagePopup[37m()) {
+          ╵            [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'messagePopup' does not exist on type 'HrDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:178:38:
+[37m      178 │         <div class="message-popup">{{ [32mmessagePopup[37m() }}</div>
+          ╵                                       [32m~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'messagePopup' does not exist on type 'HrDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:177:11:
+[37m      177 │       @if ([32mmessagePopup[37m()) {
+          ╵            [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'messagePopup' does not exist on type 'HrDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:178:38:
+[37m      178 │         <div class="message-popup">{{ [32mmessagePopup[37m() }}</div>
+          ╵                                       [32m~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2554: Expected 0 arguments, but got 1.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:971:61:
+[37m      971 │ ...essagePollId = setInterval(() => this.loadMessages([32mtrue[37m), 10000);
+          ╵                                                       [32m~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'applyMessages' does not exist on type 'HrDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/hr/hr-dashboard.component.ts:1308:32:
+[37m      1308 │ ...ubscribe((data) => this.[32mapplyMessages[37m(data.messages ?? [], sh...
+           ╵                            [32m~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'loadNotifications' does not exist on type 'EmployeeDashboardComponent'. Did you mean 'notifications'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:658:53:
+[37m      658 │ ...nPollId = setInterval(() => this.[32mloadNotifications[37m(true), 10000);
+          ╵                                     [32m~~~~~~~~~~~~~~~~~[0m
+
+  'notifications' is declared here.
+
+    src/app/features/employee/employee-dashboard.component.ts:595:21:
+[37m      595 │   protected readonly [32mnotifications[37m = signal<NotificationRow[]>([]);
+          ╵                      [32m~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'applyNotifications' does not exist on type 'EmployeeDashboardComponent'. Did you mean 'notifications'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:688:11:
+[37m      688 │       this.[32mapplyNotifications[37m(notifications.notifications ?? [], ...
+          ╵            [32m~~~~~~~~~~~~~~~~~~[0m
+
+  'notifications' is declared here.
+
+    src/app/features/employee/employee-dashboard.component.ts:595:21:
+[37m      595 │   protected readonly [32mnotifications[37m = signal<NotificationRow[]>([]);
+          ╵                      [32m~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'markMessageNotificationsSeen' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:700:11:
+[37m      700 │       this.[32mmarkMessageNotificationsSeen[37m();
+          ╵            [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'markNotificationsSeen' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:703:11:
+[37m      703 │       this.[32mmarkNotificationsSeen[37m();
+          ╵            [32m~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'markMessageNotificationsSeen' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:715:15:
+[37m      715 │           this.[32mmarkMessageNotificationsSeen[37m(rows);
+          ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'holidayMonthFilter' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:531:33:
+[37m      531 │ ...     <select [value]="[32mholidayMonthFilter[37m()" (change)="setHolid...
+          ╵                          [32m~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'setHolidayMonthFilter' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:531:65:
+[37m      531 │ ...hFilter()" (change)="[32msetHolidayMonthFilter[37m($any($event.target)...
+          ╵                         [32m~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'holidayMonthFilter' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:539:51:
+[37m      539 │ ...tiveSection() === 'calendar' && [32mholidayMonthFilter[37m() !== 'all') {
+          ╵                                    [32m~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'holidayMonthLabel' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:540:42:
+[37m      540 │ ...         <div class="month-title">{{ [32mholidayMonthLabel[37m() }}</div>
+          ╵                                         [32m~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'holidayMonthLabel' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:562:46:
+[37m      562 │ ... class="month-list-title">{{ [32mholidayMonthLabel[37m() }} holidays</h3>
+          ╵                                 [32m~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'holidayMonthFilter' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:578:45:
+[37m      578 │ ...lass="empty-state">{{ [32mholidayMonthFilter[37m() === 'all' ? 'No hol...
+          ╵                          [32m~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'setHolidayMonthFilter' does not exist on type 'EmployeeDashboardComponent'. Did you mean 'holidayMonthFilter'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:531:65:
+[37m      531 │ ...hFilter()" (change)="[32msetHolidayMonthFilter[37m($any($event.target)...
+          ╵                         [32m~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'holidayMonthLabel' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:540:42:
+[37m      540 │ ...         <div class="month-title">{{ [32mholidayMonthLabel[37m() }}</div>
+          ╵                                         [32m~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'holidayMonthLabel' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:562:46:
+[37m      562 │ ... class="month-list-title">{{ [32mholidayMonthLabel[37m() }} holidays</h3>
+          ╵                                 [32m~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'holidayMonthLabel' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:540:42:
+[37m      540 │ ...         <div class="month-title">{{ [32mholidayMonthLabel[37m() }}</div>
+          ╵                                         [32m~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'holidayMonthLabel' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:562:46:
+[37m      562 │ ... class="month-list-title">{{ [32mholidayMonthLabel[37m() }} holidays</h3>
+          ╵                                 [32m~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'selectedHolidayMonthDate' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:1043:82:
+[37m      1043 │ ...this.isSameMonth(holiday.date, this.[32mselectedHolidayMonthDate[37m()))
+           ╵                                        [32m~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'selectedHolidayMonthDate' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:1054:89:
+[37m      1054 │ ...ng', year: 'numeric' }).format(this.[32mselectedHolidayMonthDate[37m());
+           ╵                                        [32m~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'selectedHolidayMonthDate' does not exist on type 'EmployeeDashboardComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/employee/employee-dashboard.component.ts:1058:26:
+[37m      1058 │     const selected = this.[32mselectedHolidayMonthDate[37m();
+           ╵                           [32m~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m

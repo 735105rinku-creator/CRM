@@ -1,0 +1,81 @@
+﻿:host {
+  --surface: #edf1f6;
+  --text: #152033;
+  --muted: #758397;
+  --line: #cddceb;
+  --gold: #b98b45;
+  --green: #10956b;
+  --blue: #2f6fe4;
+  display: block;
+  min-height: 100%;
+  color: var(--text);
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+button, input, select { font: inherit; }
+
+.invoice-list-page { min-height: 100vh; background: var(--surface); }
+.page-header { min-height: 92px; padding: 17px 25px; display: flex; justify-content: space-between; align-items: center; gap: 18px; background: rgba(237,241,246,.94); border-bottom: 1px solid #d6e2ef; position: sticky; top: 0; z-index: 10; backdrop-filter: blur(16px); }
+.breadcrumb { display: flex; gap: 8px; margin-bottom: 8px; color: var(--muted); font-size: .68rem; }
+.breadcrumb b { color: var(--gold); }
+.page-title { display: flex; align-items: center; gap: 12px; }
+.title-icon, .summary-icon { display: grid; place-items: center; border-radius: 13px; background: #edf1f6; box-shadow: 6px 6px 14px rgba(166,177,189,.52), -6px -6px 14px rgba(255,255,255,.95); }
+.title-icon { width: 44px; height: 44px; color: var(--gold); font-size: 1.2rem; }
+h1, h2, p { margin: 0; }
+h1 { font-family: Georgia, "Times New Roman", serif; font-size: 1.35rem; }
+.page-title p { margin-top: 4px; color: var(--muted); font-size: .72rem; }
+.header-actions { display: flex; gap: 10px; }
+.soft-btn, .gold-btn { border: 0; border-radius: 12px; min-height: 40px; padding: 0 15px; font-weight: 800; font-size: .72rem; cursor: pointer; box-shadow: 5px 5px 12px rgba(166,177,189,.5), -5px -5px 12px rgba(255,255,255,.95); }
+.soft-btn { background: #edf1f6; color: #19304d; }
+.gold-btn { background: linear-gradient(145deg, #31c897, #087c5d); color: white; }
+.page-content { max-width: 1800px; margin: 0 auto; padding: 20px 24px 36px; display: grid; gap: 18px; }
+.notice { padding: 12px 14px; border-radius: 12px; font-size: .78rem; font-weight: 700; }
+.notice.success { background: #dcf8eb; color: #087c5d; }
+.notice.error { background: #ffe3e3; color: #b42318; }
+.summary-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.summary-grid article, .filter-card, .table-card { background: #edf1f6; border: 1px solid #d6e2ef; border-radius: 18px; box-shadow: 9px 9px 22px rgba(166,177,189,.45), -9px -9px 22px rgba(255,255,255,.9); }
+.summary-grid article { min-height: 100px; padding: 18px; display: flex; align-items: center; gap: 16px; }
+.summary-icon { width: 45px; height: 45px; font-size: 1rem; }
+.summary-icon.blue { color: #1e609d; }
+.summary-icon.green { color: #087c5d; }
+.summary-icon.gold { color: #a27327; }
+.summary-icon.red { color: #b42318; }
+.summary-grid small { display: block; color: var(--muted); font-size: .68rem; font-weight: 800; }
+.summary-grid strong { display: block; margin-top: 5px; font-size: 1.1rem; }
+.filter-card, .table-card { padding: 18px; }
+.filter-heading, .card-header, .pagination { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.filter-heading span, .card-header span { color: var(--gold); font-size: .64rem; font-weight: 900; letter-spacing: .08em; }
+.filter-heading h2, .card-header h2 { margin-top: 5px; font-family: Georgia, "Times New Roman", serif; font-size: 1rem; }
+.filter-grid { margin-top: 16px; display: grid; grid-template-columns: 1fr 250px 250px; gap: 12px; }
+.search-field { display: flex; align-items: center; gap: 10px; padding: 0 12px; min-height: 42px; border-radius: 12px; background: #f4f7fb; border: 1px solid var(--line); }
+.search-field input { flex: 1; border: 0; outline: 0; background: transparent; }
+select { min-height: 42px; border-radius: 12px; border: 1px solid var(--line); background: #f4f7fb; padding: 0 12px; color: var(--text); }
+.table-scroll { margin-top: 16px; overflow: auto; border-radius: 14px; border: 1px solid #d8e4f1; }
+table { width: 100%; border-collapse: collapse; min-width: 1050px; }
+th { text-align: left; padding: 13px 14px; color: #66758a; font-size: .64rem; background: #e8eef6; }
+td { padding: 14px; border-top: 1px solid #d8e4f1; font-size: .76rem; }
+.stack { display: grid; gap: 4px; }
+.stack span { color: var(--muted); font-size: .68rem; }
+.pill { display: inline-flex; min-width: 74px; justify-content: center; padding: 7px 10px; border-radius: 999px; background: #eaf2ff; color: #2457b8; font-size: .68rem; font-weight: 900; }
+.pill.issued, .pill.paid { background: #dcf8eb; color: #087c5d; }
+.pill.cancelled, .pill.overdue { background: #ffe3e3; color: #b42318; }
+.pill.muted { background: #eef3f9; color: #526277; }
+.actions { display: flex; gap: 8px; }
+.actions button { width: 34px; height: 34px; border: 0; border-radius: 10px; background: #edf1f6; color: #19304d; cursor: pointer; box-shadow: 4px 4px 9px rgba(166,177,189,.48), -4px -4px 9px rgba(255,255,255,.95); }
+.actions button.danger { color: #b42318; }
+.empty-state { min-height: 260px; display: grid; place-items: center; align-content: center; gap: 10px; text-align: center; color: var(--muted); }
+.empty-state span { width: 52px; height: 52px; display: grid; place-items: center; border-radius: 16px; background: #edf1f6; color: var(--gold); font-size: 1.4rem; box-shadow: inset 4px 4px 9px rgba(166,177,189,.45), inset -4px -4px 9px rgba(255,255,255,.9); }
+.empty-state strong { color: var(--text); }
+.pagination { margin-top: 15px; }
+.pagination p { color: var(--muted); font-size: .72rem; }
+.pagination div { display: flex; align-items: center; gap: 8px; }
+.pagination button, .pagination span { min-width: 38px; min-height: 36px; border: 0; border-radius: 10px; padding: 0 12px; background: #edf1f6; color: #19304d; font-weight: 800; box-shadow: 4px 4px 9px rgba(166,177,189,.48), -4px -4px 9px rgba(255,255,255,.95); }
+.pagination button:disabled { opacity: .5; cursor: not-allowed; }
+
+@media (max-width: 900px) {
+  .page-header, .filter-heading, .card-header, .pagination { align-items: stretch; flex-direction: column; }
+  .summary-grid, .filter-grid { grid-template-columns: 1fr; }
+  .header-actions { width: 100%; }
+  .header-actions button { flex: 1; }
+}

@@ -1,0 +1,99 @@
+<section class="meeting-room">
+  <header>
+    <div>
+      <h1>{{ meetingTitle() }}</h1>
+      <p>{{ status() }} | {{ meetingCount() }} in call | {{ meetingCode() }}</p>
+      <button type="button" class="link-copy" (click)="copyMeetingLink()">Copy link</button>
+    </div>
+    <div class="user-chip">
+      <strong>{{ userName() }}</strong>
+      <span>{{ userDepartment() }} | {{ userDesignation() }}</span>
+    </div>
+  </header>
+
+  <main [class.panel-collapsed]="!isSidePanelOpen()">
+    <section class="stage">
+      <div class="video-grid" [class.single-tile]="remoteTiles().length === 0">
+        <article class="video-tile local-tile">
+          <video #localVideo autoplay muted playsinline></video>
+          @if (!isJoined()) {
+            <span class="camera-placeholder">Camera preview will start after join.</span>
+          }
+          @if (isJoined() && !videoEnabled() && !isScreenSharing()) {
+            <span class="avatar">{{ userName().slice(0, 1) }}</span>
+          }
+          <div class="tile-label">
+            <strong>You @if (handRaised()) { <span>Hand raised</span> }</strong>
+            <small>{{ audioEnabled() ? 'Mic on' : 'Muted' }}{{ isScreenSharing() ? ' | Presenting' : '' }}</small>
+          </div>
+        </article>
+
+        @for (tile of remoteTiles(); track tile.socketId) {
+          <article class="video-tile">
+            <video #remoteVideo autoplay playsinline></video>
+            @if (!tile.videoEnabled || !tile.hasVideo) {
+              <span class="avatar">{{ tile.name.slice(0, 1) }}</span>
+            }
+            <div class="tile-label">
+              <strong>{{ tile.name }} @if (tile.handRaised) { <span>Hand raised</span> }</strong>
+              <small>{{ tile.audioEnabled ? 'Mic on' : 'Muted' }}</small>
+            </div>
+          </article>
+        }
+      </div>
+    </section>
+
+    @if (isSidePanelOpen()) {
+      <aside>
+        <section>
+          <h2>People</h2>
+          <div class="participant-list">
+            @for (participant of visibleParticipants(); track participant.code || participant.name) {
+              <span [class.active-participant]="participant.status === 'attended'">
+                <strong [class.joined-name]="participant.status === 'attended'">{{ participant.name }}</strong>
+                <small>{{ participant.department || '-' }} | {{ participant.designation || '-' }}</small>
+                <mark [class.joined]="participant.status === 'attended'" [class.requested]="participant.status === 'requested'">{{ participantStatusLabel(participant.status) }}</mark>
+                @if (isHost() && participant.status === 'requested' && (participant.code || participant.userId)) {
+                  <div class="approval-actions"><button type="button" class="allow-btn" (click)="allowParticipant(participant)">Allow</button><button type="button" class="reject-btn" (click)="rejectParticipant(participant)">Reject</button></div>
+                }
+              </span>
+            } @empty {
+              <span class="empty">No invited participants found.</span>
+            }
+          </div>
+        </section>
+
+        <section class="chat-box">
+          <h2>Room Chat</h2>
+          <div class="chat-list">
+            @for (chat of chatMessages(); track chat._id || chat.createdAt || chat.message) {
+              <p><strong>{{ chat.senderName || 'User' }}</strong>{{ chat.message }}</p>
+            } @empty {
+              <p class="empty">No messages yet.</p>
+            }
+          </div>
+          <div class="chat-compose">
+            <input [value]="chatDraft()" (input)="chatDraft.set($any($event.target).value)" (keydown.enter)="sendChat()" type="text" placeholder="Type message" />
+            <button type="button" (click)="sendChat()" [disabled]="!canChat() || !chatDraft().trim()">Send</button>
+          </div>
+        </section>
+      </aside>
+    }
+  </main>
+
+  @if (message()) {
+    <div class="notice">{{ message() }}</div>
+  }
+
+  <footer>
+    <button type="button" class="join-btn" (click)="join()" [disabled]="isJoined()">Join Room</button>
+    <button type="button" (click)="toggleAudio()" [disabled]="!isJoined() || !hasAudio()">{{ audioEnabled() ? 'Mute' : 'Unmute' }}</button>
+    <button type="button" (click)="toggleVideo()" [disabled]="!isJoined() || !hasVideo() || isScreenSharing()">{{ videoEnabled() ? 'Stop Video' : 'Start Video' }}</button>
+    <button type="button" (click)="toggleScreenShare()" [disabled]="!isJoined()">{{ isScreenSharing() ? 'Stop Share' : 'Share Screen' }}</button>
+    <button type="button" (click)="toggleHand()" [disabled]="!isJoined()">{{ handRaised() ? 'Lower hand' : 'Raise hand' }}</button>
+    <button type="button" (click)="toggleSidePanel()">{{ isSidePanelOpen() ? 'Hide panel' : 'Show panel' }}</button>
+    <button type="button" (click)="toggleFullscreen()">Fullscreen</button>
+    <button type="button" class="danger" (click)="leave()" [disabled]="!isJoined()">Leave</button>
+  </footer>
+</section>
+

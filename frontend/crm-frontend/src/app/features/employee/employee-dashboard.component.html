@@ -1,0 +1,952 @@
+<section class="employee-shell" [class.logistics-embedded]="isLogisticsEmbedded()">
+  @if (messagePopup()) {
+    <div class="message-popup">{{ messagePopup() }}</div>
+  }
+  <aside class="employee-sidebar">
+    <div class="employee-logo">
+      <img [src]="companyLogo()" [alt]="companyName() + ' logo'" />
+      <span>{{ companyName() | uppercase }}</span>
+    </div>
+
+    <div class="employee-card">
+      <img class="employee-avatar" [src]="employeePhotoUrl()" [alt]="userName() + ' profile photo'" />
+      <div>
+        <strong>{{ userName() }}</strong>
+        <small>{{ employeeCode() }}</small>
+      </div>
+    </div>
+
+    <nav class="employee-nav" aria-label="Employee workspace features">
+      <p>Workspace</p>
+      @for (item of visibleEmployeeMenu(); track item.id) {
+        <button type="button" [class.active]="activeSection() === item.id" (click)="setActiveSection(item.id)">
+          <span>{{ item.icon }}</span>{{ item.label }}
+        </button>
+      }
+
+      @if (isLogisticsDepartment()) {
+        <div class="logistics-nav-divider" aria-hidden="true"></div>
+        <p class="logistics-nav-title">Logistics Workspace</p>
+
+        @for (item of logisticsMenu; track item.route) {
+          <button
+            type="button"
+            class="logistics-nav-item"
+            (click)="openLogisticsRoute(item.route)"
+          >
+            <span>{{ item.icon }}</span>
+            {{ item.label }}
+          </button>
+        }
+      }
+    </nav>
+
+    <div class="employee-logout">
+      <div>
+        <strong>{{ userName() }}</strong>
+        <span>{{ userEmail() }}</span>
+      </div>
+      <button type="button" (click)="logout()">Log out</button>
+    </div>
+  </aside>
+
+  <div class="employee-main">
+    <header class="employee-topbar">
+      <div class="notification-wrap">
+        <button type="button" class="notification-bell" (click)="toggleNotificationPanel()" aria-label="Open notifications">
+          <span>🔔</span>
+          @if (unreadCount() > 0) {
+            <small>{{ unreadCount() }}</small>
+          }
+        </button>
+      </div>
+      <button type="button" class="header-back-btn employee-header-back" (click)="goBack()"><span>�</span>Back</button>
+    </header>
+    @if (isNotificationPanelOpen()) {
+      <div class="notification-overlay-host" role="presentation">
+        <section class="notification-tray" aria-label="Employee notifications">
+          <header>
+            <div>
+              <strong>Notifications</strong>
+              <span>{{ notifications().slice(0, 4).length }} updates</span>
+            </div>
+            <button type="button" (click)="closeNotificationPanel()" aria-label="Close notifications">X</button>
+          </header>
+          <div class="notification-tray-list">
+            @for (notification of notifications().slice(0, 4); track notification._id || notification.createdAt) {
+              <article [class.unread]="!notification.isRead">
+                <strong>{{ notification.title || 'HR update' }}</strong>
+                <p>{{ notification.message || '-' }}</p>
+                <small>{{ formatDateTime(notification.createdAt) }}</small>
+              </article>
+            } @empty {
+              <span class="empty">No notifications yet.</span>
+            }
+          </div>
+        </section>
+      </div>
+    }
+    <section class="role-dashboard employee-workspace" id="employee-dashboard">
+  @if (activeSection() === 'dashboard') {
+    <div class="hero-row">
+      <div>
+        <p class="eyebrow">My Workspace</p>
+        <h1>Employee Dashboard</h1>
+        <span>{{ companyName() }} attendance, leave, notifications and HR updates for {{ userName() }}.</span>
+      </div>
+      <button type="button" class="primary-action" (click)="refreshDashboard()" [disabled]="isRefreshing()">{{ isRefreshing() ? 'Refreshing...' : 'Refresh' }}</button>
+    </div>
+
+    <div class="metric-grid">
+      <article><span>Today's Attendance</span><strong class="compact-value">{{ todayAttendance()?.status || 'not started' }}</strong><small>{{ formatTime(todayAttendance()?.checkInTime) }} / {{ formatTime(todayAttendance()?.checkOutTime) }}</small></article>
+      <article><span>Sick / Casual / Earned</span><strong>{{ leaveBalanceByCode('SL') }} / {{ leaveBalanceByCode('CL') }} / {{ leaveBalanceByCode('EL') }}</strong><small>Remaining leaves</small></article>
+      <article><span>Pending Tasks</span><strong>0</strong><small>Self assignments</small></article>
+      <article><span>Monthly Attendance</span><strong>{{ monthlyAttendancePercent() }}%</strong><small>{{ attendanceHistory().length }} tracked days</small></article>
+      <article><span>My Assigned Leads</span><strong>0</strong><small>CRM own-only</small></article>
+      <article><span>My Deals / Target</span><strong>0</strong><small>{{ formatCurrency(0) }} achievement</small></article>
+    </div>
+
+    <div class="employee-quick-actions">
+      <button type="button" (click)="setActiveSection('attendance')">Mark Attendance</button>
+      <button type="button" (click)="setActiveSection('apply-leave')">Apply for Leave</button>
+      <button type="button" (click)="setActiveSection('payslip')">View Payslip</button>
+      <button type="button" (click)="setActiveSection('profile')">Update Profile</button>
+    </div>
+
+    <article class="panel dashboard-punch-panel">
+      <div>
+        <h2>Daily Punch</h2>
+        <p>Mark attendance and track today's work timer from the dashboard.</p>
+        <div class="punch-summary-grid">
+          <span><strong>Employee</strong><em>{{ userName() }}</em></span>
+          <span><strong>Status</strong><em class="status-value">{{ todayAttendance()?.status || 'day not started' }}</em></span>
+          <span><strong>Active in</strong><em>{{ formatDateTime(activePunch()?.checkInTime) }}</em></span>
+          <span><strong>Last out</strong><em>{{ formatDateTime(todayAttendance()?.checkOutTime) }}</em></span>
+          <span><strong>Today working</strong><em>{{ todayWorkingTime() }}</em></span>
+        </div>
+      </div>
+      <button
+        type="button"
+        class="punch-ring dashboard-punch-ring"
+        [ngClass]="punchStateClass()"
+        (click)="togglePunch()"
+        [disabled]="isPunching() || !canUsePunch()"
+      >
+        <span>{{ punchButtonText() }}</span>
+        <strong>{{ workTimer() }}</strong>
+        <small>{{ punchSubText() }}</small>
+      </button>
+    </article>
+
+    <div class="employee-insight-grid">
+      <article class="panel">
+        <h2>My Attendance Trend</h2>
+        <p>Recent monthly status, color-coded by day.</p>
+        <div class="attendance-dots">
+          @for (item of attendanceTrend(); track item.label + item.status) {
+            <span [class]="item.status">{{ item.label }}</span>
+          } @empty {
+            <span class="empty-state">No attendance history yet.</span>
+          }
+        </div>
+      </article>
+      <article class="panel">
+        <h2>My Leave History</h2>
+        <p>Leave days by type.</p>
+        <div class="self-bar-list">
+          @for (item of leaveHistoryBars(); track item.label) {
+            <span><strong>{{ item.label }}</strong><em>{{ item.value }} days</em><i [style.width.%]="item.percent"></i></span>
+          } @empty {
+            <span class="empty-state">No leave history yet.</span>
+          }
+        </div>
+      </article>
+      <article class="panel span-2">
+        <h2>Recent Activity</h2>
+        <div class="stack-list">
+          @for (item of recentActivity(); track item.title + item.meta) {
+            <span><strong>{{ item.title }}</strong><br />{{ item.meta }}</span>
+          } @empty {
+            <span>No recent activity.</span>
+          }
+        </div>
+      </article>
+    </div>
+  }
+
+  @if (activeSection() === 'profile') {
+  <article class="panel profile-panel" id="employee-profile">
+    <div class="profile-photo-wrap">
+      <img class="profile-photo" [src]="employeePhotoUrl()" [alt]="userName() + ' profile photo'" />
+      <label class="photo-upload">
+        <input type="file" accept="image/*" (change)="uploadEmployeePhoto($event)" [disabled]="isPhotoUploading() || !dashboard()?.employee?._id" />
+        {{ isPhotoUploading() ? 'Uploading...' : 'Upload photo' }}
+      </label>
+    </div>
+    <div>
+      <p class="eyebrow">Employee Profile</p>
+      <h2>{{ userName() }}</h2>
+      <div class="detail-grid">
+        <span><strong>Email</strong>{{ userEmail() }}</span>
+        <span><strong>Mobile</strong>{{ dashboard()?.employee?.mobile || dashboard()?.user?.mobile || '-' }}</span>
+        <span><strong>Department</strong>{{ departmentName() }}</span>
+        <span><strong>Designation</strong>{{ designationName() }}</span>
+        <span><strong>Joining</strong>{{ formatDate(dashboard()?.employee?.joiningDate) }}</span>
+        <span><strong>Work mode</strong>{{ workModeLabel() }}</span>
+        <span class="punch-device-detail"><strong>Punch devices</strong>{{ attendanceDeviceLabels() }}</span>
+        <span><strong>WFH punch approval</strong>{{ wfhPunchApprovalLabel() }}</span>
+        <span><strong>Status</strong>{{ dashboard()?.employee?.employeeStatus || dashboard()?.user?.status || '-' }}</span>
+      </div>
+    </div>
+  </article>
+  }
+
+  @if (activeSection() === 'documents') {
+  <article class="panel span-2" id="employee-documents">
+    <div class="panel-heading">
+      <div>
+        <h2>Documents</h2>
+        <p>Uploaded employee documents shared by HR.</p>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Document</th><th>File</th><th>Size</th><th>Status</th><th>Expiry</th><th>Action</th></tr></thead>
+        <tbody>
+          @for (document of employeeDocuments(); track document._id || document.fileUrl || document.fileName) {
+            <tr>
+              <td>{{ documentLabel(document) }}</td>
+              <td><strong>{{ document.fileName || '-' }}</strong><span>{{ document.remarks || document.mimeType || '-' }}</span></td>
+              <td>{{ fileSizeLabel(document.fileSize) }}</td>
+              <td><span class="status-pill">{{ document.verified ? 'verified' : 'pending' }}</span></td>
+              <td>{{ formatDate(document.expiryDate) }}</td>
+              <td>
+                @if (document.fileUrl) {
+                  <a class="submit-btn compact" [href]="documentUrl(document.fileUrl)" target="_blank" rel="noopener">Open</a>
+                } @else {
+                  -
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="6" class="empty-state">No documents uploaded yet.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </article>
+  }
+
+  @if (activeSection() === 'bank') {
+  <article class="panel span-2" id="employee-bank">
+    <div class="panel-heading">
+      <div>
+        <h2>Bank Details</h2>
+        <p>Payroll bank information filled by HR.</p>
+      </div>
+    </div>
+    @if (hasBankDetails()) {
+      <div class="detail-grid">
+        <span><strong>Bank Name</strong>{{ employeeBank()?.bankName || '-' }}</span>
+        <span><strong>Branch</strong>{{ employeeBank()?.branchName || '-' }}</span>
+        <span><strong>Account Holder</strong>{{ employeeBank()?.accountHolderName || '-' }}</span>
+        <span><strong>Account Number</strong>{{ employeeBank()?.accountNumber || '-' }}</span>
+        <span><strong>IFSC</strong>{{ employeeBank()?.ifscCode || '-' }}</span>
+        <span><strong>UPI ID</strong>{{ employeeBank()?.upiId || '-' }}</span>
+        <span><strong>Payment Mode</strong>{{ employeeBank()?.paymentMode || '-' }}</span>
+        <span><strong>Salary Account</strong>{{ employeeBank()?.isSalaryAccount === false ? 'No' : 'Yes' }}</span>
+      </div>
+      @if (employeeBank()?.cancelledChequeUrl) {
+        <a class="submit-btn compact" [href]="documentUrl(employeeBank()?.cancelledChequeUrl)" target="_blank" rel="noopener">Open cancelled cheque</a>
+      }
+    } @else {
+      <span class="empty-state">No bank details filled yet.</span>
+    }
+  </article>
+  }
+  <div class="workspace-grid">
+    @if (activeSection() === 'dashboard') {
+    <article class="panel">
+      <div class="company-mini">
+        @if (companyLogo()) {
+          <img [src]="companyLogo()" [alt]="companyName() + ' logo'" />
+        }
+        <div>
+          <span>Company</span>
+          <strong>{{ companyName() }}</strong>
+          <small>{{ dashboard()?.company?.companyCode || '-' }}</small>
+        </div>
+      </div>
+      <div class="detail-grid">
+        <span><strong>Department</strong>{{ departmentName() }}</span>
+        <span><strong>Designation</strong>{{ designationName() }}</span>
+        <span><strong>Joining</strong>{{ formatDate(dashboard()?.employee?.joiningDate) }}</span>
+        <span><strong>Manager</strong>{{ dashboard()?.employee?.reportingManagerId?.displayName || '-' }}</span>
+        <span><strong>Work mode</strong>{{ dashboard()?.employee?.workMode || '-' }}</span>
+        <span><strong>Status</strong>{{ dashboard()?.employee?.employeeStatus || dashboard()?.user?.status || '-' }}</span>
+      </div>
+    </article>
+    }
+
+    @if (activeSection() === 'attendance') {
+    <article class="panel" id="daily-punch">
+      <h2>Daily Punch</h2>
+      <div class="punch-center">
+        <button
+          type="button"
+          class="punch-ring"
+          [ngClass]="punchStateClass()"
+          (click)="togglePunch()"
+          [disabled]="isPunching() || !canUsePunch()"
+        >
+          <span>{{ punchButtonText() }}</span>
+          <strong>{{ workTimer() }}</strong>
+          <small>{{ punchSubText() }}</small>
+        </button>
+      </div>
+      <div class="punch-summary-grid attendance-summary-grid punch-details">
+        <span><strong>Employee</strong><em>{{ userName() }}</em></span>
+        <span><strong>Email</strong><em>{{ userEmail() }}</em></span>
+        <span><strong>Mobile</strong><em>{{ dashboard()?.employee?.mobile || dashboard()?.user?.mobile || '-' }}</em></span>
+        <span><strong>Lunch</strong><em>1:00 PM to 1:40 PM</em></span>
+        <span><strong>Active in</strong><em>{{ formatDateTime(activePunch()?.checkInTime) }}</em></span>
+        <span><strong>Last out</strong><em>{{ formatDateTime(todayAttendance()?.checkOutTime) }}</em></span>
+        <span><strong>Status</strong><em class="status-value">{{ todayAttendance()?.status || 'day not started' }}</em></span>
+        <span><strong>Today working</strong><em>{{ todayWorkingTime() }}</em></span>
+        <span><strong>Today late</strong><em>{{ todayAttendance()?.lateByMinutes || 0 }} min</em></span>
+        <span><strong>Late this month</strong><em>{{ lateCountThisMonth() }} day(s)</em></span>
+        <span><strong>Today sessions</strong><em>{{ punchSummary(todayAttendance()) }}</em></span>
+      </div>
+      @if (message()) {
+        <div class="notice">{{ message() }}</div>
+      }
+    </article>
+    }
+
+    @if (activeSection() === 'leave' || activeSection() === 'apply-leave' || activeSection() === 'leave-history' || activeSection() === 'leave-balance') {
+      @if (activeSection() === 'apply-leave' || activeSection() === 'leave-balance') {
+        <article class="panel span-2" id="leave-balances">
+          <div class="panel-heading">
+            <div>
+              <h2>Remaining Leave</h2>
+              <p>Current year balance by leave type.</p>
+            </div>
+          </div>
+          <div class="leave-balance-grid">
+            @for (balance of leaveBalances(); track balance._id || balance.leaveTypeId?.leaveCode) {
+              <section class="leave-balance-tile">
+                <header>
+                  <span>{{ balance.leaveTypeId?.leaveCode || 'LV' }}</span>
+                  <strong>{{ leaveBalanceRemainingText(balance) }}</strong>
+                </header>
+                <p>{{ balance.leaveTypeId?.leaveName || 'Leave' }}</p>
+                <div class="leave-balance-meter">
+                  <i [style.width.%]="leaveBalancePercent(balance)"></i>
+                </div>
+                <footer>
+                  <small>Full {{ leaveBalanceTotal(balance) }}</small>
+                  <small>Used {{ leaveBalanceUsed(balance) }}</small>
+                  <small>Pending {{ leaveBalancePending(balance) }}</small>
+                  <small>Remaining {{ leaveBalanceAvailable(balance) }}</small>
+                </footer>
+              </section>
+            } @empty {
+              <span class="empty-state">No leave balance assigned yet.</span>
+            }
+          </div>
+        </article>
+      }
+
+      @if (activeSection() === 'apply-leave') {
+        <article class="panel" id="apply-leave">
+          <h2>Apply Leave</h2>
+          <form [formGroup]="leaveForm" (ngSubmit)="applyLeave()" class="form-grid">
+            <label>Leave type
+              <select formControlName="leaveCode">
+                @for (option of leaveCodeOptions(); track option.code) {
+                  <option [value]="option.code">{{ option.label }}</option>
+                }
+              </select>
+            </label>
+            <label>From date<input formControlName="fromDate" type="date" /></label>
+            <label>To date<input formControlName="toDate" type="date" /></label>
+            <label>Day type
+              <select formControlName="dayType">
+                <option value="full_day">Full day</option>
+                <option value="half_day_first">Half day first</option>
+                <option value="half_day_second">Half day second</option>
+              </select>
+            </label>
+            <label>Reason<input formControlName="reason" type="text" placeholder="Reason for leave" /></label>
+            @if (selectedLeaveBalance()) {
+              <div class="leave-apply-summary">
+                <span>Requested <strong>{{ requestedLeaveDays() }}</strong></span>
+                <span>Available <strong>{{ leaveBalanceAvailable(selectedLeaveBalance()!) }}</strong></span>
+              </div>
+            }
+            <button class="submit-btn" type="submit" [disabled]="leaveForm.invalid || isLeaveSaving() || isPreviewMode() || !canApplySelectedLeave()">Apply Leave</button>
+          </form>
+        </article>
+      }
+
+      @if (activeSection() === 'leave-balance') {
+        <article class="panel span-2" id="leave-requests">
+          <div class="panel-heading">
+            <div>
+              <h2>My Leave Requests</h2>
+              <p>Pending and recent requests with HR remarks.</p>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Leave</th><th>Dates</th><th>Days</th><th>Status</th><th>Remark</th></tr></thead>
+              <tbody>
+                @for (leave of leaves(); track leave._id) {
+                  <tr>
+                    <td>{{ leave.leaveTypeId?.leaveName || 'Leave' }} <small>{{ leave.leaveTypeId?.leaveCode || '' }}</small></td>
+                    <td>{{ formatDate(leave.fromDate) }} - {{ formatDate(leave.toDate) }}</td>
+                    <td>{{ leave.totalDays || 0 }}</td>
+                    <td><span class="status-pill">{{ leave.status || 'pending' }}</span></td>
+                    <td>{{ leave.approverRemarks || '-' }}</td>
+                  </tr>
+                } @empty {
+                  <tr><td colspan="5" class="empty-state">No leave requests yet.</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </article>
+      }
+
+      @if (activeSection() === 'leave-history') {
+        <article class="panel span-2" id="leave-history">
+          <div class="panel-heading">
+            <div>
+              <h2>Leave History</h2>
+              <p>All leave records sorted by latest date.</p>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Leave</th><th>From</th><th>To</th><th>Days</th><th>Status</th><th>Remark</th></tr></thead>
+              <tbody>
+                @for (leave of leaveHistory(); track leave._id) {
+                  <tr>
+                    <td>{{ leave.leaveTypeId?.leaveName || 'Leave' }} <small>{{ leave.leaveTypeId?.leaveCode || '' }}</small></td>
+                    <td>{{ formatDate(leave.fromDate) }}</td>
+                    <td>{{ formatDate(leave.toDate) }}</td>
+                    <td>{{ leave.totalDays || 0 }}</td>
+                    <td><span class="status-pill">{{ leave.status || '-' }}</span></td>
+                    <td>{{ leave.approverRemarks || '-' }}</td>
+                  </tr>
+                } @empty {
+                  <tr><td colspan="6" class="empty-state">No leave history yet.</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </article>
+      }
+    }
+
+    @if (activeSection() === 'attendance-history') {
+    <article class="panel span-2" id="attendance-history">
+      <div class="panel-heading">
+        <div>
+          <h2>Attendance History</h2>
+          <p>Check daily punch-in, punch-out and working time by month or year.</p>
+        </div>
+      </div>
+      <div class="history-controls">
+        <label>Range
+          <select [value]="historyRange()" (change)="setHistoryRange($any($event.target).value)">
+            <option value="month">Month</option>
+            <option value="year">Year</option>
+          </select>
+        </label>
+        @if (historyRange() === 'month') {
+          <label>Month
+            <select [value]="historyMonth()" (change)="setHistoryMonth($any($event.target).value)">
+              @for (month of months; track month.value) {
+                <option [value]="month.value">{{ month.label }}</option>
+              }
+            </select>
+          </label>
+        }
+        <label>Year
+          <select [value]="historyYear()" (change)="setHistoryYear($any($event.target).value)">
+            @for (year of years(); track year) {
+              <option [value]="year">{{ year }}</option>
+            }
+          </select>
+        </label>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Date</th><th>Punch Sessions</th><th>Working Time</th><th>Late</th><th>Status</th></tr></thead>
+          <tbody>
+            @for (record of attendanceHistory(); track record._id || record.attendanceDate) {
+              <tr>
+                <td>{{ formatDate(record.attendanceDate) }}</td>
+                <td>{{ punchSummary(record) }}</td>
+                <td>{{ formatMinutes(record.totalWorkMinutes, record.checkInTime, record.checkOutTime) }}</td>
+                <td>{{ record.lateByMinutes || 0 }} min</td>
+                <td><span class="status-pill">{{ record.status || '-' }}</span></td>
+              </tr>
+            } @empty {
+              <tr><td colspan="5" class="empty-state">No attendance records for this range.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </article>
+    }
+
+    @if (activeSection() === 'notifications') {
+    <article class="panel" id="notifications">
+      <h2>Notifications</h2>
+      <div class="metric-inline">
+        <span>Unread</span>
+        <strong>{{ unreadCount() }}</strong>
+      </div>
+      <div class="stack-list">
+        @for (notification of notifications().slice(0, 4); track notification._id) {
+          <span>
+            <strong>{{ notification.title }}</strong><br />
+            {{ notification.message }}
+          </span>
+        } @empty {
+          <span>No notifications.</span>
+        }
+      </div>
+    </article>
+    }
+
+    @if (activeSection() === 'payslip') {
+      <article class="panel span-2">
+        <h2>Payslip</h2>
+        <p>Monthly payslips shared by HR.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Month</th><th>Payslip no.</th><th>Gross</th><th>Deductions</th><th>Net</th><th>Status</th><th>PDF</th></tr></thead>
+            <tbody>
+              @for (slip of payslips(); track slip._id || slip.payslipNumber) {
+                <tr>
+                  <td>{{ payslipMonthLabel(slip) }}</td>
+                  <td>{{ slip.payslipNumber || '-' }}</td>
+                  <td>{{ formatCurrency(slip.grossSalary) }}</td>
+                  <td>{{ formatCurrency(slip.totalDeductions) }}</td>
+                  <td><strong>{{ formatCurrency(slip.netSalary) }}</strong></td>
+                  <td><span class="status-pill">{{ slip.status || 'generated' }}</span></td>
+                  <td><button class="submit-btn compact" type="button" (click)="downloadPayslipPdf(slip)">Download</button></td>
+                </tr>
+              } @empty {
+                <tr><td colspan="7" class="empty-state">No payslips generated yet.</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </article>
+    }
+
+    @if (activeSection() === 'my-leads') {
+      <article class="panel span-2 employee-crm-panel">
+        <div class="panel-heading"><div><h2>My Leads</h2><p>Capture and track your assigned leads.</p></div></div>
+        <form [formGroup]="leadForm" (ngSubmit)="createLead()" class="form-grid">
+          <label>Lead name<input formControlName="name" type="text" /></label>
+          <label>Company<input formControlName="company" type="text" /></label>
+          <label>Phone<input formControlName="phone" type="tel" /></label>
+          <label>Email<input formControlName="email" type="email" /></label>
+          <label>Address<input formControlName="address" type="text" /></label>
+          <label>Price<input formControlName="price" type="number" min="0" /></label>
+          <label>Price type<select formControlName="priceType"><option>per kg</option><option>per quintel</option><option>per ton</option></select></label>
+          <label>Packaging<select formControlName="packagingOption"><option>No</option><option>Yes</option></select></label>
+          <label>Source<select formControlName="source"><option>Website</option><option>Referral</option><option>Call</option><option>Social</option><option>Walk-in</option><option>Trade Fair</option><option>Other</option></select></label>
+          <label>Business<select formControlName="businessCategory">@for (item of businessCategories; track item) { <option>{{ item }}</option> }</select></label>
+          <label>Trade<select formControlName="tradeType">@for (item of tradeTypes; track item) { <option>{{ item }}</option> }</select></label>
+          <label>Commodity<input formControlName="commodity" type="text" placeholder="Potato, wheat, mango" /></label>
+          <label>Quantity<input formControlName="quantity" type="text" placeholder="10 MT / 500 boxes" /></label>
+          <label>Route<select formControlName="routeType">@for (item of routeTypes; track item) { <option>{{ item }}</option> }</select></label>
+          <label>Shipment<select formControlName="shipmentMode">@for (item of shipmentModes; track item) { <option>{{ item }}</option> }</select></label>
+          <label class="checkbox-row"><input formControlName="logisticsRequired" type="checkbox" /> Logistics required</label>
+          <label>Status<select formControlName="status"><option>New</option><option>Contacted</option><option>Qualified</option><option>Proposal</option><option>Won</option><option>Lost</option></select></label>
+          <label class="full">Notes<input formControlName="notes" type="text" /></label>
+          <button class="submit-btn" type="submit" [disabled]="leadForm.invalid">{{ editingLeadId() ? 'Save Lead' : 'Add Lead' }}</button>
+          @if (editingLeadId()) { <button class="table-action" type="button" (click)="cancelLeadEdit()">Cancel</button> }
+        </form>
+        <div class="table-wrap">
+          <table><thead><tr><th>Lead</th><th>Contact</th><th>Address</th><th>Price</th><th>Price type</th><th>Packaging</th><th>Source</th><th>Status</th><th>Date</th><th>Action</th></tr></thead><tbody>
+            @for (lead of crmLeads(); track lead.id || lead._id) {
+              <tr><td><strong>{{ lead.name }}</strong><span>{{ lead.company || '-' }}</span></td><td>{{ lead.phone || lead.email || '-' }}</td><td>{{ lead.address || '-' }}</td><td>{{ formatCurrency(lead.price || 0) }}</td><td>{{ lead.priceType || '-' }}</td><td>{{ lead.packagingOption || '-' }}</td><td><strong>{{ lead.source }}</strong><span>{{ lead.tradeType || 'Sell' }} / {{ lead.businessCategory || 'General' }} / {{ lead.commodity || '-' }}</span></td><td><select [value]="lead.status" (change)="updateLeadStatus(lead, $any($event.target).value)"><option>New</option><option>Contacted</option><option>Qualified</option><option>Proposal</option><option>Won</option><option>Lost</option></select></td><td>{{ formatDate(lead.createdAt) }}</td><td><button class="table-action" type="button" (click)="startLeadEdit(lead)">Edit</button></td></tr>
+            } @empty { <tr><td colspan="10" class="empty-state">No leads added yet.</td></tr> }
+          </tbody></table>
+        </div>
+      </article>
+    }
+
+    @if (activeSection() === 'my-deals') {
+      <article class="panel span-2 employee-crm-panel">
+        <div class="panel-heading"><div><h2>My Deals</h2><p>Manage your own deal pipeline.</p></div><strong>{{ formatCurrency(crmPipelineValue()) }}</strong></div>
+        <form [formGroup]="dealForm" (ngSubmit)="createDeal()" class="form-grid">
+          <label>Linked lead<select formControlName="leadId"><option value="">No linked lead</option>@for (lead of crmLeads(); track lead.id || lead._id) { <option [value]="lead.id || lead._id">{{ lead.name }} - {{ lead.company || 'Lead' }}</option> }</select></label>
+          <label>Client / Deal name<input formControlName="clientName" type="text" /></label>
+          <label>Value<input formControlName="value" type="number" min="0" /></label>
+          <label>Stage<select formControlName="stage"><option>Proposal</option><option>Negotiation</option><option>Won</option><option>Lost</option></select></label>
+          <label>Business<select formControlName="businessCategory">@for (item of businessCategories; track item) { <option>{{ item }}</option> }</select></label>
+          <label>Trade<select formControlName="tradeType">@for (item of tradeTypes; track item) { <option>{{ item }}</option> }</select></label>
+          <label>Commodity<input formControlName="commodity" type="text" /></label>
+          <label>Quantity<input formControlName="quantity" type="text" /></label>
+          <label>Route<select formControlName="routeType">@for (item of routeTypes; track item) { <option>{{ item }}</option> }</select></label>
+          <label>Shipment<select formControlName="shipmentMode">@for (item of shipmentModes; track item) { <option>{{ item }}</option> }</select></label>
+          <label class="checkbox-row"><input formControlName="logisticsRequired" type="checkbox" /> Logistics required</label>
+          <label>Expected close<input formControlName="expectedClose" type="date" /></label>
+          <label class="full">Notes<input formControlName="notes" type="text" /></label>
+          <button class="submit-btn" type="submit" [disabled]="dealForm.invalid">Add Deal</button>
+        </form>
+        <div class="table-wrap">
+          <table><thead><tr><th>Deal</th><th>Lead</th><th>Value</th><th>Stage</th><th>Expected Close</th></tr></thead><tbody>
+            @for (deal of crmDeals(); track deal.id || deal._id) {
+              <tr><td><strong>{{ deal.clientName }}</strong><span>{{ deal.tradeType || 'Sell' }} / {{ deal.businessCategory || 'General' }} / {{ deal.commodity || deal.notes || '-' }}</span></td><td>{{ leadName(deal.leadId) }}</td><td>{{ formatCurrency(deal.value) }}</td><td><select [value]="deal.stage" (change)="updateDealStage(deal, $any($event.target).value)"><option>Proposal</option><option>Negotiation</option><option>Won</option><option>Lost</option></select></td><td>{{ formatDate(deal.expectedClose) }}</td></tr>
+            } @empty { <tr><td colspan="5" class="empty-state">No deals added yet.</td></tr> }
+          </tbody></table>
+        </div>
+      </article>
+    }
+
+    @if (activeSection() === 'my-tasks') {
+      <article class="panel span-2 employee-crm-panel">
+        <div class="panel-heading"><div><h2>My Tasks/Follow-ups</h2><p>Track calls, meetings and next actions.</p></div><strong>{{ openTaskCount() }} open</strong></div>
+        <form [formGroup]="taskForm" (ngSubmit)="createTask()" class="form-grid">
+          <label>Task title<input formControlName="title" type="text" /></label>
+          <label>Related to<input formControlName="relatedTo" type="text" /></label>
+          <label>Task type<select formControlName="taskType">@for (item of taskTypes; track item) { <option>{{ item }}</option> }</select></label>
+          <label>Business<select formControlName="businessCategory">@for (item of businessCategories; track item) { <option>{{ item }}</option> }</select></label>
+          <label>Route<select formControlName="routeType">@for (item of routeTypes; track item) { <option>{{ item }}</option> }</select></label>
+          <label>Due date<input formControlName="dueDate" type="date" /></label>
+          <label>Priority<select formControlName="priority"><option>Low</option><option>Medium</option><option>High</option></select></label>
+          <label>Status<select formControlName="status"><option>Open</option><option>In Progress</option><option>Done</option></select></label>
+          <button class="submit-btn" type="submit" [disabled]="taskForm.invalid">Add Task</button>
+        </form>
+        <div class="table-wrap">
+          <table><thead><tr><th>Task</th><th>Related</th><th>Due</th><th>Priority</th><th>Status</th></tr></thead><tbody>
+            @for (task of crmTasks(); track task.id || task._id) {
+              <tr><td><strong>{{ task.title }}</strong><span>{{ formatDate(task.createdAt) }}</span></td><td>{{ task.relatedTo || '-' }}<span>{{ task.taskType || 'Follow-up' }} / {{ task.businessCategory || 'General' }}</span></td><td>{{ formatDate(task.dueDate) }}</td><td>{{ task.priority }}</td><td><select [value]="task.status" (change)="updateTaskStatus(task, $any($event.target).value)"><option>Open</option><option>In Progress</option><option>Done</option></select></td></tr>
+            } @empty { <tr><td colspan="5" class="empty-state">No follow-up tasks yet.</td></tr> }
+          </tbody></table>
+        </div>
+      </article>
+    }
+
+    @if (activeSection() === 'account-invoices') {
+      <article class="panel span-2">
+        <div class="panel-heading"><div><h2>Invoices</h2><p>Accounts department invoice register.</p></div><strong>{{ formatCurrency(accountReceivableTotal()) }}</strong></div>
+        <form [formGroup]="invoiceForm" (ngSubmit)="createInvoice()" class="form-grid">
+          <label>Invoice no.<input formControlName="invoiceNumber" type="text" /></label>
+          <label>Client<input formControlName="clientName" type="text" /></label>
+          <label>Amount<input formControlName="amount" type="number" min="0" /></label>
+          <label>Transaction<select formControlName="transactionType">@for (item of tradeTypes; track item) { <option>{{ item }}</option> }</select></label>
+          <label>Business<select formControlName="businessCategory">@for (item of businessCategories; track item) { <option>{{ item }}</option> }</select></label>
+          <label>Commodity<input formControlName="commodity" type="text" /></label>
+          <label>Quantity<input formControlName="quantity" type="text" /></label>
+          <label>Route<select formControlName="routeType">@for (item of routeTypes; track item) { <option>{{ item }}</option> }</select></label>
+          <label>Shipment<select formControlName="shipmentMode">@for (item of shipmentModes; track item) { <option>{{ item }}</option> }</select></label>
+          <label>Status<select formControlName="status"><option>Pending</option><option>Paid</option><option>Overdue</option><option>Cancelled</option></select></label>
+          <label>Due date<input formControlName="dueDate" type="date" /></label>
+          <label class="full">Notes<input formControlName="notes" type="text" /></label>
+          <button class="submit-btn" type="submit" [disabled]="invoiceForm.invalid">Add Invoice</button>
+        </form>
+        <div class="table-wrap"><table><thead><tr><th>Invoice</th><th>Client</th><th>Amount</th><th>Due</th><th>Status</th></tr></thead><tbody>
+          @for (invoice of accountInvoices(); track invoice._id) {
+            <tr><td><strong>{{ invoice.invoiceNumber }}</strong><span>{{ invoice.transactionType || 'Sell' }} / {{ invoice.businessCategory || 'General' }} / {{ invoice.commodity || invoice.notes || '-' }}</span></td><td>{{ invoice.clientName }}</td><td>{{ formatCurrency(invoice.amount || 0) }}</td><td>{{ formatDate(invoice.dueDate) }}</td><td><select [value]="invoice.status" (change)="updateAccounting('invoices', invoice._id, { status: $any($event.target).value })"><option>Pending</option><option>Paid</option><option>Overdue</option><option>Cancelled</option></select></td></tr>
+          } @empty { <tr><td colspan="5" class="empty-state">No invoices yet.</td></tr> }
+        </tbody></table></div>
+      </article>
+    }
+
+    @if (activeSection() === 'account-payments') {
+      <article class="panel span-2">
+        <div class="panel-heading"><div><h2>Payments</h2><p>Track received and failed payments.</p></div></div>
+        <form [formGroup]="paymentForm" (ngSubmit)="createPayment()" class="form-grid">
+          <label>Payer<input formControlName="payerName" type="text" /></label>
+          <label>Amount<input formControlName="amount" type="number" min="0" /></label>
+          <label>Mode<select formControlName="mode"><option>Bank Transfer</option><option>Cash</option><option>UPI</option><option>Cheque</option><option>Card</option></select></label>
+          <label>Transaction<select formControlName="transactionType">@for (item of tradeTypes; track item) { <option>{{ item }}</option> }</select></label>
+          <label>Route<select formControlName="routeType">@for (item of routeTypes; track item) { <option>{{ item }}</option> }</select></label>
+          <label>Status<select formControlName="status"><option>Received</option><option>Pending</option><option>Failed</option><option>Refunded</option></select></label>
+          <label>Payment date<input formControlName="paymentDate" type="date" /></label>
+          <label class="full">Reference<input formControlName="reference" type="text" /></label>
+          <button class="submit-btn" type="submit" [disabled]="paymentForm.invalid">Add Payment</button>
+        </form>
+        <div class="table-wrap"><table><thead><tr><th>Payer</th><th>Amount</th><th>Mode</th><th>Date</th><th>Status</th></tr></thead><tbody>
+          @for (payment of accountPayments(); track payment._id) {
+            <tr><td><strong>{{ payment.payerName }}</strong><span>{{ payment.reference || '-' }}</span></td><td>{{ formatCurrency(payment.amount || 0) }}</td><td>{{ payment.mode }}<span>{{ payment.transactionType || 'Sell' }} / {{ payment.routeType || 'Domestic' }}</span></td><td>{{ formatDate(payment.paymentDate) }}</td><td><select [value]="payment.status" (change)="updateAccounting('payments', payment._id, { status: $any($event.target).value })"><option>Received</option><option>Pending</option><option>Failed</option><option>Refunded</option></select></td></tr>
+          } @empty { <tr><td colspan="5" class="empty-state">No payments yet.</td></tr> }
+        </tbody></table></div>
+      </article>
+    }
+
+    @if (activeSection() === 'account-expenses') {
+      <article class="panel span-2">
+        <div class="panel-heading"><div><h2>Expenses</h2><p>Accounts department expense register.</p></div><strong>{{ formatCurrency(accountExpenseTotal()) }}</strong></div>
+        <form [formGroup]="expenseForm" (ngSubmit)="createExpense()" class="form-grid">
+          <label>Title<input formControlName="title" type="text" /></label>
+          <label>Category<select formControlName="category">@for (item of expenseTypes; track item) { <option>{{ item }}</option> }</select></label>
+          <label>Expense type<select formControlName="expenseType">@for (item of expenseTypes; track item) { <option>{{ item }}</option> }</select></label>
+          <label>Business<select formControlName="businessCategory">@for (item of businessCategories; track item) { <option>{{ item }}</option> }</select></label>
+          <label>Route<select formControlName="routeType">@for (item of routeTypes; track item) { <option>{{ item }}</option> }</select></label>
+          <label>Amount<input formControlName="amount" type="number" min="0" /></label>
+          <label>Date<input formControlName="expenseDate" type="date" /></label>
+          <label>Status<select formControlName="status"><option>Pending</option><option>Approved</option><option>Rejected</option><option>Paid</option></select></label>
+          <label class="full">Notes<input formControlName="notes" type="text" /></label>
+          <button class="submit-btn" type="submit" [disabled]="expenseForm.invalid">Add Expense</button>
+        </form>
+        <div class="table-wrap"><table><thead><tr><th>Expense</th><th>Category</th><th>Amount</th><th>Date</th><th>Status</th></tr></thead><tbody>
+          @for (expense of accountExpenses(); track expense._id) {
+            <tr><td><strong>{{ expense.title }}</strong><span>{{ expense.notes || '-' }}</span></td><td>{{ expense.category }}<span>{{ expense.expenseType || 'Operations' }} / {{ expense.businessCategory || 'General' }} / {{ expense.routeType || 'Domestic' }}</span></td><td>{{ formatCurrency(expense.amount || 0) }}</td><td>{{ formatDate(expense.expenseDate) }}</td><td><select [value]="expense.status" (change)="updateAccounting('expenses', expense._id, { status: $any($event.target).value })"><option>Pending</option><option>Approved</option><option>Rejected</option><option>Paid</option></select></td></tr>
+          } @empty { <tr><td colspan="5" class="empty-state">No expenses yet.</td></tr> }
+        </tbody></table></div>
+      </article>
+    }
+    @if (activeSection() === 'settings' || activeSection() === 'announcements') {
+      <article class="panel span-2">
+        <h2>@if (activeSection() === 'settings') { Settings } @if (activeSection() === 'announcements') { Announcements }</h2>
+        <div class="stack-list">
+          @if (activeSection() === 'settings') {
+            <form [formGroup]="passwordForm" (ngSubmit)="changePassword()" class="form-grid single">
+              <label>Current password
+                <span class="password-field">
+                  <input formControlName="currentPassword" [type]="isPasswordFieldVisible('currentPassword') ? 'text' : 'password'" autocomplete="current-password" />
+                  <button type="button" class="toggle-password" (click)="togglePasswordField('currentPassword')" [attr.aria-label]="isPasswordFieldVisible('currentPassword') ? 'Hide current password' : 'Show current password'">
+                    @if (isPasswordFieldVisible('currentPassword')) {
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Zm10 3a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" /></svg>
+                    } @else {
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4.3 4.3 3 21 19.7 19.7 21l-3.1-3.1A11.4 11.4 0 0 1 12 19C5.5 19 2 12 2 12a19 19 0 0 1 4.1-4.8L3 4.3Zm8 4.9 3.8 3.8A3 3 0 0 0 11 9.2ZM12 5c6.5 0 10 7 10 7a18.7 18.7 0 0 1-2.8 3.7l-3-3A4.5 4.5 0 0 0 10.9 7l-2-2A11.5 11.5 0 0 1 12 5Z" /></svg>
+                    }
+                  </button>
+                </span>
+              </label>
+              <label>New password
+                <span class="password-field">
+                  <input formControlName="newPassword" [type]="isPasswordFieldVisible('newPassword') ? 'text' : 'password'" autocomplete="new-password" />
+                  <button type="button" class="toggle-password" (click)="togglePasswordField('newPassword')" [attr.aria-label]="isPasswordFieldVisible('newPassword') ? 'Hide new password' : 'Show new password'">
+                    @if (isPasswordFieldVisible('newPassword')) {
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Zm10 3a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" /></svg>
+                    } @else {
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4.3 4.3 3 21 19.7 19.7 21l-3.1-3.1A11.4 11.4 0 0 1 12 19C5.5 19 2 12 2 12a19 19 0 0 1 4.1-4.8L3 4.3Zm8 4.9 3.8 3.8A3 3 0 0 0 11 9.2ZM12 5c6.5 0 10 7 10 7a18.7 18.7 0 0 1-2.8 3.7l-3-3A4.5 4.5 0 0 0 10.9 7l-2-2A11.5 11.5 0 0 1 12 5Z" /></svg>
+                    }
+                  </button>
+                </span>
+              </label>
+              <label>Confirm password
+                <span class="password-field">
+                  <input formControlName="confirmPassword" [type]="isPasswordFieldVisible('confirmPassword') ? 'text' : 'password'" autocomplete="new-password" />
+                  <button type="button" class="toggle-password" (click)="togglePasswordField('confirmPassword')" [attr.aria-label]="isPasswordFieldVisible('confirmPassword') ? 'Hide confirm password' : 'Show confirm password'">
+                    @if (isPasswordFieldVisible('confirmPassword')) {
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Zm10 3a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" /></svg>
+                    } @else {
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4.3 4.3 3 21 19.7 19.7 21l-3.1-3.1A11.4 11.4 0 0 1 12 19C5.5 19 2 12 2 12a19 19 0 0 1 4.1-4.8L3 4.3Zm8 4.9 3.8 3.8A3 3 0 0 0 11 9.2ZM12 5c6.5 0 10 7 10 7a18.7 18.7 0 0 1-2.8 3.7l-3-3A4.5 4.5 0 0 0 10.9 7l-2-2A11.5 11.5 0 0 1 12 5Z" /></svg>
+                    }
+                  </button>
+                </span>
+              </label>
+              <button class="submit-btn" type="submit" [disabled]="passwordForm.invalid || isPasswordChanging()">{{ isPasswordChanging() ? 'Changing...' : 'Change Password' }}</button>
+            </form>
+            <span><strong>Notification Preferences</strong><br />Employee notification preferences will appear here.</span>
+          } @else {
+            @for (notification of notifications().slice(0, 4); track notification._id || notification.createdAt) {
+              <span><strong>{{ notification.title || 'Announcement' }}</strong><br />{{ notification.message || '-' }}</span>
+            } @empty { <span>No announcements yet.</span> }
+          }
+        </div>
+      </article>
+    }
+
+    @if (activeSection() === 'messages') {
+      <article class="panel">
+        <h2>Send message</h2>
+        <p>Send a direct message to HR or another employee.</p>
+        <form [formGroup]="messageForm" (ngSubmit)="sendMessage()" class="form-grid single">
+          <label>Send to
+            <select formControlName="recipientEmployeeCode">
+              <option value="">HR / Company admin</option>
+              @for (employee of employeeRecipients(); track employee._id || employee.employeeCode) {
+                <option [value]="employee.employeeCode">
+                  {{ employee.displayName || employee.officialEmail || employee.employeeCode }} - {{ employee.departmentId?.departmentName || '-' }}
+                </option>
+              }
+            </select>
+          </label>
+          <label>Message<textarea formControlName="body" rows="5"></textarea></label>
+          <button class="submit-btn" type="submit" [disabled]="messageForm.invalid || isMessageSending()">Send message</button>
+        </form>
+        @if (message()) {
+          <div class="notice">{{ message() }}</div>
+        }
+      </article>
+      <article class="panel span-2">
+        <h2>Messages</h2>
+        <p>Direct HR and company messages for {{ userName() }}. You can reply from here.</p>
+        <div class="message-list chat-thread">
+          @for (item of chatMessages(); track item._id) {
+            <section class="message-item" [class.outgoing]="isOwnMessage(item)" [class.incoming]="!isOwnMessage(item)">
+              <header>
+                <small>{{ formatDateTime(item.createdAt) }}</small>
+              </header>
+              <p>{{ item.body }}</p>
+              <footer>
+                <span>{{ isOwnMessage(item) ? 'You' : userLabel(item.senderUserId) }}</span>
+                <span>{{ item.status || 'sent' }}</span>
+              </footer>
+              <div class="reply-row">
+                <input [value]="replyDraft(item._id)" (input)="setReplyDraft(item._id, $any($event.target).value)" type="text" placeholder="Reply..." />
+                <button type="button" class="submit-btn compact" (click)="sendReply(item)" [disabled]="isMessageSending()">Reply</button>
+              </div>
+            </section>
+          } @empty {
+            <span class="empty-state">No messages.</span>
+          }
+        </div>
+      </article>
+    }    @if (activeSection() === 'meetings') {
+      <article class="panel span-2 meeting-create-panel">
+        <h2>Meetings</h2>
+        <p>Create a video room, invite HR or employees, and approve join requests from the room panel.</p>
+        <form [formGroup]="meetingForm" (ngSubmit)="createMeeting()" class="form-grid">
+          <label>Meeting title<input formControlName="meetingTitle" type="text" /></label>
+          <label>Start<input formControlName="startDateTime" type="datetime-local" /></label>
+          <label>End<input formControlName="endDateTime" type="datetime-local" /></label>
+          <label>Room link<input [value]="autoMeetingLink()" type="url" readonly /></label>
+          <div class="invite-picker span-2">
+            <strong>Invite people</strong>
+            <small>{{ selectedMeetingInviteCount() }} selected</small>
+            <div>
+              @for (employee of employeeRecipients(); track employee._id || employee.employeeCode) {
+                <label>
+                  <input type="checkbox" [checked]="isMeetingInviteSelected(employee)" (change)="toggleMeetingInvite(employee, $any($event.target).checked)" />
+                  {{ employee.displayName || employee.officialEmail || employee.employeeCode }}
+                  <small>{{ recipientRoleLabel(employee) }} | {{ employee.departmentId?.departmentName || '-' }} | {{ employee.designationId?.designationName || '-' }}</small>
+                </label>
+              } @empty {
+                <span class="empty-state">No invite people found.</span>
+              }
+            </div>
+          </div>
+          <button class="submit-btn span-2" type="submit" [disabled]="meetingForm.invalid || isMeetingSaving()">Create video meeting room</button>
+        </form>
+        <div class="meeting-card-grid">
+          @for (meeting of meetings(); track meeting._id || meeting.meetingTitle) {
+            <span>
+              <strong>{{ meeting.meetingTitle }}</strong>
+              {{ formatDateTime(meeting.startDateTime) }} - {{ formatTime(meeting.endDateTime) }}
+              <small>{{ meeting.meetingMode || 'online' }} | {{ meeting.venue || meeting.meetingLink || 'No location' }}</small>
+              @if (meeting.meetingLink) {
+                <button class="submit-btn compact" type="button" (click)="openActionUrl(meeting.meetingLink)">Join meeting</button>
+              }
+            </span>
+          } @empty {
+            <span>No meetings scheduled.</span>
+          }
+        </div>
+      </article>
+    }
+    @if (activeSection() === 'events') {
+      <article class="panel span-2">
+        <h2>Events</h2>
+        <p>Company events and engagement updates published by HR.</p>
+        <div class="stack-list">
+          @for (event of events(); track event._id || event.eventTitle) {
+            <span>
+              <strong>{{ event.eventTitle }}</strong>
+              {{ formatDateTime(event.startDateTime) }} - {{ formatTime(event.endDateTime) }}
+              <small>{{ event.eventType || 'company_event' }} | {{ event.venue || event.meetingLink || 'No location' }}</small>
+              @if (event.description) {
+                <small>{{ event.description }}</small>
+              }
+            </span>
+          } @empty {
+            <span>No upcoming events.</span>
+          }
+        </div>
+      </article>
+    }
+
+    @if (activeSection() === 'holidays' || activeSection() === 'calendar') {
+      <article class="panel span-2">
+        <div class="panel-heading">
+          <div>
+            <h2>{{ activeSection() === 'calendar' ? 'Calendar' : 'Month Holiday' }}</h2>
+            <p>{{ activeSection() === 'calendar' ? 'Company holidays added by HR. Employee access is read-only.' : 'Selected month holidays updated by HR.' }}</p>
+          </div>
+          <label class="holiday-month-filter">
+            <span>Month</span>
+            <select [value]="holidayMonthFilter()" (change)="setHolidayMonthFilter($any($event.target).value)">
+              <option value="all">All months</option>
+              @for (month of months; track month.value) {
+                <option [value]="month.value">{{ month.label }}</option>
+              }
+            </select>
+          </label>
+        </div>
+        @if ((activeSection() === 'holidays' || activeSection() === 'calendar') && holidayMonthFilter() !== 'all') {
+          <div class="month-title">{{ holidayMonthLabel() }}</div>
+          <div class="month-calendar" aria-label="Holiday calendar">
+            @for (day of weekDays; track day) {
+              <strong class="weekday">{{ day }}</strong>
+            }
+            @for (cell of calendarDays(); track cell.dateKey || $index) {
+              <span
+                class="calendar-cell"
+                [class.empty]="!cell.day"
+                [class.has-holiday]="cell.holidays.length"
+                [style.background]="cell.holidays.length ? cell.holidays[0].holidayColor || '#2563eb' : null"
+                [style.color]="cell.holidays.length ? holidayTextColor(cell.holidays[0].holidayColor) : null"
+              >
+                @if (cell.day) {
+                  <b>{{ cell.day }}</b>
+                  @if (cell.holidays.length) {
+                    <small>{{ cell.holidays[0].holidayName }}</small>
+                  }
+                }
+              </span>
+            }
+          </div>
+          <h3 class="month-list-title">{{ holidayMonthLabel() }} holidays</h3>
+        } @else {
+          <h3 class="month-list-title">All months holidays</h3>
+        }
+        <div class="holiday-grid" [class.month-list]="activeSection() === 'holidays' || activeSection() === 'calendar'">
+          @for (holiday of visibleHolidayRows(); track holiday._id || holiday.holidayName) {
+            <span
+              [style.background]="holiday.holidayColor || '#2563eb'"
+              [style.border-color]="holiday.holidayColor || '#2563eb'"
+              [style.color]="holidayTextColor(holiday.holidayColor)"
+            >
+              <strong>{{ formatDate(holiday.date) }}</strong>
+              {{ holiday.holidayName || 'Holiday' }}
+              <small>{{ holiday.type || 'company' }}</small>
+            </span>
+          } @empty {
+            <span class="empty-state">{{ holidayMonthFilter() === 'all' ? 'No holidays added yet.' : 'No holidays in this month.' }}</span>
+          }
+        </div>
+      </article>
+    }
+  </div>
+    </section>
+  </div>
+</section>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,491 @@
+<div class="documents-page">
+
+    <header class="page-header">
+  
+      <div>
+        <div class="breadcrumb">
+          Logistics <b>&rsaquo;</b> Documents
+        </div>
+  
+        <div class="title-row">
+          <span class="title-icon">&#9633;</span>
+  
+          <div>
+            <h1>Logistics Documents</h1>
+  
+            <p>
+              Manage shipment, customs, vendor and compliance documents.
+            </p>
+          </div>
+        </div>
+      </div>
+  
+      <button
+        type="button"
+        class="gold-button"
+        (click)="openForm()"
+      >
+        &#43; Upload Document
+      </button>
+  
+    </header>
+  
+    <main class="page-content">
+  
+      <section class="summary-grid">
+  
+        <article>
+          <span>&#9633;</span>
+  
+          <div>
+            <small>Total Documents</small>
+            <strong>{{ summary().total }}</strong>
+            <p>Uploaded documents</p>
+          </div>
+        </article>
+  
+        <article>
+          <span>&#10003;</span>
+  
+          <div>
+            <small>Valid</small>
+            <strong>{{ summary().valid }}</strong>
+            <p>Verified documents</p>
+          </div>
+        </article>
+  
+        <article>
+          <span>&#9655;</span>
+  
+          <div>
+            <small>Pending Verification</small>
+            <strong>{{ summary().pending }}</strong>
+            <p>Require checking</p>
+          </div>
+        </article>
+  
+        <article>
+          <span>!</span>
+  
+          <div>
+            <small>Expired</small>
+            <strong>{{ summary().expired }}</strong>
+            <p>Require renewal</p>
+          </div>
+        </article>
+  
+      </section>
+  
+      @if (showForm()) {
+        <section class="form-card">
+  
+          <header class="section-header">
+  
+            <div>
+              <span>DOCUMENT ENTRY</span>
+  
+              <h2>
+                Upload Logistics Document
+              </h2>
+  
+              <p>
+                Attach document with shipment and compliance information.
+              </p>
+            </div>
+  
+            <button
+              type="button"
+              class="close-button"
+              (click)="closeForm()"
+            >
+              &times;
+            </button>
+  
+          </header>
+  
+          <section class="form-section">
+            <h3>1. Document Details</h3>
+  
+            <div class="form-grid">
+  
+              <div class="field">
+                <label>Document No.</label>
+  
+                <input
+                  [(ngModel)]="form.documentNo"
+                  readonly
+                />
+              </div>
+  
+              <div class="field">
+                <label><span class="field-label-icon icon-shipment" aria-hidden="true"></span>Shipment No. <span class="required-star">*</span></label><select [(ngModel)]="form.shipmentNo" (change)="onShipmentSelected(form.shipmentNo)"><option value="">Select Shipment Number</option>@for (option of shipmentOptions(); track option.value) {<option [value]="option.value">{{ option.label }}</option>}</select>@if (form.shipmentNo) { <small class="field-hint">{{ shipmentRouteLabel(selectedShipment()) }}</small> }
+              </div>
+  
+              <div class="field span-2">
+                <label><span class="field-label-icon icon-customer" aria-hidden="true"></span>Customer <span class="required-star">*</span></label>
+  
+                <input
+                  [(ngModel)]="form.customer"
+                  placeholder="Enter customer"
+                />
+              </div>
+  
+              <div class="field span-2">
+                <label>Document Type <span class="required-star">*</span></label>
+  
+                <select
+                  [(ngModel)]="form.documentType"
+                  (change)="onDocumentTypeChanged()"
+                >
+                  <option value="">
+                    Select Document Type
+                  </option>
+  
+                  @for (
+                    option of documentTypes;
+                    track option.value
+                  ) {
+                    <option [value]="option.value">
+                      {{ option.label }}
+                    </option>
+                  }
+                </select>
+  
+                @if (form.documentType === 'other') {
+                  <input
+                    class="other-input"
+                    [(ngModel)]="form.documentTypeOther"
+                    placeholder="Enter document type"
+                  />
+                }
+              </div>
+  
+              <div class="field span-2">
+                <label>Document Title</label>
+  
+                <input
+                  [(ngModel)]="form.documentTitle"
+                  placeholder="Enter document title"
+                />
+              </div>
+  
+              <div class="field">
+                <label>Issue Date</label>
+  
+                <input
+                  type="date"
+                  [(ngModel)]="form.issueDate"
+                />
+              </div>
+  
+              <div class="field">
+                <label>Expiry Date</label>
+  
+                <input
+                  type="date"
+                  [(ngModel)]="form.expiryDate"
+                />
+              </div>
+  
+              <div class="field span-2">
+                <label>Issuing Authority</label>
+  
+                <input
+                  [(ngModel)]="form.issuingAuthority"
+                  placeholder="Enter issuing authority"
+                />
+              </div>
+  
+              <div class="field span-2">
+                <label>Reference Number</label>
+  
+                <input
+                  [(ngModel)]="form.referenceNumber"
+                  placeholder="Enter certificate / document reference"
+                />
+              </div>
+  
+            </div>
+          </section>
+  
+          <section class="form-section">
+            <h3>2. Upload File</h3>
+  
+            <label class="upload-zone">
+  
+              <input
+                type="file"
+                hidden
+                (change)="onFileSelected($event)"
+              />
+  
+              <span>&#8679;</span>
+  
+              <strong>
+                Select Logistics Document
+              </strong>
+  
+              <small>
+                PDF, JPG, JPEG or PNG
+              </small>
+  
+              @if (selectedFile) {
+                <b>
+                  {{ selectedFile.name }}
+                </b>
+              }
+  
+            </label>
+          </section>
+  
+          <section class="form-section">
+            <h3>3. Verification Status</h3>
+  
+            <div class="form-grid">
+              <div class="field span-2">
+                <label>Status <span class="required-star">*</span></label>
+  
+                <select
+                  [(ngModel)]="form.status"
+                >
+                  @for (
+                    option of statuses;
+                    track option.value
+                  ) {
+                    <option [value]="option.value">
+                      {{ option.label }}
+                    </option>
+                  }
+                </select>
+  
+                @if (form.status === 'other') {
+                  <input
+                    class="other-input"
+                    [(ngModel)]="form.statusOther"
+                    placeholder="Enter custom document status"
+                  />
+                }
+              </div>
+            </div>
+          </section>
+  
+          <!-- REMARKS LAST -->
+          <section class="form-section remarks-section">
+            <h3>4. Remarks</h3>
+  
+            <div class="field">
+              <label>Remarks <span class="required-star">*</span></label>
+  
+              <textarea
+                rows="5"
+                [(ngModel)]="form.remarks"
+                placeholder="
+                  Enter verification note,
+                  missing document issue,
+                  renewal instruction
+                  or final remarks...
+                "
+              ></textarea>
+            </div>
+          </section>
+  
+          <footer class="form-footer">
+  
+            <button
+              type="button"
+              class="soft-button"
+              (click)="closeForm()"
+            >
+              Cancel
+            </button>
+  
+            <button
+              type="button"
+              class="gold-button"
+              (click)="saveDocument()"
+            >
+              Save Document
+            </button>
+  
+          </footer>
+  
+        </section>
+      }
+  
+      <section class="filter-card">
+  
+        <div class="search-box">
+  
+          <span>&#8981;</span>
+  
+          <input
+            #searchBox
+            [value]="search()"
+            (input)="search.set(searchBox.value)"
+            placeholder="
+              Search document, shipment,
+              customer or file name...
+            "
+          />
+  
+        </div>
+  
+        <select
+          #typeBox
+          [value]="typeFilter()"
+          (change)="typeFilter.set(typeBox.value)"
+        >
+          <option value="all">
+            All Document Types
+          </option>
+  
+          @for (option of documentTypes; track option.value) {
+            @if (option.value !== 'other') {
+              <option [value]="option.value">
+                {{ option.label }}
+              </option>
+            }
+          }
+        </select>
+  
+      </section>
+  
+      <section class="table-card">
+  
+        <header>
+  
+          <div>
+            <span>DOCUMENT REGISTER</span>
+  
+            <h2>
+              Logistics Documents
+            </h2>
+          </div>
+  
+          <strong>
+            {{ filteredRecords().length }} records
+          </strong>
+  
+        </header>
+  
+        <div class="table-scroll">
+  
+          <table>
+  
+            <thead>
+              <tr>
+                <th>Document No.</th>
+                <th>Shipment</th>
+                <th>Customer</th>
+                <th>Document Type</th>
+                <th>File</th>
+                <th>Uploaded</th>
+                <th>Expiry</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+  
+            <tbody>
+  
+              @for (
+                item of filteredRecords();
+                track item.id
+              ) {
+  
+                <tr>
+  
+                  <td>
+                    <strong>
+                      {{ item.documentNo }}
+                    </strong>
+                  </td>
+  
+                  <td>
+                    {{ item.shipmentNo }}
+                  </td>
+  
+                  <td>
+                    {{ item.customer }}
+                  </td>
+  
+                  <td>
+                    <span class="document-type">
+                      {{
+                        documentTypeLabel(
+                          item.documentType
+                        )
+                      }}
+                    </span>
+                  </td>
+  
+                  <td>
+                    <span class="file-name">
+                      {{ item.fileName }}
+                    </span>
+                  </td>
+  
+                  <td>
+                    {{ item.uploadDate }}
+                  </td>
+  
+                  <td>
+                    {{ item.expiryDate }}
+                  </td>
+  
+                  <td>
+                    <span
+                      class="status"
+                      [class]="
+                        'status ' +
+                        item.status
+                      "
+                    >
+                      {{
+                        statusLabel(
+                          item.status
+                        )
+                      }}
+                    </span>
+                  </td>
+  
+                  <td>
+                    <div class="actions">
+  
+                      <button
+                        type="button"
+                        title="Preview"
+                        (click)="previewDocument(item)"
+                      >
+                        &#9673;
+                      </button>
+  
+                      <button
+                        type="button"
+                        title="Download"
+                        (click)="downloadDocument(item)"
+                      >
+                        &#8681;
+                      </button>
+  
+                    </div>
+                  </td>
+  
+                </tr>
+  
+              }
+  
+            </tbody>
+  
+          </table>
+  
+        </div>
+  
+      </section>
+  
+    </main>
+  </div>
+
+
+
+

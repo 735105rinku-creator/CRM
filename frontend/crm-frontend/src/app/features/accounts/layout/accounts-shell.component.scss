@@ -1,0 +1,555 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+/* =========================================================
+   ROOT
+========================================================= */
+
+.accounts-shell {
+  min-height: 100vh;
+  display: flex;
+
+  background:
+    #f5f7fb;
+
+  color:
+    #1f2937;
+}
+
+/* =========================================================
+   SIDEBAR
+========================================================= */
+
+.accounts-sidebar-wrapper {
+  position: fixed;
+
+  top: 0;
+  left: 0;
+  bottom: 0;
+
+  z-index: 1100;
+
+  width: 270px;
+
+  background:
+    #ffffff;
+
+  border-right:
+    1px solid #e5e7eb;
+
+  box-shadow:
+    4px 0 18px
+    rgba(15, 23, 42, 0.04);
+
+  transition:
+    transform 0.25s ease;
+}
+
+/* =========================================================
+   MAIN AREA
+========================================================= */
+
+.accounts-main {
+  width: 100%;
+
+  min-width: 0;
+
+  margin-left:
+    270px;
+
+  display: flex;
+  flex-direction: column;
+
+  min-height: 100vh;
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.accounts-header {
+  position: sticky;
+
+  top: 0;
+
+  z-index: 900;
+
+  min-height: 88px;
+
+  padding:
+    16px 28px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content:
+    space-between;
+
+  gap: 20px;
+
+  background:
+    rgba(255, 255, 255, 0.94);
+
+  backdrop-filter:
+    blur(14px);
+
+  border-bottom:
+    1px solid #e5e7eb;
+}
+
+/* =========================================================
+   HEADER LEFT
+========================================================= */
+
+.header-left {
+  display: flex;
+
+  align-items: center;
+
+  gap: 16px;
+
+  min-width: 0;
+}
+
+.header-title {
+  display: flex;
+
+  align-items: center;
+
+  gap: 14px;
+
+  min-width: 0;
+}
+
+.workspace-badge {
+  flex-shrink: 0;
+
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  min-width: 72px;
+
+  height: 32px;
+
+  padding:
+    0 12px;
+
+  border-radius:
+    10px;
+
+  font-size:
+    12px;
+
+  font-weight:
+    700;
+
+  letter-spacing:
+    0.04em;
+
+  text-transform:
+    uppercase;
+
+  background:
+    #111827;
+
+  color:
+    #ffffff;
+}
+
+.header-title h1 {
+  margin: 0;
+
+  font-size:
+    21px;
+
+  line-height:
+    1.25;
+
+  font-weight:
+    700;
+
+  color:
+    #111827;
+}
+
+.header-title p {
+  margin:
+    4px 0 0;
+
+  max-width:
+    680px;
+
+  font-size:
+    13px;
+
+  line-height:
+    1.5;
+
+  color:
+    #6b7280;
+}
+
+/* =========================================================
+   HEADER RIGHT
+========================================================= */
+
+.header-right {
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+
+  flex-shrink: 0;
+}
+
+.financial-year {
+  min-width:
+    125px;
+
+  padding:
+    9px 14px;
+
+  border:
+    1px solid #e5e7eb;
+
+  border-radius:
+    12px;
+
+  background:
+    #f9fafb;
+
+  display: flex;
+
+  flex-direction:
+    column;
+
+  align-items:
+    flex-start;
+
+  gap: 2px;
+}
+
+.financial-year-label {
+  font-size:
+    10px;
+
+  font-weight:
+    600;
+
+  text-transform:
+    uppercase;
+
+  letter-spacing:
+    0.05em;
+
+  color:
+    #9ca3af;
+}
+
+.financial-year strong {
+  font-size:
+    13px;
+
+  color:
+    #111827;
+}
+
+/* =========================================================
+   MOBILE MENU BUTTON
+========================================================= */
+
+.mobile-menu-button {
+  display: none;
+
+  width:
+    42px;
+
+  height:
+    42px;
+
+  flex-shrink: 0;
+
+  border:
+    1px solid #e5e7eb;
+
+  border-radius:
+    11px;
+
+  background:
+    #ffffff;
+
+  cursor:
+    pointer;
+
+  padding:
+    0;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  flex-direction:
+    column;
+
+  gap:
+    4px;
+
+  transition:
+    0.2s ease;
+}
+
+.mobile-menu-button:hover {
+  background:
+    #f3f4f6;
+}
+
+.menu-line {
+  display: block;
+
+  width:
+    18px;
+
+  height:
+    2px;
+
+  border-radius:
+    10px;
+
+  background:
+    #111827;
+}
+
+/* =========================================================
+   CONTENT
+========================================================= */
+
+.accounts-content {
+  flex:
+    1;
+
+  width:
+    100%;
+
+  padding:
+    24px;
+}
+
+.accounts-page-container {
+  width:
+    100%;
+
+  max-width:
+    1600px;
+
+  margin:
+    0 auto;
+}
+
+/* =========================================================
+   OVERLAY
+========================================================= */
+
+.sidebar-overlay {
+  display:
+    none;
+
+  position:
+    fixed;
+
+  inset:
+    0;
+
+  z-index:
+    1050;
+
+  border:
+    0;
+
+  padding:
+    0;
+
+  background:
+    rgba(15, 23, 42, 0.46);
+
+  cursor:
+    pointer;
+}
+
+/* =========================================================
+   LARGE TABLET
+========================================================= */
+
+@media (
+  max-width: 1180px
+) {
+
+  .accounts-header {
+    padding:
+      14px 20px;
+  }
+
+  .accounts-content {
+    padding:
+      20px;
+  }
+
+  .header-title p {
+    max-width:
+      460px;
+  }
+}
+
+/* =========================================================
+   TABLET / MOBILE
+========================================================= */
+
+@media (
+  max-width: 991px
+) {
+
+  .accounts-sidebar-wrapper {
+    transform:
+      translateX(-100%);
+  }
+
+  .accounts-sidebar-wrapper.mobile-open {
+    transform:
+      translateX(0);
+  }
+
+  .accounts-main {
+    margin-left:
+      0;
+  }
+
+  .mobile-menu-button {
+    display:
+      flex;
+  }
+
+  .sidebar-overlay {
+    display:
+      block;
+  }
+
+  .accounts-header {
+    min-height:
+      76px;
+  }
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (
+  max-width: 767px
+) {
+
+  .accounts-header {
+    padding:
+      12px 14px;
+
+    gap:
+      10px;
+  }
+
+  .workspace-badge {
+    display:
+      none;
+  }
+
+  .header-title {
+    min-width:
+      0;
+  }
+
+  .header-title h1 {
+    font-size:
+      17px;
+
+    white-space:
+      nowrap;
+
+    overflow:
+      hidden;
+
+    text-overflow:
+      ellipsis;
+  }
+
+  .header-title p {
+    display:
+      none;
+  }
+
+  .financial-year {
+    min-width:
+      auto;
+
+    padding:
+      7px 10px;
+
+    border-radius:
+      10px;
+  }
+
+  .financial-year-label {
+    display:
+      none;
+  }
+
+  .financial-year strong {
+    font-size:
+      12px;
+
+    white-space:
+      nowrap;
+  }
+
+  .accounts-content {
+    padding:
+      14px;
+  }
+}
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (
+  max-width: 480px
+) {
+
+  .accounts-header {
+    padding:
+      10px 12px;
+  }
+
+  .mobile-menu-button {
+    width:
+      38px;
+
+    height:
+      38px;
+  }
+
+  .accounts-content {
+    padding:
+      12px;
+  }
+
+  .financial-year {
+    display:
+      none;
+  }
+}

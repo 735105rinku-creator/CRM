@@ -1,0 +1,409 @@
+﻿<section class="logistics-dashboard-page">
+  <!-- TOP BAR -->
+      <header class="topbar">
+        <div class="topbar-title">
+          <p>{{ workspaceName() }} / Logistics</p>
+          <h1>Logistics Dashboard</h1>
+        </div>
+  
+        <div class="topbar-actions">
+          <button class="top-icon-btn" type="button" title="Search">&#8981;</button>
+  
+          <div class="dropdown-host">
+            <button
+              class="top-icon-btn notification-button"
+              type="button"
+              (click)="toggleNotifications()"
+            >&#9826; @if (unreadNotificationCount() > 0) {<span class="notification-badge">{{ unreadNotificationCount() }}</span>}
+            </button>
+  
+            @if (notificationsOpen()) {
+              <div class="luxury-dropdown notification-dropdown">
+                <div class="dropdown-heading">
+                  <div>
+                    <strong>Notifications</strong>
+                    <span>{{ unreadNotificationCount() }} new updates</span>
+                  </div>
+  
+                  <button type="button" (click)="toggleNotifications()">&times;</button>
+                </div>
+  
+                @for (notification of notifications(); track notification._id || notification.createdAt || notification.title) {
+                <article>
+                  <span class="notification-dot" [class.green]="notification.isRead" [class.gold]="!notification.isRead"></span>
+                  <div>
+                    <strong>{{ notification.title || 'Notification' }}</strong>
+                    <p>{{ notification.message || '-' }}</p>
+                    <small>{{ notificationTime(notification.createdAt) }}</small>
+                  </div>
+                </article>
+                } @empty {
+                <article>
+                  <span class="notification-dot blue"></span>
+                  <div>
+                    <strong>No notifications</strong>
+                    <p>Updates will appear here.</p>
+                    <small>-</small>
+                  </div>
+                </article>
+                }
+              </div>
+            }
+          </div>
+  
+          <div class="dropdown-host">
+            <button
+              class="user-profile-button"
+              type="button"
+              (click)="toggleProfile()"
+            >
+                            <span class="top-avatar">
+                @if (topAvatarUrl()) {
+                  <img [src]="topAvatarUrl()" [alt]="userName + ' profile photo'" (error)="handleTopAvatarError()" />
+                } @else {
+                  {{ userName.charAt(0) }}
+                }
+              </span>
+  
+              <span class="top-user-copy">
+                <strong>{{ userName }}</strong>
+                <small>{{ userDesignation }}</small>
+              </span>
+  
+              <span class="profile-chevron">&#8964;</span>
+            </button>
+  
+            @if (profileOpen()) {
+              <div class="luxury-dropdown profile-dropdown">
+                <button
+                type="button"
+                (click)="openProfile()"
+              >
+                <span>&#9817;</span> My Profile
+              </button>
+              
+              <button
+                type="button"
+                (click)="openSettings()"
+              >
+                <span>&#9881;</span> Settings
+              </button>
+              
+              <hr />
+              
+              <button
+                type="button"
+                class="logout-action"
+                (click)="logout()"
+              >
+                <span>&#8618;</span> Logout
+              </button>
+              </div>
+            }
+          </div>
+        </div>
+      </header>
+  
+      <!-- CONTENT -->
+      <div class="dashboard-content">
+        <!-- HERO -->
+        <section class="dashboard-hero">
+          <div>
+            <span class="hero-eyebrow">LOGISTICS OPERATIONS</span>
+  
+            <h2>
+              {{ timeGreeting() }},
+              <span>{{ userName }}</span>
+            </h2>
+  
+            <p>
+              Track shipments, vendor payments, invoices and daily logistics
+              activity from one workspace.
+            </p>
+  
+            <small>{{ currentDate }}</small>
+          </div>
+  
+          <div class="hero-actions">
+            <button
+              class="luxury-btn luxury-btn-secondary"
+              type="button"
+              (click)="selectMenu('vendor-payments')"
+            >
+              <span>&#8377;</span> Vendor Payment
+            </button>
+  
+            <button
+              class="luxury-btn luxury-btn-primary"
+              type="button"
+              (click)="selectMenu('air-new')"
+            >
+              <span>&#65291;</span> New Shipment
+            </button>
+          </div>
+        </section>
+  
+        <!-- METRICS -->
+        <section class="metric-grid">
+          @for (metric of metrics(); track metric.label) {
+            <article class="metric-card" [attr.data-tone]="metric.tone">
+              <div class="metric-icon">
+                {{ metric.icon }}
+              </div>
+  
+              <div class="metric-copy">
+                <span>{{ metric.label }}</span>
+                <strong>{{ metric.value }}</strong>
+                <small>{{ metric.helper }}</small>
+              </div>
+  
+              <div class="metric-arrow">&#8599;</div>
+            </article>
+          }
+        </section>
+  
+        <!-- QUICK ACTIONS -->
+        <section class="section-card quick-action-section">
+          <header class="section-heading">
+            <div>
+              <span class="section-kicker">WORKSPACE</span>
+              <h3>Quick Actions</h3>
+            </div>
+  
+            <p>Frequently used logistics operations</p>
+          </header>
+  
+          <div class="quick-action-grid">
+            @for (action of quickActions(); track action.id) {
+              <button type="button" [class.primary-action]="action.primary" (click)="selectMenu(action.id)">
+                <span class="quick-icon">{{ action.icon }}</span>
+                <strong>{{ action.title }}</strong>
+                <small>{{ action.description }}</small>
+              </button>
+            }
+          </div>
+        </section>
+  
+        <!-- MAIN TWO COLUMN CONTENT -->
+        <div class="dashboard-grid">
+          <!-- SHIPMENTS -->
+          <section class="section-card shipment-card">
+            <header class="section-heading">
+              <div>
+                <span class="section-kicker">LATEST MOVEMENT</span>
+                <h3>Recent Shipments</h3>
+              </div>
+  
+              <button
+                class="text-action"
+                type="button"
+                (click)="selectMenu('air-all')"
+              >
+                View All &#8594;
+              </button>
+            </header>
+  
+            <div class="shipment-table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Shipment</th>
+                    <th>Customer</th>
+                    <th>Mode</th>
+                    <th>Route</th>
+                    <th>Status</th>
+                    <th></th>
+                  </tr>
+                </thead>
+  
+                <tbody>
+                  @for (shipment of recentShipments(); track shipment.shipmentId) {
+                    <tr>
+                      <td>
+                        <strong>{{ shipment.shipmentId }}</strong>
+                      </td>
+  
+                      <td>{{ shipment.customer }}</td>
+  
+                      <td>
+                        <span class="mode-chip">
+                          {{ shipment.mode }}
+                        </span>
+                      </td>
+  
+                      <td>
+                        <div class="route-cell">
+                          <span>{{ shipment.origin }}</span>
+                          <i>&#8594;</i>
+                          <span>{{ shipment.destination }}</span>
+                        </div>
+                      </td>
+  
+                      <td>
+                        <span
+                          class="status-chip"
+                          [class]="
+                            'status-chip ' + shipment.statusClass
+                          "
+                        >
+                          {{ shipment.status }}
+                        </span>
+                      </td>
+  
+                      <td>
+                        <button class="row-action" type="button">&#8250;</button>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </section>
+  
+          <!-- ACTIVITY -->
+          <aside class="section-card activity-card">
+            <header class="section-heading">
+              <div>
+                <span class="section-kicker">TODAY</span>
+                <h3>Operations</h3>
+              </div>
+            </header>
+  
+            <div class="activity-list">
+              @for (operation of todayOperations(); track operation.title) {
+                <article>
+                  <span class="activity-icon" [class]="'activity-icon ' + operation.tone">{{ operation.icon }}</span>
+
+                  <div>
+                    <strong>{{ operation.title }}</strong>
+                    <small>{{ operation.helper }}</small>
+                  </div>
+
+                  <b>{{ operation.count }}</b>
+                </article>
+              }
+            </div>
+          </aside>
+        </div>
+  
+        <!-- VENDOR PAYMENT -->
+        <section class="section-card vendor-payment-card">
+          <header class="section-heading">
+            <div>
+              <span class="section-kicker">PAYMENT CONTROL</span>
+              <h3>Vendor / Supplier Payments</h3>
+            </div>
+  
+            <button
+              class="luxury-btn luxury-btn-small"
+              type="button"
+              (click)="selectMenu('vendor-payments')"
+            >&#65291; New Payment
+            </button>
+          </header>
+  
+          <div class="payment-summary-row">
+            <article>
+              <span>Total Vendor Amount</span>
+              <strong>{{ formatCurrency(vendorPaymentSummary().total) }}</strong>
+            </article>
+  
+            <article>
+              <span>Paid Amount</span>
+              <strong>{{ formatCurrency(vendorPaymentSummary().paid) }}</strong>
+            </article>
+  
+            <article>
+              <span>Pending Balance</span>
+              <strong>{{ formatCurrency(vendorPaymentSummary().balance) }}</strong>
+            </article>
+          </div>
+  
+          <div class="shipment-table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Vendor</th>
+                  <th>Vendor Invoice</th>
+                  <th>Total Amount</th>
+                  <th>Paid</th>
+                  <th>Supplier Balance</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+  
+              <tbody>
+                @for (payment of vendorPayments(); track payment.invoice) {
+                  <tr>
+                    <td>
+                      <strong>{{ payment.vendor }}</strong>
+                    </td>
+  
+                    <td>{{ payment.invoice }}</td>
+  
+                    <td>{{ formatCurrency(payment.total) }}</td>
+  
+                    <td>{{ formatCurrency(payment.paid) }}</td>
+  
+                    <td>
+                      <strong>{{ formatCurrency(payment.balance) }}</strong>
+                    </td>
+  
+                    <td>
+                      <span
+                        class="payment-status"
+                        [class.paid]="payment.status === 'Paid'"
+                        [class.partial]="payment.status === 'Partial'"
+                        [class.pending]="payment.status === 'Pending'"
+                      >
+                        {{ payment.status }}
+                      </span>
+                    </td>
+  
+                    <td>
+                      <button class="row-action" type="button" (click)="selectMenu('vendor-payments')">
+                        
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </section>
+  
+        <!-- BOTTOM -->
+        <div class="bottom-grid">
+          <section class="section-card shipment-progress-card">
+            <header class="section-heading">
+              <div>
+                <span class="section-kicker">SHIPMENT FLOW</span>
+                <h3>Today's Progress</h3>
+              </div>
+            </header>
+  
+            <div class="progress-track">
+              @for (step of progressSteps(); track step.label) {
+                <div class="progress-item" [class.complete]="step.state === 'complete'" [class.current]="step.state === 'current'">
+                  <span>@if (step.state === 'complete') { &#10003; } @else { {{ step.count }} }</span>
+                  <strong>{{ step.label }}</strong>
+                  <small>{{ step.helper }} | {{ step.count }}</small>
+                </div>
+              }
+
+              <i></i>
+            </div>
+          </section>
+        </div>
+      </div>
+  </section>
+
+
+
+
+
+
+
+
+

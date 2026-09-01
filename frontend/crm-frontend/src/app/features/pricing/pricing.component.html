@@ -1,0 +1,37 @@
+<app-public-header />
+
+<main class="pricing-page">
+  <section class="pricing-hero">
+    <img src="/brand/opasbizz-crm.webp" alt="Opas Bizz Pvt. Ltd. logo" />
+    <p>Opas Bizz Pvt. Ltd.</p>
+    <h1>Pricing that unlocks the exact company workspace you paid for.</h1>
+    <span>Company Admins can purchase with Razorpay, and Super Admin offers apply automatically while active.</span>
+  </section>
+
+  <section class="plan-grid" aria-label="Pricing plans">
+    @for (plan of plans(); track plan.code) {
+      <article [class.featured]="plan.code === 'standard'" [class.business]="plan.code === 'business'">
+        <small>{{ plan.code === 'standard' ? 'Most selected' : plan.code === 'business' ? 'Unlimited scale' : 'Start focused' }}</small>
+        <h2>{{ plan.name }}</h2>
+        <strong>{{ formatCurrency(plan.payableInr ?? plan.priceInr) }}</strong>
+        @if ((plan.discountInr || 0) > 0) {
+          <em><s>{{ formatCurrency(plan.priceInr) }}</s> {{ offerLabel(plan) }}</em>
+        } @else {
+          <em>{{ plan.durationMonths }} month access</em>
+        }
+        <div class="limits">
+          <span>{{ limitLabel(plan.employeeLimit) }} employees</span>
+          <span>{{ limitLabel(plan.hrAccountLimit) }} HR account</span>
+        </div>
+        <ul>
+          @for (point of plan.features || []; track point) {
+            <li>{{ point }}</li>
+          }
+        </ul>
+        <a routerLink="/register-company" [queryParams]="{ plan: plan.code }">Select Plan & Register</a>
+      </article>
+    }
+  </section>
+</main>
+
+<app-public-footer />
