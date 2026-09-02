@@ -1,0 +1,14 @@
+import { ROLES } from "../constants/roles.js";
+import service from "../services/logisticsInvoice.service.js";
+import { createLogisticsInvoiceSchema, updateLogisticsInvoiceSchema, logisticsInvoiceQuerySchema } from "../validators/logisticsInvoice.validator.js";
+import { ApiResponse } from "../utils/apiResponse.js";
+import { ApiError } from "../utils/apiError.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+const companyIdForRequest=req=>{const auth=req.auth?.companyId||req.user?.companyId?._id||req.user?.companyId;if(req.user?.role!==ROLES.SUPER_ADMIN){if(!auth)throw new ApiError(403,"Company context missing");return auth;}const id=req.query?.companyId||req.body?.companyId||auth;if(!id)throw new ApiError(400,"companyId is required for Super Admin");return id;};
+const validate=(schema,data)=>{const {value,error}=schema.validate(data,{abortEarly:false,stripUnknown:true});if(error)throw new ApiError(400,error.details[0].message,error.details);return value;};
+export const createLogisticsInvoice=asyncHandler(async(req,res)=>{const data=await service.create({companyId:companyIdForRequest(req),userId:req.user?._id||null,employeeId:req.logisticsAccess?.employeeId||null,payload:validate(createLogisticsInvoiceSchema,req.body)});res.status(201).json(new ApiResponse(201,data,"Logistics invoice created successfully"));});
+export const getLogisticsInvoices=asyncHandler(async(req,res)=>{const data=await service.list({companyId:companyIdForRequest(req),query:validate(logisticsInvoiceQuerySchema,req.query)});res.json(new ApiResponse(200,data,"Logistics invoices fetched successfully"));});
+export const getLogisticsInvoiceSummary=asyncHandler(async(req,res)=>res.json(new ApiResponse(200,await service.summary(companyIdForRequest(req)),"Invoice summary fetched successfully")));
+export const getLogisticsInvoiceById=asyncHandler(async(req,res)=>res.json(new ApiResponse(200,await service.get({companyId:companyIdForRequest(req),invoiceId:req.params.id}),"Logistics invoice fetched successfully")));
+export const updateLogisticsInvoice=asyncHandler(async(req,res)=>res.json(new ApiResponse(200,await service.update({companyId:companyIdForRequest(req),invoiceId:req.params.id,userId:req.user?._id||null,payload:validate(updateLogisticsInvoiceSchema,req.body)}),"Logistics invoice updated successfully")));
+export const deleteLogisticsInvoice=asyncHandler(async(req,res)=>{await service.remove({companyId:companyIdForRequest(req),invoiceId:req.params.id,userId:req.user?._id||null});res.json(new ApiResponse(200,null,"Logistics invoice deleted successfully"));});

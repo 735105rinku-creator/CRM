@@ -1,0 +1,11 @@
+import { Router } from "express";
+import { requireAuth } from "../middleware/auth.middleware.js";
+import { requireTenant } from "../middleware/tenant.middleware.js";
+import { requireLogisticsAccess } from "../middleware/logisticsAccess.middleware.js";
+import { createLogisticsInvoice,getLogisticsInvoices,getLogisticsInvoiceSummary,getLogisticsInvoiceById,updateLogisticsInvoice,deleteLogisticsInvoice } from "../controllers/logisticsInvoice.controller.js";
+const router=Router();
+router.use(requireAuth,requireTenant,requireLogisticsAccess);
+router.get("/summary",getLogisticsInvoiceSummary);
+router.route("/").get(getLogisticsInvoices).post(createLogisticsInvoice);
+router.route("/:id").get(getLogisticsInvoiceById).patch(updateLogisticsInvoice).delete(deleteLogisticsInvoice);
+export default router;
