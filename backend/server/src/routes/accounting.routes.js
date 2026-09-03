@@ -16,6 +16,9 @@ import journalEntryRoutes from "./journalEntry.routes.js";
 import generalLedgerRoutes
   from "./generalLedger.routes.js";
 
+import voucherRoutes
+  from "./voucher.routes.js";
+
 const router = Router();
 router.use(requireAuth);
 router.use(requireTenant);
@@ -75,6 +78,11 @@ router.use(
 router.use(
   "/general-ledger",
   generalLedgerRoutes
+);
+
+router.use(
+  "/vouchers",
+  voucherRoutes
 );
 
 const scopeFilter = (req) => ({ companyId: req.accountingAccess.companyId });
@@ -243,6 +251,7 @@ router.post("/expenses", createRecord("expenses", ["title", "category", "expense
 router.patch("/expenses/:id", updateRecord("expenses", ["title", "category", "expenseType", "businessCategory", "routeType", "amount", "expenseDate", "status", "notes", "assignedUserId", "assignedEmployeeCode"]));
 
 export default router;
+
 
 
 
