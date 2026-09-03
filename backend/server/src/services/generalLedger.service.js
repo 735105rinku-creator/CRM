@@ -46,12 +46,44 @@ export class GeneralLedgerService {
         this.assertJournalRepository();
 
 
+        /* ---------------------------------------------------------
+           ACCOUNT REPOSITORY METHOD
+
+           Current real repository:
+             findById()
+
+           Older test compatibility:
+             findChartOfAccountById()
+        --------------------------------------------------------- */
+
+        const findAccountById =
+            this.chartOfAccountRepository
+                .findById ||
+            this.chartOfAccountRepository
+                .findChartOfAccountById;
+
+
+        if (
+            typeof findAccountById !==
+            "function"
+        ) {
+
+            throw new Error(
+                "Chart of Account find-by-id repository is not configured."
+            );
+
+        }
+
+
         const account =
-            await this.chartOfAccountRepository
-                .findChartOfAccountById({
-                    companyId,
-                    accountId,
-                });
+            await findAccountById
+                .call(
+                    this.chartOfAccountRepository,
+                    {
+                        companyId,
+                        accountId,
+                    }
+                );
 
 
         if (
@@ -64,6 +96,13 @@ export class GeneralLedgerService {
 
         }
 
+
+        /* ---------------------------------------------------------
+           POSTED JOURNAL LINES
+
+           Ledger must only come from posted Journal Entries.
+           Draft / void entries are not used by repository method.
+        --------------------------------------------------------- */
 
         const journalLines =
             await this.journalEntryRepository
@@ -81,6 +120,10 @@ export class GeneralLedgerService {
                 ? [...journalLines]
                 : [];
 
+
+        /* ---------------------------------------------------------
+           SORT CHRONOLOGICALLY
+        --------------------------------------------------------- */
 
         normalizedLines.sort(
             (
@@ -115,6 +158,10 @@ export class GeneralLedgerService {
         );
 
 
+        /* ---------------------------------------------------------
+           OPENING BALANCE
+        --------------------------------------------------------- */
+
         const openingAmount =
             this.roundMoney(
                 Math.abs(
@@ -133,6 +180,13 @@ export class GeneralLedgerService {
                 : "debit";
 
 
+        /*
+         * Internal signed balance convention:
+         *
+         * Debit  = positive
+         * Credit = negative
+         */
+
         let signedBalance =
             openingType ===
                 "credit"
@@ -147,6 +201,10 @@ export class GeneralLedgerService {
         let totalCredit =
             0;
 
+
+        /* ---------------------------------------------------------
+           RUNNING BALANCE
+        --------------------------------------------------------- */
 
         const entries =
             normalizedLines.map(
@@ -220,6 +278,10 @@ export class GeneralLedgerService {
             );
 
 
+        /* ---------------------------------------------------------
+           CLOSING BALANCE
+        --------------------------------------------------------- */
+
         const closingBalance =
             this.toBalance(
                 signedBalance
@@ -231,16 +293,19 @@ export class GeneralLedgerService {
             account,
 
             openingBalance: {
+
                 amount:
                     openingAmount,
 
                 type:
                     openingType,
+
             },
 
             entries,
 
             totals: {
+
                 debit:
                     this.roundMoney(
                         totalDebit
@@ -250,6 +315,7 @@ export class GeneralLedgerService {
                     this.roundMoney(
                         totalCredit
                     ),
+
             },
 
             closingBalance,
@@ -280,10 +346,25 @@ export class GeneralLedgerService {
         this.assertJournalRepository();
 
 
+        /* ---------------------------------------------------------
+           ACCOUNT LIST REPOSITORY METHOD
+
+           Current real repository:
+             list()
+
+           Older test compatibility:
+             findChartOfAccounts()
+        --------------------------------------------------------- */
+
+        const listAccounts =
+            this.chartOfAccountRepository
+                .list ||
+            this.chartOfAccountRepository
+                .findChartOfAccounts;
+
+
         if (
-            typeof this
-                .chartOfAccountRepository
-                .findChartOfAccounts !==
+            typeof listAccounts !==
             "function"
         ) {
 
@@ -295,11 +376,14 @@ export class GeneralLedgerService {
 
 
         const accountResults =
-            await this.chartOfAccountRepository
-                .findChartOfAccounts({
-                    companyId,
-                    ...query,
-                });
+            await listAccounts
+                .call(
+                    this.chartOfAccountRepository,
+                    {
+                        companyId,
+                        ...query,
+                    }
+                );
 
 
         const accounts =
@@ -322,6 +406,10 @@ export class GeneralLedgerService {
             [];
 
 
+        /* ---------------------------------------------------------
+           CALCULATE EACH ACCOUNT LEDGER
+        --------------------------------------------------------- */
+
         for (
             const account of accounts
         ) {
@@ -337,7 +425,9 @@ export class GeneralLedgerService {
             if (
                 !accountId
             ) {
+
                 continue;
+
             }
 
 
@@ -353,7 +443,8 @@ export class GeneralLedgerService {
                 this.roundMoney(
                     totalDebit +
                     Number(
-                        ledger.totals?.debit ||
+                        ledger.totals
+                            ?.debit ||
                         0
                     )
                 );
@@ -363,7 +454,8 @@ export class GeneralLedgerService {
                 this.roundMoney(
                     totalCredit +
                     Number(
-                        ledger.totals?.credit ||
+                        ledger.totals
+                            ?.credit ||
                         0
                     )
                 );
@@ -375,7 +467,8 @@ export class GeneralLedgerService {
                     account._id,
 
                 accountId:
-                    account._id,
+                    account._id ||
+                    account.id,
 
                 accountCode:
                     account.accountCode,
@@ -408,6 +501,10 @@ export class GeneralLedgerService {
 
         }
 
+
+        /* ---------------------------------------------------------
+           SUMMARY
+        --------------------------------------------------------- */
 
         return {
 
@@ -456,6 +553,7 @@ export class GeneralLedgerService {
         ) {
 
             return {
+
                 amount:
                     this.roundMoney(
                         Math.abs(
@@ -465,17 +563,20 @@ export class GeneralLedgerService {
 
                 type:
                     "credit",
+
             };
 
         }
 
 
         return {
+
             amount:
                 normalized,
 
             type:
                 "debit",
+
         };
 
     }
@@ -537,17 +638,27 @@ export class GeneralLedgerService {
 
 
     /* =========================================================
-       REPOSITORY CONTRACTS
+       ACCOUNT REPOSITORY CONTRACT
     ========================================================= */
 
     assertAccountRepository() {
 
+        const repository =
+            this.chartOfAccountRepository;
+
+
+        const hasFindById =
+            typeof repository
+                ?.findById ===
+                "function" ||
+            typeof repository
+                ?.findChartOfAccountById ===
+                "function";
+
+
         if (
-            !this.chartOfAccountRepository ||
-            typeof this
-                .chartOfAccountRepository
-                .findChartOfAccountById !==
-            "function"
+            !repository ||
+            !hasFindById
         ) {
 
             throw new Error(
@@ -558,6 +669,10 @@ export class GeneralLedgerService {
 
     }
 
+
+    /* =========================================================
+       JOURNAL REPOSITORY CONTRACT
+    ========================================================= */
 
     assertJournalRepository() {
 
@@ -579,6 +694,14 @@ export class GeneralLedgerService {
 
 }
 
+
+/* =========================================================
+   DEFAULT SERVICE INSTANCE
+
+   Kept for compatibility.
+   Runtime controller creates an injected service instance using
+   the real repository dependencies.
+========================================================= */
 
 const generalLedgerService =
     new GeneralLedgerService();

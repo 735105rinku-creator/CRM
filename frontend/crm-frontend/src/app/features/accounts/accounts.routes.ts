@@ -292,21 +292,18 @@ export const ACCOUNTS_ROUTES: Routes = [
 
         loadComponent: () =>
           import(
-            './pages/placeholder/accounts-placeholder.component'
+            './pages/general-ledger/general-ledger.component'
           ).then(
             (module) =>
-              module.AccountsPlaceholderComponent
+              module.GeneralLedgerComponent
           ),
 
         data: {
           title: 'General Ledger',
           section: 'Accounts',
-          feature: 'ledger',
-          description:
-            'Account-wise debit and credit history will be available after journal posting is enabled.'
+          feature: 'ledger'
         }
       },
-
       {
         path: 'ledger/customers',
 

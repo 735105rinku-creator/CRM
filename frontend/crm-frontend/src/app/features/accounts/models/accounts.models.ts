@@ -472,6 +472,71 @@ export interface LedgerResponse {
   totalPages?: number;
 }
 
+/* =========================================================
+   GENERAL LEDGER BALANCE
+========================================================= */
+
+export interface LedgerBalance {
+  amount: number;
+
+  type:
+    | 'debit'
+    | 'credit';
+}
+
+
+/* =========================================================
+   GENERAL LEDGER ACCOUNT
+========================================================= */
+
+export interface GeneralLedgerAccount {
+  _id?: string;
+
+  accountId: string;
+
+  accountCode: string;
+
+  accountName: string;
+
+  accountType?: AccountType;
+
+  nature?: AccountNature;
+
+  status?: AccountStatus;
+
+  openingBalance: LedgerBalance;
+
+  totalDebit: number;
+
+  totalCredit: number;
+
+  closingBalance: LedgerBalance;
+}
+
+
+/* =========================================================
+   GENERAL LEDGER SUMMARY
+========================================================= */
+
+export interface GeneralLedgerSummary {
+  totalAccounts: number;
+
+  totalDebit: number;
+
+  totalCredit: number;
+}
+
+
+/* =========================================================
+   GENERAL LEDGER RESPONSE
+========================================================= */
+
+export interface GeneralLedgerResponse {
+  accounts: GeneralLedgerAccount[];
+
+  summary: GeneralLedgerSummary;
+}
+
 
 /* =========================================================
    TRIAL BALANCE
