@@ -5,6 +5,8 @@ import {
   getVouchers,
   getVoucherById,
   updateVoucher,
+  postVoucher,
+  voidVoucher,
 } from "../controllers/voucher.controller.js";
 
 
@@ -47,6 +49,48 @@ router.post(
 
 
 /* ============================================================
+   VOUCHER WORKFLOW
+============================================================ */
+
+/*
+ * POST
+ * /accounting/vouchers/:voucherId/post
+ *
+ * Atomically:
+ *   Draft Voucher
+ *      ->
+ *   Create JournalEntry
+ *      ->
+ *   Post JournalEntry
+ *      ->
+ *   Mark Voucher POSTED
+ */
+
+router.post(
+  "/:voucherId/post",
+  postVoucher
+);
+
+
+/*
+ * POST
+ * /accounting/vouchers/:voucherId/void
+ *
+ * Atomically:
+ *   Posted Voucher
+ *      ->
+ *   Void linked JournalEntry
+ *      ->
+ *   Mark Voucher VOID
+ */
+
+router.post(
+  "/:voucherId/void",
+  voidVoucher
+);
+
+
+/* ============================================================
    VOUCHER RESOURCE
 ============================================================ */
 
@@ -83,11 +127,9 @@ router.patch(
 
    Accounting history is retained.
 
-   POST /:voucherId/post
-   POST /:voucherId/void
+   Posted Vouchers are immutable.
 
-   will be added in the next posting-integration phase,
-   where Voucher lifecycle is linked to JournalEntry.
+   Void operations preserve the accounting audit trail.
 ============================================================ */
 
 

@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+
 import {
   VOUCHER_PREFIXES,
   VOUCHER_TYPES,
@@ -5,6 +7,9 @@ import {
 
 import voucherRepository
   from "../repositories/voucher.repository.js";
+
+import journalEntryService
+  from "./journalEntry.service.js";
 
 
 /* ============================================================
@@ -34,11 +39,27 @@ export class VoucherService {
       voucherRepository:
         repository =
           voucherRepository,
+
+      journalService:
+        journal =
+          journalEntryService,
+
+      sessionProvider:
+        sessions =
+          mongoose,
     } = {}
   ) {
 
     this.voucherRepository =
       repository;
+
+
+    this.journalService =
+      journal;
+
+
+    this.sessionProvider =
+      sessions;
 
   }
 
@@ -723,8 +744,372 @@ export class VoucherService {
 
   }
 
-}
+  /* ==========================================================
+     POST VOUCHER
 
+     Draft Voucher
+        ?
+     Create JournalEntry
+        ?
+     Post JournalEntry
+        ?
+     Mark Voucher posted and link JournalEntry
+
+     General Ledger remains derived from posted JournalEntry.
+  ========================================================== */
+
+  async postVoucher({
+    companyId,
+    voucherId,
+    userId,
+  }) {
+
+    if (!companyId) {
+      throw new Error(
+        "Company ID is required."
+      );
+    }
+
+
+    if (!voucherId) {
+      throw new Error(
+        "Voucher ID is required."
+      );
+    }
+
+
+    const session =
+      await this.sessionProvider
+        .startSession();
+
+
+    try {
+
+      let postedVoucherResult =
+        null;
+
+
+      await session.withTransaction(
+        async () => {
+
+          const voucher =
+            await this.voucherRepository
+              .findById({
+                companyId,
+                voucherId,
+                session,
+              });
+
+
+          if (!voucher) {
+            throw new Error(
+              "Voucher not found."
+            );
+          }
+
+
+          if (
+            voucher.status !==
+              "draft"
+          ) {
+            throw new Error(
+              "Voucher is not available for posting."
+            );
+          }
+
+
+          const journal =
+            await this.journalService
+              .createJournal({
+                companyId,
+
+                userId:
+                  userId || null,
+
+                session,
+
+                payload: {
+                  journalDate:
+                    voucher.voucherDate,
+
+                  narration:
+                    String(
+                      voucher.narration || ""
+                    ).trim(),
+
+                  referenceType:
+                    "voucher",
+
+                  referenceId:
+                    voucher._id,
+
+                  referenceNo:
+                    voucher.voucherNumber,
+
+                  lines:
+                    (
+                      voucher.lines || []
+                    ).map(
+                      (line) => ({
+                        accountId:
+                          line.accountId,
+
+                        description:
+                          String(
+                            line.description ||
+                              ""
+                          ).trim(),
+
+                        debit:
+                          roundMoney(
+                            line.debit
+                          ),
+
+                        credit:
+                          roundMoney(
+                            line.credit
+                          ),
+                      })
+                    ),
+                },
+              });
+
+
+          if (!journal?._id) {
+            throw new Error(
+              "Journal Entry could not be created for Voucher."
+            );
+          }
+
+
+          const postedJournal =
+            await this.journalService
+              .postJournal({
+                companyId,
+
+                journalEntryId:
+                  journal._id,
+
+                userId:
+                  userId || null,
+
+                session,
+              });
+
+
+          if (
+            !postedJournal ||
+            postedJournal.status !==
+              "posted"
+          ) {
+            throw new Error(
+              "Journal Entry could not be posted for Voucher."
+            );
+          }
+
+
+          const postedVoucher =
+            await this.voucherRepository
+              .postById({
+                companyId,
+                voucherId,
+
+                journalEntryId:
+                  journal._id,
+
+                userId:
+                  userId || null,
+
+                session,
+              });
+
+
+          if (!postedVoucher) {
+            throw new Error(
+              "Voucher not found or cannot be posted."
+            );
+          }
+
+
+          postedVoucherResult =
+            postedVoucher;
+
+        }
+      );
+
+
+      return postedVoucherResult;
+
+    } finally {
+
+      await session.endSession();
+
+    }
+
+  }
+  /* ==========================================================
+     VOID VOUCHER
+
+     Posted Voucher
+        ->
+     Void linked JournalEntry
+        ->
+     Mark Voucher void
+
+     Both changes run inside one Mongo transaction.
+  ========================================================== */
+
+  async voidVoucher({
+    companyId,
+    voucherId,
+    userId,
+    reason,
+  }) {
+
+    if (!companyId) {
+      throw new Error(
+        "Company ID is required."
+      );
+    }
+
+
+    if (!voucherId) {
+      throw new Error(
+        "Voucher ID is required."
+      );
+    }
+
+
+    const cleanReason =
+      String(
+        reason || ""
+      ).trim();
+
+
+    if (cleanReason.length < 3) {
+      throw new Error(
+        "Void reason is required."
+      );
+    }
+
+
+    const session =
+      await this.sessionProvider
+        .startSession();
+
+
+    try {
+
+      let voidedVoucherResult =
+        null;
+
+
+      await session.withTransaction(
+        async () => {
+
+          const voucher =
+            await this.voucherRepository
+              .findById({
+                companyId,
+                voucherId,
+                session,
+              });
+
+
+          if (!voucher) {
+            throw new Error(
+              "Voucher not found."
+            );
+          }
+
+
+          if (
+            voucher.status !==
+              "posted"
+          ) {
+            throw new Error(
+              "Voucher is not available for voiding."
+            );
+          }
+
+
+          if (!voucher.journalEntryId) {
+            throw new Error(
+              "Posted Voucher has no linked Journal Entry."
+            );
+          }
+
+
+          const voidedJournal =
+            await this.journalService
+              .voidJournal({
+                companyId,
+
+                journalEntryId:
+                  voucher.journalEntryId,
+
+                userId:
+                  userId || null,
+
+                reason:
+                  cleanReason,
+
+                session,
+              });
+
+
+          if (
+            !voidedJournal ||
+            voidedJournal.status !==
+              "void"
+          ) {
+            throw new Error(
+              "Linked Journal Entry could not be voided."
+            );
+          }
+
+
+          const voidedVoucher =
+            await this.voucherRepository
+              .voidById({
+                companyId,
+                voucherId,
+
+                userId:
+                  userId || null,
+
+                reason:
+                  cleanReason,
+
+                session,
+              });
+
+
+          if (!voidedVoucher) {
+            throw new Error(
+              "Voucher not found or cannot be voided."
+            );
+          }
+
+
+          voidedVoucherResult =
+            voidedVoucher;
+
+        }
+      );
+
+
+      return voidedVoucherResult;
+
+    } finally {
+
+      await session.endSession();
+
+    }
+
+  }
+
+}
 
 /* ============================================================
    DEFAULT SERVICE
@@ -736,3 +1121,9 @@ const voucherService =
 
 export default
   voucherService;
+
+
+
+
+
+

@@ -50,18 +50,28 @@ class VoucherRepository {
   async findById({
     companyId,
     voucherId,
+    session = null,
   }) {
 
-    return Voucher
-      .findOne({
-
+    let query =
+      Voucher.findOne({
         _id:
           voucherId,
 
         companyId,
+      });
 
-      })
-      .lean();
+
+    if (session) {
+      query =
+        query.session(
+          session
+        );
+    }
+
+
+    return query.lean();
+
   }
 
 
@@ -347,7 +357,23 @@ class VoucherRepository {
     journalEntryId,
     userId = null,
     postedAt = new Date(),
+    session = null,
   }) {
+
+    const options = {
+      returnDocument:
+        "after",
+
+      runValidators:
+        true,
+    };
+
+
+    if (session) {
+      options.session =
+        session;
+    }
+
 
     return Voucher
       .findOneAndUpdate(
@@ -381,16 +407,11 @@ class VoucherRepository {
           },
         },
 
-        {
-          returnDocument:
-            "after",
-
-          runValidators:
-            true,
-        }
+        options
 
       )
       .lean();
+
   }
 
 
@@ -408,7 +429,23 @@ class VoucherRepository {
     userId = null,
     reason,
     voidedAt = new Date(),
+    session = null,
   }) {
+
+    const options = {
+      returnDocument:
+        "after",
+
+      runValidators:
+        true,
+    };
+
+
+    if (session) {
+      options.session =
+        session;
+    }
+
 
     return Voucher
       .findOneAndUpdate(
@@ -447,16 +484,11 @@ class VoucherRepository {
           },
         },
 
-        {
-          returnDocument:
-            "after",
-
-          runValidators:
-            true,
-        }
+        options
 
       )
       .lean();
+
   }
 
 
@@ -540,3 +572,6 @@ export const voucherRepository =
 
 export default
   voucherRepository;
+
+
+

@@ -31,16 +31,29 @@ class ChartOfAccountRepository {
   async findById({
     companyId,
     accountId,
+    session = null,
   }) {
 
-    const account =
-      await ChartOfAccount
+    let query =
+      ChartOfAccount
         .findOne({
           _id:
             accountId,
 
           companyId,
-        })
+        });
+
+
+    if (session) {
+      query =
+        query.session(
+          session
+        );
+    }
+
+
+    const account =
+      await query
         .populate({
           path:
             "parentAccountId",
@@ -53,9 +66,7 @@ class ChartOfAccountRepository {
           },
         })
         .lean();
-
-
-    return this
+return this
       .flattenParent(
         account
       );

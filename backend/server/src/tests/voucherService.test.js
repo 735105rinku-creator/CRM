@@ -573,3 +573,1303 @@ test(
 
   }
 );
+
+test(
+  "posts a draft Voucher through JournalEntry and links the posted Journal",
+  async () => {
+
+    const calls = [];
+
+
+    const voucherRepository = {
+
+      async findById({
+        companyId,
+        voucherId,
+      }) {
+
+        calls.push(
+          "findVoucher"
+        );
+
+
+        return {
+          _id:
+            voucherId,
+
+          companyId,
+
+          voucherNumber:
+            "PV/2026-27/000001",
+
+          voucherType:
+            "payment",
+
+          voucherDate:
+            "2026-09-03",
+
+          narration:
+            "Office payment",
+
+          status:
+            "draft",
+
+          lines: [
+            {
+              accountId:
+                "64f000000000000000000002",
+
+              description:
+                "Electricity expense",
+
+              debit:
+                1250,
+
+              credit:
+                0,
+            },
+            {
+              accountId:
+                "64f000000000000000000003",
+
+              description:
+                "Bank payment",
+
+              debit:
+                0,
+
+              credit:
+                1250,
+            },
+          ],
+        };
+      },
+
+
+      async postById(
+        input
+      ) {
+
+        calls.push(
+          "postVoucher"
+        );
+
+
+        return {
+          _id:
+            input.voucherId,
+
+          status:
+            "posted",
+
+          journalEntryId:
+            input.journalEntryId,
+        };
+      },
+
+    };
+
+
+    let createJournalInput =
+      null;
+
+    let postJournalInput =
+      null;
+
+
+    const journalService = {
+
+      async createJournal(
+        input
+      ) {
+
+        calls.push(
+          "createJournal"
+        );
+
+
+        createJournalInput =
+          input;
+
+
+        return {
+          _id:
+            "64f000000000000000000099",
+
+          status:
+            "draft",
+        };
+      },
+
+
+      async postJournal(
+        input
+      ) {
+
+        calls.push(
+          "postJournal"
+        );
+
+
+        postJournalInput =
+          input;
+
+
+        return {
+          _id:
+            input.journalEntryId,
+
+          status:
+            "posted",
+        };
+      },
+
+    };
+
+
+    const {
+      VoucherService,
+    } =
+      await loadService();
+
+
+    const sessionProvider = {
+      async startSession() {
+        return {
+          async withTransaction(callback) {
+            return callback();
+          },
+
+          async endSession() {
+          },
+        };
+      },
+    };
+
+
+    const service =
+      new VoucherService({
+        voucherRepository,
+        journalService,
+        sessionProvider,
+      });
+
+
+    const result =
+      await service.postVoucher({
+
+        companyId:
+          "64f000000000000000000001",
+
+        voucherId:
+          "64f000000000000000000010",
+
+        userId:
+          "64f000000000000000000009",
+
+      });
+
+
+    assert.deepEqual(
+      calls,
+      [
+        "findVoucher",
+        "createJournal",
+        "postJournal",
+        "postVoucher",
+      ]
+    );
+
+
+    assert.equal(
+      createJournalInput.companyId,
+      "64f000000000000000000001"
+    );
+
+
+    assert.equal(
+      createJournalInput.userId,
+      "64f000000000000000000009"
+    );
+
+
+    assert.equal(
+      createJournalInput.payload.referenceType,
+      "voucher"
+    );
+
+
+    assert.equal(
+      createJournalInput.payload.referenceId,
+      "64f000000000000000000010"
+    );
+
+
+    assert.equal(
+      createJournalInput.payload.referenceNo,
+      "PV/2026-27/000001"
+    );
+
+
+    assert.equal(
+      createJournalInput.payload.journalDate,
+      "2026-09-03"
+    );
+
+
+    assert.deepEqual(
+      createJournalInput.payload.lines,
+      [
+        {
+          accountId:
+            "64f000000000000000000002",
+
+          description:
+            "Electricity expense",
+
+          debit:
+            1250,
+
+          credit:
+            0,
+        },
+        {
+          accountId:
+            "64f000000000000000000003",
+
+          description:
+            "Bank payment",
+
+          debit:
+            0,
+
+          credit:
+            1250,
+        },
+      ]
+    );
+
+
+    assert.equal(
+      postJournalInput.companyId,
+      "64f000000000000000000001"
+    );
+
+
+    assert.equal(
+      postJournalInput.journalEntryId,
+      "64f000000000000000000099"
+    );
+
+
+    assert.equal(
+      postJournalInput.userId,
+      "64f000000000000000000009"
+    );
+
+
+    assert.ok(
+      postJournalInput.session
+    );
+
+
+    assert.equal(
+      result.status,
+      "posted"
+    );
+
+
+    assert.equal(
+      result.journalEntryId,
+      "64f000000000000000000099"
+    );
+
+  }
+);
+
+test(
+  "postVoucher runs the complete posting workflow inside one Mongo session",
+  async () => {
+
+    const session = {
+      async withTransaction(callback) {
+        session.withTransactionCount += 1;
+        return callback();
+      },
+
+      async endSession() {
+        session.endSessionCount += 1;
+      },
+
+      withTransactionCount: 0,
+      endSessionCount: 0,
+    };
+
+
+    const sessionProvider = {
+      startSessionCount: 0,
+
+      async startSession() {
+        this.startSessionCount += 1;
+        return session;
+      },
+    };
+
+
+    const receivedSessions = [];
+
+
+    const voucherRepository = {
+      async findById(input) {
+        receivedSessions.push(input.session);
+
+        return {
+          _id: "64f000000000000000000010",
+          companyId: input.companyId,
+          voucherNumber: "PV/2026-27/000001",
+          voucherType: "payment",
+          voucherDate: "2026-09-03",
+          narration: "Office payment",
+          status: "draft",
+          lines: [
+            {
+              accountId: "64f000000000000000000002",
+              description: "Expense",
+              debit: 1250,
+              credit: 0,
+            },
+            {
+              accountId: "64f000000000000000000003",
+              description: "Bank",
+              debit: 0,
+              credit: 1250,
+            },
+          ],
+        };
+      },
+
+      async postById(input) {
+        receivedSessions.push(input.session);
+
+        return {
+          _id: input.voucherId,
+          status: "posted",
+          journalEntryId: input.journalEntryId,
+        };
+      },
+    };
+
+
+    const journalService = {
+      async createJournal(input) {
+        receivedSessions.push(input.session);
+
+        return {
+          _id: "64f000000000000000000099",
+          status: "draft",
+        };
+      },
+
+      async postJournal(input) {
+        receivedSessions.push(input.session);
+
+        return {
+          _id: input.journalEntryId,
+          status: "posted",
+        };
+      },
+    };
+
+
+    const {
+      VoucherService,
+    } = await loadService();
+
+
+    const service =
+      new VoucherService({
+        voucherRepository,
+        journalService,
+        sessionProvider,
+      });
+
+
+    await service.postVoucher({
+      companyId: "64f000000000000000000001",
+      voucherId: "64f000000000000000000010",
+      userId: "64f000000000000000000009",
+    });
+
+
+    assert.equal(
+      sessionProvider.startSessionCount,
+      1
+    );
+
+
+    assert.equal(
+      session.withTransactionCount,
+      1
+    );
+
+
+    assert.equal(
+      session.endSessionCount,
+      1
+    );
+
+
+    assert.equal(
+      receivedSessions.length,
+      4
+    );
+
+
+    for (
+      const receivedSession
+      of receivedSessions
+    ) {
+      assert.equal(
+        receivedSession,
+        session
+      );
+    }
+
+  }
+);
+
+
+
+test(
+  "postVoucher aborts the transaction when Voucher posting fails after Journal posting",
+  async () => {
+
+    const session = {
+      abortCount: 0,
+      endSessionCount: 0,
+
+      async withTransaction(callback) {
+        try {
+          return await callback();
+        } catch (error) {
+          this.abortCount += 1;
+          throw error;
+        }
+      },
+
+      async endSession() {
+        this.endSessionCount += 1;
+      },
+    };
+
+
+    const sessionProvider = {
+      async startSession() {
+        return session;
+      },
+    };
+
+
+    const calls = [];
+
+
+    const voucherRepository = {
+      async findById(input) {
+        calls.push(
+          "findVoucher"
+        );
+
+        return {
+          _id:
+            input.voucherId,
+
+          companyId:
+            input.companyId,
+
+          voucherNumber:
+            "PV/2026-27/000001",
+
+          voucherType:
+            "payment",
+
+          voucherDate:
+            "2026-09-03",
+
+          narration:
+            "Office payment",
+
+          status:
+            "draft",
+
+          lines: [
+            {
+              accountId:
+                "64f000000000000000000002",
+
+              debit:
+                1250,
+
+              credit:
+                0,
+            },
+            {
+              accountId:
+                "64f000000000000000000003",
+
+              debit:
+                0,
+
+              credit:
+                1250,
+            },
+          ],
+        };
+      },
+
+      async postById() {
+        calls.push(
+          "postVoucher"
+        );
+
+        return null;
+      },
+    };
+
+
+    const journalService = {
+      async createJournal() {
+        calls.push(
+          "createJournal"
+        );
+
+        return {
+          _id:
+            "64f000000000000000000099",
+
+          status:
+            "draft",
+        };
+      },
+
+      async postJournal() {
+        calls.push(
+          "postJournal"
+        );
+
+        return {
+          _id:
+            "64f000000000000000000099",
+
+          status:
+            "posted",
+        };
+      },
+    };
+
+
+    const {
+      VoucherService,
+    } =
+      await loadService();
+
+
+    const service =
+      new VoucherService({
+        voucherRepository,
+        journalService,
+        sessionProvider,
+      });
+
+
+    await assert.rejects(
+      () =>
+        service.postVoucher({
+          companyId:
+            "64f000000000000000000001",
+
+          voucherId:
+            "64f000000000000000000010",
+
+          userId:
+            "64f000000000000000000009",
+        }),
+
+      /Voucher not found or cannot be posted/
+    );
+
+
+    assert.deepEqual(
+      calls,
+      [
+        "findVoucher",
+        "createJournal",
+        "postJournal",
+        "postVoucher",
+      ]
+    );
+
+
+    assert.equal(
+      session.abortCount,
+      1
+    );
+
+
+    assert.equal(
+      session.endSessionCount,
+      1
+    );
+
+  }
+);
+
+test(
+  "postVoucher aborts transaction and never posts Voucher when Journal posting fails",
+  async () => {
+
+    const session = {
+      abortCount: 0,
+      endSessionCount: 0,
+
+      async withTransaction(callback) {
+        try {
+          return await callback();
+        } catch (error) {
+          this.abortCount += 1;
+          throw error;
+        }
+      },
+
+      async endSession() {
+        this.endSessionCount += 1;
+      },
+    };
+
+
+    const sessionProvider = {
+      async startSession() {
+        return session;
+      },
+    };
+
+
+    let voucherPostCount =
+      0;
+
+
+    const voucherRepository = {
+      async findById(input) {
+        return {
+          _id:
+            input.voucherId,
+
+          companyId:
+            input.companyId,
+
+          voucherNumber:
+            "PV/2026-27/000001",
+
+          voucherDate:
+            "2026-09-03",
+
+          narration:
+            "Office payment",
+
+          status:
+            "draft",
+
+          lines: [
+            {
+              accountId:
+                "64f000000000000000000002",
+
+              debit:
+                1250,
+
+              credit:
+                0,
+            },
+            {
+              accountId:
+                "64f000000000000000000003",
+
+              debit:
+                0,
+
+              credit:
+                1250,
+            },
+          ],
+        };
+      },
+
+      async postById() {
+        voucherPostCount += 1;
+
+        return {
+          status:
+            "posted",
+        };
+      },
+    };
+
+
+    const journalService = {
+      async createJournal() {
+        return {
+          _id:
+            "64f000000000000000000099",
+
+          status:
+            "draft",
+        };
+      },
+
+      async postJournal() {
+        throw new Error(
+          "Journal posting failed."
+        );
+      },
+    };
+
+
+    const {
+      VoucherService,
+    } =
+      await loadService();
+
+
+    const service =
+      new VoucherService({
+        voucherRepository,
+        journalService,
+        sessionProvider,
+      });
+
+
+    await assert.rejects(
+      () =>
+        service.postVoucher({
+          companyId:
+            "64f000000000000000000001",
+
+          voucherId:
+            "64f000000000000000000010",
+
+          userId:
+            "64f000000000000000000009",
+        }),
+
+      /Journal posting failed/
+    );
+
+
+    assert.equal(
+      voucherPostCount,
+      0
+    );
+
+
+    assert.equal(
+      session.abortCount,
+      1
+    );
+
+
+    assert.equal(
+      session.endSessionCount,
+      1
+    );
+
+  }
+);
+
+test(
+  "voidVoucher voids the linked JournalEntry and Voucher inside one transaction",
+  async () => {
+
+    const session = {
+      withTransactionCount: 0,
+      endSessionCount: 0,
+
+      async withTransaction(callback) {
+        this.withTransactionCount += 1;
+        return callback();
+      },
+
+      async endSession() {
+        this.endSessionCount += 1;
+      },
+    };
+
+
+    const sessionProvider = {
+      startSessionCount: 0,
+
+      async startSession() {
+        this.startSessionCount += 1;
+        return session;
+      },
+    };
+
+
+    const calls = [];
+    const receivedSessions = [];
+
+
+    const voucherRepository = {
+
+      async findById(input) {
+
+        calls.push(
+          "findVoucher"
+        );
+
+        receivedSessions.push(
+          input.session
+        );
+
+
+        return {
+          _id:
+            input.voucherId,
+
+          companyId:
+            input.companyId,
+
+          voucherNumber:
+            "PV/2026-27/000001",
+
+          status:
+            "posted",
+
+          journalEntryId:
+            "64f000000000000000000099",
+        };
+
+      },
+
+
+      async voidById(input) {
+
+        calls.push(
+          "voidVoucher"
+        );
+
+        receivedSessions.push(
+          input.session
+        );
+
+
+        return {
+          _id:
+            input.voucherId,
+
+          status:
+            "void",
+
+          journalEntryId:
+            "64f000000000000000000099",
+
+          voidReason:
+            input.reason,
+        };
+
+      },
+
+    };
+
+
+    const journalService = {
+
+      async voidJournal(input) {
+
+        calls.push(
+          "voidJournal"
+        );
+
+        receivedSessions.push(
+          input.session
+        );
+
+
+        return {
+          _id:
+            input.journalEntryId,
+
+          status:
+            "void",
+
+          voidReason:
+            input.reason,
+        };
+
+      },
+
+    };
+
+
+    const {
+      VoucherService,
+    } =
+      await loadService();
+
+
+    const service =
+      new VoucherService({
+        voucherRepository,
+        journalService,
+        sessionProvider,
+      });
+
+
+    const result =
+      await service.voidVoucher({
+
+        companyId:
+          "64f000000000000000000001",
+
+        voucherId:
+          "64f000000000000000000010",
+
+        userId:
+          "64f000000000000000000009",
+
+        reason:
+          "Incorrect payment entry",
+
+      });
+
+
+    assert.deepEqual(
+      calls,
+      [
+        "findVoucher",
+        "voidJournal",
+        "voidVoucher",
+      ]
+    );
+
+
+    assert.equal(
+      sessionProvider.startSessionCount,
+      1
+    );
+
+
+    assert.equal(
+      session.withTransactionCount,
+      1
+    );
+
+
+    assert.equal(
+      session.endSessionCount,
+      1
+    );
+
+
+    for (
+      const receivedSession
+      of receivedSessions
+    ) {
+      assert.equal(
+        receivedSession,
+        session
+      );
+    }
+
+
+    assert.equal(
+      result.status,
+      "void"
+    );
+
+
+    assert.equal(
+      result.voidReason,
+      "Incorrect payment entry"
+    );
+
+  }
+);
+
+test(
+  "voidVoucher aborts transaction when Voucher void fails after Journal void",
+  async () => {
+
+    const session = {
+      abortCount: 0,
+      endSessionCount: 0,
+
+      async withTransaction(callback) {
+        try {
+          return await callback();
+        } catch (error) {
+          this.abortCount += 1;
+          throw error;
+        }
+      },
+
+      async endSession() {
+        this.endSessionCount += 1;
+      },
+    };
+
+
+    const sessionProvider = {
+      async startSession() {
+        return session;
+      },
+    };
+
+
+    const calls = [];
+
+
+    const voucherRepository = {
+
+      async findById(input) {
+        calls.push(
+          "findVoucher"
+        );
+
+        return {
+          _id:
+            input.voucherId,
+
+          companyId:
+            input.companyId,
+
+          voucherNumber:
+            "PV/2026-27/000001",
+
+          status:
+            "posted",
+
+          journalEntryId:
+            "64f000000000000000000099",
+        };
+      },
+
+
+      async voidById() {
+        calls.push(
+          "voidVoucher"
+        );
+
+        return null;
+      },
+
+    };
+
+
+    const journalService = {
+
+      async voidJournal() {
+        calls.push(
+          "voidJournal"
+        );
+
+        return {
+          _id:
+            "64f000000000000000000099",
+
+          status:
+            "void",
+        };
+      },
+
+    };
+
+
+    const {
+      VoucherService,
+    } =
+      await loadService();
+
+
+    const service =
+      new VoucherService({
+        voucherRepository,
+        journalService,
+        sessionProvider,
+      });
+
+
+    await assert.rejects(
+      () =>
+        service.voidVoucher({
+          companyId:
+            "64f000000000000000000001",
+
+          voucherId:
+            "64f000000000000000000010",
+
+          userId:
+            "64f000000000000000000009",
+
+          reason:
+            "Incorrect payment entry",
+        }),
+
+      /Voucher not found or cannot be voided/
+    );
+
+
+    assert.deepEqual(
+      calls,
+      [
+        "findVoucher",
+        "voidJournal",
+        "voidVoucher",
+      ]
+    );
+
+
+    assert.equal(
+      session.abortCount,
+      1
+    );
+
+
+    assert.equal(
+      session.endSessionCount,
+      1
+    );
+
+  }
+);
+
+test(
+  "voidVoucher rejects a posted Voucher without a linked JournalEntry",
+  async () => {
+
+    const session = {
+      abortCount: 0,
+      endSessionCount: 0,
+
+      async withTransaction(callback) {
+        try {
+          return await callback();
+        } catch (error) {
+          this.abortCount += 1;
+          throw error;
+        }
+      },
+
+      async endSession() {
+        this.endSessionCount += 1;
+      },
+    };
+
+
+    const sessionProvider = {
+      async startSession() {
+        return session;
+      },
+    };
+
+
+    let journalVoidCount =
+      0;
+
+    let voucherVoidCount =
+      0;
+
+
+    const voucherRepository = {
+      async findById(input) {
+        return {
+          _id:
+            input.voucherId,
+
+          companyId:
+            input.companyId,
+
+          status:
+            "posted",
+
+          journalEntryId:
+            null,
+        };
+      },
+
+      async voidById() {
+        voucherVoidCount += 1;
+        return null;
+      },
+    };
+
+
+    const journalService = {
+      async voidJournal() {
+        journalVoidCount += 1;
+
+        return {
+          status:
+            "void",
+        };
+      },
+    };
+
+
+    const {
+      VoucherService,
+    } =
+      await loadService();
+
+
+    const service =
+      new VoucherService({
+        voucherRepository,
+        journalService,
+        sessionProvider,
+      });
+
+
+    await assert.rejects(
+      () =>
+        service.voidVoucher({
+          companyId:
+            "64f000000000000000000001",
+
+          voucherId:
+            "64f000000000000000000010",
+
+          userId:
+            "64f000000000000000000009",
+
+          reason:
+            "Incorrect payment entry",
+        }),
+
+      /Posted Voucher has no linked Journal Entry/
+    );
+
+
+    assert.equal(
+      journalVoidCount,
+      0
+    );
+
+
+    assert.equal(
+      voucherVoidCount,
+      0
+    );
+
+
+    assert.equal(
+      session.abortCount,
+      1
+    );
+
+
+    assert.equal(
+      session.endSessionCount,
+      1
+    );
+
+  }
+);

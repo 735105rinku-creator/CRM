@@ -97,6 +97,7 @@ export const JOURNAL_REFERENCE_TYPES =
     "expense",
     "opening_balance",
     "adjustment",
+    "voucher",
   ]);
 
 
@@ -241,3 +242,4 @@ export const VOUCHER_PREFIXES = Object.freeze({
   credit_note: "CN",
   debit_note: "DN",
 });
+

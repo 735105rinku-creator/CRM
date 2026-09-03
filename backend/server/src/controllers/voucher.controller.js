@@ -321,3 +321,117 @@ export const updateVoucher =
 
     }
   );
+
+/* ============================================================
+   POST VOUCHER
+
+   POST /accounting/vouchers/:voucherId/post
+============================================================ */
+
+export const postVoucher =
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
+
+      const params =
+        validate(
+          voucherIdParamSchema,
+          req.params
+        );
+
+
+      const voucher =
+        await voucherService
+          .postVoucher({
+
+            companyId:
+              companyIdForRequest(
+                req
+              ),
+
+            voucherId:
+              params.voucherId,
+
+            userId:
+              userIdForRequest(
+                req
+              ),
+
+          });
+
+
+      return res
+        .status(
+          200
+        )
+        .json(
+          new ApiResponse(
+            200,
+            voucher,
+            "Voucher posted successfully."
+          )
+        );
+
+    }
+  );
+
+
+/* ============================================================
+   VOID VOUCHER
+
+   POST /accounting/vouchers/:voucherId/void
+============================================================ */
+
+export const voidVoucher =
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
+
+      const params =
+        validate(
+          voucherIdParamSchema,
+          req.params
+        );
+
+
+      const voucher =
+        await voucherService
+          .voidVoucher({
+
+            companyId:
+              companyIdForRequest(
+                req
+              ),
+
+            voucherId:
+              params.voucherId,
+
+            userId:
+              userIdForRequest(
+                req
+              ),
+
+            reason:
+              req.body?.reason,
+
+          });
+
+
+      return res
+        .status(
+          200
+        )
+        .json(
+          new ApiResponse(
+            200,
+            voucher,
+            "Voucher voided successfully."
+          )
+        );
+
+    }
+  );

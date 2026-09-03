@@ -55,13 +55,38 @@ class JournalEntryRepository {
   ========================================================== */
 
   async create(
-    payload
+    payload,
+    {
+      session = null,
+    } = {}
   ) {
 
-    return JournalEntry
-      .create(
-        payload
-      );
+    if (!session) {
+      return JournalEntry
+        .create(
+          payload
+        );
+    }
+
+
+    const created =
+      await JournalEntry
+        .create(
+          [
+            payload,
+          ],
+          {
+            session,
+          }
+        );
+
+
+    return Array.isArray(
+      created
+    )
+      ? created[0]
+      : created;
+
   }
 
 
@@ -74,18 +99,28 @@ class JournalEntryRepository {
   async findById({
     companyId,
     journalEntryId,
+    session = null,
   }) {
 
-    return JournalEntry
-      .findOne({
-
+    let query =
+      JournalEntry.findOne({
         _id:
           journalEntryId,
 
         companyId,
+      });
 
-      })
-      .lean();
+
+    if (session) {
+      query =
+        query.session(
+          session
+        );
+    }
+
+
+    return query.lean();
+
   }
 
 
@@ -374,7 +409,23 @@ class JournalEntryRepository {
     journalEntryId,
     userId = null,
     postedAt = new Date(),
+    session = null,
   }) {
+
+    const options = {
+      returnDocument:
+        "after",
+
+      runValidators:
+        true,
+    };
+
+
+    if (session) {
+      options.session =
+        session;
+    }
+
 
     return JournalEntry
       .findOneAndUpdate(
@@ -406,16 +457,11 @@ class JournalEntryRepository {
           },
         },
 
-        {
-          returnDocument:
-            "after",
-
-          runValidators:
-            true,
-        }
+        options
 
       )
       .lean();
+
   }
 
 
@@ -436,7 +482,23 @@ class JournalEntryRepository {
     userId = null,
     reason,
     voidedAt = new Date(),
+    session = null,
   }) {
+
+    const options = {
+      returnDocument:
+        "after",
+
+      runValidators:
+        true,
+    };
+
+
+    if (session) {
+      options.session =
+        session;
+    }
+
 
     return JournalEntry
       .findOneAndUpdate(
@@ -475,16 +537,11 @@ class JournalEntryRepository {
           },
         },
 
-        {
-          returnDocument:
-            "after",
-
-          runValidators:
-            true,
-        }
+        options
 
       )
       .lean();
+
   }
 
 
@@ -672,3 +729,6 @@ export const journalEntryRepository =
 
 export default
   journalEntryRepository;
+
+
+

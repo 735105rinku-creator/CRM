@@ -140,6 +140,7 @@ export class JournalEntryService {
     companyId,
     userId,
     payload,
+    session = null,
   }) {
 
     if (
@@ -174,6 +175,8 @@ export class JournalEntryService {
           lines:
             payload.lines ||
             [],
+
+          session,
         });
 
 
@@ -265,7 +268,10 @@ export class JournalEntryService {
     return this
       .journalRepository
       .create(
-        createPayload
+        createPayload,
+        {
+          session,
+        }
       );
   }
 
@@ -446,6 +452,7 @@ export class JournalEntryService {
     companyId,
     journalEntryId,
     userId,
+    session = null,
   }) {
 
     const journal =
@@ -454,9 +461,12 @@ export class JournalEntryService {
         .postById({
           companyId,
           journalEntryId,
+
           userId:
             userId ||
             null,
+
+          session,
         });
 
 
@@ -486,6 +496,7 @@ export class JournalEntryService {
     journalEntryId,
     userId,
     reason,
+    session = null,
   }) {
 
     const cleanReason =
@@ -519,6 +530,8 @@ export class JournalEntryService {
 
           reason:
             cleanReason,
+
+          session,
         });
 
 
@@ -544,6 +557,7 @@ export class JournalEntryService {
     companyId,
     referenceType,
     lines,
+    session = null,
   }) {
 
     if (
@@ -576,6 +590,8 @@ export class JournalEntryService {
 
             accountId:
               line.accountId,
+
+            session,
           });
 
 
@@ -724,3 +740,6 @@ const journalEntryService =
 
 export default
   journalEntryService;
+
+
+
