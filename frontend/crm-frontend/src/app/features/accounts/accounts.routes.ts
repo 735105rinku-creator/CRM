@@ -264,23 +264,27 @@ export const ACCOUNTS_ROUTES: Routes = [
       ====================================================== */
 
       {
-        path: 'journal',
+        path: 'journal-entries',
 
         loadComponent: () =>
           import(
-            './pages/placeholder/accounts-placeholder.component'
+            './pages/journal-entries/journal-entries.component'
           ).then(
             (module) =>
-              module.AccountsPlaceholderComponent
+              module.JournalEntriesComponent
           ),
 
         data: {
           title: 'Journal Entries',
           section: 'Accounts',
-          feature: 'journal',
-          description:
-            'Manual debit and credit accounting entries.'
+          feature: 'journal-entries'
         }
+      },
+
+      {
+        path: 'journal',
+        pathMatch: 'full',
+        redirectTo: 'journal-entries'
       },
 
       {

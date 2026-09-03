@@ -1,4 +1,4 @@
-import {
+﻿import {
   ChangeDetectionStrategy,
   Component
 } from '@angular/core';
@@ -67,234 +67,234 @@ export class AccountsSidebarComponent {
   readonly menuGroups:
     AccountsSidebarGroup[] = [
 
-    /* =======================================================
-       OVERVIEW
-    ======================================================= */
+      /* =======================================================
+         OVERVIEW
+      ======================================================= */
 
-    {
-      title: 'Overview',
+      {
+        title: 'Overview',
 
-      items: [
-        {
-          label: 'Dashboard',
-          route: '/accounts/dashboard',
-          icon: 'dashboard',
-          exact: true
-        }
-      ]
-    },
-
-
-    /* =======================================================
-       MASTERS
-    ======================================================= */
-
-    {
-      title: 'Masters',
-
-      items: [
-        {
-          label: 'Customers',
-          route: '/accounts/customers',
-          icon: 'customers'
-        },
-
-        {
-          label: 'Vendors',
-          route: '/accounts/vendors',
-          icon: 'vendors'
-        },
-
-        {
-          label: 'Chart of Accounts',
-          route:
-            '/accounts/chart-of-accounts',
-          icon: 'chart'
-        }
-      ]
-    },
+        items: [
+          {
+            label: 'Dashboard',
+            route: '/accounts/dashboard',
+            icon: 'dashboard',
+            exact: true
+          }
+        ]
+      },
 
 
-    /* =======================================================
-       SALES
-    ======================================================= */
+      /* =======================================================
+         MASTERS
+      ======================================================= */
 
-    {
-      title: 'Sales',
+      {
+        title: 'Masters',
 
-      items: [
-        {
-          label: 'Sales Invoices',
-          route: '/accounts/invoices',
-          icon: 'invoice'
-        },
+        items: [
+          {
+            label: 'Customers',
+            route: '/accounts/customers',
+            icon: 'customers'
+          },
 
-        {
-          label: 'Receipts',
-          route: '/accounts/receipts',
-          icon: 'receipt'
-        },
+          {
+            label: 'Vendors',
+            route: '/accounts/vendors',
+            icon: 'vendors'
+          },
 
-        {
-          label: 'Credit Notes',
-          route: '/accounts/credit-notes',
-          icon: 'credit'
-        }
-      ]
-    },
-
-
-    /* =======================================================
-       PURCHASES
-    ======================================================= */
-
-    {
-      title: 'Purchases',
-
-      items: [
-        {
-          label: 'Purchase Bills',
-          route: '/accounts/bills',
-          icon: 'bill'
-        },
-
-        {
-          label: 'Payments',
-          route: '/accounts/payments',
-          icon: 'payment'
-        },
-
-        {
-          label: 'Debit Notes',
-          route: '/accounts/debit-notes',
-          icon: 'debit'
-        }
-      ]
-    },
+          {
+            label: 'Chart of Accounts',
+            route:
+              '/accounts/chart-of-accounts',
+            icon: 'chart'
+          }
+        ]
+      },
 
 
-    /* =======================================================
-       EXPENSES
-    ======================================================= */
+      /* =======================================================
+         SALES
+      ======================================================= */
 
-    {
-      title: 'Expenses',
+      {
+        title: 'Sales',
 
-      items: [
-        {
-          label: 'All Expenses',
-          route: '/accounts/expenses',
-          icon: 'expense'
-        }
-      ]
-    },
+        items: [
+          {
+            label: 'Sales Invoices',
+            route: '/accounts/invoices',
+            icon: 'invoice'
+          },
 
+          {
+            label: 'Receipts',
+            route: '/accounts/receipts',
+            icon: 'receipt'
+          },
 
-    /* =======================================================
-       ACCOUNTING
-    ======================================================= */
-
-    {
-      title: 'Accounting',
-
-      items: [
-        {
-          label: 'Journal Entries',
-          route: '/accounts/journal',
-          icon: 'journal'
-        },
-
-        {
-          label: 'General Ledger',
-          route: '/accounts/ledger',
-          icon: 'ledger'
-        },
-
-        {
-          label: 'Customer Ledger',
-          route:
-            '/accounts/ledger/customers',
-          icon: 'customer-ledger'
-        },
-
-        {
-          label: 'Vendor Ledger',
-          route:
-            '/accounts/ledger/vendors',
-          icon: 'vendor-ledger'
-        }
-      ]
-    },
+          {
+            label: 'Credit Notes',
+            route: '/accounts/credit-notes',
+            icon: 'credit'
+          }
+        ]
+      },
 
 
-    /* =======================================================
-       CASH & BANK
-    ======================================================= */
+      /* =======================================================
+         PURCHASES
+      ======================================================= */
 
-    {
-      title: 'Cash & Bank',
+      {
+        title: 'Purchases',
 
-      items: [
-        {
-          label: 'Cash & Bank',
-          route: '/accounts/cash-bank',
-          icon: 'bank'
-        }
-      ]
-    },
+        items: [
+          {
+            label: 'Purchase Bills',
+            route: '/accounts/bills',
+            icon: 'bill'
+          },
 
+          {
+            label: 'Payments',
+            route: '/accounts/payments',
+            icon: 'payment'
+          },
 
-    /* =======================================================
-       TAX
-    ======================================================= */
-
-    {
-      title: 'Tax',
-
-      items: [
-        {
-          label: 'GST & Tax',
-          route: '/accounts/tax',
-          icon: 'tax'
-        }
-      ]
-    },
+          {
+            label: 'Debit Notes',
+            route: '/accounts/debit-notes',
+            icon: 'debit'
+          }
+        ]
+      },
 
 
-    /* =======================================================
-       REPORTS
-    ======================================================= */
+      /* =======================================================
+         EXPENSES
+      ======================================================= */
 
-    {
-      title: 'Reports',
+      {
+        title: 'Expenses',
 
-      items: [
-        {
-          label: 'Financial Reports',
-          route: '/accounts/reports',
-          icon: 'reports'
-        }
-      ]
-    },
+        items: [
+          {
+            label: 'All Expenses',
+            route: '/accounts/expenses',
+            icon: 'expense'
+          }
+        ]
+      },
 
 
-    /* =======================================================
-       SETTINGS
-    ======================================================= */
+      /* =======================================================
+         ACCOUNTING
+      ======================================================= */
 
-    {
-      title: 'Configuration',
+      {
+        title: 'Accounting',
 
-      items: [
-        {
-          label: 'Accounts Settings',
-          route: '/accounts/settings',
-          icon: 'settings'
-        }
-      ]
-    }
+        items: [
+          {
+            label: 'Journal Entries',
+            route: '/accounts/journal-entries',
+            icon: 'journal'
+          },
 
-  ];
+          {
+            label: 'General Ledger',
+            route: '/accounts/ledger',
+            icon: 'ledger'
+          },
+
+          {
+            label: 'Customer Ledger',
+            route:
+              '/accounts/ledger/customers',
+            icon: 'customer-ledger'
+          },
+
+          {
+            label: 'Vendor Ledger',
+            route:
+              '/accounts/ledger/vendors',
+            icon: 'vendor-ledger'
+          }
+        ]
+      },
+
+
+      /* =======================================================
+         CASH & BANK
+      ======================================================= */
+
+      {
+        title: 'Cash & Bank',
+
+        items: [
+          {
+            label: 'Cash & Bank',
+            route: '/accounts/cash-bank',
+            icon: 'bank'
+          }
+        ]
+      },
+
+
+      /* =======================================================
+         TAX
+      ======================================================= */
+
+      {
+        title: 'Tax',
+
+        items: [
+          {
+            label: 'GST & Tax',
+            route: '/accounts/tax',
+            icon: 'tax'
+          }
+        ]
+      },
+
+
+      /* =======================================================
+         REPORTS
+      ======================================================= */
+
+      {
+        title: 'Reports',
+
+        items: [
+          {
+            label: 'Financial Reports',
+            route: '/accounts/reports',
+            icon: 'reports'
+          }
+        ]
+      },
+
+
+      /* =======================================================
+         SETTINGS
+      ======================================================= */
+
+      {
+        title: 'Configuration',
+
+        items: [
+          {
+            label: 'Accounts Settings',
+            route: '/accounts/settings',
+            icon: 'settings'
+          }
+        ]
+      }
+
+    ];
 
 
   /* =========================================================
