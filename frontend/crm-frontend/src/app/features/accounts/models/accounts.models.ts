@@ -82,6 +82,32 @@ export interface ChartOfAccount {
 
 
 /* =========================================================
+   CHART OF ACCOUNTS SUMMARY
+========================================================= */
+
+export interface ChartOfAccountNatureSummary {
+  accountCount: number;
+
+  openingBalance: number;
+}
+
+
+export interface ChartOfAccountsSummary {
+  totalAccounts: number;
+
+  asset: ChartOfAccountNatureSummary;
+
+  liability: ChartOfAccountNatureSummary;
+
+  equity: ChartOfAccountNatureSummary;
+
+  income: ChartOfAccountNatureSummary;
+
+  expense: ChartOfAccountNatureSummary;
+}
+
+
+/* =========================================================
    ACCOUNT GROUP
 ========================================================= */
 
@@ -139,16 +165,63 @@ export interface UpdateChartOfAccountPayload {
 
 
 /* =========================================================
-   JOURNAL ENTRY
+   JOURNAL ENTRY TYPES
 ========================================================= */
 
-export type JournalStatus =
+export type JournalEntryStatus =
   | 'draft'
   | 'posted'
-  | 'cancelled';
+  | 'void';
 
+
+/*
+ * Backward-compatible alias.
+ *
+ * Existing frontend files that still import JournalStatus
+ * will continue compiling while JournalEntryStatus becomes
+ * the canonical type.
+ */
+
+export type JournalStatus =
+  JournalEntryStatus;
+
+
+export type JournalReferenceType =
+  | 'manual'
+  | 'sales_invoice'
+  | 'receipt'
+  | 'credit_note'
+  | 'purchase_bill'
+  | 'payment'
+  | 'debit_note'
+  | 'expense'
+  | 'opening_balance'
+  | 'adjustment';
+
+
+export type JournalSortField =
+  | 'journalNumber'
+  | 'journalDate'
+  | 'status'
+  | 'referenceType'
+  | 'totalDebit'
+  | 'totalCredit'
+  | 'createdAt'
+  | 'updatedAt';
+
+
+export type JournalSortOrder =
+  | 'asc'
+  | 'desc';
+
+
+/* =========================================================
+   JOURNAL ENTRY LINE
+========================================================= */
 
 export interface JournalEntryLine {
+  _id?: string;
+
   accountId: string;
 
   accountCode?: string;
@@ -163,6 +236,10 @@ export interface JournalEntryLine {
 }
 
 
+/* =========================================================
+   JOURNAL ENTRY
+========================================================= */
+
 export interface JournalEntry {
   _id?: string;
 
@@ -172,28 +249,35 @@ export interface JournalEntry {
 
   journalDate: string;
 
-  referenceNumber?: string;
-
   narration?: string;
 
-  lines: JournalEntryLine[];
+  referenceType: JournalReferenceType;
+
+  referenceId?: string | null;
+
+  referenceNo?: string;
+
+  status: JournalEntryStatus;
 
   totalDebit: number;
 
   totalCredit: number;
 
-  status: JournalStatus;
+  lines: JournalEntryLine[];
 
-  sourceModule?:
-    | 'accounts'
-    | 'crm'
-    | 'hrm'
-    | 'logistics'
-    | 'system';
+  createdBy?: string | null;
 
-  sourceReferenceId?: string | null;
+  updatedBy?: string | null;
 
-  createdBy?: string;
+  postedBy?: string | null;
+
+  postedAt?: string | null;
+
+  voidedBy?: string | null;
+
+  voidedAt?: string | null;
+
+  voidReason?: string;
 
   createdAt?: string;
 
@@ -202,26 +286,87 @@ export interface JournalEntry {
 
 
 /* =========================================================
-   CREATE JOURNAL PAYLOAD
+   JOURNAL ENTRY LINE PAYLOAD
+========================================================= */
+
+export interface JournalEntryLinePayload {
+  accountId: string;
+
+  description?: string;
+
+  debit: number;
+
+  credit: number;
+}
+
+
+/* =========================================================
+   CREATE JOURNAL ENTRY PAYLOAD
 ========================================================= */
 
 export interface CreateJournalEntryPayload {
   journalDate: string;
 
-  referenceNumber?: string;
+  narration?: string;
+
+  referenceType?: JournalReferenceType;
+
+  referenceId?: string | null;
+
+  referenceNo?: string;
+
+  lines: JournalEntryLinePayload[];
+}
+
+
+/* =========================================================
+   UPDATE JOURNAL ENTRY PAYLOAD
+========================================================= */
+
+export interface UpdateJournalEntryPayload {
+  journalDate?: string;
 
   narration?: string;
 
-  lines: JournalEntryLine[];
+  referenceType?: JournalReferenceType;
 
-  sourceModule?:
-    | 'accounts'
-    | 'crm'
-    | 'hrm'
-    | 'logistics'
-    | 'system';
+  referenceId?: string | null;
 
-  sourceReferenceId?: string | null;
+  referenceNo?: string;
+
+  lines?: JournalEntryLinePayload[];
+}
+
+
+/* =========================================================
+   JOURNAL ENTRY QUERY
+========================================================= */
+
+export interface JournalEntryQuery {
+  search?: string;
+
+  status?: JournalEntryStatus;
+
+  referenceType?: JournalReferenceType;
+
+  accountId?: string;
+
+  from?: string;
+
+  to?: string;
+
+  sortBy?: JournalSortField;
+
+  sortOrder?: JournalSortOrder;
+}
+
+
+/* =========================================================
+   VOID JOURNAL ENTRY PAYLOAD
+========================================================= */
+
+export interface VoidJournalEntryPayload {
+  reason: string;
 }
 
 

@@ -1,4 +1,5 @@
 import { Router } from "express";
+
 import {
   createLogisticsVendor,
   getLogisticsVendors,
@@ -8,20 +9,90 @@ import {
   deleteLogisticsVendor,
 } from "../controllers/logisticsVendor.controller.js";
 
+import {
+  requireLogisticsPermission,
+} from "../middleware/logisticsPermission.middleware.js";
+
+
 const router = Router();
 
-/* Security inherited from logistics.routes.js:
-   requireAuth -> requireTenant -> requireLogisticsAccess */
 
-router.get("/summary", getLogisticsVendorSummary);
+/*
+ * Security inherited from logistics.routes.js:
+ *
+ * requireAuth
+ *   ->
+ * requireTenant
+ *   ->
+ * requireLogisticsAccess
+ *
+ * Action-level authorization is enforced below.
+ */
 
-router.route("/")
-  .get(getLogisticsVendors)
-  .post(createLogisticsVendor);
 
-router.route("/:id")
-  .get(getLogisticsVendorById)
-  .patch(updateLogisticsVendor)
-  .delete(deleteLogisticsVendor);
+/* ============================================================
+   VENDOR SUMMARY
+============================================================ */
+
+router.get(
+  "/summary",
+  requireLogisticsPermission(
+    "view",
+    "vendors"
+  ),
+  getLogisticsVendorSummary
+);
+
+
+/* ============================================================
+   VENDOR LIST / CREATE
+============================================================ */
+
+router
+  .route("/")
+  .get(
+    requireLogisticsPermission(
+      "view",
+      "vendors"
+    ),
+    getLogisticsVendors
+  )
+  .post(
+    requireLogisticsPermission(
+      "create",
+      "vendors"
+    ),
+    createLogisticsVendor
+  );
+
+
+/* ============================================================
+   VENDOR DETAIL / UPDATE / DELETE
+============================================================ */
+
+router
+  .route("/:id")
+  .get(
+    requireLogisticsPermission(
+      "view",
+      "vendors"
+    ),
+    getLogisticsVendorById
+  )
+  .patch(
+    requireLogisticsPermission(
+      "edit",
+      "vendors"
+    ),
+    updateLogisticsVendor
+  )
+  .delete(
+    requireLogisticsPermission(
+      "delete",
+      "vendors"
+    ),
+    deleteLogisticsVendor
+  );
+
 
 export default router;

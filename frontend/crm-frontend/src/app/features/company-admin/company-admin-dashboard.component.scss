@@ -1603,3 +1603,516 @@ justify-self: center;
 .company-logistics-flow .shipment-detail-table {
   min-width: 1680px;
 }
+
+/* =========================================================
+   COMPLETE NEOMORPHISM OVERRIDE
+   Preserves existing markup and functionality.
+========================================================= */
+
+.company-admin-console {
+  --neo-bg: #e9eef5;
+  --neo-surface: #edf2f8;
+  --neo-surface-soft: #f2f6fb;
+  --neo-dark: rgba(163, 177, 198, 0.52);
+  --neo-dark-soft: rgba(163, 177, 198, 0.28);
+  --neo-light: rgba(255, 255, 255, 0.94);
+  --neo-text: #1e293b;
+  --neo-muted: #64748b;
+  --neo-accent: var(--color-accent, #4f6fb3);
+  --neo-primary: var(--color-primary, #263a59);
+  --neo-success: var(--color-success, #15803d);
+  --neo-danger: var(--color-danger, #be123c);
+
+  min-height: 100dvh;
+  color: var(--neo-text);
+  background: var(--neo-bg) !important;
+}
+
+.company-admin-console .company-shell {
+  background: var(--neo-bg);
+}
+
+/* Sidebar */
+.company-admin-console .company-sidebar,
+.company-admin-console .hr-sidebar,
+.company-admin-console .employee-sidebar,
+.company-admin-console .platform-menu {
+  background: var(--neo-bg) !important;
+  border-right: 0 !important;
+  box-shadow:
+    10px 0 24px var(--neo-dark-soft),
+    -8px 0 18px var(--neo-light) !important;
+  color: var(--neo-text) !important;
+}
+
+.company-admin-console .company-profile,
+.company-admin-console .sidebar-profile,
+.company-admin-console .hr-card,
+.company-admin-console .employee-card,
+.company-admin-console .back-btn {
+  background: var(--neo-bg) !important;
+  border: 0 !important;
+  border-radius: 18px !important;
+  box-shadow:
+    7px 7px 15px var(--neo-dark-soft),
+    -7px -7px 15px var(--neo-light) !important;
+}
+
+.company-admin-console .company-profile img,
+.company-admin-console .profile-photo-editor img {
+  background: var(--neo-bg) !important;
+  border: 0 !important;
+  box-shadow:
+    5px 5px 12px var(--neo-dark-soft),
+    -5px -5px 12px var(--neo-light) !important;
+}
+
+.company-admin-console .company-profile strong,
+.company-admin-console .sidebar-footer strong,
+.company-admin-console .menu-head h1,
+.company-admin-console .workspace-logout strong,
+.company-admin-console .sidebar-profile strong {
+  color: var(--neo-text) !important;
+}
+
+.company-admin-console .company-profile span,
+.company-admin-console .sidebar-footer span,
+.company-admin-console .menu-group > span,
+.company-admin-console .workspace-logout span,
+.company-admin-console .sidebar-profile span {
+  color: var(--neo-muted) !important;
+}
+
+.company-admin-console .menu-group button,
+.company-admin-console .hr-nav button,
+.company-admin-console .employee-nav button {
+  background: var(--neo-bg) !important;
+  border: 0 !important;
+  border-radius: 14px !important;
+  color: #475569 !important;
+  box-shadow:
+    5px 5px 11px rgba(163, 177, 198, 0.22),
+    -5px -5px 11px rgba(255, 255, 255, 0.82) !important;
+  transition: transform .2s ease, box-shadow .2s ease, color .2s ease;
+}
+
+.company-admin-console .menu-group button:hover,
+.company-admin-console .menu-group button.active,
+.company-admin-console .hr-nav button:hover,
+.company-admin-console .hr-nav button.active,
+.company-admin-console .employee-nav button:hover,
+.company-admin-console .employee-nav button.active {
+  background: var(--neo-bg) !important;
+  border: 0 !important;
+  border-left: 3px solid var(--neo-accent) !important;
+  color: var(--neo-primary) !important;
+  text-shadow: none !important;
+  transform: translateY(-1px);
+  box-shadow:
+    inset 4px 4px 9px rgba(163, 177, 198, 0.28),
+    inset -4px -4px 9px rgba(255, 255, 255, 0.9) !important;
+}
+
+.company-admin-console .sidebar-footer {
+  border-top: 0 !important;
+}
+
+.company-admin-console .sidebar-footer button,
+.company-admin-console .workspace-logout button,
+.company-admin-console .platform-user button {
+  background: var(--neo-bg) !important;
+  border: 0 !important;
+  border-radius: 14px !important;
+  color: var(--neo-danger) !important;
+  box-shadow:
+    6px 6px 14px var(--neo-dark-soft),
+    -6px -6px 14px var(--neo-light) !important;
+}
+
+/* Main surface */
+.company-admin-console .company-main {
+  background: var(--neo-bg);
+}
+
+.company-admin-console .company-main > .panel,
+.company-admin-console .dashboard-grid > .panel,
+.company-admin-console .panel.span-2,
+.company-admin-console .compact-overview,
+.company-admin-console .billing-maximal,
+.company-admin-console .communication-maximal .panel,
+.company-admin-console .report-card-grid article,
+.company-admin-console .export-grid article,
+.company-admin-console .performance-board article {
+  background: var(--neo-bg) !important;
+  border: 0 !important;
+  border-radius: 20px !important;
+  box-shadow:
+    10px 10px 24px var(--neo-dark-soft),
+    -10px -10px 24px var(--neo-light) !important;
+}
+
+.company-admin-console .panel-heading h2,
+.company-admin-console .hero-copy h1,
+.company-admin-console .company-hero h1,
+.company-admin-console .billing-identity h2 {
+  color: var(--neo-primary) !important;
+}
+
+/* Hero */
+.company-admin-console .company-hero,
+.company-admin-console .report-hero,
+.company-admin-console .report-hero.crm,
+.company-admin-console .report-hero.performance,
+.company-admin-console .report-hero.exports {
+  background: var(--neo-bg) !important;
+  border: 0 !important;
+  border-radius: 22px !important;
+  color: var(--neo-text) !important;
+  box-shadow:
+    12px 12px 28px var(--neo-dark-soft),
+    -12px -12px 28px var(--neo-light) !important;
+}
+
+.company-admin-console .report-hero h2 {
+  color: var(--neo-primary) !important;
+}
+
+.company-admin-console .company-hero::after {
+  background: linear-gradient(90deg, transparent, var(--neo-accent), transparent) !important;
+  height: 3px;
+  opacity: .7;
+}
+
+.company-admin-console .hero-actions {
+  background: var(--neo-bg) !important;
+  border: 0 !important;
+  border-radius: 16px !important;
+  box-shadow:
+    inset 5px 5px 12px rgba(163, 177, 198, 0.22),
+    inset -5px -5px 12px rgba(255, 255, 255, 0.88) !important;
+}
+
+/* Buttons */
+.company-admin-console .submit-btn,
+.company-admin-console .primary-action,
+.company-admin-console .quick-actions button,
+.company-admin-console .table-action,
+.company-admin-console .upload-btn,
+.company-admin-console .eye-btn,
+.company-admin-console .foundation-link,
+.company-admin-console .hero-actions .ghost-btn,
+.company-admin-console .company-header-back,
+.company-admin-console .icon-btn.badge {
+  background: var(--neo-bg) !important;
+  border: 0 !important;
+  border-radius: 14px !important;
+  color: var(--neo-primary) !important;
+  box-shadow:
+    6px 6px 14px var(--neo-dark-soft),
+    -6px -6px 14px var(--neo-light) !important;
+  transition: transform .2s ease, box-shadow .2s ease, color .2s ease;
+}
+
+.company-admin-console .submit-btn:hover,
+.company-admin-console .primary-action:hover,
+.company-admin-console .quick-actions button:hover,
+.company-admin-console .table-action:hover,
+.company-admin-console .upload-btn:hover,
+.company-admin-console .eye-btn:hover,
+.company-admin-console .hero-actions .ghost-btn:hover,
+.company-admin-console .company-header-back:hover,
+.company-admin-console .icon-btn.badge:hover {
+  transform: translateY(-2px);
+  color: var(--neo-accent) !important;
+}
+
+.company-admin-console .submit-btn:active,
+.company-admin-console .primary-action:active,
+.company-admin-console .quick-actions button:active,
+.company-admin-console .table-action:active,
+.company-admin-console .upload-btn:active,
+.company-admin-console .eye-btn:active,
+.company-admin-console .hero-actions .ghost-btn:active,
+.company-admin-console .company-header-back:active,
+.company-admin-console .icon-btn.badge:active {
+  transform: translateY(0);
+  box-shadow:
+    inset 5px 5px 11px rgba(163, 177, 198, 0.28),
+    inset -5px -5px 11px rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Cards and chips */
+.company-admin-console .summary-grid span,
+.company-admin-console .module-grid span,
+.company-admin-console .activity-feed span,
+.company-admin-console .chip-list span,
+.company-admin-console .org-node,
+.company-admin-console .empty-visual,
+.company-admin-console .profile-photo-editor,
+.company-admin-console .cropper-panel,
+.company-admin-console .invite-picker,
+.company-admin-console .announcement-grid article,
+.company-admin-console .notification-stream article,
+.company-admin-console .message-item,
+.company-admin-console .subscription-ribbon article,
+.company-admin-console .plan-showcase article,
+.company-admin-console .bar-list button,
+.company-admin-console .invite-picker label {
+  background: var(--neo-bg) !important;
+  border: 0 !important;
+  border-radius: 16px !important;
+  box-shadow:
+    7px 7px 16px rgba(163, 177, 198, 0.24),
+    -7px -7px 16px rgba(255, 255, 255, 0.88) !important;
+}
+
+.company-admin-console .summary-grid span:hover,
+.company-admin-console .module-grid span:hover,
+.company-admin-console .activity-feed span:hover,
+.company-admin-console .bar-list button:hover {
+  transform: translateY(-2px);
+}
+
+.company-admin-console .activity-feed i,
+.company-admin-console .phase-pill,
+.company-admin-console .status-pill,
+.company-admin-console .performance-board header span,
+.company-admin-console .limit-strip span,
+.company-admin-console .plan-showcase small {
+  background: var(--neo-bg) !important;
+  border: 0 !important;
+  color: var(--neo-accent) !important;
+  box-shadow:
+    inset 3px 3px 8px rgba(163, 177, 198, 0.22),
+    inset -3px -3px 8px rgba(255, 255, 255, 0.92) !important;
+}
+
+/* Forms */
+.company-admin-console input,
+.company-admin-console select,
+.company-admin-console textarea,
+.company-admin-console .password-input input {
+  background: var(--neo-bg) !important;
+  border: 0 !important;
+  border-radius: 12px !important;
+  color: var(--neo-text) !important;
+  outline: none;
+  box-shadow:
+    inset 5px 5px 11px rgba(163, 177, 198, 0.24),
+    inset -5px -5px 11px rgba(255, 255, 255, 0.92) !important;
+}
+
+.company-admin-console input:focus,
+.company-admin-console select:focus,
+.company-admin-console textarea:focus {
+  box-shadow:
+    inset 5px 5px 11px rgba(163, 177, 198, 0.26),
+    inset -5px -5px 11px rgba(255, 255, 255, 0.94),
+    0 0 0 3px color-mix(in srgb, var(--neo-accent) 16%, transparent) !important;
+}
+
+/* Tables */
+.company-admin-console .table-wrap,
+.company-admin-console .billing-section-only .table-wrap,
+.company-logistics-flow .table-wrap {
+  background: var(--neo-bg) !important;
+  border: 0 !important;
+  border-radius: 18px !important;
+  box-shadow:
+    inset 6px 6px 14px rgba(163, 177, 198, 0.22),
+    inset -6px -6px 14px rgba(255, 255, 255, 0.9) !important;
+  padding: 10px;
+}
+
+.company-admin-console table {
+  border-collapse: separate;
+  border-spacing: 0 8px;
+}
+
+.company-admin-console table thead {
+  background: transparent !important;
+  color: var(--neo-muted) !important;
+}
+
+.company-admin-console table tbody tr,
+.company-admin-console table tbody tr:nth-child(even),
+.company-admin-console table tbody tr:hover {
+  background: var(--neo-bg) !important;
+}
+
+.company-admin-console table tbody td {
+  background: var(--neo-bg) !important;
+  border: 0 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.72);
+}
+
+.company-admin-console table tbody td:first-child {
+  border-radius: 12px 0 0 12px;
+}
+
+.company-admin-console table tbody td:last-child {
+  border-radius: 0 12px 12px 0;
+}
+
+/* Notifications */
+.company-admin-console .notification-panel {
+  background: var(--neo-bg) !important;
+  border: 0 !important;
+  border-radius: 18px !important;
+  box-shadow:
+    12px 12px 28px rgba(163, 177, 198, 0.34),
+    -8px -8px 22px rgba(255, 255, 255, 0.92) !important;
+}
+
+.company-admin-console .notification-list article,
+.company-admin-console .notification-list article.unread {
+  background: var(--neo-bg) !important;
+  border: 0 !important;
+  box-shadow:
+    5px 5px 12px rgba(163, 177, 198, 0.2),
+    -5px -5px 12px rgba(255, 255, 255, 0.85) !important;
+}
+
+/* Notices */
+.company-admin-console .notice,
+.company-admin-console .section-notice {
+  background: var(--neo-bg) !important;
+  border: 0 !important;
+  border-left: 4px solid var(--neo-success) !important;
+  color: #166534 !important;
+  box-shadow:
+    5px 5px 12px rgba(163, 177, 198, 0.2),
+    -5px -5px 12px rgba(255, 255, 255, 0.88) !important;
+}
+
+/* Billing */
+.company-admin-console .billing-identity img {
+  background: var(--neo-bg) !important;
+  border: 0 !important;
+  border-radius: 16px !important;
+  box-shadow:
+    6px 6px 14px var(--neo-dark-soft),
+    -6px -6px 14px var(--neo-light) !important;
+}
+
+.company-admin-console .plan-showcase article.featured,
+.company-admin-console .plan-showcase article.current {
+  transform: none !important;
+  box-shadow:
+    inset 5px 5px 12px rgba(163, 177, 198, 0.22),
+    inset -5px -5px 12px rgba(255, 255, 255, 0.92) !important;
+}
+
+.company-admin-console .plan-showcase article.current::after {
+  background: var(--neo-bg) !important;
+  color: var(--neo-accent) !important;
+  border-radius: 10px;
+  box-shadow:
+    4px 4px 9px rgba(163, 177, 198, 0.22),
+    -4px -4px 9px rgba(255, 255, 255, 0.9);
+}
+
+/* Reports */
+.company-admin-console .score-track {
+  background: var(--neo-bg) !important;
+  box-shadow:
+    inset 4px 4px 9px rgba(163, 177, 198, 0.24),
+    inset -4px -4px 9px rgba(255, 255, 255, 0.9) !important;
+}
+
+.company-admin-console .score-track i {
+  background: var(--neo-accent) !important;
+  border-radius: inherit;
+}
+
+.company-admin-console .performance-board footer span {
+  background: var(--neo-bg) !important;
+  box-shadow:
+    4px 4px 9px rgba(163, 177, 198, 0.18),
+    -4px -4px 9px rgba(255, 255, 255, 0.82) !important;
+}
+
+/* Theme preview */
+.company-admin-console .theme-preview {
+  background: var(--neo-bg) !important;
+  border: 0 !important;
+  border-radius: 18px !important;
+  box-shadow:
+    9px 9px 22px var(--neo-dark-soft),
+    -9px -9px 22px var(--neo-light) !important;
+}
+
+.company-admin-console .theme-preview aside,
+.company-admin-console .theme-preview main {
+  background: var(--neo-bg) !important;
+  color: var(--neo-text) !important;
+}
+
+.company-admin-console .theme-preview aside {
+  box-shadow: inset -6px 0 14px rgba(163, 177, 198, 0.18);
+}
+
+.company-admin-console .theme-preview aside span {
+  color: var(--neo-muted) !important;
+}
+
+.company-admin-console .theme-preview main button {
+  background: var(--neo-bg) !important;
+  border: 0 !important;
+  color: var(--neo-primary) !important;
+  box-shadow:
+    6px 6px 14px var(--neo-dark-soft),
+    -6px -6px 14px var(--neo-light) !important;
+}
+
+/* Logistics */
+.company-logistics-flow .logistics-flow-tabs button,
+.logistics-flow-view .panel,
+.logistics-flow-view .metric-grid article,
+.wfh-toggle {
+  background: var(--neo-bg, #e9eef5) !important;
+  border: 0 !important;
+  box-shadow:
+    7px 7px 16px rgba(163, 177, 198, 0.26),
+    -7px -7px 16px rgba(255, 255, 255, 0.9) !important;
+}
+
+.company-logistics-flow .logistics-flow-tabs button.active,
+.wfh-toggle.active {
+  box-shadow:
+    inset 5px 5px 11px rgba(163, 177, 198, 0.24),
+    inset -5px -5px 11px rgba(255, 255, 255, 0.92) !important;
+}
+
+.company-logistics-flow .logistics-flow-tabs button span {
+  background: var(--neo-bg, #e9eef5) !important;
+  box-shadow:
+    inset 3px 3px 7px rgba(163, 177, 198, 0.2),
+    inset -3px -3px 7px rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Cropper */
+.company-admin-console .cropper-preview {
+  background: var(--neo-bg) !important;
+  border: 0 !important;
+  box-shadow:
+    inset 8px 8px 18px rgba(163, 177, 198, 0.26),
+    inset -8px -8px 18px rgba(255, 255, 255, 0.92),
+    8px 8px 18px rgba(163, 177, 198, 0.18) !important;
+}
+
+/* Small interaction polish */
+.company-admin-console a,
+.company-admin-console button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.company-admin-console button:focus-visible,
+.company-admin-console a:focus-visible,
+.company-admin-console input:focus-visible,
+.company-admin-console select:focus-visible,
+.company-admin-console textarea:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--neo-accent) 24%, transparent);
+  outline-offset: 3px;
+}

@@ -1,4 +1,5 @@
 import { Router } from "express";
+
 import {
   createLogisticsCustomer,
   getLogisticsCustomers,
@@ -8,34 +9,90 @@ import {
   deleteLogisticsCustomer,
 } from "../controllers/logisticsCustomer.controller.js";
 
+import {
+  requireLogisticsPermission,
+} from "../middleware/logisticsPermission.middleware.js";
+
+
 const router = Router();
 
+
 /*
- * Security is inherited from logistics.routes.js:
- * requireAuth -> requireTenant -> requireLogisticsAccess
+ * Security inherited from logistics.routes.js:
+ *
+ * requireAuth
+ *   ->
+ * requireTenant
+ *   ->
+ * requireLogisticsAccess
+ *
+ * Action-level authorization is enforced below.
  */
 
-router.get("/summary", getLogisticsCustomerSummary);
+
+/* ============================================================
+   CUSTOMER SUMMARY
+============================================================ */
+
+router.get(
+  "/summary",
+  requireLogisticsPermission(
+    "view",
+    "customers"
+  ),
+  getLogisticsCustomerSummary
+);
+
+
+/* ============================================================
+   CUSTOMER LIST / CREATE
+============================================================ */
 
 router
   .route("/")
   .get(
+    requireLogisticsPermission(
+      "view",
+      "customers"
+    ),
     getLogisticsCustomers
   )
   .post(
+    requireLogisticsPermission(
+      "create",
+      "customers"
+    ),
     createLogisticsCustomer
   );
+
+
+/* ============================================================
+   CUSTOMER DETAIL / UPDATE / DELETE
+============================================================ */
 
 router
   .route("/:id")
   .get(
+    requireLogisticsPermission(
+      "view",
+      "customers"
+    ),
     getLogisticsCustomerById
   )
   .patch(
+    requireLogisticsPermission(
+      "edit",
+      "customers"
+    ),
     updateLogisticsCustomer
   )
   .delete(
+    requireLogisticsPermission(
+      "delete",
+      "customers"
+    ),
     deleteLogisticsCustomer
   );
+
 
 export default router;

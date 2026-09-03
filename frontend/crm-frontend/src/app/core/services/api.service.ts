@@ -5,71 +5,273 @@ import { map, Observable } from 'rxjs';
 import { apiUrl } from '../config/api.config';
 import { ApiResponse } from '../auth/auth.service';
 
-export type QueryParams = Record<string, string | number | boolean | null | undefined>;
+
+export type QueryParams =
+  Record<
+    string,
+    string |
+    number |
+    boolean |
+    null |
+    undefined
+  >;
+
 
 @Injectable({
   providedIn: 'root'
 })
 export class ApiService {
-  private readonly http = inject(HttpClient);
 
-  get<T>(endpoint: string, query?: QueryParams): Observable<T> {
+  private readonly http =
+    inject(HttpClient);
+
+
+  /* ============================================================
+     GET
+  ============================================================ */
+
+  get<T>(
+    endpoint: string,
+    query?: QueryParams
+  ): Observable<T> {
+
     return this.http
-      .get<ApiResponse<T> | T>(this.url(endpoint), {
-        params: this.params(query),
-        withCredentials: true
-      })
-      .pipe(map((response) => this.unwrap(response)));
+      .get<ApiResponse<T> | T>(
+        this.url(endpoint),
+        {
+          params:
+            this.params(query),
+
+          withCredentials:
+            true
+        }
+      )
+      .pipe(
+        map(
+          response =>
+            this.unwrap(response)
+        )
+      );
   }
 
-  post<T>(endpoint: string, body: unknown): Observable<T> {
+
+  /* ============================================================
+     POST
+  ============================================================ */
+
+  post<T>(
+    endpoint: string,
+    body: unknown
+  ): Observable<T> {
+
     return this.http
-      .post<ApiResponse<T> | T>(this.url(endpoint), body, { withCredentials: true })
-      .pipe(map((response) => this.unwrap(response)));
+      .post<ApiResponse<T> | T>(
+        this.url(endpoint),
+        body,
+        {
+          withCredentials:
+            true
+        }
+      )
+      .pipe(
+        map(
+          response =>
+            this.unwrap(response)
+        )
+      );
   }
 
-  patch<T>(endpoint: string, body: unknown): Observable<T> {
+
+  /* ============================================================
+     PATCH
+  ============================================================ */
+
+  patch<T>(
+    endpoint: string,
+    body: unknown
+  ): Observable<T> {
+
     return this.http
-      .patch<ApiResponse<T> | T>(this.url(endpoint), body, { withCredentials: true })
-      .pipe(map((response) => this.unwrap(response)));
+      .patch<ApiResponse<T> | T>(
+        this.url(endpoint),
+        body,
+        {
+          withCredentials:
+            true
+        }
+      )
+      .pipe(
+        map(
+          response =>
+            this.unwrap(response)
+        )
+      );
   }
 
-  put<T>(endpoint: string, body: unknown): Observable<T> {
+
+  /* ============================================================
+     PUT
+  ============================================================ */
+
+  put<T>(
+    endpoint: string,
+    body: unknown
+  ): Observable<T> {
+
     return this.http
-      .put<ApiResponse<T> | T>(this.url(endpoint), body, { withCredentials: true })
-      .pipe(map((response) => this.unwrap(response)));
+      .put<ApiResponse<T> | T>(
+        this.url(endpoint),
+        body,
+        {
+          withCredentials:
+            true
+        }
+      )
+      .pipe(
+        map(
+          response =>
+            this.unwrap(response)
+        )
+      );
   }
 
-  delete<T>(endpoint: string): Observable<T> {
+
+  /* ============================================================
+     DELETE
+  ============================================================ */
+
+  delete<T>(
+    endpoint: string
+  ): Observable<T> {
+
     return this.http
-      .delete<ApiResponse<T> | T>(this.url(endpoint), { withCredentials: true })
-      .pipe(map((response) => this.unwrap(response)));
+      .delete<ApiResponse<T> | T>(
+        this.url(endpoint),
+        {
+          withCredentials:
+            true
+        }
+      )
+      .pipe(
+        map(
+          response =>
+            this.unwrap(response)
+        )
+      );
   }
 
-  getBlob(endpoint: string): Observable<Blob> {
-    return this.http.get(this.url(endpoint), { responseType: 'blob', withCredentials: true });
-  }
 
-  private url(endpoint: string): string {
-    return apiUrl(endpoint);
-  }
+  /* ============================================================
+     BLOB DOWNLOAD
 
-  private params(query?: QueryParams): HttpParams {
-    let params = new HttpParams();
+     Used for authenticated file/report downloads.
 
-    Object.entries(query ?? {}).forEach(([key, value]) => {
-      if (value !== null && value !== undefined && value !== '') {
-        params = params.set(key, String(value));
+     Important:
+     This uses apiUrl(), so local requests go to :8080
+     and production requests go to api.opasbizz.co.in.
+  ============================================================ */
+
+  getBlob(
+    endpoint: string,
+    query?: QueryParams
+  ): Observable<Blob> {
+
+    return this.http.get(
+      this.url(endpoint),
+      {
+        params:
+          this.params(query),
+
+        responseType:
+          'blob',
+
+        withCredentials:
+          true
       }
-    });
+    );
+  }
+
+
+  /* ============================================================
+     API URL
+  ============================================================ */
+
+  private url(
+    endpoint: string
+  ): string {
+
+    return apiUrl(
+      endpoint
+    );
+  }
+
+
+  /* ============================================================
+     QUERY PARAMS
+  ============================================================ */
+
+  private params(
+    query?: QueryParams
+  ): HttpParams {
+
+    let params =
+      new HttpParams();
+
+
+    Object.entries(
+      query ?? {}
+    )
+      .forEach(
+        (
+          [
+            key,
+            value
+          ]
+        ) => {
+
+          if (
+            value !== null &&
+            value !== undefined &&
+            value !== ''
+          ) {
+
+            params =
+              params.set(
+                key,
+                String(value)
+              );
+          }
+        }
+      );
+
 
     return params;
   }
 
-  private unwrap<T>(response: ApiResponse<T> | T): T {
-    if (response && typeof response === 'object' && 'data' in response) {
-      return (response as ApiResponse<T>).data;
+
+  /* ============================================================
+     RESPONSE UNWRAP
+  ============================================================ */
+
+  private unwrap<T>(
+    response:
+      ApiResponse<T> |
+      T
+  ): T {
+
+    if (
+      response &&
+      typeof response ===
+        'object' &&
+      'data' in response
+    ) {
+
+      return (
+        response as
+          ApiResponse<T>
+      ).data;
     }
+
 
     return response as T;
   }

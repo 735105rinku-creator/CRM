@@ -410,8 +410,8 @@ export class LogisticsDocumentsComponent implements OnInit {
             error?.status === 0
               ? 'Backend server is not running or API is unreachable. Please start backend and try again.'
               : error?.error?.message ||
-                error?.error?.errors?.[0]?.message ||
-                'Unable to upload Logistics document.';
+              error?.error?.errors?.[0]?.message ||
+              'Unable to upload Logistics document.';
 
           this.errorMessage.set(message);
           window.alert(message);
@@ -433,34 +433,172 @@ export class LogisticsDocumentsComponent implements OnInit {
     );
   }
 
-  protected downloadDocument(item: LogisticsDocument): void {
-    if (!item.fileUrl) {
-      this.errorMessage.set('Document file URL is not available.');
+  protected downloadDocument(
+    item: LogisticsDocument
+  ): void {
+
+    if (!item.mongoId) {
+      this.errorMessage.set(
+        'Document ID is not available.'
+      );
       return;
     }
 
-    const anchor = document.createElement('a');
-    anchor.href = item.fileUrl;
-    anchor.download = item.fileName || item.documentNo;
-    anchor.target = '_blank';
-    anchor.rel = 'noopener';
+    this.errorMessage.set('');
 
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
+    this.api
+      .getBlob(
+        `/logistics/documents/${encodeURIComponent(item.mongoId)}/download`
+      )
+      .subscribe({
+
+        next: (blob) => {
+
+          const url =
+            URL.createObjectURL(
+              blob
+            );
+
+          const anchor =
+            document.createElement(
+              'a'
+            );
+
+          anchor.href =
+            url;
+
+          anchor.download =
+            item.fileName ||
+            item.documentNo ||
+            'document';
+
+          anchor.style.display =
+            'none';
+
+          document.body
+            .appendChild(
+              anchor
+            );
+
+          anchor.click();
+
+          anchor.remove();
+
+          setTimeout(
+            () =>
+              URL.revokeObjectURL(
+                url
+              ),
+            0
+          );
+        },
+
+        error: (error: {
+          error?: {
+            message?: string;
+          };
+        }) => {
+
+          console.error(
+            'Unable to download Logistics document',
+            error
+          );
+
+          this.errorMessage.set(
+            error?.error?.message ||
+            'Unable to download document.'
+          );
+        }
+
+      });
   }
 
-  protected previewDocument(item: LogisticsDocument): void {
-    if (!item.fileUrl) {
-      this.errorMessage.set('Document file URL is not available.');
+  protected previewDocument(
+    item: LogisticsDocument
+  ): void {
+
+    if (!item.mongoId) {
+      this.errorMessage.set(
+        'Document ID is not available.'
+      );
       return;
     }
 
-    window.open(
-      item.fileUrl,
-      '_blank',
-      'noopener,noreferrer'
-    );
+    this.errorMessage.set('');
+
+    /*
+     * Open the tab immediately so popup blockers
+     * do not block it after the async API response.
+     */
+    const previewWindow =
+      window.open(
+        '',
+        '_blank',
+        'noopener,noreferrer'
+      );
+
+    this.api
+      .getBlob(
+        `/logistics/documents/${encodeURIComponent(item.mongoId)}/preview`
+      )
+      .subscribe({
+
+        next: (blob) => {
+
+          const url =
+            URL.createObjectURL(
+              blob
+            );
+
+          if (previewWindow) {
+
+            previewWindow.location.href =
+              url;
+
+          } else {
+
+            window.open(
+              url,
+              '_blank',
+              'noopener,noreferrer'
+            );
+          }
+
+          /*
+           * Give the browser enough time to load
+           * the object URL before releasing it.
+           */
+          setTimeout(
+            () =>
+              URL.revokeObjectURL(
+                url
+              ),
+            60_000
+          );
+        },
+
+        error: (error: {
+          error?: {
+            message?: string;
+          };
+        }) => {
+
+          if (previewWindow) {
+            previewWindow.close();
+          }
+
+          console.error(
+            'Unable to preview Logistics document',
+            error
+          );
+
+          this.errorMessage.set(
+            error?.error?.message ||
+            'Unable to preview document.'
+          );
+        }
+
+      });
   }
 
   private extractDocumentRows(
@@ -566,7 +704,7 @@ export class LogisticsDocumentsComponent implements OnInit {
       this.form.issueDate &&
       this.form.expiryDate &&
       new Date(this.form.expiryDate).getTime() <
-        new Date(this.form.issueDate).getTime()
+      new Date(this.form.issueDate).getTime()
     ) {
       return 'Expiry Date cannot be before Issue Date.';
     }

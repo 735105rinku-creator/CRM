@@ -1,0 +1,623 @@
+<div class="journal-page">
+
+  <!-- =====================================================
+       PAGE HEADER
+  ====================================================== -->
+
+  <section class="page-header">
+
+    <div class="page-header__content">
+
+      <span class="page-eyebrow">
+        Accounts
+      </span>
+
+      <h1>
+        Journal Entries
+      </h1>
+
+      <p>
+        Review accounting journal entries, references,
+        debit-credit totals and posting status.
+      </p>
+
+    </div>
+
+
+    <div class="page-header__actions">
+
+      <button
+        type="button"
+        class="nm-button nm-button--secondary"
+        [disabled]="loading()"
+        (click)="refresh()"
+      >
+        <span class="button-icon">
+          ↻
+        </span>
+
+        <span>
+          Refresh
+        </span>
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <!-- =====================================================
+       SUMMARY
+  ====================================================== -->
+
+  <section
+    class="summary-grid"
+    aria-label="Journal summary"
+  >
+
+    <article class="summary-card">
+
+      <span class="summary-card__label">
+        Total Journals
+      </span>
+
+      <strong class="summary-card__value">
+        {{ journalCount() }}
+      </strong>
+
+      <span class="summary-card__hint">
+        Current result set
+      </span>
+
+    </article>
+
+
+    <article class="summary-card">
+
+      <span class="summary-card__label">
+        Draft
+      </span>
+
+      <strong class="summary-card__value">
+        {{ draftCount() }}
+      </strong>
+
+      <span class="summary-card__hint">
+        Not yet posted
+      </span>
+
+    </article>
+
+
+    <article class="summary-card">
+
+      <span class="summary-card__label">
+        Posted
+      </span>
+
+      <strong class="summary-card__value">
+        {{ postedCount() }}
+      </strong>
+
+      <span class="summary-card__hint">
+        Included in ledger flow
+      </span>
+
+    </article>
+
+
+    <article class="summary-card">
+
+      <span class="summary-card__label">
+        Void
+      </span>
+
+      <strong class="summary-card__value">
+        {{ voidCount() }}
+      </strong>
+
+      <span class="summary-card__hint">
+        Retained for audit history
+      </span>
+
+    </article>
+
+
+    <article class="summary-card">
+
+      <span class="summary-card__label">
+        Total Debit
+      </span>
+
+      <strong class="summary-card__value summary-card__value--money">
+        {{ formatCurrency(totalDebit()) }}
+      </strong>
+
+      <span class="summary-card__hint">
+        Current result set
+      </span>
+
+    </article>
+
+
+    <article class="summary-card">
+
+      <span class="summary-card__label">
+        Total Credit
+      </span>
+
+      <strong class="summary-card__value summary-card__value--money">
+        {{ formatCurrency(totalCredit()) }}
+      </strong>
+
+      <span class="summary-card__hint">
+        Current result set
+      </span>
+
+    </article>
+
+  </section>
+
+
+  <!-- =====================================================
+       FILTERS
+  ====================================================== -->
+
+  <section class="filter-panel">
+
+    <div class="filter-panel__header">
+
+      <div>
+
+        <span class="section-eyebrow">
+          Filters
+        </span>
+
+        <h2>
+          Find Journal Entries
+        </h2>
+
+      </div>
+
+    </div>
+
+
+    <div class="filter-grid">
+
+      <!-- SEARCH -->
+
+      <div class="form-field form-field--wide">
+
+        <label for="journal-search">
+          Search
+        </label>
+
+        <div class="input-shell">
+
+          <span class="input-icon">
+            ⌕
+          </span>
+
+          <input
+            id="journal-search"
+            type="search"
+            autocomplete="off"
+            placeholder="Journal no., narration, reference or account..."
+            [ngModel]="search()"
+            (ngModelChange)="search.set($event)"
+            (keyup.enter)="applyFilters()"
+          />
+
+        </div>
+
+      </div>
+
+
+      <!-- STATUS -->
+
+      <div class="form-field">
+
+        <label for="journal-status">
+          Status
+        </label>
+
+        <div class="select-shell">
+
+          <select
+            id="journal-status"
+            [ngModel]="statusFilter()"
+            (ngModelChange)="statusFilter.set($event)"
+          >
+
+            <option value="">
+              All Statuses
+            </option>
+
+            <option value="draft">
+              Draft
+            </option>
+
+            <option value="posted">
+              Posted
+            </option>
+
+            <option value="void">
+              Void
+            </option>
+
+          </select>
+
+        </div>
+
+      </div>
+
+
+      <!-- FROM DATE -->
+
+      <div class="form-field">
+
+        <label for="journal-from-date">
+          From Date
+        </label>
+
+        <input
+          id="journal-from-date"
+          type="date"
+          [ngModel]="fromDate()"
+          (ngModelChange)="fromDate.set($event)"
+        />
+
+      </div>
+
+
+      <!-- TO DATE -->
+
+      <div class="form-field">
+
+        <label for="journal-to-date">
+          To Date
+        </label>
+
+        <input
+          id="journal-to-date"
+          type="date"
+          [ngModel]="toDate()"
+          (ngModelChange)="toDate.set($event)"
+        />
+
+      </div>
+
+    </div>
+
+
+    <div class="filter-actions">
+
+      <button
+        type="button"
+        class="nm-button nm-button--primary"
+        [disabled]="loading()"
+        (click)="applyFilters()"
+      >
+        Apply Filters
+      </button>
+
+
+      <button
+        type="button"
+        class="nm-button nm-button--secondary"
+        [disabled]="loading()"
+        (click)="resetFilters()"
+      >
+        Reset
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <!-- =====================================================
+       LOADING
+  ====================================================== -->
+
+  @if (loading()) {
+
+    <section
+      class="state-card"
+      aria-live="polite"
+    >
+
+      <div class="state-card__icon state-card__icon--loading">
+        ↻
+      </div>
+
+      <div>
+
+        <h3>
+          Loading Journal Entries
+        </h3>
+
+        <p>
+          Fetching accounting journals from the server...
+        </p>
+
+      </div>
+
+    </section>
+
+  }
+
+
+  <!-- =====================================================
+       ERROR
+  ====================================================== -->
+
+  @else if (error()) {
+
+    <section
+      class="state-card state-card--error"
+      role="alert"
+    >
+
+      <div class="state-card__icon">
+        !
+      </div>
+
+      <div class="state-card__content">
+
+        <h3>
+          Unable to load Journal Entries
+        </h3>
+
+        <p>
+          {{ error() }}
+        </p>
+
+      </div>
+
+
+      <button
+        type="button"
+        class="nm-button nm-button--secondary"
+        (click)="refresh()"
+      >
+        Try Again
+      </button>
+
+    </section>
+
+  }
+
+
+  <!-- =====================================================
+       EMPTY STATE
+  ====================================================== -->
+
+  @else if (journals().length === 0) {
+
+    <section class="empty-state">
+
+      <div class="empty-state__icon">
+        ≡
+      </div>
+
+      <h2>
+        No Journal Entries
+      </h2>
+
+      <p>
+        No Journal Entries matched the current filters.
+        New accounting transactions will appear here when
+        journal records are available.
+      </p>
+
+    </section>
+
+  }
+
+
+  <!-- =====================================================
+       JOURNAL TABLE
+  ====================================================== -->
+
+  @else {
+
+    <section class="journal-table-card">
+
+      <div class="table-header">
+
+        <div>
+
+          <span class="section-eyebrow">
+            Journal Register
+          </span>
+
+          <h2>
+            {{ journals().length }}
+            Journal
+            {{ journals().length === 1 ? 'Entry' : 'Entries' }}
+          </h2>
+
+        </div>
+
+      </div>
+
+
+      <div class="table-scroll">
+
+        <table class="journal-table">
+
+          <thead>
+
+            <tr>
+
+              <th scope="col">
+                Journal No.
+              </th>
+
+              <th scope="col">
+                Date
+              </th>
+
+              <th scope="col">
+                Narration
+              </th>
+
+              <th scope="col">
+                Reference
+              </th>
+
+              <th
+                scope="col"
+                class="amount-column"
+              >
+                Debit
+              </th>
+
+              <th
+                scope="col"
+                class="amount-column"
+              >
+                Credit
+              </th>
+
+              <th scope="col">
+                Status
+              </th>
+
+            </tr>
+
+          </thead>
+
+
+          <tbody>
+
+            @for (
+              journal of journals();
+              track trackJournal($index, journal)
+            ) {
+
+              <tr>
+
+                <!-- JOURNAL NUMBER -->
+
+                <td>
+
+                  <div class="journal-number">
+
+                    <strong>
+                      {{ journal.journalNumber }}
+                    </strong>
+
+                    @if (journal.referenceType) {
+
+                      <span>
+                        {{ journal.referenceType }}
+                      </span>
+
+                    }
+
+                  </div>
+
+                </td>
+
+
+                <!-- DATE -->
+
+                <td>
+
+                  <span class="date-text">
+                    {{ formatDate(journal.journalDate) }}
+                  </span>
+
+                </td>
+
+
+                <!-- NARRATION -->
+
+                <td>
+
+                  <div class="narration-cell">
+
+                    <span>
+                      {{ journal.narration || '—' }}
+                    </span>
+
+                    @if (journal.lines.length) {
+
+                      <small>
+                        {{ journal.lines.length }}
+                        line{{ journal.lines.length === 1 ? '' : 's' }}
+                      </small>
+
+                    }
+
+                  </div>
+
+                </td>
+
+
+                <!-- REFERENCE -->
+
+                <td>
+
+                  <span class="reference-text">
+                    {{ referenceLabel(journal) }}
+                  </span>
+
+                </td>
+
+
+                <!-- DEBIT -->
+
+                <td class="amount-column">
+
+                  <strong class="amount amount--debit">
+                    {{ formatCurrency(journal.totalDebit) }}
+                  </strong>
+
+                </td>
+
+
+                <!-- CREDIT -->
+
+                <td class="amount-column">
+
+                  <strong class="amount amount--credit">
+                    {{ formatCurrency(journal.totalCredit) }}
+                  </strong>
+
+                </td>
+
+
+                <!-- STATUS -->
+
+                <td>
+
+                  <span
+                    class="status-badge"
+                    [class]="
+                      'status-badge ' +
+                      statusClass(journal.status)
+                    "
+                  >
+                    {{ statusLabel(journal.status) }}
+                  </span>
+
+                </td>
+
+              </tr>
+
+            }
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </section>
+
+  }
+
+</div>

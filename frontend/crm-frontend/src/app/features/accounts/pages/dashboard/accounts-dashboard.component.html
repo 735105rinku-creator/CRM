@@ -46,14 +46,129 @@
   <div class="summary-grid">
 
     @for (
-      card of summaryCards();
-      track trackSummaryCard($index, card)
+    card of summaryCards();
+    track trackSummaryCard($index, card)
     ) {
 
-      <a
-        class="summary-card"
-        [routerLink]="card.route || '/accounts/dashboard'"
-      >
+    <a class="summary-card" [routerLink]="card.route || '/accounts/dashboard'">
+
+      <div class="summary-card-top">
+
+        <span class="summary-title">
+          {{ card.title }}
+        </span>
+
+        <span class="summary-arrow">
+          →
+        </span>
+
+      </div>
+
+
+      <strong class="summary-value">
+
+        @if (
+        card.type === 'currency'
+        ) {
+
+        {{ formatCurrency(card.value) }}
+
+        } @else {
+
+        {{ card.value }}
+
+        }
+
+      </strong>
+
+
+      <span class="summary-subtitle">
+        {{ card.subtitle }}
+      </span>
+
+    </a>
+
+    }
+
+  </div>
+
+  <!-- =====================================================
+     CHART OF ACCOUNTS OVERVIEW
+====================================================== -->
+
+  <section class="dashboard-section">
+
+    <div class="section-header">
+
+      <div>
+
+        <span class="section-eyebrow">
+          Chart of Accounts
+        </span>
+
+        <h2>
+          Account Master Overview
+        </h2>
+
+        <p>
+          Active accounts grouped by accounting nature.
+        </p>
+
+      </div>
+
+    </div>
+
+
+    @if (
+    isChartSummaryLoading()
+    ) {
+
+    <div class="foundation-card">
+
+      <div class="foundation-content">
+
+        <span class="foundation-label">
+          Loading
+        </span>
+
+        <p>
+          Loading Chart of Accounts summary...
+        </p>
+
+      </div>
+
+    </div>
+
+    } @else if (
+    chartSummaryError()
+    ) {
+
+    <div class="foundation-card">
+
+      <div class="foundation-content">
+
+        <span class="foundation-label">
+          Accounts API
+        </span>
+
+        <p>
+          {{ chartSummaryError() }}
+        </p>
+
+      </div>
+
+    </div>
+
+    } @else {
+
+    <div class="summary-grid">
+
+      @for (
+      card of chartSummaryCards();
+      track trackSummaryCard($index, card)
+      ) {
+
+      <a class="summary-card" [routerLink]="card.route || '/accounts/chart-of-accounts'">
 
         <div class="summary-card-top">
 
@@ -69,19 +184,7 @@
 
 
         <strong class="summary-value">
-
-          @if (
-            card.type === 'currency'
-          ) {
-
-            {{ formatCurrency(card.value) }}
-
-          } @else {
-
-            {{ card.value }}
-
-          }
-
+          {{ card.value }}
         </strong>
 
 
@@ -91,21 +194,21 @@
 
       </a>
 
+      }
+
+    </div>
+
     }
 
-  </div>
+  </section>
 
 
   <!-- =====================================================
        PROFIT / LOSS
   ====================================================== -->
 
-  <div
-    class="profit-card"
-    [class.profit]="profitStatus() === 'profit'"
-    [class.loss]="profitStatus() === 'loss'"
-    [class.neutral]="profitStatus() === 'neutral'"
-  >
+  <div class="profit-card" [class.profit]="profitStatus() === 'profit'" [class.loss]="profitStatus() === 'loss'"
+    [class.neutral]="profitStatus() === 'neutral'">
 
     <div>
 
@@ -123,26 +226,26 @@
     <div class="profit-status">
 
       @switch (
-        profitStatus()
+      profitStatus()
       ) {
 
-        @case ('profit') {
-          <span>
-            Profit
-          </span>
-        }
+      @case ('profit') {
+      <span>
+        Profit
+      </span>
+      }
 
-        @case ('loss') {
-          <span>
-            Loss
-          </span>
-        }
+      @case ('loss') {
+      <span>
+        Loss
+      </span>
+      }
 
-        @default {
-          <span>
-            No movement
-          </span>
-        }
+      @default {
+      <span>
+        No movement
+      </span>
+      }
 
       }
 
@@ -177,38 +280,35 @@
     <div class="quick-actions-grid">
 
       @for (
-        action of quickActions;
-        track trackQuickAction($index, action)
+      action of quickActions;
+      track trackQuickAction($index, action)
       ) {
 
-        <a
-          class="quick-action-card"
-          [routerLink]="action.route"
-        >
+      <a class="quick-action-card" [routerLink]="action.route">
 
-          <div class="quick-action-icon">
-            {{ action.shortCode }}
-          </div>
+        <div class="quick-action-icon">
+          {{ action.shortCode }}
+        </div>
 
 
-          <div class="quick-action-content">
+        <div class="quick-action-content">
 
-            <strong>
-              {{ action.label }}
-            </strong>
+          <strong>
+            {{ action.label }}
+          </strong>
 
-            <p>
-              {{ action.description }}
-            </p>
+          <p>
+            {{ action.description }}
+          </p>
 
-          </div>
+        </div>
 
 
-          <span class="quick-action-arrow">
-            →
-          </span>
+        <span class="quick-action-arrow">
+          →
+        </span>
 
-        </a>
+      </a>
 
       }
 
@@ -243,38 +343,35 @@
     <div class="module-grid">
 
       @for (
-        module of moduleShortcuts;
-        track trackModuleShortcut($index, module)
+      module of moduleShortcuts;
+      track trackModuleShortcut($index, module)
       ) {
 
-        <a
-          class="module-card"
-          [routerLink]="module.route"
-        >
+      <a class="module-card" [routerLink]="module.route">
 
-          <div class="module-card-header">
+        <div class="module-card-header">
 
-            <div class="module-code">
-              {{ module.shortCode }}
-            </div>
-
-            <span class="module-arrow">
-              →
-            </span>
-
+          <div class="module-code">
+            {{ module.shortCode }}
           </div>
 
+          <span class="module-arrow">
+            →
+          </span>
 
-          <h3>
-            {{ module.title }}
-          </h3>
+        </div>
 
 
-          <p>
-            {{ module.description }}
-          </p>
+        <h3>
+          {{ module.title }}
+        </h3>
 
-        </a>
+
+        <p>
+          {{ module.description }}
+        </p>
+
+      </a>
 
       }
 
@@ -314,10 +411,7 @@
     </div>
 
 
-    <a
-      routerLink="/accounts/chart-of-accounts"
-      class="foundation-link"
-    >
+    <a routerLink="/accounts/chart-of-accounts" class="foundation-link">
       Chart of Accounts
     </a>
 

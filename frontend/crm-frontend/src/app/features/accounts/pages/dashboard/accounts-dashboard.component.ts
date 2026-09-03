@@ -1,7 +1,9 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  OnInit,
   computed,
+  inject,
   signal
 } from '@angular/core';
 
@@ -12,6 +14,14 @@ import {
 import {
   RouterLink
 } from '@angular/router';
+
+import {
+  ChartOfAccountsSummary
+} from '../../models/accounts.models';
+
+import {
+  ChartOfAccountsService
+} from '../../services/chart-of-accounts.service';
 
 
 interface AccountsSummaryCard {
@@ -40,9 +50,11 @@ interface AccountsModuleShortcut {
 
 
 @Component({
-  selector: 'app-accounts-dashboard',
+  selector:
+    'app-accounts-dashboard',
 
-  standalone: true,
+  standalone:
+    true,
 
   imports: [
     CommonModule,
@@ -58,14 +70,24 @@ interface AccountsModuleShortcut {
   changeDetection:
     ChangeDetectionStrategy.OnPush
 })
-export class AccountsDashboardComponent {
+export class AccountsDashboardComponent
+  implements OnInit {
+
+  /* =========================================================
+     SERVICES
+  ========================================================= */
+
+  private readonly chartOfAccountsService =
+  inject(ChartOfAccountsService);
 
   /* =========================================================
      FINANCIAL YEAR
   ========================================================= */
 
   readonly financialYear =
-    signal('2026–27');
+    signal(
+      '2026–27'
+    );
 
 
   /* =========================================================
@@ -73,35 +95,264 @@ export class AccountsDashboardComponent {
   ========================================================= */
 
   readonly currencyCode =
-    signal('INR');
+    signal(
+      'INR'
+    );
 
 
   /* =========================================================
-     DASHBOARD SUMMARY
+     CHART OF ACCOUNTS SUMMARY
+  ========================================================= */
 
-     These values remain zero until the Accounts dashboard
-     service is connected to real backend accounting data.
+  readonly chartOfAccountsSummary =
+    signal<ChartOfAccountsSummary | null>(
+      null
+    );
 
-     Do not use demo/fake financial values here.
+
+  readonly isChartSummaryLoading =
+    signal(
+      false
+    );
+
+
+  readonly chartSummaryError =
+    signal(
+      ''
+    );
+
+
+  /*
+   * Always expose a safe zero-state object to the template.
+   *
+   * These are ACCOUNT COUNTS, not financial balances.
+   */
+
+  readonly chartSummary =
+    computed<ChartOfAccountsSummary>(
+      () =>
+        this.chartOfAccountsSummary() ??
+        {
+
+          totalAccounts:
+            0,
+
+          asset: {
+            accountCount:
+              0,
+
+            openingBalance:
+              0
+          },
+
+          liability: {
+            accountCount:
+              0,
+
+            openingBalance:
+              0
+          },
+
+          equity: {
+            accountCount:
+              0,
+
+            openingBalance:
+              0
+          },
+
+          income: {
+            accountCount:
+              0,
+
+            openingBalance:
+              0
+          },
+
+          expense: {
+            accountCount:
+              0,
+
+            openingBalance:
+              0
+          }
+
+        }
+    );
+
+
+  readonly chartSummaryCards =
+    computed<AccountsSummaryCard[]>(
+      () => {
+
+        const summary =
+          this.chartSummary();
+
+
+        return [
+
+          {
+            title:
+              'Active Accounts',
+
+            value:
+              summary.totalAccounts,
+
+            type:
+              'number',
+
+            subtitle:
+              'Total active chart accounts',
+
+            route:
+              '/accounts/chart-of-accounts'
+          },
+
+          {
+            title:
+              'Asset Accounts',
+
+            value:
+              summary.asset.accountCount,
+
+            type:
+              'number',
+
+            subtitle:
+              'Active asset accounts',
+
+            route:
+              '/accounts/chart-of-accounts'
+          },
+
+          {
+            title:
+              'Liability Accounts',
+
+            value:
+              summary.liability.accountCount,
+
+            type:
+              'number',
+
+            subtitle:
+              'Active liability accounts',
+
+            route:
+              '/accounts/chart-of-accounts'
+          },
+
+          {
+            title:
+              'Equity Accounts',
+
+            value:
+              summary.equity.accountCount,
+
+            type:
+              'number',
+
+            subtitle:
+              'Active equity accounts',
+
+            route:
+              '/accounts/chart-of-accounts'
+          },
+
+          {
+            title:
+              'Income Accounts',
+
+            value:
+              summary.income.accountCount,
+
+            type:
+              'number',
+
+            subtitle:
+              'Active income accounts',
+
+            route:
+              '/accounts/chart-of-accounts'
+          },
+
+          {
+            title:
+              'Expense Accounts',
+
+            value:
+              summary.expense.accountCount,
+
+            type:
+              'number',
+
+            subtitle:
+              'Active expense accounts',
+
+            route:
+              '/accounts/chart-of-accounts'
+          }
+
+        ];
+
+      }
+    );
+
+
+  /* =========================================================
+     DASHBOARD FINANCIAL SUMMARY
+
+     Keep these values at zero until their real accounting
+     sources are implemented.
+
+     Receivable / Payable:
+       Sales + Purchase documents
+
+     Income / Expense:
+       Journal + Ledger
+
+     Cash / Bank:
+       Ledger balances
+
+     Do NOT derive these values from Chart of Accounts opening
+     balances because that would present master-data balances
+     as live financial balances.
   ========================================================= */
 
   readonly totalReceivable =
-    signal(0);
+    signal(
+      0
+    );
+
 
   readonly totalPayable =
-    signal(0);
+    signal(
+      0
+    );
+
 
   readonly totalIncome =
-    signal(0);
+    signal(
+      0
+    );
+
 
   readonly totalExpense =
-    signal(0);
+    signal(
+      0
+    );
+
 
   readonly cashBalance =
-    signal(0);
+    signal(
+      0
+    );
+
 
   readonly bankBalance =
-    signal(0);
+    signal(
+      0
+    );
 
 
   /* =========================================================
@@ -127,17 +378,24 @@ export class AccountsDashboardComponent {
         const value =
           this.netProfit();
 
+
         if (
           value > 0
         ) {
+
           return 'profit';
+
         }
+
 
         if (
           value < 0
         ) {
+
           return 'loss';
+
         }
+
 
         return 'neutral';
 
@@ -146,7 +404,7 @@ export class AccountsDashboardComponent {
 
 
   /* =========================================================
-     SUMMARY CARDS
+     FINANCIAL SUMMARY CARDS
   ========================================================= */
 
   readonly summaryCards =
@@ -448,6 +706,96 @@ export class AccountsDashboardComponent {
 
 
   /* =========================================================
+     INIT
+  ========================================================= */
+
+  ngOnInit():
+    void {
+
+    this.loadChartOfAccountsSummary();
+
+  }
+
+
+  /* =========================================================
+     LOAD CHART OF ACCOUNTS SUMMARY
+
+     Read-only request:
+       GET /accounting/chart-of-accounts/summary
+  ========================================================= */
+
+  private loadChartOfAccountsSummary():
+    void {
+
+    this.isChartSummaryLoading.set(
+      true
+    );
+
+
+    this.chartSummaryError.set(
+      ''
+    );
+
+
+    this.chartOfAccountsService
+      .getSummary()
+      .subscribe({
+
+        next:
+          (
+            summary
+          ) => {
+
+            this.chartOfAccountsSummary.set(
+              summary
+            );
+
+
+            this.isChartSummaryLoading.set(
+              false
+            );
+
+          },
+
+
+        error:
+          (
+            error: {
+              error?: {
+                message?: string;
+              };
+            }
+          ) => {
+
+            console.error(
+              'Unable to load Chart of Accounts summary',
+              error
+            );
+
+
+            this.chartOfAccountsSummary.set(
+              null
+            );
+
+
+            this.chartSummaryError.set(
+              error?.error?.message ||
+              'Unable to load Chart of Accounts summary.'
+            );
+
+
+            this.isChartSummaryLoading.set(
+              false
+            );
+
+          }
+
+      });
+
+  }
+
+
+  /* =========================================================
      FORMAT CURRENCY
   ========================================================= */
 
@@ -467,9 +815,10 @@ export class AccountsDashboardComponent {
         maximumFractionDigits:
           2
       }
-    ).format(
-      value
-    );
+    )
+      .format(
+        value
+      );
 
   }
 

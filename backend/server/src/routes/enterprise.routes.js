@@ -28,6 +28,7 @@ import { ApiResponse } from "../utils/apiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { COMPANY_STATUS, ROLE_PERMISSIONS, ROLES, SUBSCRIPTION_STATUS, USER_STATUS } from "../constants/roles.js";
 import { PERMISSIONS } from "../constants/permissions.js";
+import { withLogisticsRolePermissions } from "../constants/logisticsPermissions.js";
 import { ensureEmployeeLimit, ensureHrLimit } from "../services/subscriptionLimit.service.js";
 import { countEmployees, withVisibleEmployeeFilter } from "../repositories/employee.repository.js";
 
@@ -1235,7 +1236,7 @@ router.post(
 
 router.get(
   "/company/roles",
-  checkPermission("manage_users"),
+  checkPermission(PERMISSIONS.USER_READ),
   checkHierarchyLevel(2),
   asyncHandler(async (req, res) => {
     const roles = await Role.find({ company: req.auth.companyId }).sort({ level: 1, name: 1 }).lean();
@@ -1288,7 +1289,7 @@ router.post(
 
 router.get(
   "/company/org-chart",
-  checkPermission("view_reports"),
+  checkPermission(PERMISSIONS.REPORT_READ),
   checkHierarchyLevel(2),
   asyncHandler(async (req, res) => {
     const companyId = req.auth.companyId;

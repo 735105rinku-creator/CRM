@@ -1,19 +1,14 @@
 ﻿import { Employee } from "../models/Employee.js";
 import { User } from "../models/User.js";
 import { ROLES } from "../constants/roles.js";
-import { LOGISTICS_PERMISSIONS } from "../constants/logisticsPermissions.js";
+import {
+  LOGISTICS_PERMISSIONS,
+  LOGISTICS_SUBMODULES,
+} from "../constants/logisticsPermissions.js";
 import { ApiError } from "../utils/apiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
-export const LOGISTICS_SUBMODULES = Object.freeze([
-  "airCargo",
-  "seaFreight",
-  "cha",
-  "transporters",
-  "warehouse",
-  "tracking",
-  "documents",
-]);
+export { LOGISTICS_SUBMODULES };
 
 const ACTIONS = [
   "view",
@@ -21,6 +16,7 @@ const ACTIONS = [
   "edit",
   "delete",
   "updateStatus",
+  "export",
 ];
 
 
@@ -74,17 +70,18 @@ export const buildLogisticsPermission = ({
   subModule,
 
   view: Boolean(allowed.view),
-
   viewScope,
 
   create: Boolean(allowed.create),
-
   edit: Boolean(allowed.edit),
-
   delete: Boolean(allowed.delete),
 
   updateStatus: Boolean(
     allowed.updateStatus
+  ),
+
+  export: Boolean(
+    allowed.export
   ),
 });
 
@@ -99,6 +96,7 @@ const fullAccess = Object.freeze({
   edit: true,
   delete: true,
   updateStatus: true,
+  export: true,
 });
 
 
@@ -108,6 +106,7 @@ const viewOnly = Object.freeze({
   edit: false,
   delete: false,
   updateStatus: false,
+  export: false,
 });
 
 
@@ -117,6 +116,7 @@ const ownStatusOnly = Object.freeze({
   edit: false,
   delete: false,
   updateStatus: true,
+  export: false,
 });
 
 
@@ -126,6 +126,7 @@ const ownShipmentCreator = Object.freeze({
   edit: false,
   delete: false,
   updateStatus: true,
+  export: false,
 });
 
 
@@ -270,6 +271,110 @@ const STRING_PERMISSION_MODULES =
         LOGISTICS_PERMISSIONS
           .DOCUMENT_DELETE,
     },
+    customers: {
+      read:
+        LOGISTICS_PERMISSIONS
+          .CUSTOMER_READ,
+
+      create:
+        LOGISTICS_PERMISSIONS
+          .CUSTOMER_CREATE,
+
+      update:
+        LOGISTICS_PERMISSIONS
+          .CUSTOMER_UPDATE,
+
+      delete:
+        LOGISTICS_PERMISSIONS
+          .CUSTOMER_DELETE,
+    },
+
+
+    vendors: {
+      read:
+        LOGISTICS_PERMISSIONS
+          .VENDOR_READ,
+
+      create:
+        LOGISTICS_PERMISSIONS
+          .VENDOR_CREATE,
+
+      update:
+        LOGISTICS_PERMISSIONS
+          .VENDOR_UPDATE,
+
+      delete:
+        LOGISTICS_PERMISSIONS
+          .VENDOR_DELETE,
+    },
+
+
+    productsServices: {
+      read:
+        LOGISTICS_PERMISSIONS
+          .PRODUCT_SERVICE_READ,
+
+      create:
+        LOGISTICS_PERMISSIONS
+          .PRODUCT_SERVICE_CREATE,
+
+      update:
+        LOGISTICS_PERMISSIONS
+          .PRODUCT_SERVICE_UPDATE,
+
+      delete:
+        LOGISTICS_PERMISSIONS
+          .PRODUCT_SERVICE_DELETE,
+    },
+
+
+    vendorPayments: {
+      read:
+        LOGISTICS_PERMISSIONS
+          .VENDOR_PAYMENT_READ,
+
+      create:
+        LOGISTICS_PERMISSIONS
+          .VENDOR_PAYMENT_CREATE,
+
+      update:
+        LOGISTICS_PERMISSIONS
+          .VENDOR_PAYMENT_UPDATE,
+
+      delete:
+        LOGISTICS_PERMISSIONS
+          .VENDOR_PAYMENT_DELETE,
+    },
+
+
+    invoices: {
+      read:
+        LOGISTICS_PERMISSIONS
+          .INVOICE_READ,
+
+      create:
+        LOGISTICS_PERMISSIONS
+          .INVOICE_CREATE,
+
+      update:
+        LOGISTICS_PERMISSIONS
+          .INVOICE_UPDATE,
+
+      delete:
+        LOGISTICS_PERMISSIONS
+          .INVOICE_DELETE,
+    },
+
+
+    reports: {
+      read:
+        LOGISTICS_PERMISSIONS
+          .REPORT_READ,
+
+      export:
+        LOGISTICS_PERMISSIONS
+          .REPORT_EXPORT,
+    },
   });
 
 
@@ -335,6 +440,10 @@ const mergePermissionSets = (
         current.updateStatus =
           current.updateStatus ||
           permission.updateStatus;
+
+        current.export =
+          current.export ||
+          permission.export;
 
 
         current.viewScope =
@@ -471,17 +580,21 @@ const structuredPermissionsFromStrings =
               permissions.delete
             );
 
+          const canExport =
+            assigned.has(
+              permissions.export
+            );
+
 
           if (
             !view &&
             !create &&
             !edit &&
-            !canDelete
+            !canDelete &&
+            !canExport
           ) {
-
             return null;
           }
-
 
           return buildLogisticsPermission(
             {
@@ -496,7 +609,8 @@ const structuredPermissionsFromStrings =
                   view ||
                   create ||
                   edit ||
-                  canDelete,
+                  canDelete ||
+                  canExport,
 
                 create,
 
@@ -507,6 +621,9 @@ const structuredPermissionsFromStrings =
 
                 updateStatus:
                   edit,
+
+                export:
+                  canExport,
               },
             }
           );
@@ -1540,6 +1657,24 @@ function normalizeSubModule(
 
     documents:
       "documents",
+
+    customers:
+      "customers",
+
+    vendors:
+      "vendors",
+
+    productsservices:
+      "productsServices",
+
+    vendorpayments:
+      "vendorPayments",
+
+    invoices:
+      "invoices",
+
+    reports:
+      "reports",
   };
 
 

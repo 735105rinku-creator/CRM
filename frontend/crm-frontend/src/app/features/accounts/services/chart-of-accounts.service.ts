@@ -7,6 +7,7 @@ import {
   AccountNature,
   AccountStatus,
   ChartOfAccount,
+  ChartOfAccountsSummary,
   CreateChartOfAccountPayload,
   UpdateChartOfAccountPayload
 } from '../models/accounts.models';
@@ -17,6 +18,12 @@ import {
 export class ChartOfAccountsService {
   private readonly api = inject(ApiService);
   private readonly basePath = '/accounting/chart-of-accounts';
+
+  getSummary(): Observable<ChartOfAccountsSummary> {
+    return this.api.get<ChartOfAccountsSummary>(
+      `${this.basePath}/summary`
+    );
+  }
 
   getAccounts(
     query: {

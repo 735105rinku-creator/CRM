@@ -268,10 +268,25 @@ export const LOGISTICS_SUBMODULES = Object.freeze([
   "transporters",
   "warehouse",
   "tracking",
-  "documents"
+  "documents",
+  "customers",
+  "vendors",
+  "productsServices",
+  "vendorPayments",
+  "invoices",
+  "reports"
 ]);
 
-const createStructuredPermission = ({ subModule, viewScope, view = true, create = false, edit = false, delete: canDelete = false, updateStatus = false }) => ({
+const createStructuredPermission = ({
+  subModule,
+  viewScope,
+  view = true,
+  create = false,
+  edit = false,
+  delete: canDelete = false,
+  updateStatus = false,
+  export: canExport = false,
+}) => ({
   module: "logistics",
   subModule,
   view,
@@ -279,7 +294,8 @@ const createStructuredPermission = ({ subModule, viewScope, view = true, create 
   create,
   edit,
   delete: canDelete,
-  updateStatus
+  updateStatus,
+  export: canExport,
 });
 
 export const buildStructuredLogisticsPermissions = ({ viewScope = "own", access = "readonly", subModules = LOGISTICS_SUBMODULES } = {}) => {
@@ -294,7 +310,8 @@ export const buildStructuredLogisticsPermissions = ({ viewScope = "own", access 
       create: full,
       edit: full,
       delete: full,
-      updateStatus: full || statusOnly
+      updateStatus: full || statusOnly,
+      export: full,
     })
   );
 };

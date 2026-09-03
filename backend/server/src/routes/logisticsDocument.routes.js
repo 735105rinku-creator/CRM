@@ -13,24 +13,21 @@ import {
 } from "../middleware/logisticsAccess.middleware.js";
 
 import {
+  requireLogisticsPermission,
+} from "../middleware/logisticsPermission.middleware.js";
+
+import {
   uploadSingleLogisticsDocument,
 } from "../middleware/logisticsDocumentUpload.middleware.js";
 
 import {
   uploadLogisticsDocument,
-
   getLogisticsDocuments,
-
   getLogisticsDocumentSummary,
-
   getLogisticsDocumentById,
-
   updateLogisticsDocument,
-
   deleteLogisticsDocument,
-
   previewLogisticsDocument,
-
   downloadLogisticsDocument,
 } from "../controllers/logisticsDocument.controller.js";
 
@@ -40,7 +37,7 @@ const router =
 
 
 /* ============================================================
-   SECURITY
+   BASE SECURITY
 ============================================================ */
 
 router.use(
@@ -62,6 +59,12 @@ router.use(
 
 router.get(
   "/summary",
+
+  requireLogisticsPermission(
+    "view",
+    "documents"
+  ),
+
   getLogisticsDocumentSummary
 );
 
@@ -76,11 +79,30 @@ router
   )
 
   .get(
+
+    requireLogisticsPermission(
+      "view",
+      "documents"
+    ),
+
     getLogisticsDocuments
   )
 
   .post(
+
+    /*
+     * Permission check MUST run before Multer.
+     *
+     * Unauthorized users should never be allowed
+     * to write a temporary physical file.
+     */
+    requireLogisticsPermission(
+      "create",
+      "documents"
+    ),
+
     uploadSingleLogisticsDocument,
+
     uploadLogisticsDocument
   );
 
@@ -93,12 +115,24 @@ router
 
 router.get(
   "/:id/preview",
+
+  requireLogisticsPermission(
+    "view",
+    "documents"
+  ),
+
   previewLogisticsDocument
 );
 
 
 router.get(
   "/:id/download",
+
+  requireLogisticsPermission(
+    "view",
+    "documents"
+  ),
+
   downloadLogisticsDocument
 );
 
@@ -113,14 +147,32 @@ router
   )
 
   .get(
+
+    requireLogisticsPermission(
+      "view",
+      "documents"
+    ),
+
     getLogisticsDocumentById
   )
 
   .patch(
+
+    requireLogisticsPermission(
+      "edit",
+      "documents"
+    ),
+
     updateLogisticsDocument
   )
 
   .delete(
+
+    requireLogisticsPermission(
+      "delete",
+      "documents"
+    ),
+
     deleteLogisticsDocument
   );
 

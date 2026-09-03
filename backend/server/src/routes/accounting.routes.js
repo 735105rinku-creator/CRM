@@ -11,6 +11,8 @@ import { ApiResponse } from "../utils/apiResponse.js";
 import { ApiError } from "../utils/apiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ROLES } from "../constants/roles.js";
+import chartOfAccountRoutes from "./chartOfAccount.routes.js";
+import journalEntryRoutes from "./journalEntry.routes.js";
 
 const router = Router();
 router.use(requireAuth);
@@ -57,6 +59,16 @@ const resolveAccountingAccess = asyncHandler(async (req, res, next) => {
 });
 
 router.use(resolveAccountingAccess);
+
+router.use(
+  "/chart-of-accounts",
+  chartOfAccountRoutes
+);
+
+router.use(
+  "/journal-entries",
+  journalEntryRoutes
+);
 
 const scopeFilter = (req) => ({ companyId: req.accountingAccess.companyId });
 

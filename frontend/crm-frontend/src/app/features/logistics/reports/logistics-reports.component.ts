@@ -452,8 +452,8 @@ export class LogisticsReportsComponent
       this.route
         .snapshot
         .data[
-          'reportType'
-        ];
+      'reportType'
+      ];
 
 
     if (fromRoute) {
@@ -570,18 +570,83 @@ export class LogisticsReportsComponent
   protected exportExcel():
     void {
 
-    const query =
-      new URLSearchParams(
+    this.api
+      .getBlob(
+        '/logistics/reports/export.csv',
         this.queryParams()
       )
-        .toString();
+      .subscribe({
+
+        next:
+          (
+            blob
+          ) => {
+
+            const url =
+              URL.createObjectURL(
+                blob
+              );
 
 
-    window.open(
-      `/logistics/reports/export.csv?${query}`,
-      '_blank',
-      'noopener,noreferrer'
-    );
+            const link =
+              document.createElement(
+                'a'
+              );
+
+
+            const date =
+              new Date()
+                .toISOString()
+                .slice(
+                  0,
+                  10
+                );
+
+
+            link.href =
+              url;
+
+            link.download =
+              `logistics-${this.reportType()}-${date}.csv`;
+
+
+            link.style.display =
+              'none';
+
+
+            document.body
+              .appendChild(
+                link
+              );
+
+
+            link.click();
+
+            link.remove();
+
+
+            setTimeout(
+              () =>
+                URL.revokeObjectURL(
+                  url
+                ),
+              0
+            );
+          },
+
+
+        error:
+          (
+            error
+          ) => {
+
+            console.error(
+              'Unable to export logistics report',
+              error
+            );
+          }
+
+      });
   }
 
 
