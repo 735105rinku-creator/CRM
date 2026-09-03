@@ -13,6 +13,8 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ROLES } from "../constants/roles.js";
 import chartOfAccountRoutes from "./chartOfAccount.routes.js";
 import journalEntryRoutes from "./journalEntry.routes.js";
+import generalLedgerRoutes
+  from "./generalLedger.routes.js";
 
 const router = Router();
 router.use(requireAuth);
@@ -68,6 +70,11 @@ router.use(
 router.use(
   "/journal-entries",
   journalEntryRoutes
+);
+
+router.use(
+  "/general-ledger",
+  generalLedgerRoutes
 );
 
 const scopeFilter = (req) => ({ companyId: req.accountingAccess.companyId });
