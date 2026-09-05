@@ -655,6 +655,113 @@ export class VoucherService {
   }
 
 
+  async validateSalesVoucher({
+    companyId,
+    lines,
+    session = null,
+  }) {
+
+    let hasSalesOrIncomeCredit =
+      false;
+
+
+    for (const line of lines || []) {
+
+      const account =
+        await this.chartRepository
+          .findById({
+            companyId,
+            accountId:
+              line.accountId,
+            session,
+          });
+
+
+      if (!account) {
+        throw new Error(
+          "Sales Voucher account not found."
+        );
+      }
+
+
+      if (account.status !== "active") {
+        throw new Error(
+          "Sales Voucher requires active accounts."
+        );
+      }
+
+
+      const isDebitAllowed =
+        account.accountType ===
+          "accounts_receivable" ||
+        account.accountType ===
+          "cash" ||
+        account.accountType ===
+          "bank";
+
+
+      const isSalesOrIncome =
+        account.accountType ===
+          "sales" ||
+        account.accountType ===
+          "direct_income" ||
+        account.accountType ===
+          "indirect_income";
+
+
+      const isCreditAllowed =
+        isSalesOrIncome ||
+        account.accountType ===
+          "tax";
+
+
+      const debit =
+        roundMoney(line.debit);
+
+      const credit =
+        roundMoney(line.credit);
+
+
+      if (
+        debit > 0 &&
+        !isDebitAllowed
+      ) {
+        throw new Error(
+          "Only Customer/Accounts Receivable, Cash or Bank accounts may be debited in a Sales Voucher."
+        );
+      }
+
+
+      if (
+        credit > 0 &&
+        !isCreditAllowed
+      ) {
+        throw new Error(
+          "Only Sales, Income or Tax accounts may be credited in a Sales Voucher."
+        );
+      }
+
+
+      if (
+        credit > 0 &&
+        isSalesOrIncome
+      ) {
+        hasSalesOrIncomeCredit =
+          true;
+      }
+
+    }
+
+
+    if (!hasSalesOrIncomeCredit) {
+      throw new Error(
+        "Sales Voucher requires a Sales or Income credit line."
+      );
+    }
+
+  }
+
+
   /* ==========================================================
      CREATE VOUCHER
 
@@ -777,6 +884,20 @@ export class VoucherService {
     ) {
 
       await this.validateContraVoucher({
+        companyId,
+        lines:
+          payload.lines,
+      });
+
+    }
+
+
+    if (
+      payload.voucherType ===
+        "sales"
+    ) {
+
+      await this.validateSalesVoucher({
         companyId,
         lines:
           payload.lines,
@@ -1145,6 +1266,20 @@ export class VoucherService {
       }
 
 
+      if (
+        existingVoucher?.voucherType ===
+          "sales"
+      ) {
+
+        await this.validateSalesVoucher({
+          companyId,
+          lines:
+            payload.lines,
+        });
+
+      }
+
+
     }
 
 
@@ -1287,6 +1422,21 @@ export class VoucherService {
           ) {
 
             await this.validateContraVoucher({
+              companyId,
+              lines:
+                voucher.lines,
+              session,
+            });
+
+          }
+
+
+          if (
+            voucher.voucherType ===
+              "sales"
+          ) {
+
+            await this.validateSalesVoucher({
               companyId,
               lines:
                 voucher.lines,

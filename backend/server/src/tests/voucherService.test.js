@@ -4324,3 +4324,763 @@ test(
 
   }
 );
+
+function createSalesChartRepository() {
+
+  const accounts = {
+    customer: {
+      accountType: "accounts_receivable",
+      status: "active",
+    },
+    cash: {
+      accountType: "cash",
+      status: "active",
+    },
+    bank: {
+      accountType: "bank",
+      status: "active",
+    },
+    sales: {
+      accountType: "sales",
+      status: "active",
+    },
+    directIncome: {
+      accountType: "direct_income",
+      status: "active",
+    },
+    indirectIncome: {
+      accountType: "indirect_income",
+      status: "active",
+    },
+    tax: {
+      accountType: "tax",
+      status: "active",
+    },
+    purchase: {
+      accountType: "purchase",
+      status: "active",
+    },
+    expense: {
+      accountType: "direct_expense",
+      status: "active",
+    },
+    payable: {
+      accountType: "accounts_payable",
+      status: "active",
+    },
+    inactiveSales: {
+      accountType: "sales",
+      status: "inactive",
+    },
+  };
+
+  return {
+    async findById({
+      accountId,
+    }) {
+
+      const account =
+        accounts[String(accountId)];
+
+      if (!account) {
+        return null;
+      }
+
+      return {
+        _id:
+          accountId,
+        accountType:
+          account.accountType,
+        status:
+          account.status,
+        allowManualEntry:
+          true,
+      };
+
+    },
+  };
+
+}
+
+
+function createSalesCreateRepository() {
+
+  return {
+    async findLastVoucherNumber() {
+      return null;
+    },
+
+    async create(payload) {
+      return payload;
+    },
+  };
+
+}
+
+
+async function createSalesService() {
+
+  const {
+    VoucherService,
+  } = await loadService();
+
+  return new VoucherService({
+    voucherRepository:
+      createSalesCreateRepository(),
+    chartRepository:
+      createSalesChartRepository(),
+  });
+
+}
+
+
+test(
+  "accepts a Sales Voucher for a credit sale",
+  async () => {
+
+    const service =
+      await createSalesService();
+
+    const result =
+      await service.createVoucher({
+        companyId:
+          "64f000000000000000000001",
+        userId:
+          "64f000000000000000000009",
+        payload: {
+          voucherType:
+            "sales",
+          voucherDate:
+            "2026-09-05",
+          lines: [
+            {
+              accountId:
+                "customer",
+              debit:
+                5000,
+              credit:
+                0,
+            },
+            {
+              accountId:
+                "sales",
+              debit:
+                0,
+              credit:
+                5000,
+            },
+          ],
+        },
+      });
+
+    assert.equal(
+      result.voucherType,
+      "sales"
+    );
+
+  }
+);
+
+
+test(
+  "accepts a Sales Voucher for a cash sale",
+  async () => {
+
+    const service =
+      await createSalesService();
+
+    const result =
+      await service.createVoucher({
+        companyId:
+          "64f000000000000000000001",
+        userId:
+          "64f000000000000000000009",
+        payload: {
+          voucherType:
+            "sales",
+          voucherDate:
+            "2026-09-05",
+          lines: [
+            {
+              accountId:
+                "cash",
+              debit:
+                2500,
+              credit:
+                0,
+            },
+            {
+              accountId:
+                "sales",
+              debit:
+                0,
+              credit:
+                2500,
+            },
+          ],
+        },
+      });
+
+    assert.equal(
+      result.voucherType,
+      "sales"
+    );
+
+  }
+);
+
+
+test(
+  "accepts a Sales Voucher for a bank sale",
+  async () => {
+
+    const service =
+      await createSalesService();
+
+    const result =
+      await service.createVoucher({
+        companyId:
+          "64f000000000000000000001",
+        userId:
+          "64f000000000000000000009",
+        payload: {
+          voucherType:
+            "sales",
+          voucherDate:
+            "2026-09-05",
+          lines: [
+            {
+              accountId:
+                "bank",
+              debit:
+                3200,
+              credit:
+                0,
+            },
+            {
+              accountId:
+                "directIncome",
+              debit:
+                0,
+              credit:
+                3200,
+            },
+          ],
+        },
+      });
+
+    assert.equal(
+      result.voucherType,
+      "sales"
+    );
+
+  }
+);
+
+
+test(
+  "accepts a Sales Voucher with output tax credit",
+  async () => {
+
+    const service =
+      await createSalesService();
+
+    const result =
+      await service.createVoucher({
+        companyId:
+          "64f000000000000000000001",
+        userId:
+          "64f000000000000000000009",
+        payload: {
+          voucherType:
+            "sales",
+          voucherDate:
+            "2026-09-05",
+          lines: [
+            {
+              accountId:
+                "customer",
+              debit:
+                1180,
+              credit:
+                0,
+            },
+            {
+              accountId:
+                "sales",
+              debit:
+                0,
+              credit:
+                1000,
+            },
+            {
+              accountId:
+                "tax",
+              debit:
+                0,
+              credit:
+                180,
+            },
+          ],
+        },
+      });
+
+    assert.equal(
+      result.voucherType,
+      "sales"
+    );
+
+  }
+);
+
+
+test(
+  "rejects a Sales Voucher without a Sales or Income credit line",
+  async () => {
+
+    const service =
+      await createSalesService();
+
+    await assert.rejects(
+      () =>
+        service.createVoucher({
+          companyId:
+            "64f000000000000000000001",
+          userId:
+            "64f000000000000000000009",
+          payload: {
+            voucherType:
+              "sales",
+            voucherDate:
+              "2026-09-05",
+            lines: [
+              {
+                accountId:
+                  "customer",
+                debit:
+                  180,
+                credit:
+                  0,
+              },
+              {
+                accountId:
+                  "tax",
+                debit:
+                  0,
+                credit:
+                  180,
+              },
+            ],
+          },
+        }),
+      /sales or income.*credit|credit.*sales or income/i
+    );
+
+  }
+);
+
+
+test(
+  "rejects a Sales Voucher that debits an invalid ledger",
+  async () => {
+
+    const service =
+      await createSalesService();
+
+    await assert.rejects(
+      () =>
+        service.createVoucher({
+          companyId:
+            "64f000000000000000000001",
+          userId:
+            "64f000000000000000000009",
+          payload: {
+            voucherType:
+              "sales",
+            voucherDate:
+              "2026-09-05",
+            lines: [
+              {
+                accountId:
+                  "purchase",
+                debit:
+                  1000,
+                credit:
+                  0,
+              },
+              {
+                accountId:
+                  "sales",
+                debit:
+                  0,
+                credit:
+                  1000,
+              },
+            ],
+          },
+        }),
+      /customer.*cash.*bank|cash.*bank.*debit|debit.*customer/i
+    );
+
+  }
+);
+
+
+test(
+  "rejects a Sales Voucher that credits an invalid ledger",
+  async () => {
+
+    const service =
+      await createSalesService();
+
+    await assert.rejects(
+      () =>
+        service.createVoucher({
+          companyId:
+            "64f000000000000000000001",
+          userId:
+            "64f000000000000000000009",
+          payload: {
+            voucherType:
+              "sales",
+            voucherDate:
+              "2026-09-05",
+            lines: [
+              {
+                accountId:
+                  "customer",
+                debit:
+                  1000,
+                credit:
+                  0,
+              },
+              {
+                accountId:
+                  "purchase",
+                debit:
+                  0,
+                credit:
+                  1000,
+              },
+            ],
+          },
+        }),
+      /sales.*income.*tax|credit.*sales|credited.*sales/i
+    );
+
+  }
+);
+
+
+test(
+  "rejects a Sales Voucher that uses an inactive account",
+  async () => {
+
+    const service =
+      await createSalesService();
+
+    await assert.rejects(
+      () =>
+        service.createVoucher({
+          companyId:
+            "64f000000000000000000001",
+          userId:
+            "64f000000000000000000009",
+          payload: {
+            voucherType:
+              "sales",
+            voucherDate:
+              "2026-09-05",
+            lines: [
+              {
+                accountId:
+                  "customer",
+                debit:
+                  1000,
+                credit:
+                  0,
+              },
+              {
+                accountId:
+                  "inactiveSales",
+                debit:
+                  0,
+                credit:
+                  1000,
+              },
+            ],
+          },
+        }),
+      /active accounts/i
+    );
+
+  }
+);
+
+
+test(
+  "rejects a Sales Voucher account outside the company or not found",
+  async () => {
+
+    const service =
+      await createSalesService();
+
+    await assert.rejects(
+      () =>
+        service.createVoucher({
+          companyId:
+            "64f000000000000000000001",
+          userId:
+            "64f000000000000000000009",
+          payload: {
+            voucherType:
+              "sales",
+            voucherDate:
+              "2026-09-05",
+            lines: [
+              {
+                accountId:
+                  "customer",
+                debit:
+                  1000,
+                credit:
+                  0,
+              },
+              {
+                accountId:
+                  "foreignAccount",
+                debit:
+                  0,
+                credit:
+                  1000,
+              },
+            ],
+          },
+        }),
+      /account not found/i
+    );
+
+  }
+);
+
+
+test(
+  "rejects updating a Sales Voucher with an invalid credit ledger",
+  async () => {
+
+    let updateCalled =
+      false;
+
+    const voucherRepository = {
+
+      async findById() {
+        return {
+          _id:
+            "sales-voucher-1",
+          status:
+            "draft",
+          voucherType:
+            "sales",
+          financialYear:
+            "2026-27",
+          voucherNumber:
+            "SV/2026-27/000001",
+        };
+      },
+
+      async updateDraftById() {
+        updateCalled =
+          true;
+
+        return {
+          _id:
+            "sales-voucher-1",
+          status:
+            "draft",
+        };
+      },
+
+    };
+
+    const {
+      VoucherService,
+    } = await loadService();
+
+    const service =
+      new VoucherService({
+        voucherRepository,
+        chartRepository:
+          createSalesChartRepository(),
+      });
+
+    await assert.rejects(
+      () =>
+        service.updateDraftVoucher({
+          companyId:
+            "64f000000000000000000001",
+          voucherId:
+            "sales-voucher-1",
+          userId:
+            "64f000000000000000000009",
+          payload: {
+            lines: [
+              {
+                accountId:
+                  "customer",
+                debit:
+                  1000,
+                credit:
+                  0,
+              },
+              {
+                accountId:
+                  "purchase",
+                debit:
+                  0,
+                credit:
+                  1000,
+              },
+            ],
+          },
+        }),
+      /sales.*income.*tax|credit.*sales|credited.*sales/i
+    );
+
+    assert.equal(
+      updateCalled,
+      false
+    );
+
+  }
+);
+
+
+test(
+  "rejects posting an invalid Sales Voucher before creating its JournalEntry",
+  async () => {
+
+    let journalCreateCalled =
+      false;
+
+    const voucherRepository = {
+
+      async findById({
+        companyId,
+        voucherId,
+      }) {
+
+        return {
+          _id:
+            voucherId,
+          companyId,
+          status:
+            "draft",
+          voucherType:
+            "sales",
+          voucherNumber:
+            "SV/2026-27/000001",
+          voucherDate:
+            "2026-09-05",
+          lines: [
+            {
+              accountId:
+                "customer",
+              debit:
+                1000,
+              credit:
+                0,
+            },
+            {
+              accountId:
+                "purchase",
+              debit:
+                0,
+              credit:
+                1000,
+            },
+          ],
+        };
+
+      },
+
+      async postById() {
+        return {
+          status:
+            "posted",
+        };
+      },
+
+    };
+
+    const journalService = {
+
+      async createJournal() {
+        journalCreateCalled =
+          true;
+
+        return {
+          _id:
+            "journal-sales-1",
+          status:
+            "draft",
+        };
+      },
+
+      async postJournal() {
+        return {
+          _id:
+            "journal-sales-1",
+          status:
+            "posted",
+        };
+      },
+
+    };
+
+    const session = {
+      async withTransaction(callback) {
+        return callback();
+      },
+
+      async endSession() {},
+    };
+
+    const sessionProvider = {
+      async startSession() {
+        return session;
+      },
+    };
+
+    const {
+      VoucherService,
+    } = await loadService();
+
+    const service =
+      new VoucherService({
+        voucherRepository,
+        chartRepository:
+          createSalesChartRepository(),
+        journalService,
+        sessionProvider,
+      });
+
+    await assert.rejects(
+      () =>
+        service.postVoucher({
+          companyId:
+            "64f000000000000000000001",
+          voucherId:
+            "sales-voucher-1",
+          userId:
+            "64f000000000000000000009",
+        }),
+      /sales.*income.*tax|credit.*sales|credited.*sales/i
+    );
+
+    assert.equal(
+      journalCreateCalled,
+      false
+    );
+
+  }
+);
