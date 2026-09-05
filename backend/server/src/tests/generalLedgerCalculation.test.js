@@ -214,3 +214,220 @@ describe(
 
   }
 );
+
+describe(
+  "General Ledger period opening",
+  () => {
+
+    test(
+      "calculates period opening from transactions before the from date",
+      async () => {
+
+        const chartOfAccountRepository = {
+
+          async findChartOfAccountById() {
+
+            return {
+              _id:
+                "account-001",
+
+              accountCode:
+                "1001",
+
+              accountName:
+                "Cash Account",
+
+              nature:
+                "asset",
+
+              openingBalance:
+                1000,
+
+              openingBalanceType:
+                "debit",
+
+              status:
+                "active",
+            };
+
+          },
+
+        };
+
+
+        const journalEntryRepository = {
+
+          async findPostedLinesByAccount() {
+
+            return [
+
+              {
+                journalEntryId:
+                  "journal-april",
+
+                journalNumber:
+                  "JV-APRIL",
+
+                journalDate:
+                  "2026-04-15T00:00:00.000Z",
+
+                debit:
+                  200,
+
+                credit:
+                  0,
+              },
+
+              {
+                journalEntryId:
+                  "journal-may-1",
+
+                journalNumber:
+                  "JV-MAY-1",
+
+                journalDate:
+                  "2026-05-10T00:00:00.000Z",
+
+                debit:
+                  300,
+
+                credit:
+                  0,
+              },
+
+              {
+                journalEntryId:
+                  "journal-may-2",
+
+                journalNumber:
+                  "JV-MAY-2",
+
+                journalDate:
+                  "2026-05-20T00:00:00.000Z",
+
+                debit:
+                  0,
+
+                credit:
+                  50,
+              },
+
+              {
+                journalEntryId:
+                  "journal-june",
+
+                journalNumber:
+                  "JV-JUNE",
+
+                journalDate:
+                  "2026-06-01T00:00:00.000Z",
+
+                debit:
+                  400,
+
+                credit:
+                  0,
+              },
+
+            ];
+
+          },
+
+        };
+
+
+        const service =
+          new GeneralLedgerService({
+            chartOfAccountRepository,
+            journalEntryRepository,
+          });
+
+
+        const result =
+          await service.getAccountLedger({
+            companyId:
+              "company-001",
+
+            accountId:
+              "account-001",
+
+            query: {
+              from:
+                "2026-05-01",
+
+              to:
+                "2026-05-31",
+            },
+          });
+
+
+        assert.deepEqual(
+          result.openingBalance,
+          {
+            amount:
+              1200,
+
+            type:
+              "debit",
+          }
+        );
+
+
+        assert.equal(
+          result.entries.length,
+          2
+        );
+
+
+        assert.equal(
+          result.entries[0].journalNumber,
+          "JV-MAY-1"
+        );
+
+
+        assert.equal(
+          result.entries[0].runningBalance,
+          1500
+        );
+
+
+        assert.equal(
+          result.entries[1].journalNumber,
+          "JV-MAY-2"
+        );
+
+
+        assert.equal(
+          result.entries[1].runningBalance,
+          1450
+        );
+
+
+        assert.deepEqual(
+          result.totals,
+          {
+            debit:
+              300,
+
+            credit:
+              50,
+          }
+        );
+
+
+        assert.deepEqual(
+          result.closingBalance,
+          {
+            amount:
+              1450,
+
+            type:
+              "debit",
+          }
+        );
+
+      }
+    );
+
+  }
+);

@@ -109,7 +109,9 @@ export class GeneralLedgerService {
                 .findPostedLinesByAccount({
                     companyId,
                     accountId,
-                    query,
+                    to:
+                        query?.to ||
+                        null,
                 });
 
 
@@ -194,6 +196,116 @@ export class GeneralLedgerService {
                 : openingAmount;
 
 
+        const fromTime =
+            query?.from
+                ? new Date(
+                    query.from
+                ).getTime()
+                : null;
+
+
+        let toTime =
+            null;
+
+
+        if (query?.to) {
+
+            const endDate =
+                new Date(
+                    query.to
+                );
+
+
+            endDate.setHours(
+                23,
+                59,
+                59,
+                999
+            );
+
+
+            toTime =
+                endDate.getTime();
+
+        }
+
+
+        const periodLines =
+            [];
+
+
+        for (
+            const line of normalizedLines
+        ) {
+
+            const lineTime =
+                new Date(
+                    line.journalDate ||
+                    line.transactionDate ||
+                    0
+                )
+                    .getTime();
+
+
+            const debit =
+                this.roundMoney(
+                    Number(
+                        line.debit ||
+                        0
+                    )
+                );
+
+
+            const credit =
+                this.roundMoney(
+                    Number(
+                        line.credit ||
+                        0
+                    )
+                );
+
+
+            if (
+                fromTime !== null &&
+                lineTime < fromTime
+            ) {
+
+                signedBalance =
+                    this.roundMoney(
+                        signedBalance +
+                        debit -
+                        credit
+                    );
+
+
+                continue;
+
+            }
+
+
+            if (
+                toTime !== null &&
+                lineTime > toTime
+            ) {
+
+                continue;
+
+            }
+
+
+            periodLines.push(
+                line
+            );
+
+        }
+
+
+        const periodOpeningBalance =
+            this.toBalance(
+                signedBalance
+            );
+
+
         let totalDebit =
             0;
 
@@ -207,7 +319,7 @@ export class GeneralLedgerService {
         --------------------------------------------------------- */
 
         const entries =
-            normalizedLines.map(
+            periodLines.map(
                 (
                     line
                 ) => {
@@ -295,10 +407,10 @@ export class GeneralLedgerService {
             openingBalance: {
 
                 amount:
-                    openingAmount,
+                    periodOpeningBalance.amount,
 
                 type:
-                    openingType,
+                    periodOpeningBalance.type,
 
             },
 
