@@ -1,107 +1,731 @@
-import LogisticsVendor from "../models/LogisticsVendor.js";
+import LogisticsVendor
+  from "../models/LogisticsVendor.js";
+
 
 class LogisticsVendorRepository {
-  async create(payload) { return LogisticsVendor.create(payload); }
 
-  async findById({ companyId, vendorId }) {
-    return LogisticsVendor.findOne({ _id: vendorId, companyId, isActive: true }).lean();
+
+  /* ============================================================
+     CREATE
+  ============================================================ */
+
+  async create(
+    payload
+  ) {
+
+    return LogisticsVendor.create(
+      payload
+    );
   }
 
-  async paginate({
-    companyId, page = 1, limit = 20, search = "", vendorType = "",
-    serviceCategory = "", status = "", fromDate = null, toDate = null, sortBy = "createdAt", sortOrder = "desc",
-  }) {
-    const filter = { companyId, isActive: true };
-    if (vendorType) filter.vendorType = vendorType;
-    if (serviceCategory) filter.serviceCategory = normalizeCategory(serviceCategory);
-    if (status) filter.status = status;
-    applyCreatedAtRange(filter, fromDate, toDate);
 
-    const q = String(search || "").trim();
-    if (q) {
-      const regex = new RegExp(escapeRegex(q), "i");
+  /* ============================================================
+     FIND BY ID
+
+     Backward compatible:
+     - isActive true -> available
+     - isActive missing -> available
+     - isActive false -> soft deleted
+  ============================================================ */
+
+  async findById({
+    companyId,
+    vendorId,
+  }) {
+
+    return LogisticsVendor
+      .findOne({
+        _id:
+          vendorId,
+
+        companyId,
+
+        isActive: {
+          $ne:
+            false,
+        },
+      })
+      .lean();
+  }
+
+
+  /* ============================================================
+     PAGINATION / LIST
+  ============================================================ */
+
+  async paginate({
+
+    companyId,
+
+    page = 1,
+
+    limit = 20,
+
+    search = "",
+
+    vendorType = "",
+
+    serviceCategory = "",
+
+    status = "",
+
+    fromDate = null,
+
+    toDate = null,
+
+    sortBy = "createdAt",
+
+    sortOrder = "desc",
+
+  }) {
+
+    /*
+     * IMPORTANT:
+     *
+     * Do NOT use:
+     *
+     * isActive: true
+     *
+     * because older Vendor records may not contain
+     * the isActive field.
+     *
+     * $ne:false keeps old records visible while still
+     * excluding records explicitly soft deleted.
+     */
+    const filter = {
+
+      companyId,
+
+      isActive: {
+        $ne:
+          false,
+      },
+    };
+
+
+    /* ----------------------------------------------------------
+       VENDOR TYPE
+    ---------------------------------------------------------- */
+
+    if (
+      vendorType
+    ) {
+
+      filter.vendorType =
+        vendorType;
+    }
+
+
+    /* ----------------------------------------------------------
+       SERVICE CATEGORY
+    ---------------------------------------------------------- */
+
+    if (
+      serviceCategory
+    ) {
+
+      filter.serviceCategory =
+        normalizeCategory(
+          serviceCategory
+        );
+    }
+
+
+    /* ----------------------------------------------------------
+       STATUS
+    ---------------------------------------------------------- */
+
+    if (
+      status
+    ) {
+
+      filter.status =
+        status;
+    }
+
+
+    /* ----------------------------------------------------------
+       DATE RANGE
+    ---------------------------------------------------------- */
+
+    applyCreatedAtRange(
+      filter,
+      fromDate,
+      toDate
+    );
+
+
+    /* ----------------------------------------------------------
+       SEARCH
+    ---------------------------------------------------------- */
+
+    const q =
+      String(
+        search ||
+        ""
+      )
+        .trim();
+
+
+    if (
+      q
+    ) {
+
+      const regex =
+        new RegExp(
+          escapeRegex(
+            q
+          ),
+          "i"
+        );
+
+
       filter.$or = [
-        { vendorCode: regex }, { vendorName: regex }, { companyName: regex },
-        { contactPerson: regex }, { mobile: regex }, { email: regex },
-        { gstNumber: regex }, { panNumber: regex }, { iecNumber: regex },
-        { "address.city": regex }, { "address.state": regex }, { productsServices: regex },
+
+        {
+          vendorCode:
+            regex,
+        },
+
+        {
+          vendorName:
+            regex,
+        },
+
+        {
+          companyName:
+            regex,
+        },
+
+        {
+          contactPerson:
+            regex,
+        },
+
+        {
+          mobile:
+            regex,
+        },
+
+        {
+          email:
+            regex,
+        },
+
+        {
+          gstNumber:
+            regex,
+        },
+
+        {
+          panNumber:
+            regex,
+        },
+
+        {
+          iecNumber:
+            regex,
+        },
+
+        {
+          "address.city":
+            regex,
+        },
+
+        {
+          "address.state":
+            regex,
+        },
+
+        {
+          productsServices:
+            regex,
+        },
+
       ];
     }
 
-    const safePage = Math.max(Number(page) || 1, 1);
-    const safeLimit = Math.min(Math.max(Number(limit) || 20, 1), 100);
-    const allowed = new Set(["createdAt", "updatedAt", "vendorCode", "vendorName",
-      "status", "openingPayable", "creditDays"]);
-    const safeSortBy = allowed.has(sortBy) ? sortBy : "createdAt";
-    const direction = sortOrder === "asc" ? 1 : -1;
 
-    const [data, total] = await Promise.all([
-      LogisticsVendor.find(filter).sort({ [safeSortBy]: direction })
-        .skip((safePage - 1) * safeLimit).limit(safeLimit).lean(),
-      LogisticsVendor.countDocuments(filter),
-    ]);
+    /* ----------------------------------------------------------
+       SAFE PAGINATION
+    ---------------------------------------------------------- */
 
-    const totalPages = Math.max(Math.ceil(total / safeLimit), 1);
-    return { data, pagination: {
-      page: safePage, limit: safeLimit, total, totalPages,
-      hasNextPage: safePage < totalPages, hasPreviousPage: safePage > 1,
-    }};
+    const safePage =
+      Math.max(
+        Number(
+          page
+        ) ||
+        1,
+        1
+      );
+
+
+    const safeLimit =
+      Math.min(
+        Math.max(
+          Number(
+            limit
+          ) ||
+          20,
+          1
+        ),
+        100
+      );
+
+
+    /* ----------------------------------------------------------
+       SAFE SORT
+    ---------------------------------------------------------- */
+
+    const allowed =
+      new Set([
+        "createdAt",
+        "updatedAt",
+        "vendorCode",
+        "vendorName",
+        "status",
+        "openingPayable",
+        "creditDays",
+      ]);
+
+
+    const safeSortBy =
+      allowed.has(
+        sortBy
+      )
+
+        ? sortBy
+
+        : "createdAt";
+
+
+    const direction =
+      sortOrder ===
+        "asc"
+
+        ? 1
+
+        : -1;
+
+
+    /* ----------------------------------------------------------
+       QUERY
+    ---------------------------------------------------------- */
+
+    const [
+      data,
+      total,
+    ] =
+      await Promise.all([
+
+        LogisticsVendor
+          .find(
+            filter
+          )
+          .sort({
+            [safeSortBy]:
+              direction,
+          })
+          .skip(
+            (
+              safePage -
+              1
+            ) *
+            safeLimit
+          )
+          .limit(
+            safeLimit
+          )
+          .lean(),
+
+
+        LogisticsVendor
+          .countDocuments(
+            filter
+          ),
+
+      ]);
+
+
+    const totalPages =
+      Math.max(
+        Math.ceil(
+          total /
+          safeLimit
+        ),
+        1
+      );
+
+
+    return {
+
+      data,
+
+      pagination: {
+
+        page:
+          safePage,
+
+        limit:
+          safeLimit,
+
+        total,
+
+        totalPages,
+
+        hasNextPage:
+          safePage <
+          totalPages,
+
+        hasPreviousPage:
+          safePage >
+          1,
+      },
+    };
   }
 
-  async updateById({ companyId, vendorId, payload }) {
-    return LogisticsVendor.findOneAndUpdate(
-      { _id: vendorId, companyId, isActive: true },
-      { $set: payload }, { new: true, runValidators: true }
-    ).lean();
+
+  /* ============================================================
+     UPDATE BY ID
+  ============================================================ */
+
+  async updateById({
+
+    companyId,
+
+    vendorId,
+
+    payload,
+
+  }) {
+
+    return LogisticsVendor
+      .findOneAndUpdate(
+
+        {
+
+          _id:
+            vendorId,
+
+          companyId,
+
+          /*
+           * Old active records without isActive
+           * must remain editable.
+           */
+          isActive: {
+            $ne:
+              false,
+          },
+        },
+
+        {
+          $set:
+            payload,
+        },
+
+        {
+          new:
+            true,
+
+          runValidators:
+            true,
+        }
+      )
+      .lean();
   }
 
-  async softDelete({ companyId, vendorId, userId }) {
-    return LogisticsVendor.findOneAndUpdate(
-      { _id: vendorId, companyId, isActive: true },
-      { $set: { isActive: false, updatedBy: userId } }, { new: true }
-    ).lean();
+
+  /* ============================================================
+     SOFT DELETE
+  ============================================================ */
+
+  async softDelete({
+
+    companyId,
+
+    vendorId,
+
+    userId,
+
+  }) {
+
+    return LogisticsVendor
+      .findOneAndUpdate(
+
+        {
+
+          _id:
+            vendorId,
+
+          companyId,
+
+          /*
+           * Can delete old active Vendor that does not yet
+           * contain an isActive property.
+           */
+          isActive: {
+            $ne:
+              false,
+          },
+        },
+
+        {
+          $set: {
+
+            isActive:
+              false,
+
+            updatedBy:
+              userId,
+          },
+        },
+
+        {
+          new:
+            true,
+        }
+      )
+      .lean();
   }
 
-  async summary(companyId) {
-    return LogisticsVendor.aggregate([
-      { $match: { companyId, isActive: true } },
-      { $group: { _id: "$status", count: { $sum: 1 }, openingPayable: { $sum: "$openingPayable" } } },
-    ]);
+
+  /* ============================================================
+     SUMMARY
+  ============================================================ */
+
+  async summary(
+    companyId
+  ) {
+
+    return LogisticsVendor
+      .aggregate([
+
+        {
+          $match: {
+
+            companyId,
+
+            /*
+             * Include old valid Vendors.
+             * Exclude only explicitly deleted Vendors.
+             */
+            isActive: {
+              $ne:
+                false,
+            },
+          },
+        },
+
+        {
+          $group: {
+
+            _id:
+              "$status",
+
+            count: {
+              $sum:
+                1,
+            },
+
+            openingPayable: {
+              $sum:
+                "$openingPayable",
+            },
+          },
+        },
+
+      ]);
   }
 
-  async latestCode({ companyId, dateCode }) {
-    return LogisticsVendor.findOne({
-      companyId, vendorCode: { $regex: new RegExp(`^VEN-${dateCode}-`, "i") },
-    }).sort({ vendorCode: -1 }).select("vendorCode").lean();
+
+  /* ============================================================
+     LATEST VENDOR CODE
+  ============================================================ */
+
+  async latestCode({
+
+    companyId,
+
+    dateCode,
+
+  }) {
+
+    return LogisticsVendor
+      .findOne({
+
+        companyId,
+
+        vendorCode: {
+
+          $regex:
+            new RegExp(
+              `^VEN-${dateCode}-`,
+              "i"
+            ),
+        },
+      })
+      .sort({
+        vendorCode:
+          -1,
+      })
+      .select(
+        "vendorCode"
+      )
+      .lean();
   }
 
-  async codeExists({ companyId, vendorCode }) {
-    return LogisticsVendor.exists({ companyId, vendorCode });
+
+  /* ============================================================
+     CODE EXISTS
+  ============================================================ */
+
+  async codeExists({
+
+    companyId,
+
+    vendorCode,
+
+  }) {
+
+    return LogisticsVendor
+      .exists({
+
+        companyId,
+
+        vendorCode,
+      });
   }
 }
 
-function escapeRegex(value) {
-  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/* ============================================================
+   ESCAPE REGEX
+============================================================ */
+
+function escapeRegex(
+  value
+) {
+
+  return String(
+    value
+  )
+    .replace(
+      /[.*+?^${}()|[\]\\]/g,
+      "\\$&"
+    );
 }
 
-function applyCreatedAtRange(filter, fromDate, toDate) {
-  if (!fromDate && !toDate) return;
+
+/* ============================================================
+   DATE RANGE
+============================================================ */
+
+function applyCreatedAtRange(
+  filter,
+  fromDate,
+  toDate
+) {
+
+  if (
+    !fromDate &&
+    !toDate
+  ) {
+
+    return;
+  }
+
+
   filter.createdAt = {};
-  if (fromDate) filter.createdAt.$gte = new Date(fromDate);
-  if (toDate) {
-    const end = new Date(toDate);
-    end.setHours(23, 59, 59, 999);
-    filter.createdAt.$lte = end;
+
+
+  if (
+    fromDate
+  ) {
+
+    const start =
+      new Date(
+        fromDate
+      );
+
+
+    start.setHours(
+      0,
+      0,
+      0,
+      0
+    );
+
+
+    filter.createdAt.$gte =
+      start;
+  }
+
+
+  if (
+    toDate
+  ) {
+
+    const end =
+      new Date(
+        toDate
+      );
+
+
+    end.setHours(
+      23,
+      59,
+      59,
+      999
+    );
+
+
+    filter.createdAt.$lte =
+      end;
   }
 }
 
-function normalizeCategory(value) {
+
+/* ============================================================
+   CATEGORY NORMALIZATION
+============================================================ */
+
+function normalizeCategory(
+  value
+) {
+
   return ({
-    "air-cargo": "air_cargo", "sea-freight": "sea_freight",
-    "road-transport": "road_transport", "customs-cha": "customs_cha",
-    "multi-service": "multi_service",
-  })[value] || value;
+
+    "air-cargo":
+      "air_cargo",
+
+    "sea-freight":
+      "sea_freight",
+
+    "road-transport":
+      "road_transport",
+
+    "customs-cha":
+      "customs_cha",
+
+    "multi-service":
+      "multi_service",
+
+  })[
+    value
+  ] ||
+  value;
 }
 
-export const logisticsVendorRepository = new LogisticsVendorRepository();
-export default logisticsVendorRepository;
+
+/* ============================================================
+   EXPORT
+============================================================ */
+
+export const
+  logisticsVendorRepository =
+    new LogisticsVendorRepository();
+
+
+export default
+  logisticsVendorRepository;

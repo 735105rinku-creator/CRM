@@ -1,7 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, inject, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import {
+  ActivatedRoute,
+  Router
+} from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { ApiService } from '../../../../../core/services/api.service';
@@ -93,7 +96,103 @@ interface LogisticsShipmentResponse {
   _id?: string;
   shipmentNumber?: string;
   shipmentMode?: string;
+
+  customerId?: string | null;
+  customerName?: string;
+  contactPerson?: string;
+  mobile?: string;
+  email?: string;
+  customerReference?: string;
+  shipmentDate?: string | null;
+
+  origin?: {
+    name?: string;
+    address?: string;
+    city?: string;
+    country?: string;
+  };
+
+  destination?: {
+    name?: string;
+    city?: string;
+    country?: string;
+  };
+
+  cargo?: {
+    commodity?: string;
+    commodityOther?: string;
+    description?: string;
+    packageCount?: number;
+    packageType?: string;
+    packageTypeOther?: string;
+    grossWeight?: number;
+    chargeableWeight?: number;
+    weightUnit?: string;
+    weightUnitOther?: string;
+  };
+
+  airFreight?: {
+    airline?: string;
+    airlineOther?: string;
+    awbNumber?: string;
+    flightNumber?: string;
+    departureAirport?: string;
+    departureAirportOther?: string;
+    arrivalAirport?: string;
+    arrivalAirportOther?: string;
+    departureDate?: string | null;
+    arrivalDate?: string | null;
+  };
+
+  customs?: {
+    chaRequired?: boolean;
+    chaVendorId?: string | null;
+    customsLocation?: string;
+    customsLocationOther?: string;
+    shippingBillNumber?: string;
+    billOfEntryNumber?: string;
+    status?: string;
+    statusOther?: string;
+  };
+
+  transport?: {
+    required?: boolean;
+    transporterId?: string | null;
+    pickupDate?: string | null;
+    expectedDeliveryDate?: string | null;
+  };
+
+  charges?: {
+    freightAmount?: number;
+    chaCharge?: number;
+    documentationCharge?: number;
+    transportationCharge?: number;
+    warehouseCharge?: number;
+    handlingCharge?: number;
+    insuranceCharge?: number;
+    otherCharge?: number;
+    otherChargeDescription?: string;
+    subtotal?: number;
+    discount?: number;
+    taxableAmount?: number;
+    gstRate?: number;
+    gstAmount?: number;
+    otherTax?: number;
+    totalAmount?: number;
+    currency?: string;
+  };
+
+  currentLocation?: string;
+  trackingReference?: string;
+
+  estimatedDeparture?: string | null;
+  estimatedArrival?: string | null;
+
   status?: string;
+  remarks?: string;
+
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface CreateLogisticsShipmentPayload {
@@ -106,6 +205,7 @@ interface CreateLogisticsShipmentPayload {
   mobile?: string;
   email?: string;
   customerReference?: string;
+  shipmentDate?: string | null;
 
   origin?: {
     name?: string;
@@ -183,6 +283,13 @@ interface CreateLogisticsShipmentPayload {
     insuranceCharge?: number;
     otherCharge?: number;
     otherChargeDescription?: string;
+    subtotal?: number;
+    discount?: number;
+    taxableAmount?: number;
+    gstRate?: number;
+    gstAmount?: number;
+    otherTax?: number;
+    totalAmount?: number;
     currency?: string;
   };
 
@@ -207,32 +314,845 @@ interface CreateLogisticsShipmentPayload {
   styleUrl: './air-cargo-new.component.scss'
 })
 export class AirCargoNewComponent {
-  private readonly api = inject(ApiService);
-  private readonly router = inject(Router);
 
-  protected readonly isSaving = signal(false);
-  protected readonly message = signal('');
-  protected readonly errorMessage = signal('');
+  private readonly api =
+    inject(ApiService);
 
-  protected customers: SelectOption[] = [
-    { label: 'Global Traders', value: 'global-traders' },
-    { label: 'Sunrise Enterprises', value: 'sunrise-enterprises' },
-    { label: 'ABC Corporation', value: 'abc-corporation' },
-    { label: 'XYZ Pvt. Ltd.', value: 'xyz-pvt-ltd' },
-    { label: 'Other', value: 'other' }
-  ];
+  private readonly router =
+    inject(Router);
+
+  private readonly route =
+    inject(ActivatedRoute);
+
+
+  protected readonly isSaving =
+    signal(false);
+
+  protected readonly isLoadingEdit =
+    signal(false);
+
+  protected readonly message =
+    signal('');
+
+  protected readonly errorMessage =
+    signal('');
+
+  protected readonly editingShipmentId =
+    signal<string | null>(null);
+
+  protected readonly isEditMode =
+    signal(false);
+
+  protected customers: SelectOption[] = [{ label: 'Other', value: 'other' }];
 
   private readonly customerRows = signal<CustomerApiRow[]>([]);
   private readonly chaRows = signal<VendorApiRow[]>([]);
   private readonly transporterRows = signal<TransporterApiRow[]>([]);
   private readonly productRows = signal<ProductServiceApiRow[]>([]);
+  private editLookupLoadsRemaining = 0;
+  private editShipmentReady = false;
 
   constructor() {
+
     this.loadCustomers();
+  
     this.loadChaVendors();
+  
     this.loadTransporters();
+  
     this.loadProductsServices();
+  
+  
+    const editId =
+      this.route
+        .snapshot
+        .queryParamMap
+        .get('editId');
+  
+  
+    if (
+      editId
+    ) {
+      this.editLookupLoadsRemaining = 4;
+  
+      this.editingShipmentId.set(
+        editId
+      );
+  
+      this.isEditMode.set(
+        true
+      );
+  
+      this.loadShipmentForEdit(
+        editId
+      );
+    }
   }
+
+  /* ==========================================================
+   LOAD EXISTING SHIPMENT FOR EDIT
+========================================================== */
+
+private loadShipmentForEdit(
+  shipmentId: string
+): void {
+
+  if (
+    !shipmentId
+  ) {
+
+    return;
+  }
+
+
+  this.isLoadingEdit.set(
+    true
+  );
+
+  this.errorMessage.set(
+    ''
+  );
+
+
+  this.api
+    .get<LogisticsShipmentResponse>(
+      `/logistics/shipments/${shipmentId}`
+    )
+
+    .pipe(finalize(() => {
+      this.editShipmentReady = true;
+      this.finishEditLoadingIfReady();
+    }))
+
+    .subscribe({
+
+      next: (
+        shipment
+      ) => {
+
+        if (
+          !shipment?._id
+        ) {
+
+          this.errorMessage.set(
+            'Unable to load Air Cargo shipment for editing.'
+          );
+
+          return;
+        }
+
+
+        this.editingShipmentId.set(
+          shipment._id
+        );
+
+        this.isEditMode.set(
+          true
+        );
+
+
+        this.populateEditForm(
+          shipment
+        );
+
+
+        this.message.set(
+          `Editing ${shipment.shipmentNumber || 'Air Cargo shipment'}`
+        );
+
+        this.errorMessage.set(
+          ''
+        );
+      },
+
+
+      error: (
+        error
+      ) => {
+
+        const message =
+          error?.error?.message ||
+          'Unable to load existing Air Cargo shipment.';
+
+
+        this.errorMessage.set(
+          message
+        );
+
+
+        window.alert(
+          message
+        );
+      }
+
+    });
+}
+
+/* ==========================================================
+   BACKEND SHIPMENT -> AIR CARGO FORM
+========================================================== */
+
+private populateEditForm(
+  shipment: LogisticsShipmentResponse
+): void {
+
+  const cargo =
+    shipment.cargo || {};
+
+
+  const air =
+    shipment.airFreight || {};
+
+
+  const customs =
+    shipment.customs || {};
+
+
+  const transport =
+    shipment.transport || {};
+
+
+  const charges =
+    shipment.charges || {};
+
+
+  const description =
+    this.parseDescription(
+      cargo.description || ''
+    );
+
+
+  const customer =
+    this.findOptionByLabel(
+      this.customers,
+      shipment.customerName || ''
+    );
+
+
+  const product =
+    cargo.commodity ===
+      'other'
+
+      ? 'other'
+
+      : this.findOptionByLabel(
+          this.products,
+          cargo.commodity || ''
+        );
+
+
+  const sourceValue =
+    air.departureAirport ===
+      'other'
+
+      ? 'other'
+
+      : this.findOptionByLabel(
+          this.locations,
+          air.departureAirport ||
+          shipment.origin?.name ||
+          shipment.origin?.city ||
+          ''
+        );
+
+
+  const destinationValue =
+    air.arrivalAirport ===
+      'other'
+
+      ? 'other'
+
+      : this.findOptionByLabel(
+          this.locations,
+          air.arrivalAirport ||
+          shipment.destination?.name ||
+          shipment.destination?.city ||
+          ''
+        );
+
+
+  const airlineValue =
+    air.airline ===
+      'other'
+
+      ? 'other'
+
+      : this.findOptionByLabel(
+          this.airlines,
+          air.airline || ''
+        );
+
+
+  const packageType =
+    cargo.packageType ===
+      'other'
+
+      ? 'other'
+
+      : this.findOptionByLabel(
+          this.packingTypes,
+          cargo.packageType || ''
+        );
+
+
+  const shipmentType =
+    this.findOptionByLabel(
+      this.shipmentTypes,
+      description['Shipment Type'] || ''
+    );
+
+
+  const shipmentMode =
+    this.findOptionByLabel(
+      this.shipmentModes,
+      description['Service Mode'] || ''
+    );
+
+
+  const category =
+    this.findOptionByLabel(
+      this.productCategories,
+      description['Product Category'] || ''
+    );
+
+
+  const unit =
+    this.findOptionByLabel(
+      this.units,
+      cargo.weightUnitOther ||
+      cargo.weightUnit ||
+      ''
+    );
+
+
+  const dimensions =
+    this.parseDimensions(
+      description['Dimensions']
+    );
+
+
+  const remarks =
+    this.parseRemarks(
+      shipment.remarks || ''
+    );
+
+
+  this.form = {
+
+    ...this.emptyForm(),
+
+
+    /* CUSTOMER */
+
+    customer:
+      customer ||
+      (
+        shipment.customerName
+          ? 'other'
+          : ''
+      ),
+
+    customerOther:
+      customer
+        ? ''
+        : shipment.customerName || '',
+
+    contactPerson:
+      shipment.contactPerson || '',
+
+    mobile:
+      shipment.mobile || '',
+
+    email:
+      shipment.email || '',
+
+    gstNumber:
+      description['GST No'] || '',
+
+    billingAddress:
+      description['Billing Address'] || '',
+
+    pickupAddress:
+      shipment.origin?.address || '',
+
+
+    /* SHIPMENT */
+
+    shipmentId:
+      shipment.shipmentNumber || '',
+
+    bookingDate:
+      this.dateInput(
+        shipment.createdAt
+      ) ||
+      this.today(),
+
+    shipmentDate:
+      this.dateInput(
+        shipment.shipmentDate
+      ),
+
+
+    shipmentType:
+      shipmentType ||
+      (
+        description['Shipment Type']
+          ? 'other'
+          : ''
+      ),
+
+    shipmentTypeOther:
+      shipmentType
+        ? ''
+        : description['Shipment Type'] || '',
+
+
+    mode:
+      shipmentMode ||
+      (
+        description['Service Mode']
+          ? 'other'
+          : ''
+      ),
+
+    modeOther:
+      shipmentMode
+        ? ''
+        : description['Service Mode'] || '',
+
+
+    priority:
+      (
+        description['Priority'] ||
+        'normal'
+      )
+        .trim()
+        .toLowerCase(),
+
+
+    referenceNumber:
+      shipment.customerReference || '',
+
+    specialInstructions:
+      description['Special Instructions'] || '',
+
+
+    /* PRODUCT */
+
+    product:
+      product ||
+      (
+        cargo.commodity ||
+        cargo.commodityOther
+          ? 'other'
+          : ''
+      ),
+
+    productOther:
+      cargo.commodity === 'other'
+        ? cargo.commodityOther || ''
+        : (
+            product
+              ? ''
+              : cargo.commodity || ''
+          ),
+
+
+    hsnCode:
+      description['HSN Code'] || '',
+
+
+    productCategory:
+      category ||
+      (
+        description['Product Category']
+          ? 'other'
+          : ''
+      ),
+
+    productCategoryOther:
+      category
+        ? ''
+        : description['Product Category'] || '',
+
+
+    quantity:
+      this.numberOrNull(
+        this.numberFromText(
+          description['Quantity']
+        )
+      ),
+
+
+    unit:
+      unit ||
+      (
+        cargo.weightUnit ||
+        cargo.weightUnitOther
+          ? 'other'
+          : ''
+      ),
+
+    unitOther:
+      unit
+        ? ''
+        : (
+            cargo.weightUnitOther ||
+            cargo.weightUnit ||
+            ''
+          ),
+
+
+    packages:
+      this.numberOrNull(
+        cargo.packageCount
+      ),
+
+
+    grossWeight:
+      this.numberOrNull(
+        cargo.grossWeight
+      ),
+
+
+    chargeableWeight:
+      this.numberOrNull(
+        cargo.chargeableWeight
+      ),
+
+
+    length:
+      dimensions.length,
+
+    width:
+      dimensions.width,
+
+    height:
+      dimensions.height,
+
+
+    packingType:
+      packageType ||
+      (
+        cargo.packageType ||
+        cargo.packageTypeOther
+          ? 'other'
+          : ''
+      ),
+
+    packingTypeOther:
+      cargo.packageType === 'other'
+        ? cargo.packageTypeOther || ''
+        : (
+            packageType
+              ? ''
+              : cargo.packageType || ''
+          ),
+
+
+    /* ROUTE */
+
+    source:
+      sourceValue ||
+      (
+        air.departureAirport ||
+        shipment.origin?.name ||
+        shipment.origin?.city
+          ? 'other'
+          : ''
+      ),
+
+    sourceOther:
+      air.departureAirport === 'other'
+        ? air.departureAirportOther || ''
+        : (
+            sourceValue
+              ? ''
+              : (
+                  air.departureAirport ||
+                  shipment.origin?.name ||
+                  shipment.origin?.city ||
+                  ''
+                )
+          ),
+
+
+    destination:
+      destinationValue ||
+      (
+        air.arrivalAirport ||
+        shipment.destination?.name ||
+        shipment.destination?.city
+          ? 'other'
+          : ''
+      ),
+
+    destinationOther:
+      air.arrivalAirport === 'other'
+        ? air.arrivalAirportOther || ''
+        : (
+            destinationValue
+              ? ''
+              : (
+                  air.arrivalAirport ||
+                  shipment.destination?.name ||
+                  shipment.destination?.city ||
+                  ''
+                )
+          ),
+
+
+    pickupDate:
+      this.dateInput(
+        transport.pickupDate
+      ),
+
+
+    expectedFlightDate:
+      this.dateInput(
+        shipment.estimatedDeparture ||
+        air.departureDate
+      ),
+
+
+    deliveryDate:
+      this.dateInput(
+        transport.expectedDeliveryDate ||
+        shipment.estimatedArrival ||
+        air.arrivalDate
+      ),
+
+
+    transitDays:
+      null,
+
+
+    /* AIRLINE */
+
+    airline:
+      airlineValue ||
+      (
+        air.airline ||
+        air.airlineOther
+          ? 'other'
+          : ''
+      ),
+
+    airlineOther:
+      air.airline === 'other'
+        ? air.airlineOther || ''
+        : (
+            airlineValue
+              ? ''
+              : air.airline || ''
+          ),
+
+
+    flightNumber:
+      air.flightNumber || '',
+
+
+    flightDate:
+      this.dateInput(
+        air.departureDate
+      ),
+
+
+    departureTime:
+      description['Departure Time'] || '',
+
+    arrivalTime:
+      description['Arrival Time'] || '',
+
+
+    awbNumber:
+      air.awbNumber || '',
+
+
+    airlineBookingReference:
+      description['Airline Booking Ref'] ||
+      shipment.trackingReference ||
+      '',
+
+
+    /* CHA */
+
+    chaRequired:
+      customs.chaRequired
+        ? 'yes'
+        : 'no',
+
+
+    cha:
+      customs.chaVendorId || '',
+
+
+    chaOther:
+      '',
+
+
+    chaContact:
+      description['CHA Contact'] || '',
+
+
+    billOfEntryNumber:
+      customs.billOfEntryNumber || '',
+
+
+    shippingBillNumber:
+      customs.shippingBillNumber || '',
+
+
+    customsStatus:
+      this.customsStatusFromBackend(
+        customs.status
+      ),
+
+
+    customsStatusOther:
+      customs.status === 'other'
+        ? customs.statusOther || ''
+        : '',
+
+
+    /* TRANSPORT */
+
+    transporter:
+      transport.transporterId || '',
+
+
+    transporterOther:
+      '',
+
+
+    driverName:
+      description['Driver'] || '',
+
+
+    driverMobile:
+      description['Driver Mobile'] || '',
+
+
+    vehicleNumber:
+      description['Vehicle'] || '',
+
+
+    lrNumber:
+      description['LR Number'] || '',
+
+
+    pickupTime:
+      description['Pickup Time'] || '',
+
+
+    deliveryTime:
+      description['Delivery Time'] || '',
+
+
+    /* CHARGES */
+
+    airFreightRate:
+      this.number(
+        description['Air Freight Rate/Kg']
+      ),
+
+
+    freightAmount:
+      this.number(
+        charges.freightAmount
+      ),
+
+
+    /*
+     * Backend currently stores these three UI fields
+     * together as handlingCharge.
+     *
+     * During edit we keep the complete stored amount
+     * visible instead of losing it.
+     */
+    fuelSurcharge:
+      0,
+
+
+    securityCharge:
+      0,
+
+
+    terminalHandlingCharge:
+      this.number(
+        charges.handlingCharge
+      ),
+
+
+    documentationCharge:
+      this.number(
+        charges.documentationCharge
+      ),
+
+
+    currency:
+      this.currencyValue(
+        charges.currency
+      ),
+
+
+    currencyOther:
+      this.currencyOtherValue(
+        charges.currency
+      ),
+
+
+    discount:
+      this.number(
+        description['Discount']
+      ),
+
+
+    gstRate:
+      this.gstValue(
+        description['GST Rate']
+      ),
+
+
+    gstRateOther:
+      this.gstOtherValue(
+        description['GST Rate']
+      ),
+
+
+    otherTax:
+      this.extractOtherTax(
+        charges.otherChargeDescription
+      ),
+
+
+    /* REMARKS */
+
+    internalRemarks:
+      remarks.internal,
+
+
+    customerRemarks:
+      remarks.customer
+
+  };
+
+
+  this.otherCharges =
+    this.parseOtherCharges(
+      charges.otherChargeDescription
+    );
+
+
+  /*
+   * Master/dropdown API calls are asynchronous.
+   * Reconcile IDs after the existing shipment has
+   * already populated the form.
+   */
+  this.reconcileEditLookups(
+    shipment
+  );
+}
 
   protected readonly shipmentTypes: SelectOption[] = [
     { label: 'Export', value: 'export' },
@@ -342,6 +1262,23 @@ export class AirCargoNewComponent {
     { label: 'Other', value: 'other' }
   ];
 
+  protected readonly currencyOptions: SelectOption[] = [
+    { label: 'INR - Indian Rupee', value: 'INR' },
+    { label: 'USD - US Dollar', value: 'USD' },
+    { label: 'AED - UAE Dirham', value: 'AED' },
+    { label: 'EUR - Euro', value: 'EUR' },
+    { label: 'GBP - British Pound', value: 'GBP' },
+    { label: 'SAR - Saudi Riyal', value: 'SAR' },
+    { label: 'SGD - Singapore Dollar', value: 'SGD' },
+    { label: 'JPY - Japanese Yen', value: 'JPY' },
+    { label: 'QAR - Qatari Riyal', value: 'QAR' },
+    { label: 'OMR - Omani Rial', value: 'OMR' },
+    { label: 'BHD - Bahraini Dinar', value: 'BHD' },
+    { label: 'KWD - Kuwaiti Dinar', value: 'KWD' },
+    { label: 'CNY - Chinese Yuan', value: 'CNY' },
+    { label: 'Other', value: 'other' }
+  ];
+
   protected form = this.emptyForm();
 
   protected otherCharges: OtherCharge[] = [];
@@ -445,21 +1382,52 @@ export class AirCargoNewComponent {
   }
 
   protected resetForm(): void {
+
     if (
       !window.confirm(
-        'Clear all Air Cargo shipment details?'
+        this.isEditMode()
+          ? 'Reload the saved Air Cargo shipment details?'
+          : 'Clear all Air Cargo shipment details?'
       )
     ) {
+  
       return;
     }
-
-    this.form = this.emptyForm();
-    this.otherCharges = [];
-    this.uploadedFiles = [];
-    this.message.set('');
-    this.errorMessage.set('');
+  
+  
+    const editId =
+      this.editingShipmentId();
+  
+  
+    if (
+      editId
+    ) {
+  
+      this.loadShipmentForEdit(
+        editId
+      );
+  
+      return;
+    }
+  
+  
+    this.form =
+      this.emptyForm();
+  
+    this.otherCharges =
+      [];
+  
+    this.uploadedFiles =
+      [];
+  
+    this.message.set(
+      ''
+    );
+  
+    this.errorMessage.set(
+      ''
+    );
   }
-
   protected submitShipment(): void {
     this.persistShipment('booking_created');
   }
@@ -525,11 +1493,13 @@ export class AirCargoNewComponent {
   }
 
   protected formatCurrency(value: number): string {
+    const currency = this.selectedCurrency();
+
     return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
+      style: currency === 'INR' ? 'currency' : 'decimal',
+      currency: currency === 'INR' ? 'INR' : undefined,
       minimumFractionDigits: 2
-    }).format(value || 0);
+    }).format(value || 0).replace(/^/, currency === 'INR' ? '' : `${currency} `);
   }
 
   private persistShipment(
@@ -552,64 +1522,146 @@ export class AirCargoNewComponent {
 
     this.isSaving.set(true);
 
-    this.api
-      .post<LogisticsShipmentResponse>(
-        '/logistics/shipments',
+    const editId =
+  this.editingShipmentId();
+
+
+const request =
+  editId
+
+    ? this.api.patch<LogisticsShipmentResponse>(
+        `/logistics/shipments/${editId}`,
         payload
       )
-      .pipe(
-        finalize(() =>
-          this.isSaving.set(false)
-        )
+
+    : this.api.post<LogisticsShipmentResponse>(
+        '/logistics/shipments',
+        payload
+      );
+
+
+request
+
+  .pipe(
+    finalize(() =>
+      this.isSaving.set(
+        false
       )
-      .subscribe({
-        next: (shipment) => {
-          const shipmentNumber =
-            shipment?.shipmentNumber ||
-            this.form.shipmentId;
+    )
+  )
 
-          this.form.shipmentId =
-            shipmentNumber || this.form.shipmentId;
+  .subscribe({
 
-          const successText =
-            status === 'draft'
-              ? `Draft ${shipmentNumber || ''} saved successfully.`
-              : `Air Cargo shipment ${shipmentNumber || ''} created successfully.`;
+    next: (
+      shipment
+    ) => {
 
-          this.message.set(successText);
-          this.errorMessage.set('');
+      const shipmentNumber =
+        shipment?.shipmentNumber ||
+        this.form.shipmentId;
 
-          window.alert(successText);
 
-          if (status === 'booking_created') {
-            void this.router.navigate(
-              ['/logistics/air-cargo'],
-              {
-                queryParams: {
-                  created:
-                    shipmentNumber || undefined
-                }
-              }
-            );
+      this.form.shipmentId =
+        shipmentNumber ||
+        this.form.shipmentId;
+
+
+      const successText =
+        editId
+
+          ? `Air Cargo shipment ${shipmentNumber || ''} updated successfully.`
+
+          : status === 'draft'
+
+            ? `Draft ${shipmentNumber || ''} saved successfully.`
+
+            : `Air Cargo shipment ${shipmentNumber || ''} created successfully.`;
+
+
+      this.message.set(
+        successText
+      );
+
+      this.errorMessage.set(
+        ''
+      );
+
+
+      window.alert(
+        successText
+      );
+
+
+      if (
+        status ===
+          'booking_created' ||
+        editId
+      ) {
+
+        void this.router.navigate(
+          [
+            '/logistics/air-cargo'
+          ],
+          {
+            queryParams: {
+
+              updated:
+                editId
+                  ? shipmentNumber ||
+                    undefined
+                  : undefined,
+
+              created:
+                !editId
+                  ? shipmentNumber ||
+                    undefined
+                  : undefined
+
+            }
           }
-        },
+        );
+      }
+    },
 
-        error: (error: {
-          error?: {
-            message?: string;
-          };
+
+    error: (
+      error: {
+        error?: {
           message?: string;
-        }) => {
-          const message =
-            error?.error?.message ||
-            error?.message ||
-            'Unable to save Air Cargo shipment.';
+        };
+        message?: string;
+      }
+    ) => {
 
-          this.errorMessage.set(message);
-          window.alert(message);
-        }
-      });
-  }
+      const message =
+        error?.error
+          ?.message ||
+
+        error
+          ?.message ||
+
+        (
+          editId
+
+            ? 'Unable to update Air Cargo shipment.'
+
+            : 'Unable to save Air Cargo shipment.'
+        );
+
+
+      this.errorMessage.set(
+        message
+      );
+
+
+      window.alert(
+        message
+      );
+    }
+
+  });
+}
+
   protected onCustomerSelected(): void {
     const customer = this.customerRows().find(
       (item) => this.customerValue(item) === this.form.customer
@@ -703,14 +1755,6 @@ export class AirCargoNewComponent {
     this.form.vehicleNumber = transporter.defaultVehicleNumber || this.form.vehicleNumber;
   }
 
-  @HostListener('window:focus')
-  protected refreshCustomersOnFocus(): void {
-    this.loadCustomers();
-    this.loadChaVendors();
-    this.loadTransporters();
-    this.loadProductsServices();
-  }
-
   private loadCustomers(): void {
     this.api
       .get<LogisticsListResponse<CustomerApiRow>>('/logistics/customers', {
@@ -720,6 +1764,7 @@ export class AirCargoNewComponent {
         sortBy: 'createdAt',
         sortOrder: 'desc'
       })
+      .pipe(finalize(() => this.completeEditLookup()))
       .subscribe({
         next: (response) => {
           const rows = this.extractRows(response);
@@ -732,13 +1777,14 @@ export class AirCargoNewComponent {
             })),
             { label: 'Other', value: 'other' }
           ];
+          this.reconcileEditLookups();
         },
         error: (error) => this.errorMessage.set(error?.error?.message || 'Unable to load Logistics customers.')
       });
   }
   private loadChaVendors(): void {
     this.api
-      .get<LogisticsListResponse<VendorApiRow>>('/logistics/vendors', {
+      .get<LogisticsListResponse<VendorApiRow>>('/logistics/cha/masters', {
         page: 1,
         limit: 100,
         status: 'active',
@@ -746,6 +1792,7 @@ export class AirCargoNewComponent {
         sortBy: 'vendorName',
         sortOrder: 'asc'
       })
+      .pipe(finalize(() => this.completeEditLookup()))
       .subscribe({
         next: (response) => {
           const rows = this.extractRows(response);
@@ -759,9 +1806,10 @@ export class AirCargoNewComponent {
               })),
               { label: 'Other', value: 'other' }
             ];
+            this.reconcileEditLookups();
           }
         },
-        error: () => undefined
+        error: (error) => this.errorMessage.set(error?.error?.message || 'Unable to load CHA options.')
       });
   }
 
@@ -774,6 +1822,7 @@ export class AirCargoNewComponent {
         sortBy: 'transporterName',
         sortOrder: 'asc'
       })
+      .pipe(finalize(() => this.completeEditLookup()))
       .subscribe({
         next: (response) => {
           const rows = this.extractRows(response);
@@ -787,9 +1836,10 @@ export class AirCargoNewComponent {
               })),
               { label: 'Other', value: 'other' }
             ];
+            this.reconcileEditLookups();
           }
         },
-        error: () => undefined
+        error: (error) => this.errorMessage.set(error?.error?.message || 'Unable to load transporter options.')
       });
   }
 
@@ -802,6 +1852,7 @@ export class AirCargoNewComponent {
         sortBy: 'name',
         sortOrder: 'asc'
       })
+      .pipe(finalize(() => this.completeEditLookup()))
       .subscribe({
         next: (response) => {
           const rows = this.extractRows(response);
@@ -815,9 +1866,10 @@ export class AirCargoNewComponent {
               })),
               { label: 'Other', value: 'other' }
             ];
+            this.reconcileEditLookups();
           }
         },
-        error: () => undefined
+        error: (error) => this.errorMessage.set(error?.error?.message || 'Unable to load product/service options.')
       });
   }
 
@@ -836,8 +1888,21 @@ export class AirCargoNewComponent {
 
     return data?.data || data?.records || data?.customers || data?.vendors || data?.transporters || data?.productsServices || data?.services || data?.items || data?.cha || data?.agents || response?.records || response?.customers || response?.vendors || response?.transporters || response?.productsServices || response?.services || response?.items || response?.cha || response?.agents || [];
   }
+
+  private completeEditLookup(): void {
+    if (!this.isEditMode()) return;
+    this.editLookupLoadsRemaining = Math.max(0, this.editLookupLoadsRemaining - 1);
+    this.finishEditLoadingIfReady();
+  }
+
+  private finishEditLoadingIfReady(): void {
+    if (this.editShipmentReady && this.editLookupLoadsRemaining === 0) {
+      this.reconcileEditLookups();
+      this.isLoadingEdit.set(false);
+    }
+  }
   private customerValue(customer: CustomerApiRow): string {
-    return customer._id || customer.customerCode || this.slug(customer.customerName || customer.companyName || 'customer');
+    return customer._id || '';
   }
 
   private formatAddress(address: CustomerApiRow['billingAddress']): string {
@@ -898,6 +1963,14 @@ export class AirCargoNewComponent {
 
     if (status === 'draft') {
       return '';
+    }
+
+    if (!this.form.shipmentDate) {
+      return 'Shipment Date is required.';
+    }
+
+    if (this.form.currency === 'other' && !/^[A-Za-z]{3}$/.test(this.form.currencyOther.trim())) {
+      return 'Enter a valid 3-letter Currency Code.';
     }
 
     const requiredTextFields: Array<
@@ -1097,9 +2170,7 @@ export class AirCargoNewComponent {
     const transportCharge =
       0;
 
-    const otherChargeTotal =
-      additionalChargeAmount +
-      this.number(this.form.otherTax);
+    const otherChargeTotal = additionalChargeAmount;
 
     const otherChargeDescription =
       this.otherCharges
@@ -1117,6 +2188,11 @@ export class AirCargoNewComponent {
     return {
       shipmentMode:
         'air_cargo',
+
+      shipmentDate:
+        this.dateOrNull(
+          this.form.shipmentDate
+        ),
 
       customerId:
         selectedCustomer?._id || null,
@@ -1332,6 +2408,14 @@ export class AirCargoNewComponent {
         otherCharge:
           otherChargeTotal,
 
+        subtotal: this.subtotal,
+        discount: this.number(this.form.discount),
+        taxableAmount: this.taxableAmount,
+        gstRate: this.gstPercentage,
+        gstAmount: this.gstAmount,
+        otherTax: this.number(this.form.otherTax),
+        totalAmount: this.grandTotal,
+
         otherChargeDescription:
           otherChargeDescription ||
           (
@@ -1341,7 +2425,7 @@ export class AirCargoNewComponent {
           ),
 
         currency:
-          'INR'
+          this.selectedCurrency()
       },
 
       currentLocation:
@@ -1554,6 +2638,666 @@ export class AirCargoNewComponent {
       : null;
   }
 
+  /* ==========================================================
+   EDIT HELPERS
+========================================================== */
+
+private findOptionByLabel(
+  options: SelectOption[],
+  value: string
+): string {
+
+  const normalized =
+    String(
+      value || ''
+    )
+      .trim()
+      .toLowerCase();
+
+
+  if (!normalized) {
+    return '';
+  }
+
+
+  return (
+    options.find(
+      option =>
+        option.value
+          .trim()
+          .toLowerCase() ===
+          normalized ||
+
+        option.label
+          .trim()
+          .toLowerCase() ===
+          normalized
+    )?.value ||
+    ''
+  );
+}
+
+
+private parseDescription(
+  description: string
+): Record<string, string> {
+
+  const result:
+    Record<string, string> = {};
+
+
+  String(
+    description || ''
+  )
+    .split(/\r?\n/)
+    .forEach(
+      line => {
+
+        const index =
+          line.indexOf(':');
+
+
+        if (
+          index <= 0
+        ) {
+
+          return;
+        }
+
+
+        const key =
+          line
+            .slice(
+              0,
+              index
+            )
+            .trim();
+
+
+        const value =
+          line
+            .slice(
+              index + 1
+            )
+            .trim();
+
+
+        if (
+          key
+        ) {
+
+          result[key] =
+            value === '-'
+              ? ''
+              : value;
+        }
+      }
+    );
+
+
+  return result;
+}
+
+
+private parseDimensions(
+  value?: string
+): {
+  length: number | null;
+  width: number | null;
+  height: number | null;
+} {
+
+  const values =
+    String(
+      value || ''
+    )
+      .replace(
+        /cm/gi,
+        ''
+      )
+      .split(
+        /\s*(?:->|x|×)\s*/i
+      )
+      .map(
+        item =>
+          this.numberOrNull(
+            item
+          )
+      );
+
+
+  return {
+
+    length:
+      values[0] ?? null,
+
+    width:
+      values[1] ?? null,
+
+    height:
+      values[2] ?? null
+
+  };
+}
+
+
+private parseRemarks(
+  remarks: string
+): {
+  internal: string;
+  customer: string;
+} {
+
+  const text =
+    String(
+      remarks || ''
+    );
+
+
+  const internalMatch =
+    text.match(
+      /Internal Remarks:\s*([\s\S]*?)(?=\nCustomer Remarks:|$)/i
+    );
+
+
+  const customerMatch =
+    text.match(
+      /Customer Remarks:\s*([\s\S]*)$/i
+    );
+
+
+  if (
+    internalMatch ||
+    customerMatch
+  ) {
+
+    return {
+
+      internal:
+        internalMatch?.[1]
+          ?.trim() || '',
+
+      customer:
+        customerMatch?.[1]
+          ?.trim() || ''
+
+    };
+  }
+
+
+  return {
+    internal:
+      text.trim(),
+
+    customer:
+      ''
+  };
+}
+
+
+private customsStatusFromBackend(
+  status?: string
+): string {
+
+  switch (
+    status
+  ) {
+
+    case 'documents_pending':
+      return 'documents-pending';
+
+    case 'filed':
+    case 'assessment':
+    case 'examination':
+    case 'duty_pending':
+      return 'under-clearance';
+
+    case 'cleared':
+      return 'cleared';
+
+    case 'hold':
+      return 'hold';
+
+    case 'other':
+      return 'other';
+
+    case 'not_required':
+    default:
+      return 'not-started';
+  }
+}
+
+
+private currencyValue(
+  currency?: string
+): string {
+
+  const value =
+    String(
+      currency ||
+      'INR'
+    )
+      .trim()
+      .toUpperCase();
+
+
+  return this.currencyOptions
+    .some(
+      option =>
+        option.value ===
+        value
+    )
+
+    ? value
+
+    : 'other';
+}
+
+
+private currencyOtherValue(
+  currency?: string
+): string {
+
+  const value =
+    String(
+      currency || ''
+    )
+      .trim()
+      .toUpperCase();
+
+
+  return this.currencyOptions
+    .some(
+      option =>
+        option.value ===
+        value
+    )
+
+    ? ''
+
+    : value;
+}
+
+
+private gstValue(
+  value?: string
+): string {
+
+  const numeric =
+    String(
+      value || ''
+    )
+      .replace(
+        '%',
+        ''
+      )
+      .trim();
+
+
+  if (
+    !numeric
+  ) {
+
+    return '';
+  }
+
+
+  return this.gstRates.some(
+    rate =>
+      rate.value ===
+      numeric
+  )
+    ? numeric
+    : 'other';
+}
+
+
+private gstOtherValue(
+  value?: string
+): string {
+
+  const numeric =
+    String(
+      value || ''
+    )
+      .replace(
+        '%',
+        ''
+      )
+      .trim();
+
+
+  return this.gstRates.some(
+    rate =>
+      rate.value ===
+      numeric
+  )
+    ? ''
+    : numeric;
+}
+
+
+private numberFromText(
+  value?: string
+): number {
+
+  const match =
+    String(
+      value || ''
+    )
+      .match(
+        /-?\d+(?:\.\d+)?/
+      );
+
+
+  return match
+    ? this.number(
+        match[0]
+      )
+    : 0;
+}
+
+
+private numberOrNull(
+  value: unknown
+): number | null {
+
+  if (
+    value === null ||
+    value === undefined ||
+    value === ''
+  ) {
+
+    return null;
+  }
+
+
+  const parsed =
+    Number(
+      value
+    );
+
+
+  return Number.isFinite(
+    parsed
+  )
+    ? parsed
+    : null;
+}
+
+
+private dateInput(
+  value?: string | null
+): string {
+
+  if (
+    !value
+  ) {
+
+    return '';
+  }
+
+
+  const date =
+    new Date(
+      value
+    );
+
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+
+    return String(
+      value
+    )
+      .slice(
+        0,
+        10
+      );
+  }
+
+
+  return date
+    .toISOString()
+    .slice(
+      0,
+      10
+    );
+}
+
+
+private extractOtherTax(
+  description?: string
+): number {
+
+  const match =
+    String(
+      description || ''
+    )
+      .match(
+        /Other tax\/charges:\s*(-?\d+(?:\.\d+)?)/i
+      );
+
+
+  return match
+    ? this.number(
+        match[1]
+      )
+    : 0;
+}
+
+
+private parseOtherCharges(
+  description?: string
+): OtherCharge[] {
+
+  return String(
+    description || ''
+  )
+    .split(';')
+    .map(
+      item =>
+        item.trim()
+    )
+    .filter(
+      item =>
+        Boolean(
+          item
+        ) &&
+        !/^Other tax\/charges:/i
+          .test(
+            item
+          )
+    )
+    .map(
+      item => {
+
+        const separator =
+          item.lastIndexOf(
+            ':'
+          );
+
+
+        if (
+          separator === -1
+        ) {
+
+          return {
+            description:
+              item,
+            amount:
+              0
+          };
+        }
+
+
+        return {
+
+          description:
+            item
+              .slice(
+                0,
+                separator
+              )
+              .trim(),
+
+          amount:
+            this.number(
+              item
+                .slice(
+                  separator + 1
+                )
+                .trim()
+            )
+
+        };
+      }
+    );
+}
+
+
+private reconcileEditLookups(
+  shipment?: LogisticsShipmentResponse
+): void {
+
+  if (
+    !this.isEditMode()
+  ) {
+
+    return;
+  }
+
+
+  /*
+   * CUSTOMER
+   */
+  if (
+    shipment?.customerId &&
+    this.customerRows()
+      .some(
+        row =>
+          row._id ===
+          shipment.customerId
+      )
+  ) {
+
+    this.form.customer =
+      shipment.customerId;
+
+    this.form.customerOther =
+      '';
+  }
+
+  else if (
+    this.form.customer === 'other' &&
+    this.form.customerOther
+  ) {
+
+    const value =
+      this.findOptionByLabel(
+        this.customers,
+        this.form.customerOther
+      );
+
+
+    if (
+      value
+    ) {
+
+      this.form.customer =
+        value;
+
+      this.form.customerOther =
+        '';
+    }
+  }
+
+
+  /*
+   * CHA
+   */
+  if (
+    shipment?.customs
+      ?.chaVendorId &&
+    this.chaRows()
+      .some(
+        row =>
+          row._id ===
+          shipment.customs
+            ?.chaVendorId
+      )
+  ) {
+
+    this.form.cha =
+      shipment.customs
+        .chaVendorId;
+  }
+
+
+  /*
+   * TRANSPORTER
+   */
+  if (
+    shipment?.transport
+      ?.transporterId &&
+    this.transporterRows()
+      .some(
+        row =>
+          row._id ===
+          shipment.transport
+            ?.transporterId
+      )
+  ) {
+
+    this.form.transporter =
+      shipment.transport
+        .transporterId;
+  }
+
+
+  /*
+   * PRODUCT
+   */
+  const productId =
+    this.productRows()
+      .find(
+        row =>
+          (
+            row.name ||
+            row.itemCode ||
+            ''
+          )
+            .trim()
+            .toLowerCase() ===
+          (
+            shipment?.cargo
+              ?.commodityOther ||
+            shipment?.cargo
+              ?.commodity ||
+            this.form.productOther ||
+            ''
+          )
+            .trim()
+            .toLowerCase()
+      )
+      ?._id;
+
+
+  if (
+    productId
+  ) {
+
+    this.form.product =
+      productId;
+
+    this.form.productOther =
+      '';
+  }
+}
+
   private emptyForm() {
     return {
       customer: '',
@@ -1570,6 +3314,9 @@ export class AirCargoNewComponent {
 
       bookingDate:
         this.today(),
+
+      shipmentDate:
+        '',
 
       shipmentType: '',
       shipmentTypeOther: '',
@@ -1675,6 +3422,8 @@ export class AirCargoNewComponent {
       securityCharge: 0,
       terminalHandlingCharge: 0,
       documentationCharge: 0,
+      currency: 'INR',
+      currencyOther: '',
 
       discount: 0,
 
@@ -1686,6 +3435,12 @@ export class AirCargoNewComponent {
       internalRemarks: '',
       customerRemarks: ''
     };
+  }
+
+  private selectedCurrency(): string {
+    return this.form.currency === 'other'
+      ? this.form.currencyOther.trim().toUpperCase()
+      : this.form.currency || 'INR';
   }
 
   private number(

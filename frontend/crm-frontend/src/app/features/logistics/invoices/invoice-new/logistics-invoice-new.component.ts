@@ -35,6 +35,7 @@ interface CustomerRow {
 interface ShipmentRow {
   _id?: string; shipmentNumber?: string; customerName?: string; origin?: string;
   destination?: string; route?: { origin?: string; destination?: string };
+  charges?: { currency?: string };
 }
 interface ItemRow {
   _id?: string; name?: string; itemCode?: string; itemType?: string; hsnSacCode?: string;
@@ -42,6 +43,7 @@ interface ItemRow {
 }
 interface InvoiceRow {
   _id?: string; invoiceNumber?: string; customerName?: string; invoiceTotal?: number;
+  invoiceCopy?: { fileUrl?: string; originalName?: string };
 }
 interface PageResult<T> { data?: T[] | { data?: T[]; records?: T[]; customers?: T[]; shipments?: T[]; productsServices?: T[]; services?: T[]; items?: T[] }; records?: T[]; customers?: T[]; shipments?: T[]; productsServices?: T[]; services?: T[]; items?: T[]; }
 
@@ -60,6 +62,9 @@ export class LogisticsInvoiceNewComponent implements OnInit {
   protected readonly message = signal('');
   protected readonly errorMessage = signal('');
   protected readonly recentInvoices = signal<InvoiceRow[]>([]);
+  protected selectedInvoiceCopy: File | null = null;
+  protected invoiceCopyUrl = '';
+  protected invoiceCopyName = '';
 
   private customerRecords: CustomerRow[] = [];
   private shipmentRecords: ShipmentRow[] = [];
@@ -83,6 +88,14 @@ export class LogisticsInvoiceNewComponent implements OnInit {
     { label: 'AED - UAE Dirham', value: 'AED' },
     { label: 'EUR - Euro', value: 'EUR' },
     { label: 'GBP - British Pound', value: 'GBP' },
+    { label: 'SAR - Saudi Riyal', value: 'SAR' },
+    { label: 'SGD - Singapore Dollar', value: 'SGD' },
+    { label: 'JPY - Japanese Yen', value: 'JPY' },
+    { label: 'QAR - Qatari Riyal', value: 'QAR' },
+    { label: 'OMR - Omani Rial', value: 'OMR' },
+    { label: 'BHD - Bahraini Dinar', value: 'BHD' },
+    { label: 'KWD - Kuwaiti Dinar', value: 'KWD' },
+    { label: 'CNY - Chinese Yuan', value: 'CNY' },
     { label: 'Other', value: 'other' }
   ];
 
@@ -229,6 +242,19 @@ export class LogisticsInvoiceNewComponent implements OnInit {
     this.form.currency = customer.currency || this.form.currency;
   }
 
+  protected onShipmentSelected(): void {
+    const shipment = this.shipmentRecords.find((row) => row.shipmentNumber === this.form.shipment);
+
+    if (!shipment) {
+      return;
+    }
+
+    this.form.customer = shipment.customerName ? 'other' : this.form.customer;
+    this.form.customerOther = shipment.customerName || this.form.customerOther;
+    this.form.currency = shipment.charges?.currency || this.form.currency || 'INR';
+    this.form.currencyOther = '';
+  }
+
   protected onProductServiceSelected(item: InvoiceItem): void {
     const live = this.itemRecords.find((row) => row._id === item.description);
 
@@ -280,6 +306,36 @@ export class LogisticsInvoiceNewComponent implements OnInit {
     this.errorMessage.set('');
   }
 
+  protected onInvoiceCopySelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] || null;
+
+    if (!file) {
+      this.selectedInvoiceCopy = null;
+      return;
+    }
+
+    if (file.type !== 'image/jpeg') {
+      this.selectedInvoiceCopy = null;
+      input.value = '';
+      this.setError('Only JPG/JPEG invoice copy files are allowed.');
+      return;
+    }
+
+    this.selectedInvoiceCopy = file;
+    this.invoiceCopyName = file.name;
+    this.errorMessage.set('');
+  }
+
+  protected uploadInvoiceCopy(): void {
+    if (!this.form.invoiceId) {
+      this.setError('Save the invoice before uploading invoice copy.');
+      return;
+    }
+
+    this.uploadInvoiceCopyFor(this.form.invoiceId, true);
+  }
+
   protected resetInvoice(): void {
     if (!window.confirm('Clear all invoice details?')) return;
     this.form = this.emptyForm();
@@ -310,18 +366,57 @@ export class LogisticsInvoiceNewComponent implements OnInit {
       ? this.api.patch<InvoiceRow>(`/logistics/invoices/${this.form.invoiceId}`, payload)
       : this.api.post<InvoiceRow>('/logistics/invoices', payload);
 
-    request.pipe(finalize(() => this.isSaving.set(false))).subscribe({
+    request.subscribe({
       next: (invoice) => {
         this.form.invoiceId = invoice?._id || this.form.invoiceId;
         this.form.invoiceNumber = invoice?.invoiceNumber || this.form.invoiceNumber;
+        if (invoice?.invoiceCopy?.fileUrl) {
+          this.invoiceCopyUrl = invoice.invoiceCopy.fileUrl;
+          this.invoiceCopyName = invoice.invoiceCopy.originalName || this.invoiceCopyName;
+        }
         const text = status === 'draft'
           ? `Invoice ${this.form.invoiceNumber} saved as draft.`
           : `Invoice ${this.form.invoiceNumber} created successfully.`;
+        if (this.selectedInvoiceCopy && this.form.invoiceId) {
+          this.uploadInvoiceCopyFor(this.form.invoiceId, false, text);
+          return;
+        }
+        this.isSaving.set(false);
         this.message.set(text); window.alert(text); this.loadRecentInvoices();
       },
       error: (e: any) => {
+        this.isSaving.set(false);
         const text = e?.error?.message || e?.error?.errors?.[0]?.message || 'Unable to save Logistics invoice.';
         this.setError(text); window.alert(text);
+      }
+    });
+  }
+
+  private uploadInvoiceCopyFor(invoiceId: string, alertOnSuccess: boolean, prefix = ''): void {
+    if (!this.selectedInvoiceCopy) {
+      return;
+    }
+
+    const data = new FormData();
+    data.append('file', this.selectedInvoiceCopy);
+
+    this.isSaving.set(true);
+    this.api.post<InvoiceRow>(`/logistics/invoices/${invoiceId}/invoice-copy`, data).subscribe({
+      next: (invoice) => {
+        this.isSaving.set(false);
+        this.selectedInvoiceCopy = null;
+        this.invoiceCopyUrl = invoice?.invoiceCopy?.fileUrl || this.invoiceCopyUrl;
+        this.invoiceCopyName = invoice?.invoiceCopy?.originalName || this.invoiceCopyName;
+        const text = prefix ? `${prefix} Invoice copy uploaded.` : 'Invoice copy uploaded.';
+        this.message.set(text);
+        this.loadRecentInvoices();
+        if (alertOnSuccess) window.alert(text);
+      },
+      error: (error) => {
+        this.isSaving.set(false);
+        const text = error?.error?.message || 'Invoice upload failed.';
+        this.setError(text);
+        window.alert(text);
       }
     });
   }
@@ -336,7 +431,7 @@ export class LogisticsInvoiceNewComponent implements OnInit {
     if (new Date(this.form.dueDate) < new Date(this.form.invoiceDate)) return 'Due Date cannot be before Invoice Date.';
     if (this.form.invoiceType === 'other' && !this.form.invoiceTypeOther.trim()) return 'Enter Invoice Type because Other is selected.';
     if (this.form.shipment === 'other' && !this.form.shipmentOther.trim()) return 'Enter Shipment Reference because Other is selected.';
-    if (this.form.currency === 'other' && !this.form.currencyOther.trim()) return 'Enter Currency because Other is selected.';
+    if (this.form.currency === 'other' && !/^[A-Za-z]{3}$/.test(this.form.currencyOther.trim())) return 'Enter a valid 3-letter Currency Code.';
     if (this.form.paymentStatus === 'other' && !this.form.paymentStatusOther.trim()) return 'Enter Payment Status because Other is selected.';
     if (this.form.paymentMode === 'other' && !this.form.paymentModeOther.trim()) return 'Enter Payment Mode because Other is selected.';
     if (!this.items.length) return 'Add at least one invoice item.';
@@ -451,6 +546,8 @@ export class LogisticsInvoiceNewComponent implements OnInit {
             termsAndConditions: invoice?.termsAndConditions || '',
             remarks: invoice?.remarks || ''
           };
+          this.invoiceCopyUrl = invoice?.invoiceCopy?.fileUrl || '';
+          this.invoiceCopyName = invoice?.invoiceCopy?.originalName || '';
 
           this.items = Array.isArray(invoice?.items) && invoice.items.length
             ? invoice.items.map((item: any) => ({

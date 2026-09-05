@@ -14,7 +14,7 @@ class LogisticsVendorPaymentRepository {
       .findOne({
         _id: paymentId,
         companyId,
-        isActive: true,
+        isActive: { $ne: false },
       })
       .populate(
         "vendorId",
@@ -41,7 +41,7 @@ class LogisticsVendorPaymentRepository {
   }) {
     const filter = {
       companyId,
-      isActive: true,
+      isActive: { $ne: false },
     };
 
     if (vendorId) {
@@ -195,7 +195,7 @@ class LogisticsVendorPaymentRepository {
         {
           _id: paymentId,
           companyId,
-          isActive: true,
+          isActive: { $ne: false },
         },
         {
           $set:
@@ -220,7 +220,7 @@ class LogisticsVendorPaymentRepository {
         {
           _id: paymentId,
           companyId,
-          isActive: true,
+          isActive: { $ne: false },
         },
         {
           $push: {
@@ -255,7 +255,7 @@ class LogisticsVendorPaymentRepository {
         {
           _id: paymentId,
           companyId,
-          isActive: true,
+          isActive: { $ne: false },
         },
         {
           $set: {
@@ -275,7 +275,7 @@ class LogisticsVendorPaymentRepository {
       {
         $match: {
           companyId,
-          isActive: true,
+          isActive: { $ne: false },
         },
       },
 
@@ -322,7 +322,7 @@ class LogisticsVendorPaymentRepository {
       await LogisticsVendorPayment
         .findOne({
           companyId,
-          isActive: true,
+          isActive: { $ne: false },
         })
         .sort({
           serialNumber: -1,

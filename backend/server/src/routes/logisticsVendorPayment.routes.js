@@ -6,6 +6,7 @@ import {
   getLogisticsVendorPayments,
   getLogisticsVendorPaymentSummary,
   getLogisticsVendorPaymentById,
+  getLogisticsVendorPaymentVendorOptions,
   updateLogisticsVendorPayment,
   addLogisticsVendorPaymentTransaction,
   deleteLogisticsVendorPayment,
@@ -44,6 +45,28 @@ router.get(
     "vendorPayments"
   ),
   getLogisticsVendorPaymentSummary
+);
+
+
+/* ============================================================
+   VENDOR OPTIONS FOR PAYMENT FORM
+
+   IMPORTANT:
+   This is a restricted read-only lookup.
+
+   It allows a Logistics employee with Vendor Payment view
+   permission to select an existing Vendor by normal name.
+
+   It does NOT give the employee general Vendor Master access.
+============================================================ */
+
+router.get(
+  "/vendor-options",
+  requireLogisticsPermission(
+    "view",
+    "vendorPayments"
+  ),
+  getLogisticsVendorPaymentVendorOptions
 );
 
 

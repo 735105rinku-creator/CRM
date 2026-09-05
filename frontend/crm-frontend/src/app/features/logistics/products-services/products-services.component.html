@@ -85,7 +85,7 @@
             <div>
               <small>PRODUCT / SERVICE DETAILS</small>
               <h2>{{ item.name || item.serviceName || '-' }}</h2>
-              <p>{{ item.itemCode || item.serviceCode || '-' }} · {{ item.category || '-' }} · {{ item.unit || '-' }}</p>
+              <p>{{ item.itemCode || item.serviceCode || '-' }} Â· {{ item.category || '-' }} Â· {{ item.unit || '-' }}</p>
             </div>
           </div>
           <div class="detail-actions">
@@ -532,6 +532,7 @@
                     <div class="actions">
                       <button type="button" title="View" (click)="viewService(item)">&#128065;</button>
                       <button type="button" title="Edit" (click)="editService(item)">&#9998;</button>
+                      <button type="button" title="Delete" (click)="deleteService(item)">&#128465;</button>
                     </div>
                   </td>
   

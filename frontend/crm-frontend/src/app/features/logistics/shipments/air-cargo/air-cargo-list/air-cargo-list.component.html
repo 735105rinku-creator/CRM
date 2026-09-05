@@ -245,7 +245,7 @@
   
                   <td>
                     <strong class="amount">
-                      {{ formatCurrency(shipment.amount) }}
+                      {{ formatCurrency(shipment.amount, shipment.currency) }}
                     </strong>
                   </td>
   
@@ -274,70 +274,12 @@
                   </td>
   
                   <td>
-                    <div class="action-buttons">
-  
-                      <button
-                        type="button"
-                        title="View"
-                        (click)="viewShipment(shipment)"
-                      >
-                        &#9673;
-                      </button>
-  
-                      <button
-                        type="button"
-                        title="Edit"
-                        (click)="editShipment(shipment)"
-                      >
-                        &#9998;
-                      </button>
-  
-                      <div class="action-menu">
-  
-                        <details>
-                          <summary>&#8942;</summary>
-  
-                          <div class="action-dropdown">
-  
-                            <button
-                              type="button"
-                              (click)="duplicateShipment(shipment)"
-                            >
-                              Duplicate Shipment
-                            </button>
-  
-                            <button
-                              type="button"
-                            >
-                              Generate AWB
-                            </button>
-  
-                            <button
-                              type="button"
-                            >
-                              Generate Invoice
-                            </button>
-  
-                            <button
-                              type="button"
-                            >
-                              Update Status
-                            </button>
-  
-                            <button
-                              type="button"
-                              class="danger"
-                              (click)="deleteShipment(shipment)"
-                            >
-                              Delete Shipment
-                            </button>
-  
-                          </div>
-                        </details>
-  
-                      </div>
-  
-                    </div>
+                    <app-logistics-table-actions [rowId]="shipment.mongoId" [rowLabel]="shipment.shipmentId"
+                      [secondaryActions]="airCargoActions(shipment)" (view)="viewShipment(shipment)"
+                      (edit)="editShipment(shipment)"
+                      (secondaryAction)="handleAirCargoAction(shipment, $event.actionKey)" />
+                    <input [id]="'receipt-' + shipment.mongoId" type="file" accept=".jpg,.jpeg,image/jpeg"
+                      (change)="uploadDeliveryReceipt(shipment, $event)" hidden />
                   </td>
   
                 </tr>

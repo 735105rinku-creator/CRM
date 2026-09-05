@@ -3,6 +3,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { finalize } from 'rxjs';
 
 import { ApiService } from '../../../core/services/api.service';
+
 import { FormsModule } from '@angular/forms';
 
 interface Option {
@@ -175,6 +176,14 @@ export class TransporterComponent implements OnInit {
     this.form = this.formFromRecord(record);
     this.showForm.set(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  protected deleteTransporter(item: TransporterRecord): void {
+    const id = item.raw?._id || item._id;
+    if (!id || !window.confirm(`Delete transporter ${item.transporterName}?`)) return;
+    this.api.delete('/logistics/transporters/' + id).subscribe({
+      next: () => { this.selectedTransporter.set(null); this.loadTransporters(); },
+      error: (error: any) => window.alert(error?.error?.message || 'Unable to delete transporter.')
+    });
   }
   protected statusLabel(status: string): string {
     return this.statusOptions.find(x => x.value === status)?.label || status;

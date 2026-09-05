@@ -14,7 +14,7 @@ class LogisticsProductServiceRepository {
       .findOne({
         _id: itemId,
         companyId,
-        isActive: true,
+        isActive: { $ne: false },
       })
       .populate(
         "vendorId",
@@ -39,7 +39,7 @@ class LogisticsProductServiceRepository {
   }) {
     const filter = {
       companyId,
-      isActive: true,
+      isActive: { $ne: false },
     };
 
     if (itemType) {
@@ -163,7 +163,7 @@ class LogisticsProductServiceRepository {
         {
           _id: itemId,
           companyId,
-          isActive: true,
+          isActive: { $ne: false },
         },
         {
           $set: payload,
@@ -189,7 +189,7 @@ class LogisticsProductServiceRepository {
         {
           _id: itemId,
           companyId,
-          isActive: true,
+          isActive: { $ne: false },
         },
         {
           $set: {
@@ -209,7 +209,7 @@ class LogisticsProductServiceRepository {
       {
         $match: {
           companyId,
-          isActive: true,
+          isActive: { $ne: false },
         },
       },
       {

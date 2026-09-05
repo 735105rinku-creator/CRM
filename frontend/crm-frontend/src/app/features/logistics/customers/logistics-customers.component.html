@@ -80,7 +80,7 @@
             <div>
               <small>CUSTOMER DETAILS</small>
               <h2>{{ item.customerName || '-' }}</h2>
-              <p>{{ item.customerCode || '-' }} · {{ item.contactPerson || '-' }} · {{ item.mobile || '-' }}</p>
+              <p>{{ item.customerCode || '-' }} Â· {{ item.contactPerson || '-' }} Â· {{ item.mobile || '-' }}</p>
             </div>
           </div>
           <div class="detail-actions">
@@ -657,6 +657,7 @@
                       <button type="button" title="View" (click)="viewCustomer(item)">&#128065;</button>
   
                       <button type="button" title="Edit" (click)="editCustomer(item)">&#9998;</button>
+                      <button type="button" title="Delete" (click)="deleteCustomer(item)">&#128465;</button>
   
                     </div>
                   </td>

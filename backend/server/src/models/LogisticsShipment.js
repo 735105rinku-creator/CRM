@@ -1,5 +1,7 @@
 ﻿import mongoose from "mongoose";
 
+import { calculateLogisticsCharges } from "../utils/logisticsCharges.js";
+
 /* ============================================================
    SUB SCHEMAS
 ============================================================ */
@@ -729,6 +731,19 @@ const logisticsShipmentSchema =
         default: "",
       },
 
+      subtotal: { type: Number, min: 0, default: 0 },
+      discount: { type: Number, min: 0, default: 0 },
+      taxableAmount: { type: Number, min: 0, default: 0 },
+      gstRate: { type: Number, min: 0, default: 0 },
+      gstAmount: { type: Number, min: 0, default: 0 },
+      otherTax: { type: Number, min: 0, default: 0 },
+
+      shipmentDate: {
+        type: Date,
+        default: null,
+        index: true,
+      },
+
       customerId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "LogisticsCustomer",
@@ -1085,39 +1100,7 @@ logisticsShipmentSchema.pre(
      */
     if (this.charges) {
 
-      this.charges.totalAmount =
-        Number(
-          this.charges
-            .freightAmount || 0
-        ) +
-        Number(
-          this.charges
-            .chaCharge || 0
-        ) +
-        Number(
-          this.charges
-            .documentationCharge || 0
-        ) +
-        Number(
-          this.charges
-            .transportationCharge || 0
-        ) +
-        Number(
-          this.charges
-            .warehouseCharge || 0
-        ) +
-        Number(
-          this.charges
-            .handlingCharge || 0
-        ) +
-        Number(
-          this.charges
-            .insuranceCharge || 0
-        ) +
-        Number(
-          this.charges
-            .otherCharge || 0
-        );
+      Object.assign(this.charges, calculateLogisticsCharges(this.charges));
     }
 
   }

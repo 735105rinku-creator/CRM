@@ -6,6 +6,7 @@ import { finalize } from 'rxjs';
 
 import { ApiService } from '../../../core/services/api.service';
 
+
 interface Option { label: string; value: string; }
 interface PageResult<T> { data?: T[] | { data?: T[]; records?: T[]; items?: T[]; warehouses?: T[] }; records?: T[]; items?: T[]; warehouses?: T[]; }
 interface WarehouseMaster {
@@ -125,6 +126,14 @@ export class WarehouseMasterComponent implements OnInit {
     this.form = this.formFromRecord(row);
     this.mode = 'new';
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  protected deleteWarehouse(row: WarehouseMaster): void {
+    if (!row._id || !window.confirm(`Delete warehouse ${row.warehouseName}?`)) return;
+    this.api.delete('/logistics/warehouse/' + row._id).subscribe({
+      next: () => { this.selected.set(null); this.selectedId = ''; this.loadWarehouses(); },
+      error: (error: any) => window.alert(error?.error?.message || 'Unable to delete warehouse.')
+    });
   }
 
   protected saveWarehouse(): void {

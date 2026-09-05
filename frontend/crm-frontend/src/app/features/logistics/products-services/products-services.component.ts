@@ -160,6 +160,15 @@ export class ProductsServicesComponent implements OnInit {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  protected deleteService(item: ServiceRecord): void {
+    const id = item.raw?._id || item._id;
+    if (!id || !window.confirm(`Delete product/service ${item.serviceName}?`)) return;
+    this.api.delete('/logistics/products-services/' + id).subscribe({
+      next: () => { this.selectedService.set(null); this.loadServices(); },
+      error: (error: any) => window.alert(error?.error?.message || 'Unable to delete product/service.')
+    });
+  }
+
   protected formatCurrency(value: number): string {
     return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(value || 0);
   }

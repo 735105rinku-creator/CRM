@@ -33,6 +33,8 @@ const documentTypes = [
   "phytosanitary",
   "lr",
   "warehouse-receipt",
+  "delivery-receipt",
+  "pod",
   "vendor-invoice",
   "customer-invoice",
   "other",

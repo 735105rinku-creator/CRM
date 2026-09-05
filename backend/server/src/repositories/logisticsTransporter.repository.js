@@ -9,7 +9,7 @@ class LogisticsTransporterRepository {
     return LogisticsTransporter.findOne({
       _id: transporterId,
       companyId,
-      isActive: true,
+      isActive: { $ne: false },
     }).lean();
   }
 
@@ -25,7 +25,7 @@ class LogisticsTransporterRepository {
     sortBy = "createdAt",
     sortOrder = "desc",
   }) {
-    const filter = { companyId, isActive: true };
+    const filter = { companyId, isActive: { $ne: false } };
 
     if (status) filter.status = status;
     if (serviceType) filter.serviceType = serviceType;
@@ -90,7 +90,7 @@ class LogisticsTransporterRepository {
 
   async updateById({ companyId, transporterId, payload }) {
     return LogisticsTransporter.findOneAndUpdate(
-      { _id: transporterId, companyId, isActive: true },
+      { _id: transporterId, companyId, isActive: { $ne: false } },
       { $set: payload },
       { new: true, runValidators: true }
     ).lean();
@@ -98,7 +98,7 @@ class LogisticsTransporterRepository {
 
   async softDelete({ companyId, transporterId, userId }) {
     return LogisticsTransporter.findOneAndUpdate(
-      { _id: transporterId, companyId, isActive: true },
+      { _id: transporterId, companyId, isActive: { $ne: false } },
       { $set: { isActive: false, updatedBy: userId } },
       { new: true }
     ).lean();
@@ -106,7 +106,7 @@ class LogisticsTransporterRepository {
 
   async summary(companyId) {
     return LogisticsTransporter.aggregate([
-      { $match: { companyId, isActive: true } },
+      { $match: { companyId, isActive: { $ne: false } } },
       { $group: { _id: "$status", count: { $sum: 1 } } },
     ]);
   }

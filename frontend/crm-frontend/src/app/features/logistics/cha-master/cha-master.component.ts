@@ -45,7 +45,10 @@ interface ChaCase { _id?: string; chaVendorId?: string; chaAgent?: string; statu
 @Component({
   selector: 'app-cha-master',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule
+  ],
   templateUrl: './cha-master.component.html',
   styleUrl: './cha-master.component.scss'
 })
@@ -164,7 +167,7 @@ export class ChaMasterComponent implements OnInit {
 
   protected loadChaMasters(): void {
     this.isLoading.set(true);
-    this.api.get<PageResult<ChaVendor>>('/logistics/vendors', { page: 1, limit: 100, vendorType: 'cha', sortBy: 'vendorName', sortOrder: 'asc' })
+    this.api.get<PageResult<ChaVendor>>('/logistics/cha/masters', { page: 1, limit: 100, vendorType: 'cha', sortBy: 'vendorName', sortOrder: 'asc' })
       .pipe(finalize(() => this.isLoading.set(false)))
       .subscribe({
         next: (response) => {
@@ -188,8 +191,8 @@ export class ChaMasterComponent implements OnInit {
     if (error) { this.errorMessage.set(error); window.alert(error); return; }
     const payload = this.buildPayload();
     const request = this.selectedId
-      ? this.api.patch<ChaVendor>(`/logistics/vendors/${this.selectedId}`, payload)
-      : this.api.post<ChaVendor>('/logistics/vendors', payload);
+      ? this.api.patch<ChaVendor>(`/logistics/cha/masters/${this.selectedId}`, payload)
+      : this.api.post<ChaVendor>('/logistics/cha/masters', payload);
     this.isSaving.set(true);
     request
       .pipe(finalize(() => this.isSaving.set(false)))
@@ -222,7 +225,7 @@ export class ChaMasterComponent implements OnInit {
   protected updateStatus(row: ChaVendor): void {
     if (!row._id) return;
     const nextStatus = row.status === 'active' ? 'inactive' : 'active';
-    this.api.patch(`/logistics/vendors/${row._id}`, { status: nextStatus })
+    this.api.patch(`/logistics/cha/masters/${row._id}/status`, { status: nextStatus })
       .subscribe({ next: () => this.loadChaMasters(), error: (error) => window.alert(error?.error?.message || 'Unable to update CHA status.') });
   }
 
@@ -230,7 +233,7 @@ export class ChaMasterComponent implements OnInit {
   protected deleteCha(row: ChaVendor): void {
     if (!row._id) return;
     if (!window.confirm('Delete this CHA master?')) return;
-    this.api.delete('/logistics/vendors/' + row._id)
+    this.api.delete('/logistics/cha/masters/' + row._id)
       .subscribe({
         next: () => {
           this.loadChaMasters();

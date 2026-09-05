@@ -11,6 +11,9 @@ import {
 import logisticsVendorPaymentService
   from "../services/logisticsVendorPayment.service.js";
 
+import LogisticsVendor
+  from "../models/LogisticsVendor.js";
+
 import { ApiResponse }
   from "../utils/apiResponse.js";
 
@@ -20,45 +23,67 @@ import { ApiError }
 import { asyncHandler }
   from "../utils/asyncHandler.js";
 
-const companyIdForRequest = (req) => {
+
+/* ============================================================
+   COMPANY CONTEXT
+============================================================ */
+
+const companyIdForRequest = (
+  req
+) => {
+
   const authCompanyId =
     req.auth?.companyId ||
     req.user?.companyId?._id ||
     req.user?.companyId;
 
+
   if (
     req.user?.role !==
     ROLES.SUPER_ADMIN
   ) {
+
     if (!authCompanyId) {
+
       throw new ApiError(
         403,
         "Company context missing"
       );
     }
 
+
     return authCompanyId;
   }
+
 
   const requestedCompanyId =
     req.query?.companyId ||
     req.body?.companyId ||
     authCompanyId;
 
+
   if (!requestedCompanyId) {
+
     throw new ApiError(
       400,
       "companyId is required for Super Admin"
     );
   }
 
+
   return requestedCompanyId;
 };
+
+
+/* ============================================================
+   VALIDATION HELPER
+============================================================ */
 
 function validate(
   schema,
   source
 ) {
+
   const {
     value,
     error,
@@ -74,7 +99,9 @@ function validate(
       }
     );
 
+
   if (error) {
+
     throw new ApiError(
       400,
       error.details[0]
@@ -83,210 +110,503 @@ function validate(
     );
   }
 
+
   return value;
 }
 
+
+/* ============================================================
+   VENDOR OPTIONS FOR VENDOR PAYMENT
+
+   IMPORTANT:
+   This is intentionally a limited read-only lookup.
+
+   It does NOT expose the complete Vendor Master API.
+
+   Vendor Payment employees only receive the fields required
+   to select an existing Vendor safely.
+
+   Mongo ObjectId remains internal and is sent by Angular
+   automatically when the user selects a Vendor name.
+============================================================ */
+
+export const getLogisticsVendorPaymentVendorOptions =
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
+
+      const companyId =
+        companyIdForRequest(
+          req
+        );
+
+
+      const filter = {
+
+        companyId,
+
+        /*
+         * Vendor Master uses status in existing frontend/API.
+         *
+         * We intentionally allow records where status is either
+         * active or not present, so older vendor records remain
+         * usable without any DB migration.
+         */
+        $or: [
+
+          {
+            status:
+              "active",
+          },
+
+          {
+            status: {
+              $exists:
+                false,
+            },
+          },
+
+          {
+            status:
+              "",
+          },
+
+        ],
+      };
+
+
+      const vendors =
+        await LogisticsVendor
+          .find(
+            filter
+          )
+          .select(
+            [
+              "_id",
+              "vendorCode",
+              "vendorName",
+              "companyName",
+              "contactPerson",
+              "mobile",
+              "email",
+              "gstNumber",
+              "paymentTerms",
+              "openingPayable",
+              "status",
+            ].join(
+              " "
+            )
+          )
+          .sort({
+            vendorName:
+              1,
+            companyName:
+              1,
+          })
+          .limit(
+            500
+          )
+          .lean();
+
+
+      const options =
+        vendors.map(
+          (
+            vendor
+          ) => ({
+
+            _id:
+              vendor._id,
+
+            vendorCode:
+              vendor.vendorCode ||
+              "",
+
+            vendorName:
+              vendor.vendorName ||
+              vendor.companyName ||
+              "Vendor",
+
+            companyName:
+              vendor.companyName ||
+              "",
+
+            contactPerson:
+              vendor.contactPerson ||
+              "",
+
+            mobile:
+              vendor.mobile ||
+              "",
+
+            email:
+              vendor.email ||
+              "",
+
+            gstNumber:
+              vendor.gstNumber ||
+              "",
+
+            paymentTerms:
+              vendor.paymentTerms ||
+              "",
+
+            openingPayable:
+              Number(
+                vendor.openingPayable ||
+                0
+              ),
+
+            status:
+              vendor.status ||
+              "active",
+          })
+        );
+
+
+      res
+        .status(
+          200
+        )
+        .json(
+          new ApiResponse(
+            200,
+            {
+              vendors:
+                options,
+            },
+            "Vendor payment vendor options fetched successfully"
+          )
+        );
+    }
+  );
+
+
+/* ============================================================
+   CREATE VENDOR PAYMENT
+============================================================ */
+
 export const createLogisticsVendorPayment =
-  asyncHandler(async (req, res) => {
-    const payload =
-      validate(
-        createLogisticsVendorPaymentSchema,
-        req.body
-      );
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
 
-    const result =
-      await logisticsVendorPaymentService
-        .createPaymentRecord({
-          companyId:
-            companyIdForRequest(
-              req
-            ),
+      const payload =
+        validate(
+          createLogisticsVendorPaymentSchema,
+          req.body
+        );
 
-          userId:
-            req.user?._id ||
-            null,
 
-          employeeId:
-            req.logisticsAccess
-              ?.employeeId ||
-            null,
+      const result =
+        await logisticsVendorPaymentService
+          .createPaymentRecord({
 
-          payload,
-        });
+            companyId:
+              companyIdForRequest(
+                req
+              ),
 
-    res.status(201).json(
-      new ApiResponse(
-        201,
-        result,
-        "Vendor payment record created successfully"
-      )
-    );
-  });
+            userId:
+              req.user?._id ||
+              null,
+
+            employeeId:
+              req.logisticsAccess
+                ?.employeeId ||
+              null,
+
+            payload,
+          });
+
+
+      res
+        .status(
+          201
+        )
+        .json(
+          new ApiResponse(
+            201,
+            result,
+            "Vendor payment record created successfully"
+          )
+        );
+    }
+  );
+
+
+/* ============================================================
+   LIST VENDOR PAYMENTS
+============================================================ */
 
 export const getLogisticsVendorPayments =
-  asyncHandler(async (req, res) => {
-    const query =
-      validate(
-        logisticsVendorPaymentQuerySchema,
-        req.query
-      );
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
 
-    const result =
-      await logisticsVendorPaymentService
-        .listPaymentRecords({
-          companyId:
-            companyIdForRequest(
-              req
-            ),
+      const query =
+        validate(
+          logisticsVendorPaymentQuerySchema,
+          req.query
+        );
 
-          query,
-        });
 
-    res.status(200).json(
-      new ApiResponse(
-        200,
-        result,
-        "Vendor payment records fetched successfully"
-      )
-    );
-  });
+      const result =
+        await logisticsVendorPaymentService
+          .listPaymentRecords({
+
+            companyId:
+              companyIdForRequest(
+                req
+              ),
+
+            query,
+          });
+
+
+      res
+        .status(
+          200
+        )
+        .json(
+          new ApiResponse(
+            200,
+            result,
+            "Vendor payment records fetched successfully"
+          )
+        );
+    }
+  );
+
+
+/* ============================================================
+   VENDOR PAYMENT SUMMARY
+============================================================ */
 
 export const getLogisticsVendorPaymentSummary =
-  asyncHandler(async (req, res) => {
-    const result =
-      await logisticsVendorPaymentService
-        .getSummary({
-          companyId:
-            companyIdForRequest(
-              req
-            ),
-        });
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
 
-    res.status(200).json(
-      new ApiResponse(
-        200,
-        result,
-        "Vendor payment summary fetched successfully"
-      )
-    );
-  });
+      const result =
+        await logisticsVendorPaymentService
+          .getSummary({
+
+            companyId:
+              companyIdForRequest(
+                req
+              ),
+          });
+
+
+      res
+        .status(
+          200
+        )
+        .json(
+          new ApiResponse(
+            200,
+            result,
+            "Vendor payment summary fetched successfully"
+          )
+        );
+    }
+  );
+
+
+/* ============================================================
+   GET VENDOR PAYMENT BY ID
+============================================================ */
 
 export const getLogisticsVendorPaymentById =
-  asyncHandler(async (req, res) => {
-    const result =
-      await logisticsVendorPaymentService
-        .getPaymentRecord({
-          companyId:
-            companyIdForRequest(
-              req
-            ),
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
 
-          paymentId:
-            req.params.id,
-        });
+      const result =
+        await logisticsVendorPaymentService
+          .getPaymentRecord({
 
-    res.status(200).json(
-      new ApiResponse(
-        200,
-        result,
-        "Vendor payment record fetched successfully"
-      )
-    );
-  });
+            companyId:
+              companyIdForRequest(
+                req
+              ),
+
+            paymentId:
+              req.params.id,
+          });
+
+
+      res
+        .status(
+          200
+        )
+        .json(
+          new ApiResponse(
+            200,
+            result,
+            "Vendor payment record fetched successfully"
+          )
+        );
+    }
+  );
+
+
+/* ============================================================
+   UPDATE VENDOR PAYMENT
+============================================================ */
 
 export const updateLogisticsVendorPayment =
-  asyncHandler(async (req, res) => {
-    const payload =
-      validate(
-        updateLogisticsVendorPaymentSchema,
-        req.body
-      );
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
 
-    const result =
-      await logisticsVendorPaymentService
-        .updatePaymentRecord({
-          companyId:
-            companyIdForRequest(
-              req
-            ),
+      const payload =
+        validate(
+          updateLogisticsVendorPaymentSchema,
+          req.body
+        );
 
-          paymentId:
-            req.params.id,
 
-          userId:
-            req.user?._id ||
-            null,
+      const result =
+        await logisticsVendorPaymentService
+          .updatePaymentRecord({
 
-          payload,
-        });
+            companyId:
+              companyIdForRequest(
+                req
+              ),
 
-    res.status(200).json(
-      new ApiResponse(
-        200,
-        result,
-        "Vendor payment record updated successfully"
-      )
-    );
-  });
+            paymentId:
+              req.params.id,
+
+            userId:
+              req.user?._id ||
+              null,
+
+            payload,
+          });
+
+
+      res
+        .status(
+          200
+        )
+        .json(
+          new ApiResponse(
+            200,
+            result,
+            "Vendor payment record updated successfully"
+          )
+        );
+    }
+  );
+
+
+/* ============================================================
+   ADD PAYMENT TRANSACTION
+============================================================ */
 
 export const addLogisticsVendorPaymentTransaction =
-  asyncHandler(async (req, res) => {
-    const payload =
-      validate(
-        addVendorPaymentTransactionSchema,
-        req.body
-      );
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
 
-    const result =
-      await logisticsVendorPaymentService
-        .addPayment({
-          companyId:
-            companyIdForRequest(
-              req
-            ),
+      const payload =
+        validate(
+          addVendorPaymentTransactionSchema,
+          req.body
+        );
 
-          paymentId:
-            req.params.id,
 
-          userId:
-            req.user?._id ||
-            null,
+      const result =
+        await logisticsVendorPaymentService
+          .addPayment({
 
-          payload,
-        });
+            companyId:
+              companyIdForRequest(
+                req
+              ),
 
-    res.status(200).json(
-      new ApiResponse(
-        200,
-        result,
-        "Vendor payment added successfully"
-      )
-    );
-  });
+            paymentId:
+              req.params.id,
+
+            userId:
+              req.user?._id ||
+              null,
+
+            payload,
+          });
+
+
+      res
+        .status(
+          200
+        )
+        .json(
+          new ApiResponse(
+            200,
+            result,
+            "Vendor payment added successfully"
+          )
+        );
+    }
+  );
+
+
+/* ============================================================
+   DELETE VENDOR PAYMENT
+============================================================ */
 
 export const deleteLogisticsVendorPayment =
-  asyncHandler(async (req, res) => {
-    const result =
-      await logisticsVendorPaymentService
-        .deletePaymentRecord({
-          companyId:
-            companyIdForRequest(
-              req
-            ),
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
 
-          paymentId:
-            req.params.id,
+      const result =
+        await logisticsVendorPaymentService
+          .deletePaymentRecord({
 
-          userId:
-            req.user?._id ||
-            null,
-        });
+            companyId:
+              companyIdForRequest(
+                req
+              ),
 
-    res.status(200).json(
-      new ApiResponse(
-        200,
-        result,
-        "Vendor payment record deleted successfully"
-      )
-    );
-  });
+            paymentId:
+              req.params.id,
+
+            userId:
+              req.user?._id ||
+              null,
+          });
+
+
+      res
+        .status(
+          200
+        )
+        .json(
+          new ApiResponse(
+            200,
+            result,
+            "Vendor payment record deleted successfully"
+          )
+        );
+    }
+  );

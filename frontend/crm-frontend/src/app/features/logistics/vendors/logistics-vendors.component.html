@@ -81,7 +81,7 @@
             <div>
               <small>VENDOR DETAILS</small>
               <h2>{{ item.vendorName || item.companyName || '-' }}</h2>
-              <p>{{ item.vendorCode || '-' }} · {{ item.contactPerson || '-' }} · {{ item.mobile || '-' }}</p>
+              <p>{{ item.vendorCode || '-' }} Â· {{ item.contactPerson || '-' }} Â· {{ item.mobile || '-' }}</p>
             </div>
           </div>
           <div class="detail-actions">
@@ -595,6 +595,7 @@
                     <div class="actions">
                       <button type="button" title="View" (click)="viewVendor(item)">&#128065;</button>
                       <button type="button" title="Edit" (click)="editVendor(item)">&#9998;</button>
+                      <button type="button" title="Delete" (click)="deleteVendor(item)">&#128465;</button>
                     </div>
                   </td>
                 </tr>
