@@ -499,6 +499,94 @@ export class VoucherService {
   }
 
 
+  async validateReceiptVoucher({
+    companyId,
+    lines,
+    session = null,
+  }) {
+
+    let hasCashOrBankDebit =
+      false;
+
+
+    for (const line of lines || []) {
+
+      const account =
+        await this.chartRepository
+          .findById({
+            companyId,
+            accountId:
+              line.accountId,
+            session,
+          });
+
+
+      if (!account) {
+        throw new Error(
+          "Receipt Voucher account not found."
+        );
+      }
+
+
+      if (account.status !== "active") {
+        throw new Error(
+          "Receipt Voucher requires active accounts."
+        );
+      }
+
+
+      const isCashOrBank =
+        account.accountType === "cash" ||
+        account.accountType === "bank";
+
+
+      const debit =
+        roundMoney(line.debit);
+
+      const credit =
+        roundMoney(line.credit);
+
+
+      if (
+        debit > 0 &&
+        !isCashOrBank
+      ) {
+        throw new Error(
+          "Only Cash or Bank accounts may be debited in a Receipt Voucher."
+        );
+      }
+
+
+      if (
+        isCashOrBank &&
+        credit > 0
+      ) {
+        throw new Error(
+          "Cash or Bank account cannot be credited in a Receipt Voucher."
+        );
+      }
+
+
+      if (
+        isCashOrBank &&
+        debit > 0
+      ) {
+        hasCashOrBankDebit =
+          true;
+      }
+
+    }
+
+
+    if (!hasCashOrBankDebit) {
+      throw new Error(
+        "Receipt Voucher requires a Cash or Bank debit line."
+      );
+    }
+
+  }
+
+
   /* ==========================================================
      CREATE VOUCHER
 
@@ -593,6 +681,20 @@ export class VoucherService {
     ) {
 
       await this.validatePaymentVoucher({
+        companyId,
+        lines:
+          payload.lines,
+      });
+
+    }
+
+
+    if (
+      payload.voucherType ===
+        "receipt"
+    ) {
+
+      await this.validateReceiptVoucher({
         companyId,
         lines:
           payload.lines,
@@ -933,6 +1035,20 @@ export class VoucherService {
 
       }
 
+      if (
+        existingVoucher?.voucherType ===
+          "receipt"
+      ) {
+
+        await this.validateReceiptVoucher({
+          companyId,
+          lines:
+            payload.lines,
+        });
+
+      }
+
+
     }
 
 
@@ -1045,6 +1161,21 @@ export class VoucherService {
           ) {
 
             await this.validatePaymentVoucher({
+              companyId,
+              lines:
+                voucher.lines,
+              session,
+            });
+
+          }
+
+
+          if (
+            voucher.voucherType ===
+              "receipt"
+          ) {
+
+            await this.validateReceiptVoucher({
               companyId,
               lines:
                 voucher.lines,

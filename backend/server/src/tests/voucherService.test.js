@@ -2978,3 +2978,654 @@ test(
 
   }
 );
+
+function createReceiptChartRepository() {
+
+  const accountTypes = {
+    bank: "bank",
+    cash: "cash",
+    customer: "accounts_receivable",
+    income: "direct_income",
+  };
+
+  return {
+
+    async findById({
+      accountId,
+    }) {
+
+      const accountType =
+        accountTypes[
+          String(accountId)
+        ];
+
+      if (!accountType) {
+        return null;
+      }
+
+      return {
+        _id:
+          accountId,
+
+        accountType,
+
+        status:
+          "active",
+
+        allowManualEntry:
+          true,
+      };
+
+    },
+
+  };
+
+}
+
+
+test(
+  "accepts a Receipt Voucher that debits a Bank account",
+  async () => {
+
+    const voucherRepository = {
+
+      async findLastVoucherNumber() {
+        return null;
+      },
+
+      async create(payload) {
+        return payload;
+      },
+
+    };
+
+    const {
+      VoucherService,
+    } = await loadService();
+
+    const service =
+      new VoucherService({
+        voucherRepository,
+        chartRepository:
+          createReceiptChartRepository(),
+      });
+
+    const result =
+      await service.createVoucher({
+        companyId:
+          "64f000000000000000000001",
+
+        userId:
+          "64f000000000000000000009",
+
+        payload: {
+          voucherType:
+            "receipt",
+
+          voucherDate:
+            "2026-09-05",
+
+          lines: [
+            {
+              accountId:
+                "bank",
+              debit:
+                5000,
+              credit:
+                0,
+            },
+            {
+              accountId:
+                "customer",
+              debit:
+                0,
+              credit:
+                5000,
+            },
+          ],
+        },
+      });
+
+    assert.equal(
+      result.voucherType,
+      "receipt"
+    );
+
+  }
+);
+
+
+test(
+  "accepts a Receipt Voucher that debits a Cash account",
+  async () => {
+
+    const voucherRepository = {
+
+      async findLastVoucherNumber() {
+        return null;
+      },
+
+      async create(payload) {
+        return payload;
+      },
+
+    };
+
+    const {
+      VoucherService,
+    } = await loadService();
+
+    const service =
+      new VoucherService({
+        voucherRepository,
+        chartRepository:
+          createReceiptChartRepository(),
+      });
+
+    const result =
+      await service.createVoucher({
+        companyId:
+          "64f000000000000000000001",
+
+        userId:
+          "64f000000000000000000009",
+
+        payload: {
+          voucherType:
+            "receipt",
+
+          voucherDate:
+            "2026-09-05",
+
+          lines: [
+            {
+              accountId:
+                "cash",
+              debit:
+                2500,
+              credit:
+                0,
+            },
+            {
+              accountId:
+                "income",
+              debit:
+                0,
+              credit:
+                2500,
+            },
+          ],
+        },
+      });
+
+    assert.equal(
+      result.voucherType,
+      "receipt"
+    );
+
+  }
+);
+
+
+test(
+  "rejects a Receipt Voucher without a Cash or Bank debit line",
+  async () => {
+
+    const voucherRepository = {
+
+      async findLastVoucherNumber() {
+        return null;
+      },
+
+      async create(payload) {
+        return payload;
+      },
+
+    };
+
+    const {
+      VoucherService,
+    } = await loadService();
+
+    const service =
+      new VoucherService({
+        voucherRepository,
+        chartRepository:
+          createReceiptChartRepository(),
+      });
+
+    await assert.rejects(
+      () =>
+        service.createVoucher({
+          companyId:
+            "64f000000000000000000001",
+
+          userId:
+            "64f000000000000000000009",
+
+          payload: {
+            voucherType:
+              "receipt",
+
+            voucherDate:
+              "2026-09-05",
+
+            lines: [
+              {
+                accountId:
+                  "customer",
+                debit:
+                  1000,
+                credit:
+                  0,
+              },
+              {
+                accountId:
+                  "income",
+                debit:
+                  0,
+                credit:
+                  1000,
+              },
+            ],
+          },
+        }),
+      /cash or bank/i
+    );
+
+  }
+);
+
+
+test(
+  "rejects a Receipt Voucher that credits a Cash or Bank account",
+  async () => {
+
+    const voucherRepository = {
+
+      async findLastVoucherNumber() {
+        return null;
+      },
+
+      async create(payload) {
+        return payload;
+      },
+
+    };
+
+    const {
+      VoucherService,
+    } = await loadService();
+
+    const service =
+      new VoucherService({
+        voucherRepository,
+        chartRepository:
+          createReceiptChartRepository(),
+      });
+
+    await assert.rejects(
+      () =>
+        service.createVoucher({
+          companyId:
+            "64f000000000000000000001",
+
+          userId:
+            "64f000000000000000000009",
+
+          payload: {
+            voucherType:
+              "receipt",
+
+            voucherDate:
+              "2026-09-05",
+
+            lines: [
+              {
+                accountId:
+                  "cash",
+                debit:
+                  1000,
+                credit:
+                  0,
+              },
+              {
+                accountId:
+                  "bank",
+                debit:
+                  0,
+                credit:
+                  1000,
+              },
+            ],
+          },
+        }),
+      /cash or bank.*credit|credit.*cash or bank/i
+    );
+
+  }
+);
+
+
+test(
+  "rejects updating a Receipt Voucher to credit a Cash or Bank account",
+  async () => {
+
+    let updateCalled =
+      false;
+
+    const voucherRepository = {
+
+      async findById() {
+        return {
+          _id:
+            "receipt-voucher-1",
+
+          status:
+            "draft",
+
+          voucherType:
+            "receipt",
+
+          financialYear:
+            "2026-27",
+
+          voucherNumber:
+            "RV/2026-27/000001",
+        };
+      },
+
+      async updateDraftById() {
+
+        updateCalled =
+          true;
+
+        return {
+          _id:
+            "receipt-voucher-1",
+
+          status:
+            "draft",
+        };
+      },
+
+    };
+
+    const {
+      VoucherService,
+    } = await loadService();
+
+    const service =
+      new VoucherService({
+        voucherRepository,
+        chartRepository:
+          createReceiptChartRepository(),
+      });
+
+    await assert.rejects(
+      () =>
+        service.updateDraftVoucher({
+          companyId:
+            "64f000000000000000000001",
+
+          voucherId:
+            "receipt-voucher-1",
+
+          userId:
+            "64f000000000000000000009",
+
+          payload: {
+            lines: [
+              {
+                accountId:
+                  "cash",
+                debit:
+                  1000,
+                credit:
+                  0,
+              },
+              {
+                accountId:
+                  "bank",
+                debit:
+                  0,
+                credit:
+                  1000,
+              },
+            ],
+          },
+        }),
+      /cash or bank.*credit|credit.*cash or bank/i
+    );
+
+    assert.equal(
+      updateCalled,
+      false
+    );
+
+  }
+);
+
+
+test(
+  "rejects posting an invalid Receipt Voucher before creating its JournalEntry",
+  async () => {
+
+    let journalCreateCalled =
+      false;
+
+    const voucherRepository = {
+
+      async findById({
+        companyId,
+        voucherId,
+      }) {
+
+        return {
+          _id:
+            voucherId,
+
+          companyId,
+
+          status:
+            "draft",
+
+          voucherType:
+            "receipt",
+
+          voucherNumber:
+            "RV/2026-27/000001",
+
+          voucherDate:
+            "2026-09-05",
+
+          lines: [
+            {
+              accountId:
+                "cash",
+              debit:
+                1000,
+              credit:
+                0,
+            },
+            {
+              accountId:
+                "bank",
+              debit:
+                0,
+              credit:
+                1000,
+            },
+          ],
+        };
+
+      },
+
+      async postById() {
+        return {
+          status:
+            "posted",
+        };
+      },
+
+    };
+
+    const journalService = {
+
+      async createJournal() {
+
+        journalCreateCalled =
+          true;
+
+        return {
+          _id:
+            "journal-1",
+
+          status:
+            "draft",
+        };
+      },
+
+      async postJournal() {
+        return {
+          _id:
+            "journal-1",
+
+          status:
+            "posted",
+        };
+      },
+
+    };
+
+    const session = {
+
+      async withTransaction(
+        callback
+      ) {
+        return callback();
+      },
+
+      async endSession() {},
+
+    };
+
+    const sessionProvider = {
+
+      async startSession() {
+        return session;
+      },
+
+    };
+
+    const {
+      VoucherService,
+    } = await loadService();
+
+    const service =
+      new VoucherService({
+        voucherRepository,
+        chartRepository:
+          createReceiptChartRepository(),
+        journalService,
+        sessionProvider,
+      });
+
+    await assert.rejects(
+      () =>
+        service.postVoucher({
+          companyId:
+            "64f000000000000000000001",
+
+          voucherId:
+            "receipt-voucher-1",
+
+          userId:
+            "64f000000000000000000009",
+        }),
+      /cash or bank.*credit|credit.*cash or bank/i
+    );
+
+    assert.equal(
+      journalCreateCalled,
+      false
+    );
+
+  }
+);
+
+
+test(
+  "rejects a Receipt Voucher that debits a non-Cash or Bank account even when Bank is also debited",
+  async () => {
+
+    const voucherRepository = {
+      async findLastVoucherNumber() {
+        return null;
+      },
+
+      async create(payload) {
+        return payload;
+      },
+    };
+
+    const {
+      VoucherService,
+    } = await loadService();
+
+    const service =
+      new VoucherService({
+        voucherRepository,
+        chartRepository:
+          createReceiptChartRepository(),
+      });
+
+    await assert.rejects(
+      () =>
+        service.createVoucher({
+          companyId:
+            "64f000000000000000000001",
+
+          userId:
+            "64f000000000000000000009",
+
+          payload: {
+            voucherType:
+              "receipt",
+
+            voucherDate:
+              "2026-09-05",
+
+            lines: [
+              {
+                accountId:
+                  "bank",
+                debit:
+                  500,
+                credit:
+                  0,
+              },
+              {
+                accountId:
+                  "customer",
+                debit:
+                  500,
+                credit:
+                  0,
+              },
+              {
+                accountId:
+                  "income",
+                debit:
+                  0,
+                credit:
+                  1000,
+              },
+            ],
+          },
+        }),
+      /only cash or bank.*debit|debit.*only cash or bank/i
+    );
+
+  }
+);
