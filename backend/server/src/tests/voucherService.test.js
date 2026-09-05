@@ -6620,3 +6620,767 @@ test(
 
   }
 );
+
+function createDebitNoteChartRepository() {
+
+  const accounts = {
+    supplier: {
+      accountType: "accounts_payable",
+      status: "active",
+    },
+    cash: {
+      accountType: "cash",
+      status: "active",
+    },
+    bank: {
+      accountType: "bank",
+      status: "active",
+    },
+    purchase: {
+      accountType: "purchase",
+      status: "active",
+    },
+    tax: {
+      accountType: "tax",
+      status: "active",
+    },
+    sales: {
+      accountType: "sales",
+      status: "active",
+    },
+    customer: {
+      accountType: "accounts_receivable",
+      status: "active",
+    },
+    expense: {
+      accountType: "direct_expense",
+      status: "active",
+    },
+    inactivePurchase: {
+      accountType: "purchase",
+      status: "inactive",
+    },
+  };
+
+  return {
+
+    async findById({
+      accountId,
+    }) {
+
+      const account =
+        accounts[String(accountId)];
+
+      if (!account) {
+        return null;
+      }
+
+      return {
+        _id:
+          accountId,
+        accountType:
+          account.accountType,
+        status:
+          account.status,
+        allowManualEntry:
+          true,
+      };
+
+    },
+
+  };
+
+}
+
+
+function createDebitNoteCreateRepository() {
+
+  return {
+
+    async findLastVoucherNumber() {
+      return null;
+    },
+
+    async create(payload) {
+      return payload;
+    },
+
+  };
+
+}
+
+
+async function createDebitNoteService() {
+
+  const {
+    VoucherService,
+  } = await loadService();
+
+  return new VoucherService({
+    voucherRepository:
+      createDebitNoteCreateRepository(),
+    chartRepository:
+      createDebitNoteChartRepository(),
+  });
+
+}
+
+
+test(
+  "accepts a Debit Note against a supplier payable",
+  async () => {
+
+    const service =
+      await createDebitNoteService();
+
+    const result =
+      await service.createVoucher({
+        companyId:
+          "64f000000000000000000001",
+        userId:
+          "64f000000000000000000009",
+        payload: {
+          voucherType:
+            "debit_note",
+          voucherDate:
+            "2026-09-05",
+          lines: [
+            {
+              accountId:
+                "supplier",
+              debit:
+                5000,
+              credit:
+                0,
+            },
+            {
+              accountId:
+                "purchase",
+              debit:
+                0,
+              credit:
+                5000,
+            },
+          ],
+        },
+      });
+
+    assert.equal(
+      result.voucherType,
+      "debit_note"
+    );
+
+  }
+);
+
+
+test(
+  "accepts a Debit Note with a cash refund",
+  async () => {
+
+    const service =
+      await createDebitNoteService();
+
+    const result =
+      await service.createVoucher({
+        companyId:
+          "64f000000000000000000001",
+        userId:
+          "64f000000000000000000009",
+        payload: {
+          voucherType:
+            "debit_note",
+          voucherDate:
+            "2026-09-05",
+          lines: [
+            {
+              accountId:
+                "cash",
+              debit:
+                2500,
+              credit:
+                0,
+            },
+            {
+              accountId:
+                "purchase",
+              debit:
+                0,
+              credit:
+                2500,
+            },
+          ],
+        },
+      });
+
+    assert.equal(
+      result.voucherType,
+      "debit_note"
+    );
+
+  }
+);
+
+
+test(
+  "accepts a Debit Note with a bank refund",
+  async () => {
+
+    const service =
+      await createDebitNoteService();
+
+    const result =
+      await service.createVoucher({
+        companyId:
+          "64f000000000000000000001",
+        userId:
+          "64f000000000000000000009",
+        payload: {
+          voucherType:
+            "debit_note",
+          voucherDate:
+            "2026-09-05",
+          lines: [
+            {
+              accountId:
+                "bank",
+              debit:
+                3200,
+              credit:
+                0,
+            },
+            {
+              accountId:
+                "purchase",
+              debit:
+                0,
+              credit:
+                3200,
+            },
+          ],
+        },
+      });
+
+    assert.equal(
+      result.voucherType,
+      "debit_note"
+    );
+
+  }
+);
+
+
+test(
+  "accepts a Debit Note with input tax reversal",
+  async () => {
+
+    const service =
+      await createDebitNoteService();
+
+    const result =
+      await service.createVoucher({
+        companyId:
+          "64f000000000000000000001",
+        userId:
+          "64f000000000000000000009",
+        payload: {
+          voucherType:
+            "debit_note",
+          voucherDate:
+            "2026-09-05",
+          lines: [
+            {
+              accountId:
+                "supplier",
+              debit:
+                1180,
+              credit:
+                0,
+            },
+            {
+              accountId:
+                "purchase",
+              debit:
+                0,
+              credit:
+                1000,
+            },
+            {
+              accountId:
+                "tax",
+              debit:
+                0,
+              credit:
+                180,
+            },
+          ],
+        },
+      });
+
+    assert.equal(
+      result.voucherType,
+      "debit_note"
+    );
+
+  }
+);
+
+
+test(
+  "rejects a Debit Note without a Purchase credit line",
+  async () => {
+
+    const service =
+      await createDebitNoteService();
+
+    await assert.rejects(
+      () =>
+        service.createVoucher({
+          companyId:
+            "64f000000000000000000001",
+          userId:
+            "64f000000000000000000009",
+          payload: {
+            voucherType:
+              "debit_note",
+            voucherDate:
+              "2026-09-05",
+            lines: [
+              {
+                accountId:
+                  "supplier",
+                debit:
+                  180,
+                credit:
+                  0,
+              },
+              {
+                accountId:
+                  "tax",
+                debit:
+                  0,
+                credit:
+                  180,
+              },
+            ],
+          },
+        }),
+      /purchase.*credit|credit.*purchase/i
+    );
+
+  }
+);
+
+
+test(
+  "rejects a Debit Note that debits an invalid ledger",
+  async () => {
+
+    const service =
+      await createDebitNoteService();
+
+    await assert.rejects(
+      () =>
+        service.createVoucher({
+          companyId:
+            "64f000000000000000000001",
+          userId:
+            "64f000000000000000000009",
+          payload: {
+            voucherType:
+              "debit_note",
+            voucherDate:
+              "2026-09-05",
+            lines: [
+              {
+                accountId:
+                  "customer",
+                debit:
+                  1000,
+                credit:
+                  0,
+              },
+              {
+                accountId:
+                  "purchase",
+                debit:
+                  0,
+                credit:
+                  1000,
+              },
+            ],
+          },
+        }),
+      /accounts payable.*cash.*bank|supplier.*cash.*bank|debit.*cash.*bank/i
+    );
+
+  }
+);
+
+
+test(
+  "rejects a Debit Note that credits an invalid ledger",
+  async () => {
+
+    const service =
+      await createDebitNoteService();
+
+    await assert.rejects(
+      () =>
+        service.createVoucher({
+          companyId:
+            "64f000000000000000000001",
+          userId:
+            "64f000000000000000000009",
+          payload: {
+            voucherType:
+              "debit_note",
+            voucherDate:
+              "2026-09-05",
+            lines: [
+              {
+                accountId:
+                  "supplier",
+                debit:
+                  1000,
+                credit:
+                  0,
+              },
+              {
+                accountId:
+                  "sales",
+                debit:
+                  0,
+                credit:
+                  1000,
+              },
+            ],
+          },
+        }),
+      /purchase.*tax|credit.*purchase|credited.*purchase/i
+    );
+
+  }
+);
+
+
+test(
+  "rejects a Debit Note that uses an inactive account",
+  async () => {
+
+    const service =
+      await createDebitNoteService();
+
+    await assert.rejects(
+      () =>
+        service.createVoucher({
+          companyId:
+            "64f000000000000000000001",
+          userId:
+            "64f000000000000000000009",
+          payload: {
+            voucherType:
+              "debit_note",
+            voucherDate:
+              "2026-09-05",
+            lines: [
+              {
+                accountId:
+                  "supplier",
+                debit:
+                  1000,
+                credit:
+                  0,
+              },
+              {
+                accountId:
+                  "inactivePurchase",
+                debit:
+                  0,
+                credit:
+                  1000,
+              },
+            ],
+          },
+        }),
+      /active accounts/i
+    );
+
+  }
+);
+
+
+test(
+  "rejects a Debit Note account outside the company or not found",
+  async () => {
+
+    const service =
+      await createDebitNoteService();
+
+    await assert.rejects(
+      () =>
+        service.createVoucher({
+          companyId:
+            "64f000000000000000000001",
+          userId:
+            "64f000000000000000000009",
+          payload: {
+            voucherType:
+              "debit_note",
+            voucherDate:
+              "2026-09-05",
+            lines: [
+              {
+                accountId:
+                  "supplier",
+                debit:
+                  1000,
+                credit:
+                  0,
+              },
+              {
+                accountId:
+                  "foreignAccount",
+                debit:
+                  0,
+                credit:
+                  1000,
+              },
+            ],
+          },
+        }),
+      /account not found/i
+    );
+
+  }
+);
+
+
+test(
+  "rejects updating a Debit Note with an invalid credit ledger",
+  async () => {
+
+    let updateCalled =
+      false;
+
+    const voucherRepository = {
+
+      async findById() {
+        return {
+          _id:
+            "debit-note-1",
+          status:
+            "draft",
+          voucherType:
+            "debit_note",
+          financialYear:
+            "2026-27",
+          voucherNumber:
+            "DN/2026-27/000001",
+        };
+      },
+
+      async updateDraftById() {
+
+        updateCalled =
+          true;
+
+        return {
+          _id:
+            "debit-note-1",
+          status:
+            "draft",
+        };
+
+      },
+
+    };
+
+    const {
+      VoucherService,
+    } = await loadService();
+
+    const service =
+      new VoucherService({
+        voucherRepository,
+        chartRepository:
+          createDebitNoteChartRepository(),
+      });
+
+    await assert.rejects(
+      () =>
+        service.updateDraftVoucher({
+          companyId:
+            "64f000000000000000000001",
+          voucherId:
+            "debit-note-1",
+          userId:
+            "64f000000000000000000009",
+          payload: {
+            lines: [
+              {
+                accountId:
+                  "supplier",
+                debit:
+                  1000,
+                credit:
+                  0,
+              },
+              {
+                accountId:
+                  "sales",
+                debit:
+                  0,
+                credit:
+                  1000,
+              },
+            ],
+          },
+        }),
+      /purchase.*tax|credit.*purchase|credited.*purchase/i
+    );
+
+    assert.equal(
+      updateCalled,
+      false
+    );
+
+  }
+);
+
+
+test(
+  "rejects posting an invalid Debit Note before creating its JournalEntry",
+  async () => {
+
+    let journalCreateCalled =
+      false;
+
+    const voucherRepository = {
+
+      async findById({
+        companyId,
+        voucherId,
+      }) {
+
+        return {
+          _id:
+            voucherId,
+          companyId,
+          status:
+            "draft",
+          voucherType:
+            "debit_note",
+          voucherNumber:
+            "DN/2026-27/000001",
+          voucherDate:
+            "2026-09-05",
+          lines: [
+            {
+              accountId:
+                "supplier",
+              debit:
+                1000,
+              credit:
+                0,
+            },
+            {
+              accountId:
+                "sales",
+              debit:
+                0,
+              credit:
+                1000,
+            },
+          ],
+        };
+
+      },
+
+      async postById() {
+        return {
+          status:
+            "posted",
+        };
+      },
+
+    };
+
+    const journalService = {
+
+      async createJournal() {
+
+        journalCreateCalled =
+          true;
+
+        return {
+          _id:
+            "journal-debit-note-1",
+          status:
+            "draft",
+        };
+
+      },
+
+      async postJournal() {
+        return {
+          _id:
+            "journal-debit-note-1",
+          status:
+            "posted",
+        };
+      },
+
+    };
+
+    const session = {
+
+      async withTransaction(callback) {
+        return callback();
+      },
+
+      async endSession() {},
+
+    };
+
+    const sessionProvider = {
+
+      async startSession() {
+        return session;
+      },
+
+    };
+
+    const {
+      VoucherService,
+    } = await loadService();
+
+    const service =
+      new VoucherService({
+        voucherRepository,
+        chartRepository:
+          createDebitNoteChartRepository(),
+        journalService,
+        sessionProvider,
+      });
+
+    await assert.rejects(
+      () =>
+        service.postVoucher({
+          companyId:
+            "64f000000000000000000001",
+          voucherId:
+            "debit-note-1",
+          userId:
+            "64f000000000000000000009",
+        }),
+      /purchase.*tax|credit.*purchase|credited.*purchase/i
+    );
+
+    assert.equal(
+      journalCreateCalled,
+      false
+    );
+
+  }
+);

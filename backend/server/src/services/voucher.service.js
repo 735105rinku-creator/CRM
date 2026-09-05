@@ -972,6 +972,109 @@ export class VoucherService {
   }
 
 
+  async validateDebitNoteVoucher({
+    companyId,
+    lines,
+    session = null,
+  }) {
+
+    let hasPurchaseCredit =
+      false;
+
+
+    for (const line of lines || []) {
+
+      const account =
+        await this.chartRepository
+          .findById({
+            companyId,
+            accountId:
+              line.accountId,
+            session,
+          });
+
+
+      if (!account) {
+        throw new Error(
+          "Debit Note account not found."
+        );
+      }
+
+
+      if (account.status !== "active") {
+        throw new Error(
+          "Debit Note requires active accounts."
+        );
+      }
+
+
+      const isDebitAllowed =
+        account.accountType ===
+          "accounts_payable" ||
+        account.accountType ===
+          "cash" ||
+        account.accountType ===
+          "bank";
+
+
+      const isPurchase =
+        account.accountType ===
+          "purchase";
+
+
+      const isCreditAllowed =
+        isPurchase ||
+        account.accountType ===
+          "tax";
+
+
+      const debit =
+        roundMoney(line.debit);
+
+      const credit =
+        roundMoney(line.credit);
+
+
+      if (
+        debit > 0 &&
+        !isDebitAllowed
+      ) {
+        throw new Error(
+          "Only Accounts Payable, Cash or Bank accounts may be debited in a Debit Note."
+        );
+      }
+
+
+      if (
+        credit > 0 &&
+        !isCreditAllowed
+      ) {
+        throw new Error(
+          "Only Purchase or Tax accounts may be credited in a Debit Note."
+        );
+      }
+
+
+      if (
+        credit > 0 &&
+        isPurchase
+      ) {
+        hasPurchaseCredit =
+          true;
+      }
+
+    }
+
+
+    if (!hasPurchaseCredit) {
+      throw new Error(
+        "Debit Note requires a Purchase credit line."
+      );
+    }
+
+  }
+
+
   /* ==========================================================
      CREATE VOUCHER
 
@@ -1136,6 +1239,20 @@ export class VoucherService {
     ) {
 
       await this.validateCreditNoteVoucher({
+        companyId,
+        lines:
+          payload.lines,
+      });
+
+    }
+
+
+    if (
+      payload.voucherType ===
+        "debit_note"
+    ) {
+
+      await this.validateDebitNoteVoucher({
         companyId,
         lines:
           payload.lines,
@@ -1546,6 +1663,20 @@ export class VoucherService {
       }
 
 
+      if (
+        existingVoucher?.voucherType ===
+          "debit_note"
+      ) {
+
+        await this.validateDebitNoteVoucher({
+          companyId,
+          lines:
+            payload.lines,
+        });
+
+      }
+
+
     }
 
 
@@ -1733,6 +1864,21 @@ export class VoucherService {
           ) {
 
             await this.validateCreditNoteVoucher({
+              companyId,
+              lines:
+                voucher.lines,
+              session,
+            });
+
+          }
+
+
+          if (
+            voucher.voucherType ===
+              "debit_note"
+          ) {
+
+            await this.validateDebitNoteVoucher({
               companyId,
               lines:
                 voucher.lines,
