@@ -5084,3 +5084,767 @@ test(
 
   }
 );
+
+function createPurchaseChartRepository() {
+
+  const accounts = {
+    supplier: {
+      accountType: "accounts_payable",
+      status: "active",
+    },
+    cash: {
+      accountType: "cash",
+      status: "active",
+    },
+    bank: {
+      accountType: "bank",
+      status: "active",
+    },
+    purchase: {
+      accountType: "purchase",
+      status: "active",
+    },
+    tax: {
+      accountType: "tax",
+      status: "active",
+    },
+    sales: {
+      accountType: "sales",
+      status: "active",
+    },
+    customer: {
+      accountType: "accounts_receivable",
+      status: "active",
+    },
+    expense: {
+      accountType: "direct_expense",
+      status: "active",
+    },
+    inactivePurchase: {
+      accountType: "purchase",
+      status: "inactive",
+    },
+  };
+
+  return {
+
+    async findById({
+      accountId,
+    }) {
+
+      const account =
+        accounts[String(accountId)];
+
+      if (!account) {
+        return null;
+      }
+
+      return {
+        _id:
+          accountId,
+        accountType:
+          account.accountType,
+        status:
+          account.status,
+        allowManualEntry:
+          true,
+      };
+
+    },
+
+  };
+
+}
+
+
+function createPurchaseCreateRepository() {
+
+  return {
+
+    async findLastVoucherNumber() {
+      return null;
+    },
+
+    async create(payload) {
+      return payload;
+    },
+
+  };
+
+}
+
+
+async function createPurchaseService() {
+
+  const {
+    VoucherService,
+  } = await loadService();
+
+  return new VoucherService({
+    voucherRepository:
+      createPurchaseCreateRepository(),
+    chartRepository:
+      createPurchaseChartRepository(),
+  });
+
+}
+
+
+test(
+  "accepts a Purchase Voucher for a supplier credit purchase",
+  async () => {
+
+    const service =
+      await createPurchaseService();
+
+    const result =
+      await service.createVoucher({
+        companyId:
+          "64f000000000000000000001",
+        userId:
+          "64f000000000000000000009",
+        payload: {
+          voucherType:
+            "purchase",
+          voucherDate:
+            "2026-09-05",
+          lines: [
+            {
+              accountId:
+                "purchase",
+              debit:
+                5000,
+              credit:
+                0,
+            },
+            {
+              accountId:
+                "supplier",
+              debit:
+                0,
+              credit:
+                5000,
+            },
+          ],
+        },
+      });
+
+    assert.equal(
+      result.voucherType,
+      "purchase"
+    );
+
+  }
+);
+
+
+test(
+  "accepts a Purchase Voucher for a cash purchase",
+  async () => {
+
+    const service =
+      await createPurchaseService();
+
+    const result =
+      await service.createVoucher({
+        companyId:
+          "64f000000000000000000001",
+        userId:
+          "64f000000000000000000009",
+        payload: {
+          voucherType:
+            "purchase",
+          voucherDate:
+            "2026-09-05",
+          lines: [
+            {
+              accountId:
+                "purchase",
+              debit:
+                2500,
+              credit:
+                0,
+            },
+            {
+              accountId:
+                "cash",
+              debit:
+                0,
+              credit:
+                2500,
+            },
+          ],
+        },
+      });
+
+    assert.equal(
+      result.voucherType,
+      "purchase"
+    );
+
+  }
+);
+
+
+test(
+  "accepts a Purchase Voucher for a bank purchase",
+  async () => {
+
+    const service =
+      await createPurchaseService();
+
+    const result =
+      await service.createVoucher({
+        companyId:
+          "64f000000000000000000001",
+        userId:
+          "64f000000000000000000009",
+        payload: {
+          voucherType:
+            "purchase",
+          voucherDate:
+            "2026-09-05",
+          lines: [
+            {
+              accountId:
+                "purchase",
+              debit:
+                3200,
+              credit:
+                0,
+            },
+            {
+              accountId:
+                "bank",
+              debit:
+                0,
+              credit:
+                3200,
+            },
+          ],
+        },
+      });
+
+    assert.equal(
+      result.voucherType,
+      "purchase"
+    );
+
+  }
+);
+
+
+test(
+  "accepts a Purchase Voucher with input tax debit",
+  async () => {
+
+    const service =
+      await createPurchaseService();
+
+    const result =
+      await service.createVoucher({
+        companyId:
+          "64f000000000000000000001",
+        userId:
+          "64f000000000000000000009",
+        payload: {
+          voucherType:
+            "purchase",
+          voucherDate:
+            "2026-09-05",
+          lines: [
+            {
+              accountId:
+                "purchase",
+              debit:
+                1000,
+              credit:
+                0,
+            },
+            {
+              accountId:
+                "tax",
+              debit:
+                180,
+              credit:
+                0,
+            },
+            {
+              accountId:
+                "supplier",
+              debit:
+                0,
+              credit:
+                1180,
+            },
+          ],
+        },
+      });
+
+    assert.equal(
+      result.voucherType,
+      "purchase"
+    );
+
+  }
+);
+
+
+test(
+  "rejects a Purchase Voucher without a Purchase debit line",
+  async () => {
+
+    const service =
+      await createPurchaseService();
+
+    await assert.rejects(
+      () =>
+        service.createVoucher({
+          companyId:
+            "64f000000000000000000001",
+          userId:
+            "64f000000000000000000009",
+          payload: {
+            voucherType:
+              "purchase",
+            voucherDate:
+              "2026-09-05",
+            lines: [
+              {
+                accountId:
+                  "tax",
+                debit:
+                  180,
+                credit:
+                  0,
+              },
+              {
+                accountId:
+                  "supplier",
+                debit:
+                  0,
+                credit:
+                  180,
+              },
+            ],
+          },
+        }),
+      /purchase.*debit|debit.*purchase/i
+    );
+
+  }
+);
+
+
+test(
+  "rejects a Purchase Voucher that debits an invalid ledger",
+  async () => {
+
+    const service =
+      await createPurchaseService();
+
+    await assert.rejects(
+      () =>
+        service.createVoucher({
+          companyId:
+            "64f000000000000000000001",
+          userId:
+            "64f000000000000000000009",
+          payload: {
+            voucherType:
+              "purchase",
+            voucherDate:
+              "2026-09-05",
+            lines: [
+              {
+                accountId:
+                  "sales",
+                debit:
+                  1000,
+                credit:
+                  0,
+              },
+              {
+                accountId:
+                  "supplier",
+                debit:
+                  0,
+                credit:
+                  1000,
+              },
+            ],
+          },
+        }),
+      /only purchase.*tax.*debit|debit.*purchase.*tax/i
+    );
+
+  }
+);
+
+
+test(
+  "rejects a Purchase Voucher that credits an invalid ledger",
+  async () => {
+
+    const service =
+      await createPurchaseService();
+
+    await assert.rejects(
+      () =>
+        service.createVoucher({
+          companyId:
+            "64f000000000000000000001",
+          userId:
+            "64f000000000000000000009",
+          payload: {
+            voucherType:
+              "purchase",
+            voucherDate:
+              "2026-09-05",
+            lines: [
+              {
+                accountId:
+                  "purchase",
+                debit:
+                  1000,
+                credit:
+                  0,
+              },
+              {
+                accountId:
+                  "customer",
+                debit:
+                  0,
+                credit:
+                  1000,
+              },
+            ],
+          },
+        }),
+      /accounts payable.*cash.*bank|supplier.*cash.*bank|credit.*cash.*bank/i
+    );
+
+  }
+);
+
+
+test(
+  "rejects a Purchase Voucher that uses an inactive account",
+  async () => {
+
+    const service =
+      await createPurchaseService();
+
+    await assert.rejects(
+      () =>
+        service.createVoucher({
+          companyId:
+            "64f000000000000000000001",
+          userId:
+            "64f000000000000000000009",
+          payload: {
+            voucherType:
+              "purchase",
+            voucherDate:
+              "2026-09-05",
+            lines: [
+              {
+                accountId:
+                  "inactivePurchase",
+                debit:
+                  1000,
+                credit:
+                  0,
+              },
+              {
+                accountId:
+                  "supplier",
+                debit:
+                  0,
+                credit:
+                  1000,
+              },
+            ],
+          },
+        }),
+      /active accounts/i
+    );
+
+  }
+);
+
+
+test(
+  "rejects a Purchase Voucher account outside the company or not found",
+  async () => {
+
+    const service =
+      await createPurchaseService();
+
+    await assert.rejects(
+      () =>
+        service.createVoucher({
+          companyId:
+            "64f000000000000000000001",
+          userId:
+            "64f000000000000000000009",
+          payload: {
+            voucherType:
+              "purchase",
+            voucherDate:
+              "2026-09-05",
+            lines: [
+              {
+                accountId:
+                  "foreignAccount",
+                debit:
+                  1000,
+                credit:
+                  0,
+              },
+              {
+                accountId:
+                  "supplier",
+                debit:
+                  0,
+                credit:
+                  1000,
+              },
+            ],
+          },
+        }),
+      /account not found/i
+    );
+
+  }
+);
+
+
+test(
+  "rejects updating a Purchase Voucher with an invalid credit ledger",
+  async () => {
+
+    let updateCalled =
+      false;
+
+    const voucherRepository = {
+
+      async findById() {
+        return {
+          _id:
+            "purchase-voucher-1",
+          status:
+            "draft",
+          voucherType:
+            "purchase",
+          financialYear:
+            "2026-27",
+          voucherNumber:
+            "PUR/2026-27/000001",
+        };
+      },
+
+      async updateDraftById() {
+
+        updateCalled =
+          true;
+
+        return {
+          _id:
+            "purchase-voucher-1",
+          status:
+            "draft",
+        };
+
+      },
+
+    };
+
+    const {
+      VoucherService,
+    } = await loadService();
+
+    const service =
+      new VoucherService({
+        voucherRepository,
+        chartRepository:
+          createPurchaseChartRepository(),
+      });
+
+    await assert.rejects(
+      () =>
+        service.updateDraftVoucher({
+          companyId:
+            "64f000000000000000000001",
+          voucherId:
+            "purchase-voucher-1",
+          userId:
+            "64f000000000000000000009",
+          payload: {
+            lines: [
+              {
+                accountId:
+                  "purchase",
+                debit:
+                  1000,
+                credit:
+                  0,
+              },
+              {
+                accountId:
+                  "customer",
+                debit:
+                  0,
+                credit:
+                  1000,
+              },
+            ],
+          },
+        }),
+      /accounts payable.*cash.*bank|supplier.*cash.*bank|credit.*cash.*bank/i
+    );
+
+    assert.equal(
+      updateCalled,
+      false
+    );
+
+  }
+);
+
+
+test(
+  "rejects posting an invalid Purchase Voucher before creating its JournalEntry",
+  async () => {
+
+    let journalCreateCalled =
+      false;
+
+    const voucherRepository = {
+
+      async findById({
+        companyId,
+        voucherId,
+      }) {
+
+        return {
+          _id:
+            voucherId,
+          companyId,
+          status:
+            "draft",
+          voucherType:
+            "purchase",
+          voucherNumber:
+            "PUR/2026-27/000001",
+          voucherDate:
+            "2026-09-05",
+          lines: [
+            {
+              accountId:
+                "purchase",
+              debit:
+                1000,
+              credit:
+                0,
+            },
+            {
+              accountId:
+                "customer",
+              debit:
+                0,
+              credit:
+                1000,
+            },
+          ],
+        };
+
+      },
+
+      async postById() {
+        return {
+          status:
+            "posted",
+        };
+      },
+
+    };
+
+    const journalService = {
+
+      async createJournal() {
+
+        journalCreateCalled =
+          true;
+
+        return {
+          _id:
+            "journal-purchase-1",
+          status:
+            "draft",
+        };
+
+      },
+
+      async postJournal() {
+        return {
+          _id:
+            "journal-purchase-1",
+          status:
+            "posted",
+        };
+      },
+
+    };
+
+    const session = {
+
+      async withTransaction(callback) {
+        return callback();
+      },
+
+      async endSession() {},
+
+    };
+
+    const sessionProvider = {
+
+      async startSession() {
+        return session;
+      },
+
+    };
+
+    const {
+      VoucherService,
+    } = await loadService();
+
+    const service =
+      new VoucherService({
+        voucherRepository,
+        chartRepository:
+          createPurchaseChartRepository(),
+        journalService,
+        sessionProvider,
+      });
+
+    await assert.rejects(
+      () =>
+        service.postVoucher({
+          companyId:
+            "64f000000000000000000001",
+          voucherId:
+            "purchase-voucher-1",
+          userId:
+            "64f000000000000000000009",
+        }),
+      /accounts payable.*cash.*bank|supplier.*cash.*bank|credit.*cash.*bank/i
+    );
+
+    assert.equal(
+      journalCreateCalled,
+      false
+    );
+
+  }
+);

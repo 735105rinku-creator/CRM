@@ -762,6 +762,109 @@ export class VoucherService {
   }
 
 
+  async validatePurchaseVoucher({
+    companyId,
+    lines,
+    session = null,
+  }) {
+
+    let hasPurchaseDebit =
+      false;
+
+
+    for (const line of lines || []) {
+
+      const account =
+        await this.chartRepository
+          .findById({
+            companyId,
+            accountId:
+              line.accountId,
+            session,
+          });
+
+
+      if (!account) {
+        throw new Error(
+          "Purchase Voucher account not found."
+        );
+      }
+
+
+      if (account.status !== "active") {
+        throw new Error(
+          "Purchase Voucher requires active accounts."
+        );
+      }
+
+
+      const isPurchase =
+        account.accountType ===
+          "purchase";
+
+
+      const isDebitAllowed =
+        isPurchase ||
+        account.accountType ===
+          "tax";
+
+
+      const isCreditAllowed =
+        account.accountType ===
+          "accounts_payable" ||
+        account.accountType ===
+          "cash" ||
+        account.accountType ===
+          "bank";
+
+
+      const debit =
+        roundMoney(line.debit);
+
+      const credit =
+        roundMoney(line.credit);
+
+
+      if (
+        debit > 0 &&
+        !isDebitAllowed
+      ) {
+        throw new Error(
+          "Only Purchase or Tax accounts may be debited in a Purchase Voucher."
+        );
+      }
+
+
+      if (
+        credit > 0 &&
+        !isCreditAllowed
+      ) {
+        throw new Error(
+          "Only Accounts Payable, Cash or Bank accounts may be credited in a Purchase Voucher."
+        );
+      }
+
+
+      if (
+        debit > 0 &&
+        isPurchase
+      ) {
+        hasPurchaseDebit =
+          true;
+      }
+
+    }
+
+
+    if (!hasPurchaseDebit) {
+      throw new Error(
+        "Purchase Voucher requires a Purchase debit line."
+      );
+    }
+
+  }
+
+
   /* ==========================================================
      CREATE VOUCHER
 
@@ -898,6 +1001,20 @@ export class VoucherService {
     ) {
 
       await this.validateSalesVoucher({
+        companyId,
+        lines:
+          payload.lines,
+      });
+
+    }
+
+
+    if (
+      payload.voucherType ===
+        "purchase"
+    ) {
+
+      await this.validatePurchaseVoucher({
         companyId,
         lines:
           payload.lines,
@@ -1280,6 +1397,20 @@ export class VoucherService {
       }
 
 
+      if (
+        existingVoucher?.voucherType ===
+          "purchase"
+      ) {
+
+        await this.validatePurchaseVoucher({
+          companyId,
+          lines:
+            payload.lines,
+        });
+
+      }
+
+
     }
 
 
@@ -1437,6 +1568,21 @@ export class VoucherService {
           ) {
 
             await this.validateSalesVoucher({
+              companyId,
+              lines:
+                voucher.lines,
+              session,
+            });
+
+          }
+
+
+          if (
+            voucher.voucherType ===
+              "purchase"
+          ) {
+
+            await this.validatePurchaseVoucher({
               companyId,
               lines:
                 voucher.lines,
