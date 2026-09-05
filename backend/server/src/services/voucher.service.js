@@ -8,6 +8,9 @@ import {
 import voucherRepository
   from "../repositories/voucher.repository.js";
 
+
+import chartOfAccountRepository
+  from "../repositories/chartOfAccount.repository.js";
 import journalEntryService
   from "./journalEntry.service.js";
 
@@ -44,6 +47,11 @@ export class VoucherService {
         journal =
           journalEntryService,
 
+      chartRepository:
+        chart =
+          chartOfAccountRepository,
+
+
       sessionProvider:
         sessions =
           mongoose,
@@ -56,6 +64,10 @@ export class VoucherService {
 
     this.journalService =
       journal;
+
+
+    this.chartRepository =
+      chart;
 
 
     this.sessionProvider =
@@ -399,6 +411,94 @@ export class VoucherService {
   }
 
 
+  async validatePaymentVoucher({
+    companyId,
+    lines,
+    session = null,
+  }) {
+
+    let hasCashOrBankCredit =
+      false;
+
+
+    for (const line of lines || []) {
+
+      const account =
+        await this.chartRepository
+          .findById({
+            companyId,
+            accountId:
+              line.accountId,
+            session,
+          });
+
+
+      if (!account) {
+        throw new Error(
+          "Payment Voucher account not found."
+        );
+      }
+
+
+      if (account.status !== "active") {
+        throw new Error(
+          "Payment Voucher requires active accounts."
+        );
+      }
+
+
+      const isCashOrBank =
+        account.accountType === "cash" ||
+        account.accountType === "bank";
+
+
+      const debit =
+        roundMoney(line.debit);
+
+      const credit =
+        roundMoney(line.credit);
+
+
+      if (
+        isCashOrBank &&
+        debit > 0
+      ) {
+        throw new Error(
+          "Cash or Bank account cannot be debited in a Payment Voucher."
+        );
+      }
+
+
+      if (
+        credit > 0 &&
+        !isCashOrBank
+      ) {
+        throw new Error(
+          "Only Cash or Bank accounts may be credited in a Payment Voucher."
+        );
+      }
+
+
+      if (
+        isCashOrBank &&
+        credit > 0
+      ) {
+        hasCashOrBankCredit =
+          true;
+      }
+
+    }
+
+
+    if (!hasCashOrBankCredit) {
+      throw new Error(
+        "Payment Voucher requires a Cash or Bank credit line."
+      );
+    }
+
+  }
+
+
   /* ==========================================================
      CREATE VOUCHER
 
@@ -484,6 +584,20 @@ export class VoucherService {
       throw new Error(
         "Voucher must be balanced: total debit must equal total credit."
       );
+    }
+
+
+    if (
+      payload.voucherType ===
+        "payment"
+    ) {
+
+      await this.validatePaymentVoucher({
+        companyId,
+        lines:
+          payload.lines,
+      });
+
     }
 
 
@@ -791,6 +905,37 @@ export class VoucherService {
     }
 
 
+    if (
+      Object.prototype.hasOwnProperty.call(
+        payload,
+        "lines"
+      )
+    ) {
+
+      const existingVoucher =
+        await this.voucherRepository
+          .findById({
+            companyId,
+            voucherId,
+          });
+
+
+      if (
+        existingVoucher?.voucherType ===
+          "payment"
+      ) {
+
+        await this.validatePaymentVoucher({
+          companyId,
+          lines:
+            payload.lines,
+        });
+
+      }
+
+    }
+
+
     const voucher =
       await this
         .voucherRepository
@@ -891,6 +1036,21 @@ export class VoucherService {
             throw new Error(
               "Voucher is not available for posting."
             );
+          }
+
+
+          if (
+            voucher.voucherType ===
+              "payment"
+          ) {
+
+            await this.validatePaymentVoucher({
+              companyId,
+              lines:
+                voucher.lines,
+              session,
+            });
+
           }
 
 

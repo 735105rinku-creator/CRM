@@ -389,6 +389,8 @@ test(
     const service =
       new VoucherService({
         voucherRepository,
+        chartRepository:
+          createLegacyPaymentChartRepository(),
       });
 
 
@@ -750,6 +752,8 @@ test(
     const service =
       new VoucherService({
         voucherRepository,
+        chartRepository:
+          createLegacyPaymentChartRepository(),
         journalService,
         sessionProvider,
       });
@@ -989,6 +993,8 @@ test(
     const service =
       new VoucherService({
         voucherRepository,
+        chartRepository:
+          createLegacyPaymentChartRepository(),
         journalService,
         sessionProvider,
       });
@@ -1176,6 +1182,8 @@ test(
     const service =
       new VoucherService({
         voucherRepository,
+        chartRepository:
+          createLegacyPaymentChartRepository(),
         journalService,
         sessionProvider,
       });
@@ -2005,6 +2013,8 @@ test(
     const service =
       new VoucherService({
         voucherRepository,
+        chartRepository:
+          createLegacyPaymentChartRepository(),
       });
 
     const result =
@@ -2112,6 +2122,8 @@ test(
     const service =
       new VoucherService({
         voucherRepository,
+        chartRepository:
+          createLegacyPaymentChartRepository(),
       });
 
     const result =
@@ -2209,6 +2221,8 @@ test(
     const service =
       new VoucherService({
         voucherRepository,
+        chartRepository:
+          createLegacyPaymentChartRepository(),
       });
 
     await assert.rejects(
@@ -2300,6 +2314,8 @@ test(
     const service =
       new VoucherService({
         voucherRepository,
+        chartRepository:
+          createLegacyPaymentChartRepository(),
       });
 
     await assert.rejects(
@@ -2351,6 +2367,613 @@ test(
     assert.equal(
       numberLookups,
       1
+    );
+
+  }
+);
+
+test(
+  "accepts a Payment Voucher that credits a Bank account",
+  async () => {
+
+    const accounts = {
+      expense: {
+        _id: "expense",
+        accountType: "indirect_expense",
+        status: "active",
+        allowManualEntry: true,
+      },
+      bank: {
+        _id: "bank",
+        accountType: "bank",
+        status: "active",
+        allowManualEntry: true,
+      },
+    };
+
+    const voucherRepository = {
+
+      async findLastVoucherNumber() {
+        return null;
+      },
+
+      async create(payload) {
+        return payload;
+      },
+
+    };
+
+    const chartRepository = {
+
+      async findById({ accountId }) {
+        return accounts[accountId] || null;
+      },
+
+    };
+
+    const {
+      VoucherService,
+    } = await loadService();
+
+    const service =
+      new VoucherService({
+        voucherRepository,
+        chartRepository,
+      });
+
+    const result =
+      await service.createVoucher({
+        companyId: "64f000000000000000000001",
+        userId: "64f000000000000000000009",
+
+        payload: {
+          voucherType: "payment",
+          voucherDate: "2026-09-05",
+
+          lines: [
+            {
+              accountId: "expense",
+              debit: 1000,
+              credit: 0,
+            },
+            {
+              accountId: "bank",
+              debit: 0,
+              credit: 1000,
+            },
+          ],
+        },
+      });
+
+    assert.equal(
+      result.voucherType,
+      "payment"
+    );
+
+  }
+);
+
+
+test(
+  "accepts a Payment Voucher that credits a Cash account",
+  async () => {
+
+    const accounts = {
+      vendor: {
+        _id: "vendor",
+        accountType: "accounts_payable",
+        status: "active",
+        allowManualEntry: true,
+      },
+      cash: {
+        _id: "cash",
+        accountType: "cash",
+        status: "active",
+        allowManualEntry: true,
+      },
+    };
+
+    const voucherRepository = {
+
+      async findLastVoucherNumber() {
+        return null;
+      },
+
+      async create(payload) {
+        return payload;
+      },
+
+    };
+
+    const chartRepository = {
+
+      async findById({ accountId }) {
+        return accounts[accountId] || null;
+      },
+
+    };
+
+    const {
+      VoucherService,
+    } = await loadService();
+
+    const service =
+      new VoucherService({
+        voucherRepository,
+        chartRepository,
+      });
+
+    const result =
+      await service.createVoucher({
+        companyId: "64f000000000000000000001",
+        userId: "64f000000000000000000009",
+
+        payload: {
+          voucherType: "payment",
+          voucherDate: "2026-09-05",
+
+          lines: [
+            {
+              accountId: "vendor",
+              debit: 2500,
+              credit: 0,
+            },
+            {
+              accountId: "cash",
+              debit: 0,
+              credit: 2500,
+            },
+          ],
+        },
+      });
+
+    assert.equal(
+      result.voucherType,
+      "payment"
+    );
+
+  }
+);
+
+
+test(
+  "rejects a Payment Voucher without a Cash or Bank credit line",
+  async () => {
+
+    const accounts = {
+      expense: {
+        _id: "expense",
+        accountType: "indirect_expense",
+        status: "active",
+        allowManualEntry: true,
+      },
+      payable: {
+        _id: "payable",
+        accountType: "accounts_payable",
+        status: "active",
+        allowManualEntry: true,
+      },
+    };
+
+    const voucherRepository = {
+
+      async findLastVoucherNumber() {
+        return null;
+      },
+
+      async create(payload) {
+        return payload;
+      },
+
+    };
+
+    const chartRepository = {
+
+      async findById({ accountId }) {
+        return accounts[accountId] || null;
+      },
+
+    };
+
+    const {
+      VoucherService,
+    } = await loadService();
+
+    const service =
+      new VoucherService({
+        voucherRepository,
+        chartRepository,
+      });
+
+    await assert.rejects(
+      () =>
+        service.createVoucher({
+          companyId:
+            "64f000000000000000000001",
+
+          userId:
+            "64f000000000000000000009",
+
+          payload: {
+            voucherType: "payment",
+            voucherDate: "2026-09-05",
+
+            lines: [
+              {
+                accountId: "expense",
+                debit: 1000,
+                credit: 0,
+              },
+              {
+                accountId: "payable",
+                debit: 0,
+                credit: 1000,
+              },
+            ],
+          },
+        }),
+      /cash or bank/i
+    );
+
+  }
+);
+
+
+test(
+  "rejects a Payment Voucher that debits a Cash or Bank account",
+  async () => {
+
+    const accounts = {
+      bank: {
+        _id: "bank",
+        accountType: "bank",
+        status: "active",
+        allowManualEntry: true,
+      },
+      cash: {
+        _id: "cash",
+        accountType: "cash",
+        status: "active",
+        allowManualEntry: true,
+      },
+    };
+
+    const voucherRepository = {
+
+      async findLastVoucherNumber() {
+        return null;
+      },
+
+      async create(payload) {
+        return payload;
+      },
+
+    };
+
+    const chartRepository = {
+
+      async findById({ accountId }) {
+        return accounts[accountId] || null;
+      },
+
+    };
+
+    const {
+      VoucherService,
+    } = await loadService();
+
+    const service =
+      new VoucherService({
+        voucherRepository,
+        chartRepository,
+      });
+
+    await assert.rejects(
+      () =>
+        service.createVoucher({
+          companyId:
+            "64f000000000000000000001",
+
+          userId:
+            "64f000000000000000000009",
+
+          payload: {
+            voucherType: "payment",
+            voucherDate: "2026-09-05",
+
+            lines: [
+              {
+                accountId: "bank",
+                debit: 1000,
+                credit: 0,
+              },
+              {
+                accountId: "cash",
+                debit: 0,
+                credit: 1000,
+              },
+            ],
+          },
+        }),
+      /cash or bank.*debit|debit.*cash or bank/i
+    );
+
+  }
+);
+
+function createLegacyPaymentChartRepository() {
+
+  const bankAccountIds =
+    new Set([
+      "64f000000000000000000003",
+      "64f000000000000000000012",
+    ]);
+
+  return {
+
+    async findById({
+      accountId,
+    }) {
+
+      return {
+        _id:
+          accountId,
+
+        accountType:
+          bankAccountIds.has(
+            String(accountId)
+          )
+            ? "bank"
+            : "indirect_expense",
+
+        status:
+          "active",
+
+        allowManualEntry:
+          true,
+      };
+
+    },
+
+  };
+
+}
+
+test(
+  "rejects updating a Payment Voucher to debit a Cash or Bank account",
+  async () => {
+
+    let updateCalled = false;
+
+    const voucherRepository = {
+
+      async findById() {
+        return {
+          _id: "voucher-1",
+          status: "draft",
+          voucherType: "payment",
+          financialYear: "2026-27",
+          voucherNumber: "PV/2026-27/000001",
+        };
+      },
+
+      async updateDraftById() {
+        updateCalled = true;
+
+        return {
+          _id: "voucher-1",
+          status: "draft",
+        };
+      },
+
+    };
+
+    const chartRepository = {
+
+      async findById({ accountId }) {
+
+        return {
+          _id: accountId,
+          accountType:
+            accountId === "bank"
+              ? "bank"
+              : "cash",
+          status: "active",
+          allowManualEntry: true,
+        };
+
+      },
+
+    };
+
+    const {
+      VoucherService,
+    } = await loadService();
+
+    const service =
+      new VoucherService({
+        voucherRepository,
+        chartRepository,
+      });
+
+    await assert.rejects(
+      () =>
+        service.updateDraftVoucher({
+          companyId:
+            "64f000000000000000000001",
+
+          voucherId:
+            "voucher-1",
+
+          userId:
+            "64f000000000000000000009",
+
+          payload: {
+            lines: [
+              {
+                accountId: "bank",
+                debit: 1000,
+                credit: 0,
+              },
+              {
+                accountId: "cash",
+                debit: 0,
+                credit: 1000,
+              },
+            ],
+          },
+        }),
+      /cash or bank.*debit|debit.*cash or bank/i
+    );
+
+    assert.equal(
+      updateCalled,
+      false
+    );
+
+  }
+);
+
+
+test(
+  "rejects posting an invalid Payment Voucher before creating its JournalEntry",
+  async () => {
+
+    let journalCreateCalled = false;
+
+    const voucherRepository = {
+
+      async findById({
+        companyId,
+        voucherId,
+      }) {
+
+        return {
+          _id: voucherId,
+          companyId,
+          status: "draft",
+          voucherType: "payment",
+          voucherNumber:
+            "PV/2026-27/000001",
+          voucherDate:
+            "2026-09-05",
+
+          lines: [
+            {
+              accountId: "bank",
+              debit: 1000,
+              credit: 0,
+            },
+            {
+              accountId: "cash",
+              debit: 0,
+              credit: 1000,
+            },
+          ],
+        };
+
+      },
+
+      async postById() {
+        return {
+          status: "posted",
+        };
+      },
+
+    };
+
+    const chartRepository = {
+
+      async findById({
+        accountId,
+      }) {
+
+        return {
+          _id: accountId,
+          accountType:
+            accountId === "bank"
+              ? "bank"
+              : "cash",
+          status: "active",
+          allowManualEntry: true,
+        };
+
+      },
+
+    };
+
+    const journalService = {
+
+      async createJournal() {
+
+        journalCreateCalled = true;
+
+        return {
+          _id: "journal-1",
+          status: "draft",
+        };
+
+      },
+
+      async postJournal() {
+
+        return {
+          _id: "journal-1",
+          status: "posted",
+        };
+
+      },
+
+    };
+
+    const session = {
+
+      async withTransaction(callback) {
+        return callback();
+      },
+
+      async endSession() {},
+
+    };
+
+    const sessionProvider = {
+
+      async startSession() {
+        return session;
+      },
+
+    };
+
+    const {
+      VoucherService,
+    } = await loadService();
+
+    const service =
+      new VoucherService({
+        voucherRepository,
+        chartRepository,
+        journalService,
+        sessionProvider,
+      });
+
+    await assert.rejects(
+      () =>
+        service.postVoucher({
+          companyId:
+            "64f000000000000000000001",
+
+          voucherId:
+            "voucher-1",
+
+          userId:
+            "64f000000000000000000009",
+        }),
+      /cash or bank.*debit|debit.*cash or bank/i
+    );
+
+    assert.equal(
+      journalCreateCalled,
+      false
     );
 
   }
