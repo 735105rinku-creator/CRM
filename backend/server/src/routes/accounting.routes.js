@@ -16,6 +16,9 @@ import journalEntryRoutes from "./journalEntry.routes.js";
 import generalLedgerRoutes
   from "./generalLedger.routes.js";
 
+import dayBookRoutes
+  from "./dayBook.routes.js";
+
 import voucherRoutes
   from "./voucher.routes.js";
 
@@ -78,6 +81,11 @@ router.use(
 router.use(
   "/general-ledger",
   generalLedgerRoutes
+);
+
+router.use(
+  "/day-book",
+  dayBookRoutes
 );
 
 router.use(
