@@ -1873,3 +1873,485 @@ test(
 
   }
 );
+
+test(
+  "renumbers a draft voucher when its date crosses into a new financial year",
+  async () => {
+
+    let receivedUpdate = null;
+
+    const voucherRepository = {
+
+      async findById() {
+        return {
+          _id: "64f000000000000000000002",
+          status: "draft",
+          voucherType: "payment",
+          voucherDate: "2027-03-31",
+          financialYear: "2026-27",
+          voucherNumber: "PV/2026-27/000041",
+        };
+      },
+
+      async findLastVoucherNumber() {
+        return null;
+      },
+
+      async updateDraftById(input) {
+        receivedUpdate = input;
+
+        return {
+          _id: input.voucherId,
+          status: "draft",
+          ...input.payload,
+        };
+      },
+
+    };
+
+    const {
+      VoucherService,
+    } = await loadService();
+
+    const service =
+      new VoucherService({
+        voucherRepository,
+      });
+
+    await service.updateDraftVoucher({
+
+      companyId:
+        "64f000000000000000000001",
+
+      voucherId:
+        "64f000000000000000000002",
+
+      userId:
+        "64f000000000000000000009",
+
+      payload: {
+        voucherDate:
+          "2027-04-01",
+      },
+
+    });
+
+    assert.equal(
+      receivedUpdate.payload.financialYear,
+      "2027-28"
+    );
+
+    assert.equal(
+      receivedUpdate.payload.voucherNumber,
+      "PV/2027-28/000001"
+    );
+
+  }
+);
+
+test(
+  "retries voucher creation with a fresh number after a duplicate-key collision",
+  async () => {
+
+    let lookupCount = 0;
+    const createdNumbers = [];
+
+    const voucherRepository = {
+
+      async findLastVoucherNumber() {
+
+        lookupCount += 1;
+
+        if (lookupCount === 1) {
+          return {
+            voucherNumber:
+              "PV/2026-27/000041",
+          };
+        }
+
+        return {
+          voucherNumber:
+            "PV/2026-27/000042",
+        };
+      },
+
+      async create(payload) {
+
+        createdNumbers.push(
+          payload.voucherNumber
+        );
+
+        if (createdNumbers.length === 1) {
+
+          const error =
+            new Error(
+              "E11000 duplicate key error"
+            );
+
+          error.code = 11000;
+
+          throw error;
+        }
+
+        return payload;
+      },
+
+    };
+
+    const {
+      VoucherService,
+    } = await loadService();
+
+    const service =
+      new VoucherService({
+        voucherRepository,
+      });
+
+    const result =
+      await service.createVoucher({
+
+        companyId:
+          "64f000000000000000000001",
+
+        userId:
+          "64f000000000000000000009",
+
+        payload: {
+          voucherType:
+            "payment",
+
+          voucherDate:
+            "2026-09-05",
+
+          lines: [
+            {
+              accountId:
+                "64f000000000000000000011",
+              debit:
+                1000,
+              credit:
+                0,
+            },
+            {
+              accountId:
+                "64f000000000000000000012",
+              debit:
+                0,
+              credit:
+                1000,
+            },
+          ],
+        },
+
+      });
+
+    assert.deepEqual(
+      createdNumbers,
+      [
+        "PV/2026-27/000042",
+        "PV/2026-27/000043",
+      ]
+    );
+
+    assert.equal(
+      result.voucherNumber,
+      "PV/2026-27/000043"
+    );
+
+  }
+);
+
+test(
+  "retries multiple duplicate voucher-number collisions before succeeding",
+  async () => {
+
+    let lookupCount = 0;
+    const createdNumbers = [];
+
+    const voucherRepository = {
+
+      async findLastVoucherNumber() {
+
+        lookupCount += 1;
+
+        return {
+          voucherNumber:
+            `PV/2026-27/${String(
+              40 + lookupCount
+            ).padStart(6, "0")}`,
+        };
+      },
+
+      async create(payload) {
+
+        createdNumbers.push(
+          payload.voucherNumber
+        );
+
+        if (createdNumbers.length < 3) {
+
+          const error =
+            new Error(
+              "E11000 duplicate key error"
+            );
+
+          error.code = 11000;
+
+          throw error;
+        }
+
+        return payload;
+      },
+
+    };
+
+    const {
+      VoucherService,
+    } = await loadService();
+
+    const service =
+      new VoucherService({
+        voucherRepository,
+      });
+
+    const result =
+      await service.createVoucher({
+
+        companyId:
+          "64f000000000000000000001",
+
+        userId:
+          "64f000000000000000000009",
+
+        payload: {
+          voucherType:
+            "payment",
+
+          voucherDate:
+            "2026-09-05",
+
+          lines: [
+            {
+              accountId:
+                "64f000000000000000000011",
+              debit:
+                1000,
+              credit:
+                0,
+            },
+            {
+              accountId:
+                "64f000000000000000000012",
+              debit:
+                0,
+              credit:
+                1000,
+            },
+          ],
+        },
+
+      });
+
+    assert.deepEqual(
+      createdNumbers,
+      [
+        "PV/2026-27/000042",
+        "PV/2026-27/000043",
+        "PV/2026-27/000044",
+      ]
+    );
+
+    assert.equal(
+      result.voucherNumber,
+      "PV/2026-27/000044"
+    );
+
+  }
+);
+
+test(
+  "stops voucher creation after the maximum duplicate-key retry attempts",
+  async () => {
+
+    let createAttempts = 0;
+
+    const voucherRepository = {
+
+      async findLastVoucherNumber() {
+        return {
+          voucherNumber:
+            `PV/2026-27/${String(
+              41 + createAttempts
+            ).padStart(6, "0")}`,
+        };
+      },
+
+      async create() {
+
+        createAttempts += 1;
+
+        const error =
+          new Error(
+            "E11000 duplicate key error"
+          );
+
+        error.code = 11000;
+
+        throw error;
+      },
+
+    };
+
+    const {
+      VoucherService,
+    } = await loadService();
+
+    const service =
+      new VoucherService({
+        voucherRepository,
+      });
+
+    await assert.rejects(
+      () =>
+        service.createVoucher({
+
+          companyId:
+            "64f000000000000000000001",
+
+          userId:
+            "64f000000000000000000009",
+
+          payload: {
+            voucherType:
+              "payment",
+
+            voucherDate:
+              "2026-09-05",
+
+            lines: [
+              {
+                accountId:
+                  "64f000000000000000000011",
+                debit:
+                  1000,
+                credit:
+                  0,
+              },
+              {
+                accountId:
+                  "64f000000000000000000012",
+                debit:
+                  0,
+                credit:
+                  1000,
+              },
+            ],
+          },
+
+        }),
+      (error) =>
+        error?.code === 11000
+    );
+
+    assert.equal(
+      createAttempts,
+      3
+    );
+
+  }
+);
+
+test(
+  "does not retry voucher creation for non-duplicate database errors",
+  async () => {
+
+    let createAttempts = 0;
+    let numberLookups = 0;
+
+    const voucherRepository = {
+
+      async findLastVoucherNumber() {
+
+        numberLookups += 1;
+
+        return null;
+      },
+
+      async create() {
+
+        createAttempts += 1;
+
+        const error =
+          new Error(
+            "Database unavailable"
+          );
+
+        error.code = 12345;
+
+        throw error;
+      },
+
+    };
+
+    const {
+      VoucherService,
+    } = await loadService();
+
+    const service =
+      new VoucherService({
+        voucherRepository,
+      });
+
+    await assert.rejects(
+      () =>
+        service.createVoucher({
+
+          companyId:
+            "64f000000000000000000001",
+
+          userId:
+            "64f000000000000000000009",
+
+          payload: {
+            voucherType:
+              "payment",
+
+            voucherDate:
+              "2026-09-05",
+
+            lines: [
+              {
+                accountId:
+                  "64f000000000000000000011",
+                debit:
+                  1000,
+                credit:
+                  0,
+              },
+              {
+                accountId:
+                  "64f000000000000000000012",
+                debit:
+                  0,
+                credit:
+                  1000,
+              },
+            ],
+          },
+
+        }),
+      /Database unavailable/
+    );
+
+    assert.equal(
+      createAttempts,
+      1
+    );
+
+    assert.equal(
+      numberLookups,
+      1
+    );
+
+  }
+);

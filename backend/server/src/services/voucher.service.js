@@ -493,7 +493,7 @@ export class VoucherService {
       );
 
 
-    const voucherNumber =
+    let voucherNumber =
       await this
         .buildVoucherNumber({
 
@@ -565,12 +565,59 @@ export class VoucherService {
     };
 
 
-    return this
-      .voucherRepository
-      .create(
-        createPayload
-      );
+    const maxCreateAttempts =
+      3;
 
+
+    for (
+      let attempt = 1;
+      attempt <= maxCreateAttempts;
+      attempt += 1
+    ) {
+
+      try {
+
+        return await this
+          .voucherRepository
+          .create({
+            ...createPayload,
+            voucherNumber,
+          });
+
+      } catch (
+        error
+      ) {
+
+        const canRetry =
+          error?.code === 11000 &&
+          attempt < maxCreateAttempts;
+
+
+        if (
+          !canRetry
+        ) {
+
+          throw error;
+        }
+
+
+        voucherNumber =
+          await this
+            .buildVoucherNumber({
+
+              companyId,
+
+              voucherType:
+                payload.voucherType,
+
+              voucherDate:
+                payload.voucherDate,
+
+            });
+
+      }
+
+    }
   }
 
 
@@ -692,10 +739,8 @@ export class VoucherService {
 
 
     /*
-     * If voucher date changes, financial year may change.
-     *
-     * Voucher number remains immutable in this phase.
-     * Later settings will control renumbering policy.
+     * If voucher date crosses into another financial year,
+     * keep the financial year and voucher number consistent.
      */
 
     if (
@@ -707,10 +752,41 @@ export class VoucherService {
         )
     ) {
 
-      updatePayload.financialYear =
+      const financialYear =
         this.resolveFinancialYear(
           payload.voucherDate
         );
+
+
+      updatePayload.financialYear =
+        financialYear;
+
+
+      const existingVoucher =
+        await this
+          .voucherRepository
+          .findById({
+            companyId,
+            voucherId,
+          });
+
+
+      if (
+        existingVoucher &&
+        existingVoucher.financialYear !==
+          financialYear
+      ) {
+
+        updatePayload.voucherNumber =
+          await this.buildVoucherNumber({
+            companyId,
+            voucherType:
+              existingVoucher.voucherType,
+            voucherDate:
+              payload.voucherDate,
+          });
+
+      }
 
     }
 
@@ -1121,9 +1197,3 @@ const voucherService =
 
 export default
   voucherService;
-
-
-
-
-
-
