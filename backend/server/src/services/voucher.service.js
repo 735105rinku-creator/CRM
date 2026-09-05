@@ -587,6 +587,74 @@ export class VoucherService {
   }
 
 
+  async validateContraVoucher({
+    companyId,
+    lines,
+    session = null,
+  }) {
+
+    for (const line of lines || []) {
+
+      const account =
+        await this.chartRepository
+          .findById({
+            companyId,
+            accountId:
+              line.accountId,
+            session,
+          });
+
+
+      if (!account) {
+        throw new Error(
+          "Contra Voucher account not found."
+        );
+      }
+
+
+      if (account.status !== "active") {
+        throw new Error(
+          "Contra Voucher requires active accounts."
+        );
+      }
+
+
+      const isCashOrBank =
+        account.accountType === "cash" ||
+        account.accountType === "bank";
+
+
+      const debit =
+        roundMoney(line.debit);
+
+      const credit =
+        roundMoney(line.credit);
+
+
+      if (
+        debit > 0 &&
+        !isCashOrBank
+      ) {
+        throw new Error(
+          "Only Cash or Bank accounts may be debited in a Contra Voucher."
+        );
+      }
+
+
+      if (
+        credit > 0 &&
+        !isCashOrBank
+      ) {
+        throw new Error(
+          "Only Cash or Bank accounts may be credited in a Contra Voucher."
+        );
+      }
+
+    }
+
+  }
+
+
   /* ==========================================================
      CREATE VOUCHER
 
@@ -695,6 +763,20 @@ export class VoucherService {
     ) {
 
       await this.validateReceiptVoucher({
+        companyId,
+        lines:
+          payload.lines,
+      });
+
+    }
+
+
+    if (
+      payload.voucherType ===
+        "contra"
+    ) {
+
+      await this.validateContraVoucher({
         companyId,
         lines:
           payload.lines,
@@ -1049,6 +1131,20 @@ export class VoucherService {
       }
 
 
+      if (
+        existingVoucher?.voucherType ===
+          "contra"
+      ) {
+
+        await this.validateContraVoucher({
+          companyId,
+          lines:
+            payload.lines,
+        });
+
+      }
+
+
     }
 
 
@@ -1176,6 +1272,21 @@ export class VoucherService {
           ) {
 
             await this.validateReceiptVoucher({
+              companyId,
+              lines:
+                voucher.lines,
+              session,
+            });
+
+          }
+
+
+          if (
+            voucher.voucherType ===
+              "contra"
+          ) {
+
+            await this.validateContraVoucher({
               companyId,
               lines:
                 voucher.lines,

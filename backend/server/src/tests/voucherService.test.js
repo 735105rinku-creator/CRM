@@ -3629,3 +3629,698 @@ test(
 
   }
 );
+
+function createContraChartRepository() {
+
+  const accounts = {
+    bank: {
+      accountType: "bank",
+      status: "active",
+    },
+    bank2: {
+      accountType: "bank",
+      status: "active",
+    },
+    cash: {
+      accountType: "cash",
+      status: "active",
+    },
+    customer: {
+      accountType: "accounts_receivable",
+      status: "active",
+    },
+    inactiveBank: {
+      accountType: "bank",
+      status: "inactive",
+    },
+  };
+
+  return {
+
+    async findById({
+      accountId,
+    }) {
+
+      const account =
+        accounts[String(accountId)];
+
+      if (!account) {
+        return null;
+      }
+
+      return {
+        _id:
+          accountId,
+        accountType:
+          account.accountType,
+        status:
+          account.status,
+        allowManualEntry:
+          true,
+      };
+
+    },
+
+  };
+
+}
+
+
+function createContraCreateRepository() {
+
+  return {
+
+    async findLastVoucherNumber() {
+      return null;
+    },
+
+    async create(payload) {
+      return payload;
+    },
+
+  };
+
+}
+
+
+test(
+  "accepts a Contra Voucher from Cash to Bank",
+  async () => {
+
+    const {
+      VoucherService,
+    } = await loadService();
+
+    const service =
+      new VoucherService({
+        voucherRepository:
+          createContraCreateRepository(),
+        chartRepository:
+          createContraChartRepository(),
+      });
+
+    const result =
+      await service.createVoucher({
+        companyId:
+          "64f000000000000000000001",
+        userId:
+          "64f000000000000000000009",
+        payload: {
+          voucherType:
+            "contra",
+          voucherDate:
+            "2026-09-05",
+          lines: [
+            {
+              accountId:
+                "bank",
+              debit:
+                1000,
+              credit:
+                0,
+            },
+            {
+              accountId:
+                "cash",
+              debit:
+                0,
+              credit:
+                1000,
+            },
+          ],
+        },
+      });
+
+    assert.equal(
+      result.voucherType,
+      "contra"
+    );
+
+  }
+);
+
+
+test(
+  "accepts a Contra Voucher from Bank to Cash",
+  async () => {
+
+    const {
+      VoucherService,
+    } = await loadService();
+
+    const service =
+      new VoucherService({
+        voucherRepository:
+          createContraCreateRepository(),
+        chartRepository:
+          createContraChartRepository(),
+      });
+
+    const result =
+      await service.createVoucher({
+        companyId:
+          "64f000000000000000000001",
+        userId:
+          "64f000000000000000000009",
+        payload: {
+          voucherType:
+            "contra",
+          voucherDate:
+            "2026-09-05",
+          lines: [
+            {
+              accountId:
+                "cash",
+              debit:
+                1500,
+              credit:
+                0,
+            },
+            {
+              accountId:
+                "bank",
+              debit:
+                0,
+              credit:
+                1500,
+            },
+          ],
+        },
+      });
+
+    assert.equal(
+      result.voucherType,
+      "contra"
+    );
+
+  }
+);
+
+
+test(
+  "accepts a Contra Voucher from Bank to Bank",
+  async () => {
+
+    const {
+      VoucherService,
+    } = await loadService();
+
+    const service =
+      new VoucherService({
+        voucherRepository:
+          createContraCreateRepository(),
+        chartRepository:
+          createContraChartRepository(),
+      });
+
+    const result =
+      await service.createVoucher({
+        companyId:
+          "64f000000000000000000001",
+        userId:
+          "64f000000000000000000009",
+        payload: {
+          voucherType:
+            "contra",
+          voucherDate:
+            "2026-09-05",
+          lines: [
+            {
+              accountId:
+                "bank2",
+              debit:
+                2500,
+              credit:
+                0,
+            },
+            {
+              accountId:
+                "bank",
+              debit:
+                0,
+              credit:
+                2500,
+            },
+          ],
+        },
+      });
+
+    assert.equal(
+      result.voucherType,
+      "contra"
+    );
+
+  }
+);
+
+
+test(
+  "rejects a Contra Voucher that debits a non-Cash or Bank account",
+  async () => {
+
+    const {
+      VoucherService,
+    } = await loadService();
+
+    const service =
+      new VoucherService({
+        voucherRepository:
+          createContraCreateRepository(),
+        chartRepository:
+          createContraChartRepository(),
+      });
+
+    await assert.rejects(
+      () =>
+        service.createVoucher({
+          companyId:
+            "64f000000000000000000001",
+          userId:
+            "64f000000000000000000009",
+          payload: {
+            voucherType:
+              "contra",
+            voucherDate:
+              "2026-09-05",
+            lines: [
+              {
+                accountId:
+                  "customer",
+                debit:
+                  1000,
+                credit:
+                  0,
+              },
+              {
+                accountId:
+                  "bank",
+                debit:
+                  0,
+                credit:
+                  1000,
+              },
+            ],
+          },
+        }),
+      /only cash or bank.*debit|debit.*only cash or bank/i
+    );
+
+  }
+);
+
+
+test(
+  "rejects a Contra Voucher that credits a non-Cash or Bank account",
+  async () => {
+
+    const {
+      VoucherService,
+    } = await loadService();
+
+    const service =
+      new VoucherService({
+        voucherRepository:
+          createContraCreateRepository(),
+        chartRepository:
+          createContraChartRepository(),
+      });
+
+    await assert.rejects(
+      () =>
+        service.createVoucher({
+          companyId:
+            "64f000000000000000000001",
+          userId:
+            "64f000000000000000000009",
+          payload: {
+            voucherType:
+              "contra",
+            voucherDate:
+              "2026-09-05",
+            lines: [
+              {
+                accountId:
+                  "bank",
+                debit:
+                  1000,
+                credit:
+                  0,
+              },
+              {
+                accountId:
+                  "customer",
+                debit:
+                  0,
+                credit:
+                  1000,
+              },
+            ],
+          },
+        }),
+      /only cash or bank.*credit|credit.*only cash or bank/i
+    );
+
+  }
+);
+
+
+test(
+  "rejects a Contra Voucher that uses an inactive Cash or Bank account",
+  async () => {
+
+    const {
+      VoucherService,
+    } = await loadService();
+
+    const service =
+      new VoucherService({
+        voucherRepository:
+          createContraCreateRepository(),
+        chartRepository:
+          createContraChartRepository(),
+      });
+
+    await assert.rejects(
+      () =>
+        service.createVoucher({
+          companyId:
+            "64f000000000000000000001",
+          userId:
+            "64f000000000000000000009",
+          payload: {
+            voucherType:
+              "contra",
+            voucherDate:
+              "2026-09-05",
+            lines: [
+              {
+                accountId:
+                  "bank",
+                debit:
+                  1000,
+                credit:
+                  0,
+              },
+              {
+                accountId:
+                  "inactiveBank",
+                debit:
+                  0,
+                credit:
+                  1000,
+              },
+            ],
+          },
+        }),
+      /active accounts/i
+    );
+
+  }
+);
+
+
+test(
+  "rejects a Contra Voucher account outside the company or not found",
+  async () => {
+
+    const {
+      VoucherService,
+    } = await loadService();
+
+    const service =
+      new VoucherService({
+        voucherRepository:
+          createContraCreateRepository(),
+        chartRepository:
+          createContraChartRepository(),
+      });
+
+    await assert.rejects(
+      () =>
+        service.createVoucher({
+          companyId:
+            "64f000000000000000000001",
+          userId:
+            "64f000000000000000000009",
+          payload: {
+            voucherType:
+              "contra",
+            voucherDate:
+              "2026-09-05",
+            lines: [
+              {
+                accountId:
+                  "bank",
+                debit:
+                  1000,
+                credit:
+                  0,
+              },
+              {
+                accountId:
+                  "foreignAccount",
+                debit:
+                  0,
+                credit:
+                  1000,
+              },
+            ],
+          },
+        }),
+      /account not found/i
+    );
+
+  }
+);
+
+
+test(
+  "rejects updating a Contra Voucher with a non-Cash or Bank account",
+  async () => {
+
+    let updateCalled =
+      false;
+
+    const voucherRepository = {
+
+      async findById() {
+        return {
+          _id:
+            "contra-voucher-1",
+          status:
+            "draft",
+          voucherType:
+            "contra",
+          financialYear:
+            "2026-27",
+          voucherNumber:
+            "CV/2026-27/000001",
+        };
+      },
+
+      async updateDraftById() {
+
+        updateCalled =
+          true;
+
+        return {
+          _id:
+            "contra-voucher-1",
+          status:
+            "draft",
+        };
+
+      },
+
+    };
+
+    const {
+      VoucherService,
+    } = await loadService();
+
+    const service =
+      new VoucherService({
+        voucherRepository,
+        chartRepository:
+          createContraChartRepository(),
+      });
+
+    await assert.rejects(
+      () =>
+        service.updateDraftVoucher({
+          companyId:
+            "64f000000000000000000001",
+          voucherId:
+            "contra-voucher-1",
+          userId:
+            "64f000000000000000000009",
+          payload: {
+            lines: [
+              {
+                accountId:
+                  "bank",
+                debit:
+                  1000,
+                credit:
+                  0,
+              },
+              {
+                accountId:
+                  "customer",
+                debit:
+                  0,
+                credit:
+                  1000,
+              },
+            ],
+          },
+        }),
+      /only cash or bank.*credit|credit.*only cash or bank/i
+    );
+
+    assert.equal(
+      updateCalled,
+      false
+    );
+
+  }
+);
+
+
+test(
+  "rejects posting an invalid Contra Voucher before creating its JournalEntry",
+  async () => {
+
+    let journalCreateCalled =
+      false;
+
+    const voucherRepository = {
+
+      async findById({
+        companyId,
+        voucherId,
+      }) {
+
+        return {
+          _id:
+            voucherId,
+          companyId,
+          status:
+            "draft",
+          voucherType:
+            "contra",
+          voucherNumber:
+            "CV/2026-27/000001",
+          voucherDate:
+            "2026-09-05",
+          lines: [
+            {
+              accountId:
+                "bank",
+              debit:
+                1000,
+              credit:
+                0,
+            },
+            {
+              accountId:
+                "customer",
+              debit:
+                0,
+              credit:
+                1000,
+            },
+          ],
+        };
+
+      },
+
+      async postById() {
+        return {
+          status:
+            "posted",
+        };
+      },
+
+    };
+
+    const journalService = {
+
+      async createJournal() {
+
+        journalCreateCalled =
+          true;
+
+        return {
+          _id:
+            "journal-1",
+          status:
+            "draft",
+        };
+
+      },
+
+      async postJournal() {
+        return {
+          _id:
+            "journal-1",
+          status:
+            "posted",
+        };
+      },
+
+    };
+
+    const session = {
+
+      async withTransaction(
+        callback
+      ) {
+        return callback();
+      },
+
+      async endSession() {},
+
+    };
+
+    const sessionProvider = {
+
+      async startSession() {
+        return session;
+      },
+
+    };
+
+    const {
+      VoucherService,
+    } = await loadService();
+
+    const service =
+      new VoucherService({
+        voucherRepository,
+        chartRepository:
+          createContraChartRepository(),
+        journalService,
+        sessionProvider,
+      });
+
+    await assert.rejects(
+      () =>
+        service.postVoucher({
+          companyId:
+            "64f000000000000000000001",
+          voucherId:
+            "contra-voucher-1",
+          userId:
+            "64f000000000000000000009",
+        }),
+      /only cash or bank.*credit|credit.*only cash or bank/i
+    );
+
+    assert.equal(
+      journalCreateCalled,
+      false
+    );
+
+  }
+);
