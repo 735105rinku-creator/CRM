@@ -865,6 +865,113 @@ export class VoucherService {
   }
 
 
+  async validateCreditNoteVoucher({
+    companyId,
+    lines,
+    session = null,
+  }) {
+
+    let hasSalesOrIncomeDebit =
+      false;
+
+
+    for (const line of lines || []) {
+
+      const account =
+        await this.chartRepository
+          .findById({
+            companyId,
+            accountId:
+              line.accountId,
+            session,
+          });
+
+
+      if (!account) {
+        throw new Error(
+          "Credit Note account not found."
+        );
+      }
+
+
+      if (account.status !== "active") {
+        throw new Error(
+          "Credit Note requires active accounts."
+        );
+      }
+
+
+      const isSalesOrIncome =
+        account.accountType ===
+          "sales" ||
+        account.accountType ===
+          "direct_income" ||
+        account.accountType ===
+          "indirect_income";
+
+
+      const isDebitAllowed =
+        isSalesOrIncome ||
+        account.accountType ===
+          "tax";
+
+
+      const isCreditAllowed =
+        account.accountType ===
+          "accounts_receivable" ||
+        account.accountType ===
+          "cash" ||
+        account.accountType ===
+          "bank";
+
+
+      const debit =
+        roundMoney(line.debit);
+
+      const credit =
+        roundMoney(line.credit);
+
+
+      if (
+        debit > 0 &&
+        !isDebitAllowed
+      ) {
+        throw new Error(
+          "Only Sales, Income or Tax accounts may be debited in a Credit Note."
+        );
+      }
+
+
+      if (
+        credit > 0 &&
+        !isCreditAllowed
+      ) {
+        throw new Error(
+          "Only Accounts Receivable, Cash or Bank accounts may be credited in a Credit Note."
+        );
+      }
+
+
+      if (
+        debit > 0 &&
+        isSalesOrIncome
+      ) {
+        hasSalesOrIncomeDebit =
+          true;
+      }
+
+    }
+
+
+    if (!hasSalesOrIncomeDebit) {
+      throw new Error(
+        "Credit Note requires a Sales or Income debit line."
+      );
+    }
+
+  }
+
+
   /* ==========================================================
      CREATE VOUCHER
 
@@ -1015,6 +1122,20 @@ export class VoucherService {
     ) {
 
       await this.validatePurchaseVoucher({
+        companyId,
+        lines:
+          payload.lines,
+      });
+
+    }
+
+
+    if (
+      payload.voucherType ===
+        "credit_note"
+    ) {
+
+      await this.validateCreditNoteVoucher({
         companyId,
         lines:
           payload.lines,
@@ -1411,6 +1532,20 @@ export class VoucherService {
       }
 
 
+      if (
+        existingVoucher?.voucherType ===
+          "credit_note"
+      ) {
+
+        await this.validateCreditNoteVoucher({
+          companyId,
+          lines:
+            payload.lines,
+        });
+
+      }
+
+
     }
 
 
@@ -1583,6 +1718,21 @@ export class VoucherService {
           ) {
 
             await this.validatePurchaseVoucher({
+              companyId,
+              lines:
+                voucher.lines,
+              session,
+            });
+
+          }
+
+
+          if (
+            voucher.voucherType ===
+              "credit_note"
+          ) {
+
+            await this.validateCreditNoteVoucher({
               companyId,
               lines:
                 voucher.lines,

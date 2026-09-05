@@ -5848,3 +5848,775 @@ test(
 
   }
 );
+
+function createCreditNoteChartRepository() {
+
+  const accounts = {
+    customer: {
+      accountType: "accounts_receivable",
+      status: "active",
+    },
+    cash: {
+      accountType: "cash",
+      status: "active",
+    },
+    bank: {
+      accountType: "bank",
+      status: "active",
+    },
+    sales: {
+      accountType: "sales",
+      status: "active",
+    },
+    directIncome: {
+      accountType: "direct_income",
+      status: "active",
+    },
+    indirectIncome: {
+      accountType: "indirect_income",
+      status: "active",
+    },
+    tax: {
+      accountType: "tax",
+      status: "active",
+    },
+    purchase: {
+      accountType: "purchase",
+      status: "active",
+    },
+    supplier: {
+      accountType: "accounts_payable",
+      status: "active",
+    },
+    expense: {
+      accountType: "direct_expense",
+      status: "active",
+    },
+    inactiveSales: {
+      accountType: "sales",
+      status: "inactive",
+    },
+  };
+
+  return {
+
+    async findById({
+      accountId,
+    }) {
+
+      const account =
+        accounts[String(accountId)];
+
+      if (!account) {
+        return null;
+      }
+
+      return {
+        _id:
+          accountId,
+        accountType:
+          account.accountType,
+        status:
+          account.status,
+        allowManualEntry:
+          true,
+      };
+
+    },
+
+  };
+
+}
+
+
+function createCreditNoteCreateRepository() {
+
+  return {
+
+    async findLastVoucherNumber() {
+      return null;
+    },
+
+    async create(payload) {
+      return payload;
+    },
+
+  };
+
+}
+
+
+async function createCreditNoteService() {
+
+  const {
+    VoucherService,
+  } = await loadService();
+
+  return new VoucherService({
+    voucherRepository:
+      createCreditNoteCreateRepository(),
+    chartRepository:
+      createCreditNoteChartRepository(),
+  });
+
+}
+
+
+test(
+  "accepts a Credit Note against a customer receivable",
+  async () => {
+
+    const service =
+      await createCreditNoteService();
+
+    const result =
+      await service.createVoucher({
+        companyId:
+          "64f000000000000000000001",
+        userId:
+          "64f000000000000000000009",
+        payload: {
+          voucherType:
+            "credit_note",
+          voucherDate:
+            "2026-09-05",
+          lines: [
+            {
+              accountId:
+                "sales",
+              debit:
+                5000,
+              credit:
+                0,
+            },
+            {
+              accountId:
+                "customer",
+              debit:
+                0,
+              credit:
+                5000,
+            },
+          ],
+        },
+      });
+
+    assert.equal(
+      result.voucherType,
+      "credit_note"
+    );
+
+  }
+);
+
+
+test(
+  "accepts a Credit Note with a cash refund",
+  async () => {
+
+    const service =
+      await createCreditNoteService();
+
+    const result =
+      await service.createVoucher({
+        companyId:
+          "64f000000000000000000001",
+        userId:
+          "64f000000000000000000009",
+        payload: {
+          voucherType:
+            "credit_note",
+          voucherDate:
+            "2026-09-05",
+          lines: [
+            {
+              accountId:
+                "sales",
+              debit:
+                2500,
+              credit:
+                0,
+            },
+            {
+              accountId:
+                "cash",
+              debit:
+                0,
+              credit:
+                2500,
+            },
+          ],
+        },
+      });
+
+    assert.equal(
+      result.voucherType,
+      "credit_note"
+    );
+
+  }
+);
+
+
+test(
+  "accepts a Credit Note with a bank refund",
+  async () => {
+
+    const service =
+      await createCreditNoteService();
+
+    const result =
+      await service.createVoucher({
+        companyId:
+          "64f000000000000000000001",
+        userId:
+          "64f000000000000000000009",
+        payload: {
+          voucherType:
+            "credit_note",
+          voucherDate:
+            "2026-09-05",
+          lines: [
+            {
+              accountId:
+                "directIncome",
+              debit:
+                3200,
+              credit:
+                0,
+            },
+            {
+              accountId:
+                "bank",
+              debit:
+                0,
+              credit:
+                3200,
+            },
+          ],
+        },
+      });
+
+    assert.equal(
+      result.voucherType,
+      "credit_note"
+    );
+
+  }
+);
+
+
+test(
+  "accepts a Credit Note with output tax reversal",
+  async () => {
+
+    const service =
+      await createCreditNoteService();
+
+    const result =
+      await service.createVoucher({
+        companyId:
+          "64f000000000000000000001",
+        userId:
+          "64f000000000000000000009",
+        payload: {
+          voucherType:
+            "credit_note",
+          voucherDate:
+            "2026-09-05",
+          lines: [
+            {
+              accountId:
+                "sales",
+              debit:
+                1000,
+              credit:
+                0,
+            },
+            {
+              accountId:
+                "tax",
+              debit:
+                180,
+              credit:
+                0,
+            },
+            {
+              accountId:
+                "customer",
+              debit:
+                0,
+              credit:
+                1180,
+            },
+          ],
+        },
+      });
+
+    assert.equal(
+      result.voucherType,
+      "credit_note"
+    );
+
+  }
+);
+
+
+test(
+  "rejects a Credit Note without a Sales or Income debit line",
+  async () => {
+
+    const service =
+      await createCreditNoteService();
+
+    await assert.rejects(
+      () =>
+        service.createVoucher({
+          companyId:
+            "64f000000000000000000001",
+          userId:
+            "64f000000000000000000009",
+          payload: {
+            voucherType:
+              "credit_note",
+            voucherDate:
+              "2026-09-05",
+            lines: [
+              {
+                accountId:
+                  "tax",
+                debit:
+                  180,
+                credit:
+                  0,
+              },
+              {
+                accountId:
+                  "customer",
+                debit:
+                  0,
+                credit:
+                  180,
+              },
+            ],
+          },
+        }),
+      /sales or income.*debit|debit.*sales or income/i
+    );
+
+  }
+);
+
+
+test(
+  "rejects a Credit Note that debits an invalid ledger",
+  async () => {
+
+    const service =
+      await createCreditNoteService();
+
+    await assert.rejects(
+      () =>
+        service.createVoucher({
+          companyId:
+            "64f000000000000000000001",
+          userId:
+            "64f000000000000000000009",
+          payload: {
+            voucherType:
+              "credit_note",
+            voucherDate:
+              "2026-09-05",
+            lines: [
+              {
+                accountId:
+                  "purchase",
+                debit:
+                  1000,
+                credit:
+                  0,
+              },
+              {
+                accountId:
+                  "customer",
+                debit:
+                  0,
+                credit:
+                  1000,
+              },
+            ],
+          },
+        }),
+      /sales.*income.*tax|debit.*sales|debited.*sales/i
+    );
+
+  }
+);
+
+
+test(
+  "rejects a Credit Note that credits an invalid ledger",
+  async () => {
+
+    const service =
+      await createCreditNoteService();
+
+    await assert.rejects(
+      () =>
+        service.createVoucher({
+          companyId:
+            "64f000000000000000000001",
+          userId:
+            "64f000000000000000000009",
+          payload: {
+            voucherType:
+              "credit_note",
+            voucherDate:
+              "2026-09-05",
+            lines: [
+              {
+                accountId:
+                  "sales",
+                debit:
+                  1000,
+                credit:
+                  0,
+              },
+              {
+                accountId:
+                  "supplier",
+                debit:
+                  0,
+                credit:
+                  1000,
+              },
+            ],
+          },
+        }),
+      /accounts receivable.*cash.*bank|customer.*cash.*bank|credit.*cash.*bank/i
+    );
+
+  }
+);
+
+
+test(
+  "rejects a Credit Note that uses an inactive account",
+  async () => {
+
+    const service =
+      await createCreditNoteService();
+
+    await assert.rejects(
+      () =>
+        service.createVoucher({
+          companyId:
+            "64f000000000000000000001",
+          userId:
+            "64f000000000000000000009",
+          payload: {
+            voucherType:
+              "credit_note",
+            voucherDate:
+              "2026-09-05",
+            lines: [
+              {
+                accountId:
+                  "inactiveSales",
+                debit:
+                  1000,
+                credit:
+                  0,
+              },
+              {
+                accountId:
+                  "customer",
+                debit:
+                  0,
+                credit:
+                  1000,
+              },
+            ],
+          },
+        }),
+      /active accounts/i
+    );
+
+  }
+);
+
+
+test(
+  "rejects a Credit Note account outside the company or not found",
+  async () => {
+
+    const service =
+      await createCreditNoteService();
+
+    await assert.rejects(
+      () =>
+        service.createVoucher({
+          companyId:
+            "64f000000000000000000001",
+          userId:
+            "64f000000000000000000009",
+          payload: {
+            voucherType:
+              "credit_note",
+            voucherDate:
+              "2026-09-05",
+            lines: [
+              {
+                accountId:
+                  "foreignAccount",
+                debit:
+                  1000,
+                credit:
+                  0,
+              },
+              {
+                accountId:
+                  "customer",
+                debit:
+                  0,
+                credit:
+                  1000,
+              },
+            ],
+          },
+        }),
+      /account not found/i
+    );
+
+  }
+);
+
+
+test(
+  "rejects updating a Credit Note with an invalid credit ledger",
+  async () => {
+
+    let updateCalled =
+      false;
+
+    const voucherRepository = {
+
+      async findById() {
+        return {
+          _id:
+            "credit-note-1",
+          status:
+            "draft",
+          voucherType:
+            "credit_note",
+          financialYear:
+            "2026-27",
+          voucherNumber:
+            "CN/2026-27/000001",
+        };
+      },
+
+      async updateDraftById() {
+
+        updateCalled =
+          true;
+
+        return {
+          _id:
+            "credit-note-1",
+          status:
+            "draft",
+        };
+
+      },
+
+    };
+
+    const {
+      VoucherService,
+    } = await loadService();
+
+    const service =
+      new VoucherService({
+        voucherRepository,
+        chartRepository:
+          createCreditNoteChartRepository(),
+      });
+
+    await assert.rejects(
+      () =>
+        service.updateDraftVoucher({
+          companyId:
+            "64f000000000000000000001",
+          voucherId:
+            "credit-note-1",
+          userId:
+            "64f000000000000000000009",
+          payload: {
+            lines: [
+              {
+                accountId:
+                  "sales",
+                debit:
+                  1000,
+                credit:
+                  0,
+              },
+              {
+                accountId:
+                  "supplier",
+                debit:
+                  0,
+                credit:
+                  1000,
+              },
+            ],
+          },
+        }),
+      /accounts receivable.*cash.*bank|customer.*cash.*bank|credit.*cash.*bank/i
+    );
+
+    assert.equal(
+      updateCalled,
+      false
+    );
+
+  }
+);
+
+
+test(
+  "rejects posting an invalid Credit Note before creating its JournalEntry",
+  async () => {
+
+    let journalCreateCalled =
+      false;
+
+    const voucherRepository = {
+
+      async findById({
+        companyId,
+        voucherId,
+      }) {
+
+        return {
+          _id:
+            voucherId,
+          companyId,
+          status:
+            "draft",
+          voucherType:
+            "credit_note",
+          voucherNumber:
+            "CN/2026-27/000001",
+          voucherDate:
+            "2026-09-05",
+          lines: [
+            {
+              accountId:
+                "sales",
+              debit:
+                1000,
+              credit:
+                0,
+            },
+            {
+              accountId:
+                "supplier",
+              debit:
+                0,
+              credit:
+                1000,
+            },
+          ],
+        };
+
+      },
+
+      async postById() {
+        return {
+          status:
+            "posted",
+        };
+      },
+
+    };
+
+    const journalService = {
+
+      async createJournal() {
+
+        journalCreateCalled =
+          true;
+
+        return {
+          _id:
+            "journal-credit-note-1",
+          status:
+            "draft",
+        };
+
+      },
+
+      async postJournal() {
+        return {
+          _id:
+            "journal-credit-note-1",
+          status:
+            "posted",
+        };
+      },
+
+    };
+
+    const session = {
+
+      async withTransaction(callback) {
+        return callback();
+      },
+
+      async endSession() {},
+
+    };
+
+    const sessionProvider = {
+
+      async startSession() {
+        return session;
+      },
+
+    };
+
+    const {
+      VoucherService,
+    } = await loadService();
+
+    const service =
+      new VoucherService({
+        voucherRepository,
+        chartRepository:
+          createCreditNoteChartRepository(),
+        journalService,
+        sessionProvider,
+      });
+
+    await assert.rejects(
+      () =>
+        service.postVoucher({
+          companyId:
+            "64f000000000000000000001",
+          voucherId:
+            "credit-note-1",
+          userId:
+            "64f000000000000000000009",
+        }),
+      /accounts receivable.*cash.*bank|customer.*cash.*bank|credit.*cash.*bank/i
+    );
+
+    assert.equal(
+      journalCreateCalled,
+      false
+    );
+
+  }
+);
