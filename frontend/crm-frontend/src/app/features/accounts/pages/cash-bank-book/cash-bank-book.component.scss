@@ -1,0 +1,459 @@
+:host {
+  display: block;
+
+  --surface: #edf1f7;
+  --text: #243047;
+  --muted: #758197;
+  --accent: #d6a928;
+  --success: #238b57;
+  --danger: #c94d5d;
+  --shadow-dark: rgba(163, 177, 198, 0.55);
+  --shadow-light: rgba(255, 255, 255, 0.9);
+}
+
+
+.cash-bank-page {
+  min-height: 100%;
+  padding: 28px;
+  color: var(--text);
+  background: var(--surface);
+}
+
+
+.page-header,
+.section-heading,
+.ledger-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+
+.page-header {
+  margin-bottom: 24px;
+}
+
+
+.eyebrow {
+  margin: 0 0 7px;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+
+h1,
+h2,
+h3,
+p {
+  margin-top: 0;
+}
+
+
+h1 {
+  margin-bottom: 8px;
+  font-size: clamp(26px, 3vw, 38px);
+}
+
+
+h2 {
+  margin-bottom: 0;
+  font-size: 21px;
+}
+
+
+h3 {
+  margin: 5px 0;
+  font-size: 18px;
+}
+
+
+.subtitle,
+.ledger-header p {
+  margin-bottom: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+
+.fy-chip,
+.type-badge,
+.status-badge,
+.account-code {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  font-weight: 800;
+}
+
+
+.fy-chip {
+  padding: 11px 16px;
+  background: var(--surface);
+  box-shadow:
+    6px 6px 13px var(--shadow-dark),
+    -6px -6px 13px var(--shadow-light);
+}
+
+
+.filter-panel,
+.summary-card,
+.account-overview,
+.ledger-card,
+.state-card {
+  background: var(--surface);
+  border-radius: 20px;
+  box-shadow:
+    8px 8px 18px var(--shadow-dark),
+    -8px -8px 18px var(--shadow-light);
+}
+
+
+.filter-panel {
+  display: grid;
+  grid-template-columns:
+    minmax(150px, 1fr)
+    minmax(150px, 1fr)
+    minmax(220px, 1.5fr)
+    auto;
+  gap: 18px;
+  align-items: end;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+
+.field {
+  display: grid;
+  gap: 8px;
+}
+
+
+.field span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+
+input,
+select {
+  width: 100%;
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 0 13px;
+  border: 0;
+  outline: 0;
+  border-radius: 12px;
+  color: var(--text);
+  background: var(--surface);
+  box-shadow:
+    inset 4px 4px 9px var(--shadow-dark),
+    inset -4px -4px 9px var(--shadow-light);
+}
+
+
+.filter-actions {
+  display: flex;
+  gap: 10px;
+}
+
+
+button {
+  min-height: 43px;
+  padding: 0 17px;
+  border: 0;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 800;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+
+.primary-button {
+  color: #fff;
+  background: var(--accent);
+  box-shadow:
+    5px 5px 11px var(--shadow-dark),
+    -5px -5px 11px var(--shadow-light);
+}
+
+
+.secondary-button {
+  color: var(--text);
+  background: var(--surface);
+  box-shadow:
+    5px 5px 11px var(--shadow-dark),
+    -5px -5px 11px var(--shadow-light);
+}
+
+
+.summary-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(5, minmax(150px, 1fr));
+  gap: 17px;
+  margin-bottom: 24px;
+}
+
+
+.summary-card {
+  padding: 20px;
+}
+
+
+.summary-card span {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+
+.summary-card strong {
+  font-size: 20px;
+}
+
+
+.account-overview {
+  padding: 22px;
+  margin-bottom: 24px;
+}
+
+
+.section-heading {
+  margin-bottom: 18px;
+}
+
+
+.table-shell {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 15px;
+  box-shadow:
+    inset 3px 3px 8px var(--shadow-dark),
+    inset -3px -3px 8px var(--shadow-light);
+}
+
+
+table {
+  width: 100%;
+  min-width: 900px;
+  border-collapse: collapse;
+}
+
+
+th,
+td {
+  padding: 14px 15px;
+  border-bottom:
+    1px solid rgba(117, 129, 151, 0.15);
+  text-align: left;
+  white-space: nowrap;
+}
+
+
+th {
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+
+.number {
+  text-align: right;
+}
+
+
+.debit {
+  color: var(--success);
+}
+
+
+.credit {
+  color: var(--danger);
+}
+
+
+.account-row {
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+
+.account-row:hover {
+  background:
+    rgba(255, 255, 255, 0.34);
+}
+
+
+.type-badge,
+.status-badge,
+.account-code {
+  padding: 6px 10px;
+  font-size: 11px;
+}
+
+
+.type-badge,
+.account-code {
+  color: #8b6a0b;
+  background: rgba(214, 169, 40, 0.14);
+}
+
+
+.status-badge {
+  color: var(--success);
+  background: rgba(35, 139, 87, 0.12);
+}
+
+
+.status-badge.inactive {
+  color: var(--danger);
+  background: rgba(201, 77, 93, 0.12);
+}
+
+
+.ledger-section {
+  display: grid;
+  gap: 20px;
+}
+
+
+.ledger-card {
+  padding: 22px;
+}
+
+
+.ledger-header {
+  margin-bottom: 18px;
+}
+
+
+.closing-box {
+  min-width: 180px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  text-align: right;
+  box-shadow:
+    inset 4px 4px 9px var(--shadow-dark),
+    inset -4px -4px 9px var(--shadow-light);
+}
+
+
+.closing-box span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+
+.closing-box strong {
+  font-size: 18px;
+}
+
+
+.state-card,
+.empty-state {
+  padding: 22px;
+  color: var(--muted);
+  text-align: center;
+}
+
+
+.state-card {
+  margin-bottom: 24px;
+}
+
+
+.error-state {
+  color: var(--danger);
+}
+
+
+.empty-state.compact {
+  padding: 18px;
+}
+
+
+@media (
+  max-width: 1180px
+) {
+
+  .filter-panel {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+
+  .summary-grid {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+  }
+
+}
+
+
+@media (
+  max-width: 760px
+) {
+
+  .cash-bank-page {
+    padding: 18px;
+  }
+
+
+  .page-header,
+  .section-heading,
+  .ledger-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+
+  .filter-panel,
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+
+  .filter-actions {
+    width: 100%;
+  }
+
+
+  .filter-actions button {
+    flex: 1;
+  }
+
+
+  .closing-box {
+    width: 100%;
+    box-sizing: border-box;
+    text-align: left;
+  }
+
+}

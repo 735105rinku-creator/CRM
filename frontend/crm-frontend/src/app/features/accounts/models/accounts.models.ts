@@ -848,3 +848,75 @@ export interface AccountPartyQuery {
 
   status?: AccountStatus;
 }
+
+/* =========================================================
+   CASH / BANK BOOK
+========================================================= */
+
+export interface CashBankBalance {
+  amount: number;
+
+  type: DebitCredit;
+}
+
+
+export interface CashBankEntry {
+  journalDate: string;
+
+  journalNumber: string;
+
+  narration: string;
+
+  debit: number;
+
+  credit: number;
+
+  runningBalance: number;
+
+  balanceType: DebitCredit;
+}
+
+
+export interface CashBankAccount {
+  accountId: string;
+
+  accountCode: string;
+
+  accountName: string;
+
+  accountType: 'cash' | 'bank';
+
+  nature: AccountNature;
+
+  status: AccountStatus;
+
+  openingBalance: CashBankBalance;
+
+  entries: CashBankEntry[];
+
+  totalDebit: number;
+
+  totalCredit: number;
+
+  closingBalance: CashBankBalance;
+}
+
+
+export interface CashBankSummary {
+  totalAccounts: number;
+
+  totalOpening: number;
+
+  totalDebit: number;
+
+  totalCredit: number;
+
+  totalClosing: number;
+}
+
+
+export interface CashBankBookReport {
+  accounts: CashBankAccount[];
+
+  summary: CashBankSummary;
+}

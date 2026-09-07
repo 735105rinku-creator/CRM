@@ -353,10 +353,10 @@ export const ACCOUNTS_ROUTES: Routes = [
 
         loadComponent: () =>
           import(
-            './pages/placeholder/accounts-placeholder.component'
+            './pages/cash-bank-book/cash-bank-book.component'
           ).then(
             (module) =>
-              module.AccountsPlaceholderComponent
+              module.CashBankBookComponent
           ),
 
         data: {
