@@ -132,7 +132,7 @@ export class LoginComponent {
   private redirectUrlForRole(role: string): string {
     const roleRedirects: Record<string, string> = {
       hr: '/hr-dashboard',
-      employee: '/logistics/dashboard',
+      employee: '/employee-dashboard',
       accounts: '/invoices',
       super_admin: '/super-admin'
     };
@@ -140,7 +140,3 @@ export class LoginComponent {
     return roleRedirects[role] || this.authService.getDefaultRedirectUrl();
   }
 }
-
-
-
-
