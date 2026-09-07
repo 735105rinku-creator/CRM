@@ -25,6 +25,9 @@ import trialBalanceRoutes
 import voucherRoutes
   from "./voucher.routes.js";
 
+import profitLossRoutes
+  from "./profitLoss.routes.js";
+
 const router = Router();
 router.use(requireAuth);
 router.use(requireTenant);
@@ -94,6 +97,11 @@ router.use(
 router.use(
   "/trial-balance",
   trialBalanceRoutes
+);
+
+router.use(
+  "/profit-and-loss",
+  profitLossRoutes
 );
 
 router.use(
