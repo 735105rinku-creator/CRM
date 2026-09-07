@@ -31,6 +31,9 @@ import profitLossRoutes
 import balanceSheetRoutes
   from "./balanceSheet.routes.js";
 
+import cashBankBookRoutes
+  from "./cashBankBook.routes.js";
+
 const router = Router();
 router.use(requireAuth);
 router.use(requireTenant);
@@ -110,6 +113,11 @@ router.use(
 router.use(
   "/balance-sheet",
   balanceSheetRoutes
+);
+
+router.use(
+  "/cash-bank-book",
+  cashBankBookRoutes
 );
 
 router.use(
