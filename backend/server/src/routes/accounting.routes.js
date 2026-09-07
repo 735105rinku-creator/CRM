@@ -28,6 +28,9 @@ import voucherRoutes
 import profitLossRoutes
   from "./profitLoss.routes.js";
 
+import balanceSheetRoutes
+  from "./balanceSheet.routes.js";
+
 const router = Router();
 router.use(requireAuth);
 router.use(requireTenant);
@@ -102,6 +105,11 @@ router.use(
 router.use(
   "/profit-and-loss",
   profitLossRoutes
+);
+
+router.use(
+  "/balance-sheet",
+  balanceSheetRoutes
 );
 
 router.use(
