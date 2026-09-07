@@ -7,6 +7,7 @@ import {
   getLogisticsVendorPaymentSummary,
   getLogisticsVendorPaymentById,
   getLogisticsVendorPaymentVendorOptions,
+  downloadLogisticsVendorPaymentProof,
   updateLogisticsVendorPayment,
   addLogisticsVendorPaymentTransaction,
   deleteLogisticsVendorPayment,
@@ -15,6 +16,10 @@ import {
 import {
   requireLogisticsPermission,
 } from "../middleware/logisticsPermission.middleware.js";
+
+import {
+  uploadVendorPaymentProof,
+} from "../middleware/upload.middleware.js";
 
 
 const router =
@@ -88,8 +93,42 @@ router
       "create",
       "vendorPayments"
     ),
+
+    /*
+     * Optional payment proof upload.
+     *
+     * Allowed:
+     * JPG / JPEG / PNG / PDF
+     *
+     * Field name expected from frontend:
+     * paymentProof
+     *
+     * If no file is sent,
+     * multer continues normally.
+     */
+    uploadVendorPaymentProof.single(
+      "paymentProof"
+    ),
+
     createLogisticsVendorPayment
   );
+
+
+/* ============================================================
+   DOWNLOAD PAYMENT PROOF
+
+   IMPORTANT:
+   Keep this ABOVE /:id.
+============================================================ */
+
+router.get(
+  "/:id/payment-proof/download",
+  requireLogisticsPermission(
+    "view",
+    "vendorPayments"
+  ),
+  downloadLogisticsVendorPaymentProof
+);
 
 
 /* ============================================================
@@ -127,6 +166,17 @@ router
       "edit",
       "vendorPayments"
     ),
+
+    /*
+     * Optional replacement/new payment proof.
+     *
+     * Existing payment can still be updated
+     * without uploading any file.
+     */
+    uploadVendorPaymentProof.single(
+      "paymentProof"
+    ),
+
     updateLogisticsVendorPayment
   )
   .delete(

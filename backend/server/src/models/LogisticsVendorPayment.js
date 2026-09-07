@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 
+
 export const LOGISTICS_VENDOR_PAYMENT_STATUSES = Object.freeze([
   "pending",
   "partial",
@@ -9,6 +10,7 @@ export const LOGISTICS_VENDOR_PAYMENT_STATUSES = Object.freeze([
   "other",
 ]);
 
+
 export const LOGISTICS_VENDOR_PAYMENT_MODES = Object.freeze([
   "bank_transfer",
   "upi",
@@ -17,6 +19,11 @@ export const LOGISTICS_VENDOR_PAYMENT_MODES = Object.freeze([
   "card",
   "other",
 ]);
+
+
+/* ============================================================
+   PAYMENT HISTORY
+============================================================ */
 
 const paymentHistorySchema = new mongoose.Schema(
   {
@@ -71,8 +78,62 @@ const paymentHistorySchema = new mongoose.Schema(
       default: Date.now,
     },
   },
-  { _id: true }
+  {
+    _id: true,
+  }
 );
+
+
+/* ============================================================
+   OPTIONAL PAYMENT PROOF
+
+   File itself is stored under:
+
+   public/uploads/vendor-payment-proofs/
+
+   MongoDB stores only metadata + public URL.
+
+   Supported by upload middleware:
+   JPG / JPEG / PNG / PDF
+============================================================ */
+
+const paymentProofSchema = new mongoose.Schema(
+  {
+    url: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+
+    originalName: {
+      type: String,
+      trim: true,
+      default: "",
+      maxlength: 500,
+    },
+
+    mimeType: {
+      type: String,
+      trim: true,
+      default: "",
+      maxlength: 150,
+    },
+
+    size: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+  },
+  {
+    _id: false,
+  }
+);
+
+
+/* ============================================================
+   VENDOR PAYMENT
+============================================================ */
 
 const logisticsVendorPaymentSchema = new mongoose.Schema(
   {
@@ -158,7 +219,13 @@ const logisticsVendorPaymentSchema = new mongoose.Schema(
 
     weightUnit: {
       type: String,
-      enum: ["kg", "mt", "ton", "lb", "other"],
+      enum: [
+        "kg",
+        "mt",
+        "ton",
+        "lb",
+        "other",
+      ],
       default: "mt",
       required: true,
     },
@@ -227,6 +294,7 @@ const logisticsVendorPaymentSchema = new mongoose.Schema(
     /*
      * Optional linkage to a Logistics Shipment.
      */
+
     shipmentId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "LogisticsShipment",
@@ -257,8 +325,21 @@ const logisticsVendorPaymentSchema = new mongoose.Schema(
     },
 
     /*
+     * Optional uploaded payment proof.
+     *
+     * Existing records without paymentProof
+     * remain fully valid.
+     */
+
+    paymentProof: {
+      type: paymentProofSchema,
+      default: undefined,
+    },
+
+    /*
      * Compulsory final field from Logistics Manager requirement.
      */
+
     remarks: {
       type: String,
       trim: true,
@@ -291,13 +372,26 @@ const logisticsVendorPaymentSchema = new mongoose.Schema(
       index: true,
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
+
+/* ============================================================
+   INDEXES
+============================================================ */
+
 logisticsVendorPaymentSchema.index(
-  { companyId: 1, paymentCode: 1 },
-  { unique: true }
+  {
+    companyId: 1,
+    paymentCode: 1,
+  },
+  {
+    unique: true,
+  }
 );
+
 
 logisticsVendorPaymentSchema.index({
   companyId: 1,
@@ -306,66 +400,153 @@ logisticsVendorPaymentSchema.index({
   createdAt: -1,
 });
 
+
 logisticsVendorPaymentSchema.index({
   companyId: 1,
   exportInvoiceNo: 1,
   vendorInvoiceNo: 1,
 });
 
-logisticsVendorPaymentSchema.pre("validate", function () {
-  if (
-    this.weightUnit === "other" &&
-    !String(this.weightUnitOther || "").trim()
-  ) {
-    this.invalidate(
-      "weightUnitOther",
-      "Weight unit is required when Other is selected"
-    );
-  }
 
-  if (
-    this.status === "other" &&
-    !String(this.statusOther || "").trim()
-  ) {
-    this.invalidate(
-      "statusOther",
-      "Payment status is required when Other is selected"
-    );
-  }
+/* ============================================================
+   VALIDATION / CALCULATION
+============================================================ */
 
-  /*
-   * Payment calculation:
-   * Payable = Total Amount - Previous Advance - Deduction.
-   * Supplier Balance / Pending Amount = Payable - Paid Amount.
-   */
-  const total = Number(this.totalAmount || 0);
-  const advance = Number(this.previousAdvance || 0);
-  const paid = Number(this.paidAmount || 0);
-  const deduction = Number(this.deduction || 0);
+logisticsVendorPaymentSchema.pre(
+  "validate",
+  function () {
 
-  const balance =
-    Math.max(
-      0,
-      total - advance - paid - deduction
-    );
+    if (
+      this.weightUnit === "other" &&
+      !String(
+        this.weightUnitOther ||
+        ""
+      ).trim()
+    ) {
 
-  this.pendingAmount = balance;
-  this.supplierBalance = balance;
+      this.invalidate(
+        "weightUnitOther",
+        "Weight unit is required when Other is selected"
+      );
+    }
 
-  if (this.status !== "cancelled" && this.status !== "hold" && this.status !== "other") {
-    if (balance <= 0 && total > 0) {
-      this.status = "paid";
-    } else if (paid > 0 || advance > 0 || deduction > 0) {
-      this.status = "partial";
-    } else {
-      this.status = "pending";
+
+    if (
+      this.status === "other" &&
+      !String(
+        this.statusOther ||
+        ""
+      ).trim()
+    ) {
+
+      this.invalidate(
+        "statusOther",
+        "Payment status is required when Other is selected"
+      );
+    }
+
+
+    /*
+     * Payment calculation:
+     *
+     * Payable =
+     * Total Amount
+     * - Previous Advance
+     * - Deduction
+     *
+     * Supplier Balance / Pending Amount =
+     * Payable
+     * - Paid Amount
+     */
+
+    const total =
+      Number(
+        this.totalAmount ||
+        0
+      );
+
+
+    const advance =
+      Number(
+        this.previousAdvance ||
+        0
+      );
+
+
+    const paid =
+      Number(
+        this.paidAmount ||
+        0
+      );
+
+
+    const deduction =
+      Number(
+        this.deduction ||
+        0
+      );
+
+
+    const balance =
+      Math.max(
+        0,
+        total -
+        advance -
+        paid -
+        deduction
+      );
+
+
+    this.pendingAmount =
+      balance;
+
+
+    this.supplierBalance =
+      balance;
+
+
+    if (
+      this.status !== "cancelled" &&
+      this.status !== "hold" &&
+      this.status !== "other"
+    ) {
+
+      if (
+        balance <= 0 &&
+        total > 0
+      ) {
+
+        this.status =
+          "paid";
+
+      } else if (
+        paid > 0 ||
+        advance > 0 ||
+        deduction > 0
+      ) {
+
+        this.status =
+          "partial";
+
+      } else {
+
+        this.status =
+          "pending";
+      }
     }
   }
-});
-
-export const LogisticsVendorPayment = mongoose.model(
-  "LogisticsVendorPayment",
-  logisticsVendorPaymentSchema
 );
+
+
+/* ============================================================
+   MODEL
+============================================================ */
+
+export const LogisticsVendorPayment =
+  mongoose.model(
+    "LogisticsVendorPayment",
+    logisticsVendorPaymentSchema
+  );
+
 
 export default LogisticsVendorPayment;

@@ -1,3 +1,6 @@
+import fs from "fs";
+import path from "path";
+
 import { ROLES }
   from "../constants/roles.js";
 
@@ -22,6 +25,10 @@ import { ApiError }
 
 import { asyncHandler }
   from "../utils/asyncHandler.js";
+
+import {
+  toPublicVendorPaymentProofUrl,
+} from "../middleware/upload.middleware.js";
 
 
 /* ============================================================
@@ -116,6 +123,182 @@ function validate(
 
 
 /* ============================================================
+   OPTIONAL PAYMENT PROOF
+
+   Actual file is stored under:
+
+   public/uploads/vendor-payment-proofs/
+
+   MongoDB stores only:
+   - URL
+   - original filename
+   - MIME type
+   - file size
+============================================================ */
+
+const paymentProofFromRequest = (
+  req
+) => {
+
+  const file =
+    req.file;
+
+
+  if (!file) {
+
+    return undefined;
+  }
+
+
+  return {
+
+    url:
+      toPublicVendorPaymentProofUrl(
+        file
+      ),
+
+
+    originalName:
+      String(
+        file.originalname ||
+        ""
+      ),
+
+
+    mimeType:
+      String(
+        file.mimetype ||
+        ""
+      ),
+
+
+    size:
+      Number(
+        file.size ||
+        0
+      ),
+  };
+};
+
+
+/* ============================================================
+   PAYMENT PROOF FILE PATH
+
+   Important:
+   Only files inside:
+
+   public/uploads/vendor-payment-proofs/
+
+   can be downloaded through Vendor Payment endpoint.
+============================================================ */
+
+const resolvePaymentProofFile = (
+  proof
+) => {
+
+  const url =
+    String(
+      proof?.url ||
+      ""
+    )
+      .trim();
+
+
+  if (!url) {
+
+    throw new ApiError(
+      404,
+      "Payment proof not found"
+    );
+  }
+
+
+  const normalizedUrl =
+    url
+      .replace(
+        /\\/g,
+        "/"
+      )
+      .replace(
+        /^\/+/,
+        ""
+      );
+
+
+  const expectedPrefix =
+    "uploads/vendor-payment-proofs/";
+
+
+  if (
+    !normalizedUrl.startsWith(
+      expectedPrefix
+    )
+  ) {
+
+    throw new ApiError(
+      400,
+      "Invalid payment proof path"
+    );
+  }
+
+
+  const fileName =
+    path.basename(
+      normalizedUrl
+    );
+
+
+  if (!fileName) {
+
+    throw new ApiError(
+      400,
+      "Invalid payment proof file"
+    );
+  }
+
+
+  const uploadDirectory =
+    path.resolve(
+      process.cwd(),
+      "public",
+      "uploads",
+      "vendor-payment-proofs"
+    );
+
+
+  const filePath =
+    path.resolve(
+      uploadDirectory,
+      fileName
+    );
+
+
+  /*
+   * Path traversal safety.
+   */
+
+  if (
+    path.dirname(
+      filePath
+    ) !==
+    uploadDirectory
+  ) {
+
+    throw new ApiError(
+      400,
+      "Invalid payment proof path"
+    );
+  }
+
+
+  return {
+    filePath,
+    fileName,
+  };
+};
+
+
+/* ============================================================
    VENDOR OPTIONS FOR VENDOR PAYMENT
 
    IMPORTANT:
@@ -147,6 +330,7 @@ export const getLogisticsVendorPaymentVendorOptions =
 
         companyId,
 
+
         /*
          * Vendor Master uses status in existing frontend/API.
          *
@@ -154,6 +338,7 @@ export const getLogisticsVendorPaymentVendorOptions =
          * active or not present, so older vendor records remain
          * usable without any DB migration.
          */
+
         $or: [
 
           {
@@ -202,6 +387,7 @@ export const getLogisticsVendorPaymentVendorOptions =
           .sort({
             vendorName:
               1,
+
             companyName:
               1,
           })
@@ -220,44 +406,54 @@ export const getLogisticsVendorPaymentVendorOptions =
             _id:
               vendor._id,
 
+
             vendorCode:
               vendor.vendorCode ||
               "",
+
 
             vendorName:
               vendor.vendorName ||
               vendor.companyName ||
               "Vendor",
 
+
             companyName:
               vendor.companyName ||
               "",
+
 
             contactPerson:
               vendor.contactPerson ||
               "",
 
+
             mobile:
               vendor.mobile ||
               "",
+
 
             email:
               vendor.email ||
               "",
 
+
             gstNumber:
               vendor.gstNumber ||
               "",
 
+
             paymentTerms:
               vendor.paymentTerms ||
               "",
+
 
             openingPayable:
               Number(
                 vendor.openingPayable ||
                 0
               ),
+
 
             status:
               vendor.status ||
@@ -302,6 +498,12 @@ export const createLogisticsVendorPayment =
         );
 
 
+      const paymentProof =
+        paymentProofFromRequest(
+          req
+        );
+
+
       const result =
         await logisticsVendorPaymentService
           .createPaymentRecord({
@@ -311,16 +513,22 @@ export const createLogisticsVendorPayment =
                 req
               ),
 
+
             userId:
               req.user?._id ||
               null,
+
 
             employeeId:
               req.logisticsAccess
                 ?.employeeId ||
               null,
 
+
             payload,
+
+
+            paymentProof,
           });
 
 
@@ -365,6 +573,7 @@ export const getLogisticsVendorPayments =
               companyIdForRequest(
                 req
               ),
+
 
             query,
           });
@@ -442,6 +651,7 @@ export const getLogisticsVendorPaymentById =
                 req
               ),
 
+
             paymentId:
               req.params.id,
           });
@@ -458,6 +668,114 @@ export const getLogisticsVendorPaymentById =
             "Vendor payment record fetched successfully"
           )
         );
+    }
+  );
+
+
+/* ============================================================
+   DOWNLOAD PAYMENT PROOF
+
+   Security:
+   - Uses current tenant/company context.
+   - Payment record must belong to current company.
+   - Route should also use Vendor Payment "view" permission.
+   - Only vendor-payment-proofs directory is accessible.
+============================================================ */
+
+export const downloadLogisticsVendorPaymentProof =
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
+
+      const payment =
+        await logisticsVendorPaymentService
+          .getPaymentRecord({
+
+            companyId:
+              companyIdForRequest(
+                req
+              ),
+
+
+            paymentId:
+              req.params.id,
+          });
+
+
+      const proof =
+        payment?.paymentProof;
+
+
+      if (
+        !proof?.url
+      ) {
+
+        throw new ApiError(
+          404,
+          "Payment proof not found"
+        );
+      }
+
+
+      const {
+        filePath,
+        fileName,
+      } =
+        resolvePaymentProofFile(
+          proof
+        );
+
+
+      if (
+        !fs.existsSync(
+          filePath
+        )
+      ) {
+
+        throw new ApiError(
+          404,
+          "Payment proof file not found"
+        );
+      }
+
+
+      const stat =
+        fs.statSync(
+          filePath
+        );
+
+
+      if (
+        !stat.isFile()
+      ) {
+
+        throw new ApiError(
+          404,
+          "Payment proof file not found"
+        );
+      }
+
+
+      const originalName =
+        String(
+          proof.originalName ||
+          fileName ||
+          "payment-proof"
+        )
+          .replace(
+            /[\r\n"]/g,
+            ""
+          )
+          .trim() ||
+        "payment-proof";
+
+
+      return res.download(
+        filePath,
+        originalName
+      );
     }
   );
 
@@ -480,6 +798,12 @@ export const updateLogisticsVendorPayment =
         );
 
 
+      const paymentProof =
+        paymentProofFromRequest(
+          req
+        );
+
+
       const result =
         await logisticsVendorPaymentService
           .updatePaymentRecord({
@@ -489,14 +813,20 @@ export const updateLogisticsVendorPayment =
                 req
               ),
 
+
             paymentId:
               req.params.id,
+
 
             userId:
               req.user?._id ||
               null,
 
+
             payload,
+
+
+            paymentProof,
           });
 
 
@@ -542,12 +872,15 @@ export const addLogisticsVendorPaymentTransaction =
                 req
               ),
 
+
             paymentId:
               req.params.id,
+
 
             userId:
               req.user?._id ||
               null,
+
 
             payload,
           });
@@ -588,8 +921,10 @@ export const deleteLogisticsVendorPayment =
                 req
               ),
 
+
             paymentId:
               req.params.id,
+
 
             userId:
               req.user?._id ||
