@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
 
+import { AuthService } from '../../../../core/auth/auth.service';
 import { ApiService } from '../../../../core/services/api.service';
 
 interface SelectOption { label: string; value: string; }
@@ -41,7 +42,10 @@ interface ItemRow {
   _id?: string; name?: string; itemCode?: string; itemType?: string; hsnSacCode?: string;
   unit?: string; unitOther?: string; salePrice?: number; taxPercent?: number; description?: string;
 }
+interface EditAuditEntry { changedBy?: string; changedByName?: string; changedAt?: string; }
+
 interface InvoiceRow {
+  editHistory?: EditAuditEntry[];
   _id?: string; invoiceNumber?: string; customerName?: string; invoiceTotal?: number;
   invoiceCopy?: { fileUrl?: string; originalName?: string };
 }
@@ -57,6 +61,12 @@ interface PageResult<T> { data?: T[] | { data?: T[]; records?: T[]; customers?: 
 export class LogisticsInvoiceNewComponent implements OnInit {
   private readonly api = inject(ApiService);
   private readonly route = inject(ActivatedRoute);
+  private readonly auth = inject(AuthService);
+  private readonly editNavigation = inject(Router).getCurrentNavigation()?.extras.info as Record<string, any> | undefined;
+  protected readonly isLoadingInvoice = signal(false);
+  protected readonly invoiceLoadFailed = signal(false);
+  protected editHistory: EditAuditEntry[] = [];
+
 
   protected readonly isSaving = signal(false);
   protected readonly message = signal('');
@@ -144,19 +154,23 @@ export class LogisticsInvoiceNewComponent implements OnInit {
   protected additionalCharges: AdditionalCharge[] = [];
 
   ngOnInit(): void {
+    const invoiceId = this.route.snapshot.queryParamMap.get('invoiceId');
+    const cached = this.editNavigation?.['invoice'];
+    if (invoiceId) {
+      if (cached?._id === invoiceId && Array.isArray(cached.items) &&
+          this.editNavigation?.['editContext'] === JSON.stringify(this.auth.currentUser())) {
+        this.populateInvoice(cached, invoiceId);
+      } else {
+        this.loadInvoice(invoiceId);
+      }
+    } else {
+      const shipmentNumber = this.route.snapshot.queryParamMap.get('shipmentNumber');
+      if (shipmentNumber) this.form.shipment = shipmentNumber;
+    }
     this.loadCustomers();
     this.loadShipments();
     this.loadItems();
     this.loadRecentInvoices();
-
-    const invoiceId = this.route.snapshot.queryParamMap.get('invoiceId');
-    if (invoiceId) {
-      this.loadInvoice(invoiceId);
-      return;
-    }
-
-    const shipmentNumber = this.route.snapshot.queryParamMap.get('shipmentNumber');
-    if (shipmentNumber) this.form.shipment = shipmentNumber;
   }
 
   protected get itemsSubtotal(): number {
@@ -356,7 +370,7 @@ export class LogisticsInvoiceNewComponent implements OnInit {
   }
 
   private persistInvoice(status: 'draft' | 'issued'): void {
-    if (this.isSaving()) return;
+    if (this.isSaving() || this.isLoadingInvoice() || this.invoiceLoadFailed()) return;
     const error = this.validate(status);
     if (error) { this.setError(error); window.alert(error); return; }
 
@@ -368,6 +382,7 @@ export class LogisticsInvoiceNewComponent implements OnInit {
 
     request.subscribe({
       next: (invoice) => {
+        this.editHistory = invoice?.editHistory || [];
         this.form.invoiceId = invoice?._id || this.form.invoiceId;
         this.form.invoiceNumber = invoice?.invoiceNumber || this.form.invoiceNumber;
         if (invoice?.invoiceCopy?.fileUrl) {
@@ -498,84 +513,104 @@ export class LogisticsInvoiceNewComponent implements OnInit {
     };
   }
   private loadInvoice(invoiceId: string): void {
-    this.isSaving.set(true);
+    this.isLoadingInvoice.set(true);
+    this.invoiceLoadFailed.set(false);
     this.errorMessage.set('');
-
     this.api.get<any>(`/logistics/invoices/${invoiceId}`)
-      .pipe(finalize(() => this.isSaving.set(false)))
+      .pipe(finalize(() => this.isLoadingInvoice.set(false)))
       .subscribe({
-        next: (invoice) => {
-          this.form = {
-            ...this.emptyForm(),
-            invoiceId: invoice?._id || invoiceId,
-            customer: invoice?.customerId || 'other',
-            customerOther: invoice?.customerName || '',
-            contactPerson: invoice?.contactPerson || '',
-            mobile: invoice?.mobile || '',
-            email: invoice?.email || '',
-            gstNumber: invoice?.gstNumber || '',
-            billingAddress: invoice?.billingAddress || '',
-            shippingAddress: invoice?.shippingAddress || '',
-            invoiceNumber: invoice?.invoiceNumber || 'AUTO',
-            invoiceDate: this.dateInput(invoice?.invoiceDate) || this.today(),
-            dueDate: this.dateInput(invoice?.dueDate) || this.afterDays(15),
-            invoiceType: invoice?.invoiceType || 'tax-invoice',
-            invoiceTypeOther: invoice?.invoiceTypeOther || '',
-            shipment: invoice?.shipmentNumber || '',
-            shipmentOther: '',
-            customerReference: invoice?.customerReference || '',
-            placeOfSupply: invoice?.placeOfSupply || '',
-            currency: invoice?.currency || 'INR',
-            currencyOther: '',
-            reverseCharge: invoice?.reverseCharge || 'no',
-            discountType: invoice?.discountType || 'amount',
-            overallDiscount: Number(invoice?.overallDiscount || 0),
-            roundOff: Number(invoice?.roundOff || 0),
-            paymentStatus: invoice?.paymentStatus || 'unpaid',
-            paymentStatusOther: invoice?.paymentStatusOther || '',
-            paymentMode: invoice?.paymentMode || '',
-            paymentModeOther: invoice?.paymentModeOther || '',
-            paymentReference: invoice?.paymentReference || '',
-            paymentDate: this.dateInput(invoice?.paymentDate),
-            amountReceived: Number(invoice?.amountReceived || 0),
-            bankName: invoice?.bankDetails?.bankName || '',
-            accountName: invoice?.bankDetails?.accountName || '',
-            accountNumber: invoice?.bankDetails?.accountNumber || '',
-            ifscCode: invoice?.bankDetails?.ifscCode || '',
-            branchName: invoice?.bankDetails?.branchName || '',
-            termsAndConditions: invoice?.termsAndConditions || '',
-            remarks: invoice?.remarks || ''
-          };
-          this.invoiceCopyUrl = invoice?.invoiceCopy?.fileUrl || '';
-          this.invoiceCopyName = invoice?.invoiceCopy?.originalName || '';
-
-          this.items = Array.isArray(invoice?.items) && invoice.items.length
-            ? invoice.items.map((item: any) => ({
-                itemId: item?.productServiceId || '',
-                description: item?.productServiceId || 'other',
-                descriptionOther: item?.description || '',
-                hsnSac: item?.hsnSac || '',
-                quantity: Number(item?.quantity || 1),
-                unit: item?.unit || 'service',
-                unitOther: item?.unitOther || '',
-                rate: Number(item?.rate || 0),
-                discount: Number(item?.discount || 0),
-                gstRate: String(item?.gstRate ?? '18'),
-                gstRateOther: ''
-              }))
-            : [this.emptyItem()];
-
-          this.additionalCharges = Array.isArray(invoice?.additionalCharges)
-            ? invoice.additionalCharges.map((charge: any) => ({
-                description: 'other',
-                descriptionOther: charge?.description || '',
-                amount: Number(charge?.amount || 0),
-                taxable: charge?.taxable === false ? 'no' : 'yes'
-              }))
-            : [];
-        },
-        error: (error: any) => this.setError(error?.error?.message || 'Unable to load invoice.')
+        next: invoice => this.populateInvoice(invoice, invoiceId),
+        error: (error: any) => {
+          this.invoiceLoadFailed.set(true);
+          this.setError(error?.error?.message || 'Unable to load invoice.');
+        }
       });
+  }
+
+  private populateInvoice(invoice: any, invoiceId: string): void {
+    this.editHistory = invoice?.editHistory || [];
+  this.form = {
+    ...this.emptyForm(),
+    invoiceId: invoice?._id || invoiceId,
+    customer: invoice?.customerId || 'other',
+    customerOther: invoice?.customerName || '',
+    contactPerson: invoice?.contactPerson || '',
+    mobile: invoice?.mobile || '',
+    email: invoice?.email || '',
+    gstNumber: invoice?.gstNumber || '',
+    billingAddress: invoice?.billingAddress || '',
+    shippingAddress: invoice?.shippingAddress || '',
+    invoiceNumber: invoice?.invoiceNumber || 'AUTO',
+    invoiceDate: this.dateInput(invoice?.invoiceDate) || this.today(),
+    dueDate: this.dateInput(invoice?.dueDate) || this.afterDays(15),
+    invoiceType: invoice?.invoiceType || 'tax-invoice',
+    invoiceTypeOther: invoice?.invoiceTypeOther || '',
+    shipment: invoice?.shipmentNumber || '',
+    shipmentOther: '',
+    customerReference: invoice?.customerReference || '',
+    placeOfSupply: invoice?.placeOfSupply || '',
+    currency: invoice?.currency || 'INR',
+    currencyOther: '',
+    reverseCharge: invoice?.reverseCharge || 'no',
+    discountType: invoice?.discountType || 'amount',
+    overallDiscount: Number(invoice?.overallDiscount || 0),
+    roundOff: Number(invoice?.roundOff || 0),
+    paymentStatus: invoice?.paymentStatus || 'unpaid',
+    paymentStatusOther: invoice?.paymentStatusOther || '',
+    paymentMode: invoice?.paymentMode || '',
+    paymentModeOther: invoice?.paymentModeOther || '',
+    paymentReference: invoice?.paymentReference || '',
+    paymentDate: this.dateInput(invoice?.paymentDate),
+    amountReceived: Number(invoice?.amountReceived || 0),
+    bankName: invoice?.bankDetails?.bankName || '',
+    accountName: invoice?.bankDetails?.accountName || '',
+    accountNumber: invoice?.bankDetails?.accountNumber || '',
+    ifscCode: invoice?.bankDetails?.ifscCode || '',
+    branchName: invoice?.bankDetails?.branchName || '',
+    termsAndConditions: invoice?.termsAndConditions || '',
+    remarks: invoice?.remarks || ''
+  };
+  this.invoiceCopyUrl = invoice?.invoiceCopy?.fileUrl || '';
+  this.invoiceCopyName = invoice?.invoiceCopy?.originalName || '';
+
+  this.items = Array.isArray(invoice?.items) && invoice.items.length
+    ? invoice.items.map((item: any) => ({
+        itemId: item?.productServiceId || '',
+        description: item?.productServiceId || 'other',
+        descriptionOther: item?.description || '',
+        hsnSac: item?.hsnSac || '',
+        quantity: Number(item?.quantity || 1),
+        unit: item?.unit || 'service',
+        unitOther: item?.unitOther || '',
+        rate: Number(item?.rate || 0),
+        discount: Number(item?.discount || 0),
+        gstRate: String(item?.gstRate ?? '18'),
+        gstRateOther: ''
+      }))
+    : [this.emptyItem()];
+
+  this.additionalCharges = Array.isArray(invoice?.additionalCharges)
+    ? invoice.additionalCharges.map((charge: any) => ({
+        description: 'other',
+        descriptionOther: charge?.description || '',
+        amount: Number(charge?.amount || 0),
+        taxable: charge?.taxable === false ? 'no' : 'yes'
+      }))
+    : [];
+    // Seed selected references so the form can be displayed and saved before lookups finish.
+    if (invoice.customerId && !this.customerRecords.some(x => x._id === invoice.customerId)) {
+      this.customerRecords.push({ _id: invoice.customerId, customerName: invoice.customerName });
+      this.customers.unshift({ value: invoice.customerId, label: invoice.customerName || 'Customer' });
+    }
+    if (invoice.shipmentNumber && !this.shipmentRecords.some(x => x.shipmentNumber === invoice.shipmentNumber)) {
+      this.shipmentRecords.push({ _id: invoice.shipmentId, shipmentNumber: invoice.shipmentNumber });
+      this.shipmentOptions.unshift({ value: invoice.shipmentNumber, label: invoice.shipmentNumber });
+    }
+    for (const item of invoice.items || []) {
+      if (item.productServiceId && !this.serviceOptions.some(x => x.value === item.productServiceId)) {
+        this.serviceOptions.unshift({ value: item.productServiceId, label: item.description || 'Item' });
+      }
+    }
   }
 
   private dateInput(value: unknown): string {
@@ -588,7 +623,8 @@ export class LogisticsInvoiceNewComponent implements OnInit {
   private loadCustomers(): void {
     this.api.get<PageResult<CustomerRow>>('/logistics/customers', { page: 1, limit: 100, status: 'active' })
       .subscribe({ next: r => {
-        this.customerRecords = this.extractRows<CustomerRow>(r);
+        const rows = this.extractRows<CustomerRow>(r);
+        this.customerRecords = [...rows, ...this.customerRecords.filter(x => !rows.some(row => row._id === x._id))];
         this.customers = [
           ...this.customerRecords.filter(x => x._id).map(x => ({
             label: x.customerName || x.companyName || 'Customer', value: x._id!
@@ -600,7 +636,8 @@ export class LogisticsInvoiceNewComponent implements OnInit {
   private loadShipments(): void {
     this.api.get<PageResult<ShipmentRow>>('/logistics/shipments', { page: 1, limit: 100, sortBy: 'createdAt', sortOrder: 'desc' })
       .subscribe({ next: r => {
-        this.shipmentRecords = this.extractRows<ShipmentRow>(r);
+        const rows = this.extractRows<ShipmentRow>(r);
+        this.shipmentRecords = [...rows, ...this.shipmentRecords.filter(x => !rows.some(row => row.shipmentNumber === x.shipmentNumber))];
         this.shipmentOptions = [
           ...this.shipmentRecords.filter(x => x.shipmentNumber).map(x => ({
             label: this.shipmentLabel(x), value: x.shipmentNumber!
@@ -616,7 +653,7 @@ export class LogisticsInvoiceNewComponent implements OnInit {
         this.serviceOptions = [
           ...this.itemRecords.filter(x => x._id).map(x => ({
             label: `${x.name || x.itemCode || 'Item'}${x.itemType ? ` (${x.itemType})` : ''}`, value: x._id!
-          })), ...this.serviceOptions.filter(x => x.value.startsWith('preset:') || x.value === 'other')
+          })), ...this.serviceOptions.filter(x => !this.itemRecords.some(row => row._id === x.value))
         ];
       }});
   }

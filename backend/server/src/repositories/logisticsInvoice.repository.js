@@ -18,7 +18,7 @@ class LogisticsInvoiceRepository {
     const skip=(page-1)*limit; const [data,total]=await Promise.all([LogisticsInvoice.find(f).sort({[sortBy]:sortOrder==="asc"?1:-1}).skip(skip).limit(limit).lean(),LogisticsInvoice.countDocuments(f)]);
     return {data,pagination:{page,limit,total,totalPages:Math.ceil(total/limit)}};
   }
-  update({companyId,invoiceId,payload}){ return LogisticsInvoice.findOneAndUpdate({_id:invoiceId,companyId,isActive:{ $ne:false }},{$set:payload},{new:true,runValidators:true}).lean(); }
+  update({companyId,invoiceId,payload,auditEntry}){ return LogisticsInvoice.findOneAndUpdate({_id:invoiceId,companyId,isActive:{ $ne:false }},{$set:payload,...(auditEntry?{$push:{editHistory:auditEntry}}:{})},{new:true,runValidators:true}).lean(); }
   updateInvoiceCopy({companyId,invoiceId,invoiceCopy,updatedBy}){ return LogisticsInvoice.findOneAndUpdate({_id:invoiceId,companyId,isActive:{ $ne:false }},{$set:{invoiceCopy,updatedBy}},{new:true,runValidators:true}).lean(); }
   softDelete({companyId,invoiceId,userId}){ return LogisticsInvoice.findOneAndUpdate({_id:invoiceId,companyId,isActive:{ $ne:false }},{$set:{isActive:false,updatedBy:userId}},{new:true}).lean(); }
   summary(companyId){ return LogisticsInvoice.aggregate([{$match:{companyId,isActive:{ $ne:false }}},{$group:{_id:null,totalInvoices:{$sum:1},totalBilled:{$sum:"$invoiceTotal"},totalReceived:{$sum:"$amountReceived"},totalOutstanding:{$sum:"$balanceDue"},draft:{$sum:{$cond:[{$eq:["$status","draft"]},1,0]}},issued:{$sum:{$cond:[{$eq:["$status","issued"]},1,0]}}}}]); }

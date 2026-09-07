@@ -15,7 +15,15 @@ class LogisticsInvoiceService {
   async create({companyId,userId,employeeId,payload}){ const data=this.calculate(payload); if(data.status==="issued"&&!data.items.length) throw new ApiError(400,"At least one invoice item is required"); return repo.create({...data,companyId,invoiceNumber:await this.number(companyId),createdBy:userId,createdByEmployeeId:employeeId,updatedBy:userId}); }
   async list({companyId,query}){ return repo.paginate({companyId,...query}); }
   async get({companyId,invoiceId}){ this.assertId(invoiceId); const x=await repo.findById({companyId,invoiceId}); if(!x) throw new ApiError(404,"Logistics invoice not found"); return x; }
-  async update({companyId,invoiceId,userId,payload}){ const old=await this.get({companyId,invoiceId}); const data=this.calculate({...old,...payload,items:payload.items||old.items,additionalCharges:payload.additionalCharges||old.additionalCharges}); const x=await repo.update({companyId,invoiceId,payload:{...data,updatedBy:userId,_id:undefined,companyId:undefined,invoiceNumber:undefined,createdAt:undefined,createdBy:undefined}}); if(!x) throw new ApiError(404,"Logistics invoice not found"); return x; }
+  async update({companyId,invoiceId,userId,userName="",payload}){
+    const old=await this.get({companyId,invoiceId});
+    const data=this.calculate({...old,...payload,items:payload.items||old.items,additionalCharges:payload.additionalCharges||old.additionalCharges});
+    delete data.editHistory;
+    const auditEntry={changedBy:userId,changedByName:userName,changedAt:new Date()};
+    const x=await repo.update({companyId,invoiceId,auditEntry,payload:{...data,updatedBy:userId,_id:undefined,companyId:undefined,invoiceNumber:undefined,createdAt:undefined,createdBy:undefined}});
+    if(!x) throw new ApiError(404,"Logistics invoice not found");
+    return x;
+  }
   async attachInvoiceCopy({companyId,invoiceId,userId,file}){ await this.get({companyId,invoiceId}); if(!file) throw new ApiError(400,"Invoice copy file is required"); const invoiceCopy={fileName:file.filename,originalName:file.originalname,filePath:file.path,fileUrl:`/uploads/logistics-documents/${file.filename}`,mimeType:file.mimetype,fileSize:file.size,uploadedAt:new Date(),uploadedBy:userId}; const x=await repo.updateInvoiceCopy({companyId,invoiceId,invoiceCopy,updatedBy:userId}); if(!x) throw new ApiError(404,"Logistics invoice not found"); return x; }
   async remove({companyId,invoiceId,userId}){ await this.get({companyId,invoiceId}); return repo.softDelete({companyId,invoiceId,userId}); }
   async summary(companyId){ const [x]=await repo.summary(new mongoose.Types.ObjectId(String(companyId))); return x||{totalInvoices:0,totalBilled:0,totalReceived:0,totalOutstanding:0,draft:0,issued:0}; }

@@ -189,6 +189,7 @@ class LogisticsVendorPaymentRepository {
     companyId,
     paymentId,
     payload,
+    auditEntry,
   }) {
     return LogisticsVendorPayment
       .findOneAndUpdate(
@@ -198,6 +199,7 @@ class LogisticsVendorPaymentRepository {
           isActive: { $ne: false },
         },
         {
+          ...(auditEntry ? { $push: { editHistory: auditEntry } } : {}),
           $set:
             payload,
         },

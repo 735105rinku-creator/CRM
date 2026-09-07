@@ -1536,12 +1536,12 @@
      ACTIVITY
   ============================================================ */
   
-  .activity-list {
+  .operations-list {
     display: grid;
     gap: 11px;
   }
   
-  .activity-list article {
+  .operations-list article {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
@@ -1588,18 +1588,18 @@
     color: #6f5397;
   }
   
-  .activity-list strong,
-  .activity-list small {
+  .operations-list strong,
+  .operations-list small {
     display: block;
   }
   
-  .activity-list strong {
+  .operations-list strong {
     color: var(--luxury-navy-900);
   
     font-size: 0.67rem;
   }
   
-  .activity-list small {
+  .operations-list small {
     margin-top: 3px;
   
     color: #8b97a5;
@@ -1607,7 +1607,7 @@
     font-size: 0.59rem;
   }
   
-  .activity-list b {
+  .operations-list b {
     color: var(--luxury-gold-700);
   
     font-family: Georgia, "Times New Roman", serif;
@@ -2201,100 +2201,78 @@
   text-align: center;
 }
 
+/* Keep operation cards independent of the global horizontal-list flex sizing. */
 .logistics-dashboard-page .activity-card {
   align-self: start;
   min-height: 0;
-  padding: 18px;
-  overflow: hidden;
-  background: #edf3f9;
-  border: 1px solid rgba(205, 219, 234, 0.9);
-  border-radius: 18px;
-  box-shadow:
-    10px 10px 24px rgba(151, 164, 181, 0.18),
-    -10px -10px 24px rgba(255, 255, 255, 0.82);
+  padding: 16px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
 }
 
 .logistics-dashboard-page .activity-card .section-heading {
   margin-bottom: 12px;
 }
 
-.logistics-dashboard-page .activity-card .activity-list {
-  width: 100%;
-  max-width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  overflow: visible;
+.logistics-dashboard-page .activity-card .operations-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  align-items: start;
+  gap: 12px;
   padding: 0;
 }
 
-.logistics-dashboard-page .activity-card .activity-list article {
-  width: 100%;
+.logistics-dashboard-page .activity-card .operations-list article {
   min-width: 0;
-  max-width: 100%;
-  min-height: 52px;
-  flex: 0 0 auto;
+  min-height: 76px;
   display: grid;
   grid-template-columns: 32px minmax(0, 1fr) auto;
   align-items: center;
   gap: 10px;
-  padding: 9px 11px;
-  border: 1px solid rgba(209, 222, 236, 0.92);
-  border-radius: 14px;
-  background: #eef4fa;
-  box-shadow:
-    6px 6px 14px rgba(151, 164, 181, 0.15),
-    -6px -6px 14px rgba(255, 255, 255, 0.86);
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+  box-shadow: none;
 }
 
-.logistics-dashboard-page .activity-card .activity-list article:hover {
-  box-shadow:
-    inset 4px 4px 10px rgba(151, 164, 181, 0.14),
-    inset -4px -4px 10px rgba(255, 255, 255, 0.92);
-}
-
-.logistics-dashboard-page .activity-card .activity-list article > div {
+.logistics-dashboard-page .activity-card .operations-list article > div {
   min-width: 0;
 }
 
 .logistics-dashboard-page .activity-card .activity-icon {
   width: 32px;
   height: 32px;
-  border-radius: 10px;
-  box-shadow:
-    4px 4px 10px rgba(151, 164, 181, 0.17),
-    -4px -4px 10px rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  box-shadow: none;
 }
 
-.logistics-dashboard-page .activity-card .activity-list strong {
-  overflow: hidden;
-  color: #14243a;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 0.72rem;
-  line-height: 1.15;
+.logistics-dashboard-page .activity-card .operations-list strong {
+  color: #1e293b;
+  font-size: 0.8125rem;
+  line-height: 1.4;
 }
 
-.logistics-dashboard-page .activity-card .activity-list small {
-  margin-top: 2px;
-  overflow: hidden;
-  color: #738397;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 0.6rem;
-  line-height: 1.1;
+.logistics-dashboard-page .activity-card .operations-list small {
+  margin-top: 3px;
+  color: #64748b;
+  font-size: 0.75rem;
+  line-height: 1.4;
 }
 
-.logistics-dashboard-page .activity-card .activity-list b {
+.logistics-dashboard-page .activity-card .operations-list b {
   min-width: 24px;
-  color: #9b743c;
+  color: #334155;
   text-align: right;
-  font-size: 0.95rem;
+  font-family: inherit;
+  font-size: 1.125rem;
+  font-variant-numeric: tabular-nums;
 }
 
-.logistics-dashboard-page .activity-card .activity-list strong,
-.logistics-dashboard-page .activity-card .activity-list small {
-  max-width: 100%;
+.logistics-dashboard-page .activity-card .operations-list strong,
+.logistics-dashboard-page .activity-card .operations-list small {
   overflow-wrap: anywhere;
 }
 
@@ -2335,3 +2313,40 @@
   max-width: 100%;
 }
 
+
+/* Consistent, compact dashboard surfaces. */
+.logistics-dashboard-page {
+  .section-card,
+  .metric-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  }
+
+  .section-card { padding: 16px; }
+  .section-heading { margin-bottom: 12px; }
+  .section-heading h3,
+  .topbar-title h1,
+  .dashboard-hero h2 { font-family: inherit; }
+  .section-heading h3 { font-weight: 600; }
+  .dashboard-hero {
+    min-height: 148px;
+    padding: 22px;
+    border-radius: 12px;
+    box-shadow: none;
+  }
+  .dashboard-hero h2 { font-size: clamp(1.25rem, 2vw, 1.75rem); }
+  .metric-card { min-height: 104px; padding: 16px; }
+  .quick-action-grid button {
+    min-height: 88px;
+    border-radius: 8px;
+    box-shadow: none;
+  }
+  .payment-summary-row article {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: none;
+  }
+}

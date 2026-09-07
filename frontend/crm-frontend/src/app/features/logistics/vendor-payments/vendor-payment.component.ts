@@ -55,7 +55,10 @@ interface PaymentProof {
    VENDOR PAYMENT ROW
 ============================================================ */
 
+interface EditAuditEntry { changedBy?: string; changedByName?: string; changedAt?: string; }
+
 interface VendorPaymentRow {
+  editHistory?: EditAuditEntry[];
   id: number | string;
   _id?: string;
 
@@ -110,6 +113,9 @@ export class VendorPaymentComponent implements OnInit {
      Add `#fileInput` on the file input element in the template:
        <input type="file" #fileInput (change)="onPaymentProofSelected($event)">
   ============================================================ */
+
+  @ViewChild('paymentForm')
+  private paymentFormRef?: ElementRef<HTMLElement>;
 
   @ViewChild('fileInput')
   private fileInputRef?: ElementRef<HTMLInputElement>;
@@ -278,6 +284,7 @@ export class VendorPaymentComponent implements OnInit {
             value: String(row._id)
           }));
 
+          this.ensureSelectedVendor();
           if (!this.vendors.length) {
             this.vendorLoadError.set(
               'No active vendors found. Please add an active vendor in Vendor Master first.'
@@ -690,7 +697,9 @@ export class VendorPaymentComponent implements OnInit {
   ============================================================ */
 
   protected editPayment(payment: VendorPaymentRow): void {
+    if (!payment._id) return;
     this.form = { ...payment };
+    this.ensureSelectedVendor();
 
     this.editingPaymentId.set(payment._id ? String(payment._id) : null);
 
@@ -705,7 +714,7 @@ export class VendorPaymentComponent implements OnInit {
       this.fileInputRef.nativeElement.value = '';
     }
 
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.paymentFormRef?.nativeElement.scrollIntoView({ block: 'start', behavior: 'instant' });
   }
 
   /* ============================================================
@@ -714,52 +723,19 @@ export class VendorPaymentComponent implements OnInit {
      Lets the user back out of edit mode without saving.
   ============================================================ */
 
+  private ensureSelectedVendor(): void {
+    if (!this.form._id || !this.form.vendor) return;
+    if (!this.vendorRecords.some(x => x._id === this.form.vendor)) {
+      this.vendorRecords.push({ _id: this.form.vendor, vendorName: this.form.vendorOther });
+    }
+    if (!this.vendors.some(x => x.value === this.form.vendor)) {
+      this.vendors = [{ value: this.form.vendor, label: this.form.vendorOther || 'Vendor' }, ...this.vendors];
+    }
+  }
+
   protected cancelEdit(): void {
     this.resetForm();
   }
-
-  /* ============================================================
-     DELETE PAYMENT
-  ============================================================ */
-
-  protected deletePayment(payment: VendorPaymentRow): void {
-    const confirmed = window.confirm(`Delete vendor payment ${payment.vendorInvoiceNo}?`);
-
-    if (!confirmed) {
-      return;
-    }
-
-    if (payment._id) {
-      this.api.delete(`/logistics/vendor-payments/${payment._id}`).subscribe({
-        next: () => {
-          /*
-           * If the deleted row was being edited, drop out of edit mode
-           * so Save doesn't try to PATCH a record that no longer exists.
-           */
-          if (this.editingPaymentId() === String(payment._id)) {
-            this.resetForm();
-          }
-
-          this.loadPayments();
-          window.alert('Vendor payment deleted successfully.');
-        },
-
-        error: (error: any) => {
-          window.alert(error?.error?.message || 'Unable to delete vendor payment.');
-        }
-      });
-
-      return;
-    }
-
-    this.payments.update((current) => current.filter((item) => item.id !== payment.id));
-  }
-
-  /* ============================================================
-     VIEW PAYMENT
-
-     Existing behavior preserved.
-  ============================================================ */
 
   protected viewPayment(payment: VendorPaymentRow): void {
     console.log('View vendor payment', payment);
@@ -969,6 +945,7 @@ export class VendorPaymentComponent implements OnInit {
   private normalizePayments(rows: any[]): VendorPaymentRow[] {
     return rows.map((row, index) => ({
       _id: row._id,
+      editHistory: row.editHistory || [],
 
       id: row._id || index + 1,
 
@@ -982,7 +959,7 @@ export class VendorPaymentComponent implements OnInit {
       vendor: row.vendorId?._id || row.vendorId || '',
 
       vendorOther:
-        row.vendorName || row.vendorId?.vendorName || row.vendorId?.companyName || '',
+        row.vendorName || row.vendorId?.vendorName || row.vendorId?.companyName || row.vendor || '',
 
       exportInvoiceNo: row.exportInvoiceNo || row.shipmentNumber || '',
 

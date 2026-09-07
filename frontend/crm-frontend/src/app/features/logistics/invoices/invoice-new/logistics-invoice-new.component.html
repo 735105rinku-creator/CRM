@@ -1,4 +1,22 @@
+@if (isLoadingInvoice()) {
+  <p role="status">Loading invoice?</p>
+} @else if (invoiceLoadFailed()) {
+  <p role="alert">{{ errorMessage() }}</p>
+} @else {
 <div class="invoice-page">
+      @if (editHistory?.length) {
+        <div class="edit-audit" role="note">
+          <span>Edited by: {{ editHistory![editHistory!.length - 1].changedByName || editHistory![editHistory!.length - 1].changedBy || 'Unknown user' }}</span>
+          <span>Edited on: {{ editHistory![editHistory!.length - 1].changedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+          <details>
+            <summary>Edit history</summary>
+            @for (entry of editHistory; track $index) {
+              <div>{{ entry.changedByName || entry.changedBy || 'Unknown user' }} ? {{ entry.changedAt | date:'dd/MM/yyyy HH:mm' }}</div>
+            }
+          </details>
+        </div>
+      }
+
 
     <!-- ======================================================
          HEADER
@@ -1925,3 +1943,5 @@
     </div>
   
   </div>
+
+}

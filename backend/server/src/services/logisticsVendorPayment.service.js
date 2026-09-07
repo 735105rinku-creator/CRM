@@ -408,6 +408,7 @@ class LogisticsVendorPaymentService {
     companyId,
     paymentId,
     userId = null,
+    userName = "",
     payload,
     paymentProof = undefined,
   }) {
@@ -428,6 +429,9 @@ class LogisticsVendorPaymentService {
         userId,
     };
 
+
+    delete update.editHistory;
+    delete update.paymentHistory;
 
     /*
      * OPTIONAL PAYMENT PROOF
@@ -686,6 +690,7 @@ class LogisticsVendorPaymentService {
     const record =
       await logisticsVendorPaymentRepository
         .updateById({
+          auditEntry: { changedBy: userId, changedByName: userName, changedAt: new Date() },
           companyId,
 
           paymentId,

@@ -928,6 +928,16 @@ const logisticsInvoiceSchema =
           null,
       },
 
+    // Append-only edit attribution, following Logistics embedded history conventions.
+    editHistory: {
+      type: [new mongoose.Schema({
+        changedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+        changedByName: { type: String, default: "" },
+        changedAt: { type: Date, default: Date.now },
+      }, { _id: false })],
+      default: [],
+    },
+
       updatedBy: {
         type:
           mongoose.Schema.Types.ObjectId,

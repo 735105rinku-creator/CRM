@@ -823,6 +823,7 @@ export const updateLogisticsVendorPayment =
               null,
 
 
+            userName: req.user?.name || "",
             payload,
 
 

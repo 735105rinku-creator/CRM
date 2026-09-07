@@ -1,12 +1,17 @@
-﻿import { CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 
+import { AuthService } from '../../../../core/auth/auth.service';
+
 import { ApiService } from '../../../../core/services/api.service';
 
+interface EditAuditEntry { changedBy?: string; changedByName?: string; changedAt?: string; }
+
 interface InvoiceRow {
+  editHistory?: EditAuditEntry[];
   _id?: string;
   invoiceNumber?: string;
   customerName?: string;
@@ -55,11 +60,11 @@ interface InvoiceSummary {
 export class LogisticsInvoiceListComponent implements OnInit {
   private readonly api = inject(ApiService);
   private readonly router = inject(Router);
+  private readonly auth = inject(AuthService);
 
   protected readonly invoices = signal<InvoiceRow[]>([]);
   protected readonly summary = signal<InvoiceSummary>({});
   protected readonly isLoading = signal(false);
-  protected readonly isDeleting = signal(false);
   protected readonly message = signal('');
   protected readonly errorMessage = signal('');
 
@@ -151,7 +156,7 @@ export class LogisticsInvoiceListComponent implements OnInit {
 
   protected editInvoice(invoice: InvoiceRow): void {
     if (!invoice._id) return;
-    void this.router.navigate(['/logistics/invoices/new'], { queryParams: { invoiceId: invoice._id } });
+    void this.router.navigate(['/logistics/invoices/new'], { queryParams: { invoiceId: invoice._id }, info: { invoice, editContext: JSON.stringify(this.auth.currentUser()) } });
   }
 
   protected viewInvoice(invoice: InvoiceRow): void {
@@ -168,32 +173,6 @@ export class LogisticsInvoiceListComponent implements OnInit {
     ].join('\n');
 
     window.alert(text);
-  }
-
-  protected deleteInvoice(invoice: InvoiceRow): void {
-    if (!invoice._id || this.isDeleting()) return;
-    if (!window.confirm(`Delete invoice ${invoice.invoiceNumber || ''}?`)) return;
-
-    this.isDeleting.set(true);
-    this.message.set('');
-    this.errorMessage.set('');
-
-    this.api.delete(`/logistics/invoices/${invoice._id}`)
-      .pipe(finalize(() => this.isDeleting.set(false)))
-      .subscribe({
-        next: () => {
-          this.message.set(`Invoice ${invoice.invoiceNumber || ''} deleted successfully.`);
-          this.loadSummary();
-          this.loadInvoices();
-        },
-        error: (error: { error?: { message?: string; errors?: Array<{ message?: string }> } }) => {
-          this.errorMessage.set(
-            error?.error?.message ||
-            error?.error?.errors?.[0]?.message ||
-            'Unable to delete invoice.'
-          );
-        }
-      });
   }
 
   protected exportInvoices(): void {
