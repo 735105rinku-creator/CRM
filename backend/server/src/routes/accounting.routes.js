@@ -37,6 +37,9 @@ import cashBankBookRoutes
 import outstandingRoutes
   from "./outstanding.routes.js";
 
+import gstReportRoutes
+  from "./gstReport.routes.js";
+
 const router = Router();
 router.use(requireAuth);
 router.use(requireTenant);
@@ -126,6 +129,11 @@ router.use(
 router.use(
   "/outstanding",
   outstandingRoutes
+);
+
+router.use(
+  "/gst-report",
+  gstReportRoutes
 );
 
 router.use(
