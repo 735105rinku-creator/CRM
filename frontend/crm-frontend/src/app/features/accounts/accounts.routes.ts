@@ -75,10 +75,10 @@ export const ACCOUNTS_ROUTES: Routes = [
 
         loadComponent: () =>
           import(
-            './pages/placeholder/accounts-placeholder.component'
+            './pages/vendors/vendors.component'
           ).then(
             (module) =>
-              module.AccountsPlaceholderComponent
+              module.VendorsComponent
           ),
 
         data: {

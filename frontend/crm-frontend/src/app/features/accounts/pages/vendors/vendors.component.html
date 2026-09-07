@@ -1,0 +1,495 @@
+<section class="vendors-page">
+
+  <div class="page-header">
+    <div class="page-heading">
+      <span class="eyebrow">
+        Accounts Payable Master
+      </span>
+
+      <h1>Vendors</h1>
+
+      <p>
+        Manage vendor accounting ledgers, opening balances
+        and active or inactive status.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="primary-button"
+      (click)="openCreateForm()"
+    >
+      + Add Vendor
+    </button>
+  </div>
+
+
+  @if (errorMessage()) {
+    <div class="message error-message">
+      <span>{{ errorMessage() }}</span>
+
+      <button
+        type="button"
+        aria-label="Close error message"
+        (click)="clearMessages()"
+      >
+        &times;
+      </button>
+    </div>
+  }
+
+
+  @if (successMessage()) {
+    <div class="message success-message">
+      <span>{{ successMessage() }}</span>
+
+      <button
+        type="button"
+        aria-label="Close success message"
+        (click)="clearMessages()"
+      >
+        &times;
+      </button>
+    </div>
+  }
+
+
+  <div class="summary-grid">
+
+    <article class="summary-card">
+      <span>Total Vendors</span>
+      <strong>{{ totalVendors() }}</strong>
+    </article>
+
+    <article class="summary-card">
+      <span>Active</span>
+      <strong>{{ activeVendors() }}</strong>
+    </article>
+
+    <article class="summary-card">
+      <span>Inactive</span>
+      <strong>{{ inactiveVendors() }}</strong>
+    </article>
+
+    <article class="summary-card">
+      <span>Payable Balance</span>
+      <strong>
+        {{
+          totalPayable()
+            | currency:'INR':'symbol':'1.2-2'
+        }}
+      </strong>
+    </article>
+
+  </div>
+
+
+  <div class="filter-card">
+
+    <div class="filter-field search-field">
+      <label for="vendorSearch">
+        Search
+      </label>
+
+      <input
+        id="vendorSearch"
+        type="search"
+        placeholder="Account code, vendor name or description"
+        [value]="searchText()"
+        (input)="onSearch($event)"
+      />
+    </div>
+
+
+    <div class="filter-field">
+      <label for="vendorStatus">
+        Status
+      </label>
+
+      <select
+        id="vendorStatus"
+        [value]="selectedStatus()"
+        (change)="onStatusFilter($event)"
+      >
+        <option value="all">
+          All Statuses
+        </option>
+
+        <option value="active">
+          Active
+        </option>
+
+        <option value="inactive">
+          Inactive
+        </option>
+      </select>
+    </div>
+
+  </div>
+
+
+  <div class="table-card">
+
+    @if (loading()) {
+
+      <div class="state-card">
+        Loading vendors...
+      </div>
+
+    } @else if (
+      filteredVendors().length === 0
+    ) {
+
+      <div class="state-card">
+        No vendors found.
+      </div>
+
+    } @else {
+
+      <div class="table-wrap">
+
+        <table>
+
+          <thead>
+            <tr>
+              <th>Account Code</th>
+              <th>Vendor</th>
+              <th>Opening Balance</th>
+              <th>Current Balance</th>
+              <th>Status</th>
+              <th class="actions-column">
+                Actions
+              </th>
+            </tr>
+          </thead>
+
+          <tbody>
+
+            @for (
+              vendor of filteredVendors();
+              track trackVendor($index, vendor)
+            ) {
+
+              <tr>
+
+                <td>
+                  <span class="account-code">
+                    {{ vendor.accountCode }}
+                  </span>
+                </td>
+
+                <td>
+                  <div class="vendor-name">
+                    <strong>
+                      {{ vendor.accountName }}
+                    </strong>
+
+                    @if (vendor.description) {
+                      <small>
+                        {{ vendor.description }}
+                      </small>
+                    }
+                  </div>
+                </td>
+
+                <td>
+                  {{
+                    vendor.openingBalance || 0
+                      | currency:'INR':'symbol':'1.2-2'
+                  }}
+
+                  <small class="balance-type">
+                    {{
+                      vendor.openingBalanceType ||
+                      'debit'
+                    }}
+                  </small>
+                </td>
+
+                <td>
+                  {{
+                    vendor.currentBalance || 0
+                      | currency:'INR':'symbol':'1.2-2'
+                  }}
+                </td>
+
+                <td>
+                  <span
+                    class="status-badge"
+                    [class.active]="
+                      vendor.status === 'active'
+                    "
+                    [class.inactive]="
+                      vendor.status === 'inactive'
+                    "
+                  >
+                    {{
+                      vendor.status === 'active'
+                        ? 'Active'
+                        : 'Inactive'
+                    }}
+                  </span>
+                </td>
+
+                <td class="actions">
+
+                  <button
+                    type="button"
+                    class="table-button"
+                    (click)="openEditForm(vendor)"
+                  >
+                    Edit
+                  </button>
+
+                  <button
+                    type="button"
+                    class="table-button status-button"
+                    [disabled]="saving()"
+                    (click)="toggleStatus(vendor)"
+                  >
+                    {{
+                      vendor.status === 'active'
+                        ? 'Deactivate'
+                        : 'Activate'
+                    }}
+                  </button>
+
+                </td>
+
+              </tr>
+            }
+
+          </tbody>
+
+        </table>
+
+      </div>
+    }
+
+  </div>
+
+
+  @if (formOpen()) {
+
+    <div
+      class="modal-backdrop"
+      (click)="closeForm()"
+    >
+
+      <section
+        class="form-panel"
+        (click)="$event.stopPropagation()"
+      >
+
+        <div class="form-header">
+
+          <div>
+            <span class="eyebrow">
+              Vendor Master
+            </span>
+
+            <h2>
+              {{
+                editingVendor()
+                  ? 'Edit Vendor'
+                  : 'Add Vendor'
+              }}
+            </h2>
+          </div>
+
+          <button
+            type="button"
+            class="close-button"
+            aria-label="Close vendor form"
+            (click)="closeForm()"
+          >
+            &times;
+          </button>
+
+        </div>
+
+
+        <form
+          [formGroup]="vendorForm"
+          (ngSubmit)="saveVendor()"
+        >
+
+          <div class="form-grid">
+
+            <div class="form-field">
+
+              <label for="accountCode">
+                Account Code
+              </label>
+
+              <input
+                id="accountCode"
+                type="text"
+                formControlName="accountCode"
+                placeholder="e.g. VEND001"
+              />
+
+              @if (
+                vendorForm.controls.accountCode.touched &&
+                vendorForm.controls.accountCode.invalid
+              ) {
+                <small class="field-error">
+                  Account Code is required.
+                </small>
+              }
+
+            </div>
+
+
+            <div class="form-field">
+
+              <label for="accountName">
+                Vendor Name
+              </label>
+
+              <input
+                id="accountName"
+                type="text"
+                formControlName="accountName"
+                placeholder="Vendor name"
+              />
+
+              @if (
+                vendorForm.controls.accountName.touched &&
+                vendorForm.controls.accountName.invalid
+              ) {
+                <small class="field-error">
+                  Vendor name is required.
+                </small>
+              }
+
+            </div>
+
+
+            <div class="form-field">
+
+              <label for="openingBalance">
+                Opening Balance
+              </label>
+
+              <input
+                id="openingBalance"
+                type="number"
+                min="0"
+                step="0.01"
+                formControlName="openingBalance"
+              />
+
+            </div>
+
+
+            <div class="form-field">
+
+              <label for="openingBalanceType">
+                Opening Balance Type
+              </label>
+
+              <select
+                id="openingBalanceType"
+                formControlName="openingBalanceType"
+              >
+                <option value="debit">
+                  Debit
+                </option>
+
+                <option value="credit">
+                  Credit
+                </option>
+              </select>
+
+            </div>
+
+
+            <div class="form-field">
+
+              <label for="status">
+                Status
+              </label>
+
+              <select
+                id="status"
+                formControlName="status"
+              >
+                <option value="active">
+                  Active
+                </option>
+
+                <option value="inactive">
+                  Inactive
+                </option>
+              </select>
+
+            </div>
+
+
+            <div class="form-field full-width">
+
+              <label for="description">
+                Description
+              </label>
+
+              <textarea
+                id="description"
+                rows="3"
+                formControlName="description"
+                placeholder="Optional accounting note"
+              ></textarea>
+
+            </div>
+
+          </div>
+
+
+          @if (editingVendor()) {
+
+            <div class="immutable-note">
+              Account Code and Opening Balance are fixed
+              after vendor creation.
+            </div>
+
+          }
+
+
+          <div class="form-actions">
+
+            <button
+              type="button"
+              class="secondary-button"
+              [disabled]="saving()"
+              (click)="closeForm()"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              class="primary-button"
+              [disabled]="saving()"
+            >
+              {{
+                saving()
+                  ? 'Saving...'
+                  : (
+                      editingVendor()
+                        ? 'Update Vendor'
+                        : 'Create Vendor'
+                    )
+              }}
+            </button>
+
+          </div>
+
+        </form>
+
+      </section>
+
+    </div>
+
+  }
+
+</section>
