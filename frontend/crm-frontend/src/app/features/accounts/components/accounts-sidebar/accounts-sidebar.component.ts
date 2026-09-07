@@ -253,8 +253,8 @@ export class AccountsSidebarComponent {
 
         items: [
           {
-            label: 'GST & Tax',
-            route: '/accounts/tax',
+            label: 'GST Report',
+            route: '/accounts/gst-report',
             icon: 'tax'
           }
         ]

@@ -978,3 +978,68 @@ export interface OutstandingReport {
   receivables: OutstandingSection;
   payables: OutstandingSection;
 }
+
+/* =========================================================
+   GST REPORT
+========================================================= */
+
+export interface GstReportEntry {
+  voucherId: string;
+
+  voucherNumber: string;
+
+  voucherType: string;
+
+  voucherDate: string;
+
+  accountId: string;
+
+  accountCode: string;
+
+  accountName: string;
+
+  accountType: string;
+
+  accountStatus: AccountStatus;
+
+  debit: number;
+
+  credit: number;
+
+  taxAmount: number;
+}
+
+
+export interface GstTaxSection {
+  total: number;
+
+  entries: GstReportEntry[];
+}
+
+
+export type GstNetType =
+  | 'payable'
+  | 'receivable'
+  | 'settled';
+
+
+export interface GstNetResult {
+  amount: number;
+
+  type: GstNetType;
+}
+
+
+export interface GstReport {
+  companyId?: string;
+
+  from: string;
+
+  to: string;
+
+  outputTax: GstTaxSection;
+
+  inputTax: GstTaxSection;
+
+  netGst: GstNetResult;
+}

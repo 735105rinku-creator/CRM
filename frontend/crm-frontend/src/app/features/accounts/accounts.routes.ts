@@ -388,6 +388,26 @@ export const ACCOUNTS_ROUTES: Routes = [
         }
       },
 
+      {
+        path: 'gst-report',
+
+        loadComponent: () =>
+          import(
+            './pages/gst-report/gst-report.component'
+          ).then(
+            (module) =>
+              module.GstReportComponent
+          ),
+
+        data: {
+          title: 'GST Report',
+          section: 'Accounts',
+          feature: 'gst-report',
+          description:
+            'Output GST, input GST and net GST report.'
+        }
+      },
+
       /* ======================================================
          TAX
       ====================================================== */

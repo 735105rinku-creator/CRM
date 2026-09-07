@@ -1,0 +1,398 @@
+<section class="gst-report-page">
+
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">
+        Accounts / Reports
+      </p>
+
+      <h1>GST Report</h1>
+
+      <p class="subtitle">
+        Review output tax, input tax and the net GST position
+        for the selected financial period.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="refresh-button"
+      [disabled]="loading()"
+      (click)="loadGstReport()"
+    >
+      {{ loading() ? 'Loading...' : 'Refresh' }}
+    </button>
+  </header>
+
+
+  <form
+    class="filter-card"
+    [formGroup]="filterForm"
+    (ngSubmit)="applyFilters()"
+  >
+    <div class="field">
+      <label for="gst-from">
+        From
+      </label>
+
+      <input
+        id="gst-from"
+        type="date"
+        formControlName="from"
+      />
+    </div>
+
+    <div class="field">
+      <label for="gst-to">
+        To
+      </label>
+
+      <input
+        id="gst-to"
+        type="date"
+        formControlName="to"
+      />
+    </div>
+
+    <div class="filter-actions">
+      <button
+        type="submit"
+        class="primary-button"
+        [disabled]="loading()"
+      >
+        Apply
+      </button>
+
+      <button
+        type="button"
+        class="secondary-button"
+        [disabled]="loading()"
+        (click)="resetFilters()"
+      >
+        Reset
+      </button>
+    </div>
+  </form>
+
+
+  <div
+    *ngIf="errorMessage()"
+    class="message error-message"
+  >
+    {{ errorMessage() }}
+  </div>
+
+
+  <div
+    *ngIf="loading()"
+    class="message loading-message"
+  >
+    Loading GST report...
+  </div>
+
+
+  <ng-container *ngIf="report() as gstReport">
+
+    <section class="summary-grid">
+
+      <article class="summary-card">
+        <span class="summary-label">
+          Output GST
+        </span>
+
+        <strong>
+          {{
+            gstReport.outputTax.total
+              | currency:'INR':'symbol':'1.2-2'
+          }}
+        </strong>
+
+        <small>
+          GST collected / payable on sales
+        </small>
+      </article>
+
+
+      <article class="summary-card">
+        <span class="summary-label">
+          Input GST
+        </span>
+
+        <strong>
+          {{
+            gstReport.inputTax.total
+              | currency:'INR':'symbol':'1.2-2'
+          }}
+        </strong>
+
+        <small>
+          Eligible GST input from purchases
+        </small>
+      </article>
+
+
+      <article
+        class="summary-card net-card"
+        [class.receivable]="
+          gstReport.netGst.type === 'receivable'
+        "
+        [class.settled]="
+          gstReport.netGst.type === 'settled'
+        "
+      >
+        <span class="summary-label">
+          Net GST
+        </span>
+
+        <strong>
+          {{
+            gstReport.netGst.amount
+              | currency:'INR':'symbol':'1.2-2'
+          }}
+        </strong>
+
+        <small>
+          {{
+            gstReport.netGst.type === 'payable'
+              ? 'GST Payable'
+              : gstReport.netGst.type === 'receivable'
+                ? 'GST Receivable'
+                : 'GST Settled'
+          }}
+        </small>
+      </article>
+
+    </section>
+
+
+    <div class="period-card">
+      <span>Report Period</span>
+
+      <strong>
+        {{ gstReport.from | date:'dd MMM yyyy' }}
+        —
+        {{ gstReport.to | date:'dd MMM yyyy' }}
+      </strong>
+    </div>
+
+
+    <section class="tax-section">
+
+      <div class="section-heading">
+        <div>
+          <h2>Output GST</h2>
+
+          <p>
+            Posted sales GST and applicable credit-note
+            reversals.
+          </p>
+        </div>
+
+        <strong>
+          {{
+            gstReport.outputTax.total
+              | currency:'INR':'symbol':'1.2-2'
+          }}
+        </strong>
+      </div>
+
+
+      <div
+        *ngIf="outputEntries().length; else noOutputTax"
+        class="table-shell"
+      >
+        <table>
+          <thead>
+            <tr>
+              <th>Voucher Date</th>
+              <th>Voucher Number</th>
+              <th>Voucher Type</th>
+              <th>Account Name</th>
+              <th>Account Code</th>
+              <th class="number-column">Debit</th>
+              <th class="number-column">Credit</th>
+              <th class="number-column">Tax Amount</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr
+              *ngFor="
+                let entry of outputEntries();
+                trackBy: trackEntry
+              "
+            >
+              <td>
+                {{ entry.voucherDate | date:'dd MMM yyyy' }}
+              </td>
+
+              <td>
+                {{ entry.voucherNumber }}
+              </td>
+
+              <td>
+                {{ entry.voucherType }}
+              </td>
+
+              <td>
+                <strong>
+                  {{ entry.accountName }}
+                </strong>
+              </td>
+
+              <td>
+                {{ entry.accountCode }}
+              </td>
+
+              <td class="number-column">
+                {{
+                  entry.debit
+                    | currency:'INR':'symbol':'1.2-2'
+                }}
+              </td>
+
+              <td class="number-column">
+                {{
+                  entry.credit
+                    | currency:'INR':'symbol':'1.2-2'
+                }}
+              </td>
+
+              <td class="number-column tax-value">
+                {{
+                  entry.taxAmount
+                    | currency:'INR':'symbol':'1.2-2'
+                }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+
+      <ng-template #noOutputTax>
+        <div class="empty-state">
+          No output tax transactions found for this period.
+        </div>
+      </ng-template>
+
+    </section>
+
+
+    <section class="tax-section">
+
+      <div class="section-heading">
+        <div>
+          <h2>Input GST</h2>
+
+          <p>
+            Posted purchase GST and applicable debit-note
+            reversals.
+          </p>
+        </div>
+
+        <strong>
+          {{
+            gstReport.inputTax.total
+              | currency:'INR':'symbol':'1.2-2'
+          }}
+        </strong>
+      </div>
+
+
+      <div
+        *ngIf="inputEntries().length; else noInputTax"
+        class="table-shell"
+      >
+        <table>
+          <thead>
+            <tr>
+              <th>Voucher Date</th>
+              <th>Voucher Number</th>
+              <th>Voucher Type</th>
+              <th>Account Name</th>
+              <th>Account Code</th>
+              <th class="number-column">Debit</th>
+              <th class="number-column">Credit</th>
+              <th class="number-column">Tax Amount</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr
+              *ngFor="
+                let entry of inputEntries();
+                trackBy: trackEntry
+              "
+            >
+              <td>
+                {{ entry.voucherDate | date:'dd MMM yyyy' }}
+              </td>
+
+              <td>
+                {{ entry.voucherNumber }}
+              </td>
+
+              <td>
+                {{ entry.voucherType }}
+              </td>
+
+              <td>
+                <strong>
+                  {{ entry.accountName }}
+                </strong>
+              </td>
+
+              <td>
+                {{ entry.accountCode }}
+              </td>
+
+              <td class="number-column">
+                {{
+                  entry.debit
+                    | currency:'INR':'symbol':'1.2-2'
+                }}
+              </td>
+
+              <td class="number-column">
+                {{
+                  entry.credit
+                    | currency:'INR':'symbol':'1.2-2'
+                }}
+              </td>
+
+              <td class="number-column tax-value">
+                {{
+                  entry.taxAmount
+                    | currency:'INR':'symbol':'1.2-2'
+                }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+
+      <ng-template #noInputTax>
+        <div class="empty-state">
+          No input tax transactions found for this period.
+        </div>
+      </ng-template>
+
+    </section>
+
+  </ng-container>
+
+
+  <div
+    *ngIf="
+      !loading() &&
+      !errorMessage() &&
+      !report()
+    "
+    class="empty-state page-empty-state"
+  >
+    GST report data is not available.
+  </div>
+
+</section>
