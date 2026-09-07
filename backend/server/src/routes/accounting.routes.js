@@ -34,6 +34,9 @@ import balanceSheetRoutes
 import cashBankBookRoutes
   from "./cashBankBook.routes.js";
 
+import outstandingRoutes
+  from "./outstanding.routes.js";
+
 const router = Router();
 router.use(requireAuth);
 router.use(requireTenant);
@@ -118,6 +121,11 @@ router.use(
 router.use(
   "/cash-bank-book",
   cashBankBookRoutes
+);
+
+router.use(
+  "/outstanding",
+  outstandingRoutes
 );
 
 router.use(
