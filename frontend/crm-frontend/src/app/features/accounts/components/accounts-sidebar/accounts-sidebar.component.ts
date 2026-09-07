@@ -278,6 +278,11 @@ export class AccountsSidebarComponent {
             label: 'Trial Balance',
             route: '/accounts/trial-balance',
             icon: 'reports'
+          },
+          {
+            label: 'Profit & Loss',
+            route: '/accounts/profit-and-loss',
+            icon: 'reports'
           }
         ]
       },

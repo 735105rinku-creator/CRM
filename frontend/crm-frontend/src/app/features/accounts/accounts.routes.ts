@@ -396,6 +396,23 @@ export const ACCOUNTS_ROUTES: Routes = [
          REPORTS
       ====================================================== */
       {
+        path: 'profit-and-loss',
+
+        loadComponent: () =>
+          import(
+            './pages/profit-loss/profit-loss.component'
+          ).then(
+            (module) =>
+              module.ProfitLossComponent
+          ),
+
+        data: {
+          title: 'Profit & Loss',
+          section: 'Accounts',
+          feature: 'profit-and-loss'
+        }
+      },
+      {
         path: 'trial-balance',
 
         loadComponent: () =>

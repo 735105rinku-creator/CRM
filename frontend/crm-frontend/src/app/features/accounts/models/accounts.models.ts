@@ -579,6 +579,37 @@ export interface TrialBalance {
   accounts: TrialBalanceRow[];
   totals: TrialBalanceTotals;
 }
+
+/* =========================================================
+   PROFIT & LOSS
+========================================================= */
+
+export interface ProfitLossAccount {
+  accountId: string;
+  accountCode: string;
+  accountName: string;
+  nature: AccountNature;
+  accountType?: string;
+  status?: AccountStatus;
+  periodDebit: number;
+  periodCredit: number;
+  amount: number;
+}
+
+export interface ProfitLossSection {
+  accounts: ProfitLossAccount[];
+  total: number;
+}
+
+export interface ProfitLossReport {
+  companyId?: string;
+  period: TrialBalancePeriod;
+  income: ProfitLossSection;
+  expenses: ProfitLossSection;
+  netProfit: number;
+  netLoss: number;
+  result: 'profit' | 'loss' | 'break-even';
+}
 /* =========================================================
    ACCOUNT BALANCE
 ========================================================= */
