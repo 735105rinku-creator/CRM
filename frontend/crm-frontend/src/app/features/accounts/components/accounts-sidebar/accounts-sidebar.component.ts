@@ -288,6 +288,11 @@ export class AccountsSidebarComponent {
             label: 'Balance Sheet',
             route: '/accounts/balance-sheet',
             icon: 'reports'
+          },
+          {
+            label: 'Outstanding',
+            route: '/accounts/outstanding',
+            icon: 'reports'
           }
         ]
       },

@@ -349,6 +349,26 @@ export const ACCOUNTS_ROUTES: Routes = [
       ====================================================== */
 
       {
+        path: 'outstanding',
+
+        loadComponent: () =>
+          import(
+            './pages/outstanding/outstanding.component'
+          ).then(
+            (module) =>
+              module.OutstandingComponent
+          ),
+
+        data: {
+          title: 'Outstanding',
+          section: 'Accounts',
+          feature: 'outstanding',
+          description:
+            'Customer receivables and vendor payables outstanding report.'
+        }
+      },
+
+      {
         path: 'cash-bank',
 
         loadComponent: () =>

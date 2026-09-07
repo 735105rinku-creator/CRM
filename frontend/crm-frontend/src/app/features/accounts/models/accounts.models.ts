@@ -920,3 +920,61 @@ export interface CashBankBookReport {
 
   summary: CashBankSummary;
 }
+
+
+/* =========================================================
+   OUTSTANDING REPORT
+========================================================= */
+
+export interface OutstandingBalance {
+  amount: number;
+  type: DebitCredit;
+}
+
+
+export interface OutstandingEntry {
+  journalNumber: string;
+  journalDate: string;
+  narration: string;
+  debit: number;
+  credit: number;
+  runningBalance: number;
+  balanceType: DebitCredit;
+}
+
+
+export interface OutstandingAccount {
+  accountId: string;
+  accountCode: string;
+  accountName: string;
+
+  accountType:
+    | 'accounts_receivable'
+    | 'accounts_payable';
+
+  openingBalance: OutstandingBalance;
+
+  debitMovement: number;
+  creditMovement: number;
+
+  closingBalance: OutstandingBalance;
+
+  entries: OutstandingEntry[];
+
+  outstanding: number;
+}
+
+
+export interface OutstandingSection {
+  accounts: OutstandingAccount[];
+  total: number;
+}
+
+
+export interface OutstandingReport {
+  companyId?: string;
+  asOf: string;
+
+  receivables: OutstandingSection;
+  payables: OutstandingSection;
+}
