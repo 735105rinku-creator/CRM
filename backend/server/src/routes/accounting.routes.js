@@ -19,6 +19,9 @@ import generalLedgerRoutes
 import dayBookRoutes
   from "./dayBook.routes.js";
 
+import trialBalanceRoutes
+  from "./trialBalance.routes.js";
+
 import voucherRoutes
   from "./voucher.routes.js";
 
@@ -86,6 +89,11 @@ router.use(
 router.use(
   "/day-book",
   dayBookRoutes
+);
+
+router.use(
+  "/trial-balance",
+  trialBalanceRoutes
 );
 
 router.use(
@@ -259,7 +267,3 @@ router.post("/expenses", createRecord("expenses", ["title", "category", "expense
 router.patch("/expenses/:id", updateRecord("expenses", ["title", "category", "expenseType", "businessCategory", "routeType", "amount", "expenseDate", "status", "notes", "assignedUserId", "assignedEmployeeCode"]));
 
 export default router;
-
-
-
-
