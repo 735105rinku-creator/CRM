@@ -40,6 +40,9 @@ import outstandingRoutes
 import gstReportRoutes
   from "./gstReport.routes.js";
 
+import accountPartyRoutes
+  from "./accountParty.routes.js";
+
 const router = Router();
 router.use(requireAuth);
 router.use(requireTenant);
@@ -139,6 +142,10 @@ router.use(
 router.use(
   "/vouchers",
   voucherRoutes
+);
+
+router.use(
+  accountPartyRoutes
 );
 
 const scopeFilter = (req) => ({ companyId: req.accountingAccess.companyId });
