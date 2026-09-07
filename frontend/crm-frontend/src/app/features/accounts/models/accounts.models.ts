@@ -542,32 +542,43 @@ export interface GeneralLedgerResponse {
    TRIAL BALANCE
 ========================================================= */
 
+export interface TrialBalancePeriod {
+  from: string;
+  to: string;
+}
+
+export interface TrialBalanceAmount {
+  amount: number;
+  type: DebitCredit;
+}
+
 export interface TrialBalanceRow {
   accountId: string;
-
   accountCode: string;
-
   accountName: string;
-
   nature: AccountNature;
-
-  debit: number;
-
-  credit: number;
+  accountType?: AccountType;
+  openingBalance: TrialBalanceAmount;
+  periodDebit: number;
+  periodCredit: number;
+  closingBalance: TrialBalanceAmount;
 }
 
+export interface TrialBalanceTotals {
+  openingDebit: number;
+  openingCredit: number;
+  periodDebit: number;
+  periodCredit: number;
+  closingDebit: number;
+  closingCredit: number;
+  difference?: number;
+}
 
 export interface TrialBalance {
-  rows: TrialBalanceRow[];
-
-  totalDebit: number;
-
-  totalCredit: number;
-
-  difference: number;
+  period: TrialBalancePeriod;
+  accounts: TrialBalanceRow[];
+  totals: TrialBalanceTotals;
 }
-
-
 /* =========================================================
    ACCOUNT BALANCE
 ========================================================= */

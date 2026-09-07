@@ -1,0 +1,305 @@
+<section class="trial-balance-page">
+
+  <header class="page-header">
+
+    <div>
+      <p class="eyebrow">
+        Financial Reports
+      </p>
+
+      <h1>
+        Trial Balance
+      </h1>
+
+      <p class="subtitle">
+        Review opening balances, period movements and closing balances for all ledger accounts.
+      </p>
+    </div>
+
+    <div
+      class="balance-badge"
+      [class.unbalanced]="!isBalanced()"
+    >
+      {{ isBalanced() ? 'Balanced' : 'Not Balanced' }}
+    </div>
+
+  </header>
+
+
+  <form
+    class="filter-card"
+    [formGroup]="periodForm"
+    (ngSubmit)="applyPeriod()"
+  >
+
+    <label>
+      <span>From Date</span>
+
+      <input
+        type="date"
+        formControlName="from"
+      />
+    </label>
+
+    <label>
+      <span>To Date</span>
+
+      <input
+        type="date"
+        formControlName="to"
+      />
+    </label>
+
+    <div class="filter-actions">
+
+      <button
+        type="submit"
+        class="primary-button"
+        [disabled]="loading()"
+      >
+        Apply Period
+      </button>
+
+      <button
+        type="button"
+        class="secondary-button"
+        [disabled]="loading()"
+        (click)="resetPeriod()"
+      >
+        Reset
+      </button>
+
+    </div>
+
+  </form>
+
+
+  <div
+    *ngIf="errorMessage()"
+    class="message error-message"
+  >
+    {{ errorMessage() }}
+  </div>
+
+
+  <div
+    *ngIf="loading()"
+    class="state-card"
+  >
+    Loading Trial Balance...
+  </div>
+
+
+  <div
+    *ngIf="!loading() && report() as currentReport"
+    class="report-card"
+  >
+
+    <div class="report-meta">
+
+      <div>
+        <span>Period</span>
+
+        <strong>
+          {{ currentReport.period.from || 'Default' }}
+          -
+          {{ currentReport.period.to || 'Current' }}
+        </strong>
+      </div>
+
+      <div>
+        <span>Total Accounts</span>
+
+        <strong>
+          {{ currentReport.accounts.length }}
+        </strong>
+      </div>
+
+    </div>
+
+
+    <div class="table-wrap">
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>Account Code</th>
+            <th>Account Name</th>
+
+            <th class="number">
+              Opening Debit
+            </th>
+
+            <th class="number">
+              Opening Credit
+            </th>
+
+            <th class="number">
+              Period Debit
+            </th>
+
+            <th class="number">
+              Period Credit
+            </th>
+
+            <th class="number">
+              Closing Debit
+            </th>
+
+            <th class="number">
+              Closing Credit
+            </th>
+          </tr>
+        </thead>
+
+
+        <tbody>
+
+          <tr
+            *ngFor="
+              let row of currentReport.accounts;
+              trackBy: trackRow
+            "
+          >
+            <td class="code">
+              {{ row.accountCode }}
+            </td>
+
+            <td>
+              <strong>
+                {{ row.accountName }}
+              </strong>
+
+              <small>
+                {{ row.nature | titlecase }}
+              </small>
+            </td>
+
+            <td class="number">
+              {{
+                amountDebit(row.openingBalance)
+                  | currency:'INR':'symbol':'1.2-2'
+              }}
+            </td>
+
+            <td class="number">
+              {{
+                amountCredit(row.openingBalance)
+                  | currency:'INR':'symbol':'1.2-2'
+              }}
+            </td>
+
+            <td class="number">
+              {{
+                row.periodDebit
+                  | currency:'INR':'symbol':'1.2-2'
+              }}
+            </td>
+
+            <td class="number">
+              {{
+                row.periodCredit
+                  | currency:'INR':'symbol':'1.2-2'
+              }}
+            </td>
+
+            <td class="number">
+              {{
+                amountDebit(row.closingBalance)
+                  | currency:'INR':'symbol':'1.2-2'
+              }}
+            </td>
+
+            <td class="number">
+              {{
+                amountCredit(row.closingBalance)
+                  | currency:'INR':'symbol':'1.2-2'
+              }}
+            </td>
+          </tr>
+
+
+          <tr
+            *ngIf="currentReport.accounts.length === 0"
+          >
+            <td
+              colspan="8"
+              class="empty"
+            >
+              No Trial Balance entries found for this period.
+            </td>
+          </tr>
+
+        </tbody>
+
+
+        <tfoot>
+          <tr>
+            <th colspan="2">
+              Total
+            </th>
+
+            <th class="number">
+              {{
+                currentReport.totals.openingDebit
+                  | currency:'INR':'symbol':'1.2-2'
+              }}
+            </th>
+
+            <th class="number">
+              {{
+                currentReport.totals.openingCredit
+                  | currency:'INR':'symbol':'1.2-2'
+              }}
+            </th>
+
+            <th class="number">
+              {{
+                currentReport.totals.periodDebit
+                  | currency:'INR':'symbol':'1.2-2'
+              }}
+            </th>
+
+            <th class="number">
+              {{
+                currentReport.totals.periodCredit
+                  | currency:'INR':'symbol':'1.2-2'
+              }}
+            </th>
+
+            <th class="number">
+              {{
+                currentReport.totals.closingDebit
+                  | currency:'INR':'symbol':'1.2-2'
+              }}
+            </th>
+
+            <th class="number">
+              {{
+                currentReport.totals.closingCredit
+                  | currency:'INR':'symbol':'1.2-2'
+              }}
+            </th>
+          </tr>
+        </tfoot>
+
+      </table>
+
+    </div>
+
+  </div>
+
+
+  <div
+    *ngIf="
+      !loading() &&
+      !report() &&
+      !errorMessage()
+    "
+    class="state-card"
+  >
+    Trial Balance is not available.
+  </div>
+
+</section>

@@ -1,4 +1,4 @@
-﻿import {
+import {
   ChangeDetectionStrategy,
   Component
 } from '@angular/core';
@@ -272,6 +272,11 @@ export class AccountsSidebarComponent {
           {
             label: 'Financial Reports',
             route: '/accounts/reports',
+            icon: 'reports'
+          },
+          {
+            label: 'Trial Balance',
+            route: '/accounts/trial-balance',
             icon: 'reports'
           }
         ]

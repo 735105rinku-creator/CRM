@@ -395,6 +395,23 @@ export const ACCOUNTS_ROUTES: Routes = [
       /* ======================================================
          REPORTS
       ====================================================== */
+      {
+        path: 'trial-balance',
+
+        loadComponent: () =>
+          import(
+            './pages/trial-balance/trial-balance.component'
+          ).then(
+            (module) =>
+              module.TrialBalanceComponent
+          ),
+
+        data: {
+          title: 'Trial Balance',
+          section: 'Accounts',
+          feature: 'trial-balance'
+        }
+      },
 
       {
         path: 'reports',
