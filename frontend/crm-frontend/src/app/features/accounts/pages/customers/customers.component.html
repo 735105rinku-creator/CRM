@@ -1,0 +1,495 @@
+<section class="customers-page">
+
+  <div class="page-header">
+    <div class="page-heading">
+      <span class="eyebrow">
+        Accounts Receivable Master
+      </span>
+
+      <h1>Customers</h1>
+
+      <p>
+        Manage customer accounting ledgers, opening balances
+        and active or inactive status.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="primary-button"
+      (click)="openCreateForm()"
+    >
+      + Add Customer
+    </button>
+  </div>
+
+
+  @if (errorMessage()) {
+    <div class="message error-message">
+      <span>{{ errorMessage() }}</span>
+
+      <button
+        type="button"
+        aria-label="Close error message"
+        (click)="clearMessages()"
+      >
+        &times;
+      </button>
+    </div>
+  }
+
+
+  @if (successMessage()) {
+    <div class="message success-message">
+      <span>{{ successMessage() }}</span>
+
+      <button
+        type="button"
+        aria-label="Close success message"
+        (click)="clearMessages()"
+      >
+        &times;
+      </button>
+    </div>
+  }
+
+
+  <div class="summary-grid">
+
+    <article class="summary-card">
+      <span>Total Customers</span>
+      <strong>{{ totalCustomers() }}</strong>
+    </article>
+
+    <article class="summary-card">
+      <span>Active</span>
+      <strong>{{ activeCustomers() }}</strong>
+    </article>
+
+    <article class="summary-card">
+      <span>Inactive</span>
+      <strong>{{ inactiveCustomers() }}</strong>
+    </article>
+
+    <article class="summary-card">
+      <span>Receivable Balance</span>
+      <strong>
+        {{
+          totalReceivable()
+            | currency:'INR':'symbol':'1.2-2'
+        }}
+      </strong>
+    </article>
+
+  </div>
+
+
+  <div class="filter-card">
+
+    <div class="filter-field search-field">
+      <label for="customerSearch">
+        Search
+      </label>
+
+      <input
+        id="customerSearch"
+        type="search"
+        placeholder="Account code, customer name or description"
+        [value]="searchText()"
+        (input)="onSearch($event)"
+      />
+    </div>
+
+
+    <div class="filter-field">
+      <label for="customerStatus">
+        Status
+      </label>
+
+      <select
+        id="customerStatus"
+        [value]="selectedStatus()"
+        (change)="onStatusFilter($event)"
+      >
+        <option value="all">
+          All Statuses
+        </option>
+
+        <option value="active">
+          Active
+        </option>
+
+        <option value="inactive">
+          Inactive
+        </option>
+      </select>
+    </div>
+
+  </div>
+
+
+  <div class="table-card">
+
+    @if (loading()) {
+
+      <div class="state-card">
+        Loading customers...
+      </div>
+
+    } @else if (
+      filteredCustomers().length === 0
+    ) {
+
+      <div class="state-card">
+        No customers found.
+      </div>
+
+    } @else {
+
+      <div class="table-wrap">
+
+        <table>
+
+          <thead>
+            <tr>
+              <th>Account Code</th>
+              <th>Customer</th>
+              <th>Opening Balance</th>
+              <th>Current Balance</th>
+              <th>Status</th>
+              <th class="actions-column">
+                Actions
+              </th>
+            </tr>
+          </thead>
+
+          <tbody>
+
+            @for (
+              customer of filteredCustomers();
+              track trackCustomer($index, customer)
+            ) {
+
+              <tr>
+
+                <td>
+                  <span class="account-code">
+                    {{ customer.accountCode }}
+                  </span>
+                </td>
+
+                <td>
+                  <div class="customer-name">
+                    <strong>
+                      {{ customer.accountName }}
+                    </strong>
+
+                    @if (customer.description) {
+                      <small>
+                        {{ customer.description }}
+                      </small>
+                    }
+                  </div>
+                </td>
+
+                <td>
+                  {{
+                    customer.openingBalance || 0
+                      | currency:'INR':'symbol':'1.2-2'
+                  }}
+
+                  <small class="balance-type">
+                    {{
+                      customer.openingBalanceType ||
+                      'debit'
+                    }}
+                  </small>
+                </td>
+
+                <td>
+                  {{
+                    customer.currentBalance || 0
+                      | currency:'INR':'symbol':'1.2-2'
+                  }}
+                </td>
+
+                <td>
+                  <span
+                    class="status-badge"
+                    [class.active]="
+                      customer.status === 'active'
+                    "
+                    [class.inactive]="
+                      customer.status === 'inactive'
+                    "
+                  >
+                    {{
+                      customer.status === 'active'
+                        ? 'Active'
+                        : 'Inactive'
+                    }}
+                  </span>
+                </td>
+
+                <td class="actions">
+
+                  <button
+                    type="button"
+                    class="table-button"
+                    (click)="openEditForm(customer)"
+                  >
+                    Edit
+                  </button>
+
+                  <button
+                    type="button"
+                    class="table-button status-button"
+                    [disabled]="saving()"
+                    (click)="toggleStatus(customer)"
+                  >
+                    {{
+                      customer.status === 'active'
+                        ? 'Deactivate'
+                        : 'Activate'
+                    }}
+                  </button>
+
+                </td>
+
+              </tr>
+            }
+
+          </tbody>
+
+        </table>
+
+      </div>
+    }
+
+  </div>
+
+
+  @if (formOpen()) {
+
+    <div
+      class="modal-backdrop"
+      (click)="closeForm()"
+    >
+
+      <section
+        class="form-panel"
+        (click)="$event.stopPropagation()"
+      >
+
+        <div class="form-header">
+
+          <div>
+            <span class="eyebrow">
+              Customer Master
+            </span>
+
+            <h2>
+              {{
+                editingCustomer()
+                  ? 'Edit Customer'
+                  : 'Add Customer'
+              }}
+            </h2>
+          </div>
+
+          <button
+            type="button"
+            class="close-button"
+            aria-label="Close customer form"
+            (click)="closeForm()"
+          >
+            &times;
+          </button>
+
+        </div>
+
+
+        <form
+          [formGroup]="customerForm"
+          (ngSubmit)="saveCustomer()"
+        >
+
+          <div class="form-grid">
+
+            <div class="form-field">
+
+              <label for="accountCode">
+                Account Code
+              </label>
+
+              <input
+                id="accountCode"
+                type="text"
+                formControlName="accountCode"
+                placeholder="e.g. CUST001"
+              />
+
+              @if (
+                customerForm.controls.accountCode.touched &&
+                customerForm.controls.accountCode.invalid
+              ) {
+                <small class="field-error">
+                  Account Code is required.
+                </small>
+              }
+
+            </div>
+
+
+            <div class="form-field">
+
+              <label for="accountName">
+                Customer Name
+              </label>
+
+              <input
+                id="accountName"
+                type="text"
+                formControlName="accountName"
+                placeholder="Customer name"
+              />
+
+              @if (
+                customerForm.controls.accountName.touched &&
+                customerForm.controls.accountName.invalid
+              ) {
+                <small class="field-error">
+                  Customer name is required.
+                </small>
+              }
+
+            </div>
+
+
+            <div class="form-field">
+
+              <label for="openingBalance">
+                Opening Balance
+              </label>
+
+              <input
+                id="openingBalance"
+                type="number"
+                min="0"
+                step="0.01"
+                formControlName="openingBalance"
+              />
+
+            </div>
+
+
+            <div class="form-field">
+
+              <label for="openingBalanceType">
+                Opening Balance Type
+              </label>
+
+              <select
+                id="openingBalanceType"
+                formControlName="openingBalanceType"
+              >
+                <option value="debit">
+                  Debit
+                </option>
+
+                <option value="credit">
+                  Credit
+                </option>
+              </select>
+
+            </div>
+
+
+            <div class="form-field">
+
+              <label for="status">
+                Status
+              </label>
+
+              <select
+                id="status"
+                formControlName="status"
+              >
+                <option value="active">
+                  Active
+                </option>
+
+                <option value="inactive">
+                  Inactive
+                </option>
+              </select>
+
+            </div>
+
+
+            <div class="form-field full-width">
+
+              <label for="description">
+                Description
+              </label>
+
+              <textarea
+                id="description"
+                rows="3"
+                formControlName="description"
+                placeholder="Optional accounting note"
+              ></textarea>
+
+            </div>
+
+          </div>
+
+
+          @if (editingCustomer()) {
+
+            <div class="immutable-note">
+              Account Code and Opening Balance are fixed
+              after customer creation.
+            </div>
+
+          }
+
+
+          <div class="form-actions">
+
+            <button
+              type="button"
+              class="secondary-button"
+              [disabled]="saving()"
+              (click)="closeForm()"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              class="primary-button"
+              [disabled]="saving()"
+            >
+              {{
+                saving()
+                  ? 'Saving...'
+                  : (
+                      editingCustomer()
+                        ? 'Update Customer'
+                        : 'Create Customer'
+                    )
+              }}
+            </button>
+
+          </div>
+
+        </form>
+
+      </section>
+
+    </div>
+
+  }
+
+</section>

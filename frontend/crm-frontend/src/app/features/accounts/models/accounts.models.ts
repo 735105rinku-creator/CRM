@@ -676,3 +676,96 @@ export interface AccountsPaginationMeta {
 
   totalPages: number;
 }
+
+/* =========================================================
+   ACCOUNT PARTY MASTER
+========================================================= */
+
+export type AccountPartyType =
+  | 'customer'
+  | 'vendor';
+
+
+export interface AccountParty {
+  _id?: string;
+
+  companyId?: string;
+
+  partyType: AccountPartyType;
+
+  accountCode: string;
+
+  accountName: string;
+
+  description?: string;
+
+  nature: AccountNature;
+
+  accountType: AccountType;
+
+  parentAccountId?: string | null;
+
+  parentAccountName?: string | null;
+
+  openingBalance?: number;
+
+  currentBalance?: number;
+
+  openingBalanceType?: DebitCredit;
+
+  status: AccountStatus;
+
+  createdAt?: string;
+
+  updatedAt?: string;
+}
+
+
+/* =========================================================
+   CREATE ACCOUNT PARTY
+========================================================= */
+
+export interface CreateAccountPartyPayload {
+  accountCode: string;
+
+  accountName: string;
+
+  description?: string;
+
+  parentAccountId?: string | null;
+
+  openingBalance?: number;
+
+  openingBalanceType?: DebitCredit;
+
+  status?: AccountStatus;
+}
+
+
+/* =========================================================
+   UPDATE ACCOUNT PARTY
+
+   accountCode, opening balance, nature and accountType
+   are intentionally immutable after creation.
+========================================================= */
+
+export interface UpdateAccountPartyPayload {
+  accountName?: string;
+
+  description?: string;
+
+  parentAccountId?: string | null;
+
+  status?: AccountStatus;
+}
+
+
+/* =========================================================
+   ACCOUNT PARTY QUERY
+========================================================= */
+
+export interface AccountPartyQuery {
+  search?: string;
+
+  status?: AccountStatus;
+}

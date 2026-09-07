@@ -55,10 +55,10 @@ export const ACCOUNTS_ROUTES: Routes = [
 
         loadComponent: () =>
           import(
-            './pages/placeholder/accounts-placeholder.component'
+            './pages/customers/customers.component'
           ).then(
             (module) =>
-              module.AccountsPlaceholderComponent
+              module.CustomersComponent
           ),
 
         data: {
