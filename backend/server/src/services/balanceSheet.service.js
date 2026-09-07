@@ -1,4 +1,4 @@
-﻿const roundMoney = (value) => {
+const roundMoney = (value) => {
 
   return Math.round(
     (Number(value || 0) + Number.EPSILON) * 100
@@ -54,6 +54,33 @@ const financialYearStartOf = (
 };
 
 
+const toSignedClosingBalance = (
+  closingBalance
+) => {
+
+  if (
+    closingBalance &&
+    typeof closingBalance === "object"
+  ) {
+
+    return roundMoney(
+      Number(
+        closingBalance.debit || 0
+      ) -
+      Number(
+        closingBalance.credit || 0
+      )
+    );
+
+  }
+
+
+  return roundMoney(
+    closingBalance
+  );
+
+};
+
 const mapBalanceSheetAccount = (
   account,
   amount
@@ -80,7 +107,7 @@ const mapBalanceSheetAccount = (
       account.status,
 
     closingBalance:
-      roundMoney(
+      toSignedClosingBalance(
         account.closingBalance
       ),
 
@@ -141,8 +168,8 @@ export class BalanceSheetService {
     ) {
 
       const closingBalance =
-        Number(
-          account.closingBalance || 0
+        toSignedClosingBalance(
+          account.closingBalance
         );
 
 
