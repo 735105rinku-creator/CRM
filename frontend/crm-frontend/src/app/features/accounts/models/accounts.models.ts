@@ -611,6 +611,43 @@ export interface ProfitLossReport {
   result: 'profit' | 'loss' | 'break-even';
 }
 /* =========================================================
+   BALANCE SHEET
+========================================================= */
+
+export interface BalanceSheetAccount {
+  accountId: string;
+  accountCode: string;
+  accountName: string;
+  nature: AccountNature;
+  accountType?: string;
+  status?: AccountStatus;
+  closingBalance: number;
+  amount: number;
+}
+
+export interface BalanceSheetSection {
+  accounts: BalanceSheetAccount[];
+  total: number;
+}
+
+export interface BalanceSheetPeriodResult {
+  type: 'profit' | 'loss' | 'break-even';
+  amount: number;
+}
+
+export interface BalanceSheetReport {
+  companyId?: string;
+  asOf: string;
+  assets: BalanceSheetSection;
+  liabilities: BalanceSheetSection;
+  equity: BalanceSheetSection;
+  currentPeriodResult: BalanceSheetPeriodResult;
+  totalLiabilitiesAndEquity: number;
+  difference: number;
+  isBalanced: boolean;
+}
+
+/* =========================================================
    ACCOUNT BALANCE
 ========================================================= */
 

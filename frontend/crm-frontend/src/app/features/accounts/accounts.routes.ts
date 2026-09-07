@@ -396,6 +396,23 @@ export const ACCOUNTS_ROUTES: Routes = [
          REPORTS
       ====================================================== */
       {
+        path: 'balance-sheet',
+
+        loadComponent: () =>
+          import(
+            './pages/balance-sheet/balance-sheet.component'
+          ).then(
+            (module) =>
+              module.BalanceSheetComponent
+          ),
+
+        data: {
+          title: 'Balance Sheet',
+          section: 'Accounts',
+          feature: 'balance-sheet'
+        }
+      },
+      {
         path: 'profit-and-loss',
 
         loadComponent: () =>

@@ -283,6 +283,11 @@ export class AccountsSidebarComponent {
             label: 'Profit & Loss',
             route: '/accounts/profit-and-loss',
             icon: 'reports'
+          },
+          {
+            label: 'Balance Sheet',
+            route: '/accounts/balance-sheet',
+            icon: 'reports'
           }
         ]
       },

@@ -1,0 +1,561 @@
+<section class="balance-sheet-page">
+
+  <header class="page-header">
+
+    <div>
+      <p class="eyebrow">
+        Financial Reports
+      </p>
+
+      <h1>
+        Balance Sheet
+      </h1>
+
+      <p class="subtitle">
+        Review assets, liabilities and equity as of the selected accounting date.
+      </p>
+    </div>
+
+    <div
+      *ngIf="report()"
+      class="balance-badge"
+      [class.unbalanced]="!isBalanced()"
+    >
+      {{
+        isBalanced()
+          ? 'Balanced'
+          : 'Out of Balance'
+      }}
+    </div>
+
+  </header>
+
+
+  <form
+    class="filter-card"
+    [formGroup]="asOfForm"
+    (ngSubmit)="applyAsOf()"
+  >
+
+    <label>
+      <span>As of</span>
+
+      <input
+        type="date"
+        formControlName="asOf"
+      />
+    </label>
+
+
+    <div class="filter-actions">
+
+      <button
+        type="submit"
+        class="primary-button"
+        [disabled]="loading()"
+      >
+        Apply As Of
+      </button>
+
+      <button
+        type="button"
+        class="secondary-button"
+        [disabled]="loading()"
+        (click)="resetAsOf()"
+      >
+        Reset
+      </button>
+
+    </div>
+
+  </form>
+
+
+  <div
+    *ngIf="errorMessage()"
+    class="message error-message"
+  >
+    {{ errorMessage() }}
+  </div>
+
+
+  <div
+    *ngIf="loading()"
+    class="state-card"
+  >
+    Loading Balance Sheet...
+  </div>
+
+
+  <ng-container
+    *ngIf="!loading() && report() as currentReport"
+  >
+
+    <div class="summary-grid">
+
+      <article class="summary-card">
+        <span>Total Assets</span>
+
+        <strong>
+          {{
+            currentReport.assets.total
+              | currency:'INR':'symbol':'1.2-2'
+          }}
+        </strong>
+      </article>
+
+
+      <article class="summary-card">
+        <span>
+          Liabilities & Equity
+        </span>
+
+        <strong>
+          {{
+            currentReport.totalLiabilitiesAndEquity
+              | currency:'INR':'symbol':'1.2-2'
+          }}
+        </strong>
+      </article>
+
+
+      <article
+        class="summary-card difference-card"
+        [class.unbalanced]="!currentReport.isBalanced"
+      >
+        <span>Difference</span>
+
+        <strong>
+          {{
+            currentReport.difference
+              | currency:'INR':'symbol':'1.2-2'
+          }}
+        </strong>
+      </article>
+
+    </div>
+
+
+    <div class="as-of-card">
+
+      <span>As of</span>
+
+      <strong>
+        {{ currentReport.asOf }}
+      </strong>
+
+    </div>
+
+
+    <section class="report-section">
+
+      <div class="section-title">
+
+        <div>
+          <p>Resources</p>
+          <h2>Assets</h2>
+        </div>
+
+        <strong>
+          {{
+            currentReport.assets.total
+              | currency:'INR':'symbol':'1.2-2'
+          }}
+        </strong>
+
+      </div>
+
+
+      <div class="table-wrap">
+
+        <table>
+
+          <thead>
+            <tr>
+              <th>Account Code</th>
+              <th>Account Name</th>
+
+              <th class="number">
+                Closing Balance
+              </th>
+
+              <th class="number">
+                Amount
+              </th>
+            </tr>
+          </thead>
+
+
+          <tbody>
+
+            <tr
+              *ngFor="
+                let account of currentReport.assets.accounts;
+                trackBy: trackAccount
+              "
+            >
+
+              <td class="code">
+                {{ account.accountCode }}
+              </td>
+
+              <td>
+                <strong>
+                  {{ account.accountName }}
+                </strong>
+
+                <small
+                  *ngIf="account.status === 'inactive'"
+                >
+                  Inactive
+                </small>
+              </td>
+
+              <td class="number">
+                {{
+                  account.closingBalance
+                    | currency:'INR':'symbol':'1.2-2'
+                }}
+              </td>
+
+              <td class="number amount">
+                {{
+                  account.amount
+                    | currency:'INR':'symbol':'1.2-2'
+                }}
+              </td>
+
+            </tr>
+
+
+            <tr
+              *ngIf="currentReport.assets.accounts.length === 0"
+            >
+              <td
+                colspan="4"
+                class="empty"
+              >
+                No asset accounts found as of this date.
+              </td>
+            </tr>
+
+          </tbody>
+
+
+          <tfoot>
+            <tr>
+              <th colspan="3">
+                Total Assets
+              </th>
+
+              <th class="number">
+                {{
+                  currentReport.assets.total
+                    | currency:'INR':'symbol':'1.2-2'
+                }}
+              </th>
+            </tr>
+          </tfoot>
+
+        </table>
+
+      </div>
+
+    </section>
+
+
+    <section class="report-section">
+
+      <div class="section-title">
+
+        <div>
+          <p>Obligations</p>
+          <h2>Liabilities</h2>
+        </div>
+
+        <strong>
+          {{
+            currentReport.liabilities.total
+              | currency:'INR':'symbol':'1.2-2'
+          }}
+        </strong>
+
+      </div>
+
+
+      <div class="table-wrap">
+
+        <table>
+
+          <thead>
+            <tr>
+              <th>Account Code</th>
+              <th>Account Name</th>
+
+              <th class="number">
+                Closing Balance
+              </th>
+
+              <th class="number">
+                Amount
+              </th>
+            </tr>
+          </thead>
+
+
+          <tbody>
+
+            <tr
+              *ngFor="
+                let account of currentReport.liabilities.accounts;
+                trackBy: trackAccount
+              "
+            >
+
+              <td class="code">
+                {{ account.accountCode }}
+              </td>
+
+              <td>
+                <strong>
+                  {{ account.accountName }}
+                </strong>
+
+                <small
+                  *ngIf="account.status === 'inactive'"
+                >
+                  Inactive
+                </small>
+              </td>
+
+              <td class="number">
+                {{
+                  account.closingBalance
+                    | currency:'INR':'symbol':'1.2-2'
+                }}
+              </td>
+
+              <td class="number amount">
+                {{
+                  account.amount
+                    | currency:'INR':'symbol':'1.2-2'
+                }}
+              </td>
+
+            </tr>
+
+
+            <tr
+              *ngIf="currentReport.liabilities.accounts.length === 0"
+            >
+              <td
+                colspan="4"
+                class="empty"
+              >
+                No liability accounts found as of this date.
+              </td>
+            </tr>
+
+          </tbody>
+
+
+          <tfoot>
+            <tr>
+              <th colspan="3">
+                Total Liabilities
+              </th>
+
+              <th class="number">
+                {{
+                  currentReport.liabilities.total
+                    | currency:'INR':'symbol':'1.2-2'
+                }}
+              </th>
+            </tr>
+          </tfoot>
+
+        </table>
+
+      </div>
+
+    </section>
+
+
+    <section class="report-section">
+
+      <div class="section-title">
+
+        <div>
+          <p>Ownership</p>
+          <h2>Equity</h2>
+        </div>
+
+        <strong>
+          {{
+            currentReport.equity.total
+              | currency:'INR':'symbol':'1.2-2'
+          }}
+        </strong>
+
+      </div>
+
+
+      <div class="table-wrap">
+
+        <table>
+
+          <thead>
+            <tr>
+              <th>Account Code</th>
+              <th>Account Name</th>
+
+              <th class="number">
+                Closing Balance
+              </th>
+
+              <th class="number">
+                Amount
+              </th>
+            </tr>
+          </thead>
+
+
+          <tbody>
+
+            <tr
+              *ngFor="
+                let account of currentReport.equity.accounts;
+                trackBy: trackAccount
+              "
+            >
+
+              <td class="code">
+                {{ account.accountCode }}
+              </td>
+
+              <td>
+                <strong>
+                  {{ account.accountName }}
+                </strong>
+
+                <small
+                  *ngIf="account.status === 'inactive'"
+                >
+                  Inactive
+                </small>
+              </td>
+
+              <td class="number">
+                {{
+                  account.closingBalance
+                    | currency:'INR':'symbol':'1.2-2'
+                }}
+              </td>
+
+              <td class="number amount">
+                {{
+                  account.amount
+                    | currency:'INR':'symbol':'1.2-2'
+                }}
+              </td>
+
+            </tr>
+
+
+            <tr
+              *ngIf="currentReport.equity.accounts.length === 0"
+            >
+              <td
+                colspan="4"
+                class="empty"
+              >
+                No equity accounts found as of this date.
+              </td>
+            </tr>
+
+          </tbody>
+
+
+          <tfoot>
+            <tr>
+              <th colspan="3">
+                Total Equity
+              </th>
+
+              <th class="number">
+                {{
+                  currentReport.equity.total
+                    | currency:'INR':'symbol':'1.2-2'
+                }}
+              </th>
+            </tr>
+          </tfoot>
+
+        </table>
+
+      </div>
+
+    </section>
+
+
+    <section class="statement-summary">
+
+      <div>
+        <span>
+          Current Period:
+          {{ currentPeriodResultLabel() }}
+        </span>
+
+        <strong>
+          {{
+            currentReport.currentPeriodResult.amount
+              | currency:'INR':'symbol':'1.2-2'
+          }}
+        </strong>
+      </div>
+
+
+      <div>
+        <span>
+          Liabilities & Equity
+        </span>
+
+        <strong>
+          {{
+            currentReport.totalLiabilitiesAndEquity
+              | currency:'INR':'symbol':'1.2-2'
+          }}
+        </strong>
+      </div>
+
+
+      <div
+        [class.unbalanced]="!currentReport.isBalanced"
+      >
+        <span>Difference</span>
+
+        <strong>
+          {{
+            currentReport.difference
+              | currency:'INR':'symbol':'1.2-2'
+          }}
+        </strong>
+      </div>
+
+    </section>
+
+  </ng-container>
+
+
+  <div
+    *ngIf="
+      !loading() &&
+      !report() &&
+      !errorMessage()
+    "
+    class="state-card"
+  >
+    Balance Sheet report is not available.
+  </div>
+
+</section>
