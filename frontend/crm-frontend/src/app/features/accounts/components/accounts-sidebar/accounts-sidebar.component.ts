@@ -217,6 +217,11 @@ export class AccountsSidebarComponent {
           },
 
           {
+            label: 'Day Book',
+            route: '/accounts/day-book',
+            icon: 'reports'
+          },
+          {
             label: 'General Ledger',
             route: '/accounts/ledger',
             icon: 'ledger'
@@ -264,6 +269,12 @@ export class AccountsSidebarComponent {
         title: 'Tax',
 
         items: [
+          {
+            label: 'GST & Tax',
+            route: '/accounts/tax',
+            icon: 'tax'
+          },
+
           {
             label: 'GST Report',
             route: '/accounts/gst-report',

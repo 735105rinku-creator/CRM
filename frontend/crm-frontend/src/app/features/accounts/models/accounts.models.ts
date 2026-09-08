@@ -1221,3 +1221,85 @@ export interface VoucherQuery {
 export interface VoidVoucherPayload {
   reason: string;
 }
+
+/* =========================================================
+   DAY BOOK
+========================================================= */
+
+export type DayBookVoucherType =
+  | 'journal'
+  | 'payment'
+  | 'receipt'
+  | 'contra'
+  | 'sales'
+  | 'purchase'
+  | 'credit_note'
+  | 'debit_note';
+
+export type DayBookSortOrder =
+  | 'asc'
+  | 'desc';
+
+export interface DayBookLine {
+  accountId?: string;
+  accountCode?: string;
+  accountName?: string;
+  description?: string;
+  debit: number;
+  credit: number;
+}
+
+export interface DayBookRow {
+  journalEntryId: string;
+  journalDate: string;
+  displayType: string;
+  voucherType?: DayBookVoucherType | string | null;
+  voucherNumber?: string | null;
+  journalNumber?: string | null;
+  referenceType?: string | null;
+  referenceNo?: string | null;
+  narration?: string | null;
+  totalDebit: number;
+  totalCredit: number;
+  lines: DayBookLine[];
+}
+
+export interface DayBookSummary {
+  voucherCount: number;
+  totalDebit: number;
+  totalCredit: number;
+}
+
+export interface DayBookPagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface DayBookPeriod {
+  from: string;
+  to: string;
+}
+
+export interface DayBookFilters {
+  voucherType?: string | null;
+  sort?: DayBookSortOrder | string;
+}
+
+export interface DayBookReport {
+  period: DayBookPeriod;
+  filters: DayBookFilters;
+  rows: DayBookRow[];
+  summary: DayBookSummary;
+  pagination: DayBookPagination;
+}
+
+export interface DayBookQuery {
+  from?: string;
+  to?: string;
+  voucherType?: DayBookVoucherType | '';
+  sort?: DayBookSortOrder;
+  page?: number;
+  limit?: number;
+}

@@ -328,6 +328,25 @@ export const ACCOUNTS_ROUTES: Routes = [
       },
 
       {
+        path: 'day-book',
+
+        loadComponent: () =>
+          import(
+            './pages/day-book/day-book.component'
+          ).then(
+            (module) =>
+              module.DayBookComponent
+          ),
+
+        data: {
+          title: 'Day Book',
+          section: 'Accounts',
+          feature: 'day-book',
+          description:
+            'Read-only chronological accounting voucher and journal register.'
+        }
+      },
+      {
         path: 'ledger',
 
         loadComponent: () =>
