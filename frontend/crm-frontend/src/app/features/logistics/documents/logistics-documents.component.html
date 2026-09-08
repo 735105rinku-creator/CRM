@@ -85,7 +85,7 @@
               <span>DOCUMENT ENTRY</span>
   
               <h2>
-                Upload Logistics Document
+                {{ editingId ? 'Edit Document Metadata' : 'Upload Logistics Document' }}
               </h2>
   
               <p>
@@ -467,6 +467,9 @@
                       >
                         &#8681;
                       </button>
+
+                      <button type="button" title="Edit" (click)="editDocument(item)">&#9998;</button>
+                      <button type="button" title="Delete" (click)="deleteDocument(item)">&#128465;</button>
   
                     </div>
                   </td>

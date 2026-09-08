@@ -7,6 +7,7 @@
   <main class="page-content">
     <section class="summary-grid">
       <article><span>&#9817;</span><div><small>Total CHA</small><strong>{{ summary().totalCha }}</strong><p>Master records</p></div></article>
+      <article><span>&#10003;</span><div><small>Active CHA</small><strong>{{ summary().activeCha }}</strong><p>Available brokers</p></div></article>
       <article><span>&#8599;</span><div><small>Active Clearance Jobs</small><strong>{{ summary().activeJobs }}</strong><p>In process</p></div></article>
       <article><span>&#9633;</span><div><small>Documents Pending</small><strong>{{ summary().documentsPending }}</strong><p>Awaiting documents</p></div></article>
       <article><span>&#9888;</span><div><small>Under Assessment</small><strong>{{ summary().assessment }}</strong><p>Customs review</p></div></article>
@@ -22,7 +23,7 @@
         <div>
           <span>CHA CASE</span>
           <h2>{{ item.caseNumber || item.shipmentNumber || item.shipmentNo || 'Clearance Job' }}</h2>
-          <p>{{ item.customerName || item.customer || '-' }} · {{ item.chaAgent || '-' }} · {{ statusLabel(item.status) }}</p>
+          <p>{{ item.customerName || item.customer || '-' }} Â· {{ item.chaAgent || '-' }} Â· {{ statusLabel(item.status) }}</p>
         </div>
         <div class="detail-actions">
           <button type="button" class="gold-button" (click)="editCase(item)"><span class="button-icon">&#9998;</span>Edit</button>

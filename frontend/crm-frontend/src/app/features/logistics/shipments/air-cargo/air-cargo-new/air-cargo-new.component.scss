@@ -1293,3 +1293,7 @@
 
 
 .field-label-icon{align-items:center;color:#c9972d;display:inline-flex;height:16px;justify-content:center;margin-right:6px;vertical-align:-2px;width:16px}.field-label-icon::before{background:currentColor;border-radius:999px 999px 4px 4px;clip-path:polygon(25% 0,75% 0,75% 42%,100% 70%,100% 100%,0 100%,0 70%,25% 42%);content:"";display:block;height:14px;width:14px}
+.form-hidden { display: none; }
+.edit-loading { min-height: 360px; display: grid; place-content: center; justify-items: center; gap: 14px; color: #536174; }
+.loading-spinner { width: 38px; height: 38px; border: 4px solid rgba(201,168,106,.25); border-top-color: #c9a86a; border-radius: 50%; animation: logistics-spin .8s linear infinite; }
+@keyframes logistics-spin { to { transform: rotate(360deg); } }

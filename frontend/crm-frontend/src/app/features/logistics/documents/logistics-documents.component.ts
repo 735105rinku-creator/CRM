@@ -103,6 +103,7 @@ export class LogisticsDocumentsComponent implements OnInit {
   protected readonly errorMessage = signal('');
 
   protected selectedFile: File | null = null;
+  protected editingId = '';
 
   protected readonly documentTypes: Option[] = [
     { label: 'Commercial Invoice', value: 'commercial-invoice' },
@@ -203,9 +204,9 @@ export class LogisticsDocumentsComponent implements OnInit {
 
   protected loadShipments(): void {
     forkJoin({
-      all: this.api.get<ShipmentListResponse>('/logistics/shipments', { page: 1, limit: 100, sortBy: 'createdAt', sortOrder: 'desc' }).pipe(catchError(() => of(null))),
-      airCargo: this.api.get<ShipmentListResponse>('/logistics/shipments/air-cargo', { page: 1, limit: 100, sortBy: 'createdAt', sortOrder: 'desc' }).pipe(catchError(() => of(null))),
-      seaFreight: this.api.get<ShipmentListResponse>('/logistics/shipments/sea-freight', { page: 1, limit: 100, sortBy: 'createdAt', sortOrder: 'desc' }).pipe(catchError(() => of(null)))
+      all: this.api.get<ShipmentListResponse>('/logistics/shipments', { page: 1, limit: 100, sortBy: 'createdAt', sortOrder: 'desc' }).pipe(catchError((error) => this.shipmentLookupFailure(error))),
+      airCargo: this.api.get<ShipmentListResponse>('/logistics/shipments/air-cargo', { page: 1, limit: 100, sortBy: 'createdAt', sortOrder: 'desc' }).pipe(catchError((error) => this.shipmentLookupFailure(error))),
+      seaFreight: this.api.get<ShipmentListResponse>('/logistics/shipments/sea-freight', { page: 1, limit: 100, sortBy: 'createdAt', sortOrder: 'desc' }).pipe(catchError((error) => this.shipmentLookupFailure(error)))
     }).subscribe({
       next: ({ all, airCargo, seaFreight }) => {
         const rows = this.uniqueShipments([
@@ -280,6 +281,7 @@ export class LogisticsDocumentsComponent implements OnInit {
     }
   }
   protected openForm(): void {
+    this.editingId = '';
     this.form = this.emptyForm();
     this.selectedFile = null;
     this.message.set('');
@@ -288,6 +290,7 @@ export class LogisticsDocumentsComponent implements OnInit {
   }
 
   protected closeForm(): void {
+    this.editingId = '';
     this.showForm.set(false);
     this.selectedFile = null;
     this.form = this.emptyForm();
@@ -349,15 +352,38 @@ export class LogisticsDocumentsComponent implements OnInit {
       return;
     }
 
-    if (!this.selectedFile) {
+    if (!this.editingId && !this.selectedFile) {
       this.errorMessage.set('Please select a document file.');
       window.alert('Please select a document file.');
       return;
     }
 
+    if (this.editingId) {
+      const metadata = {
+        documentTitle: this.form.documentTitle.trim(),
+        issueDate: this.form.issueDate || null,
+        expiryDate: this.form.expiryDate || null,
+        issuingAuthority: this.form.issuingAuthority.trim(),
+        referenceNumber: this.form.referenceNumber.trim(),
+        status: this.form.status,
+        statusOther: this.form.status === 'other' ? this.form.statusOther.trim() : '',
+        remarks: this.form.remarks.trim()
+      };
+      this.isSaving.set(true);
+      this.api.patch<LogisticsDocumentApiRow>('/logistics/documents/' + this.editingId, metadata)
+        .pipe(finalize(() => this.isSaving.set(false)))
+        .subscribe({
+          next: () => { this.closeForm(); this.loadDocuments(); window.alert('Document metadata updated successfully.'); },
+          error: (error: any) => window.alert(error?.error?.message || 'Unable to update document metadata.')
+        });
+      return;
+    }
+
+    const selectedFile = this.selectedFile;
+    if (!selectedFile) return;
     const formData = new FormData();
 
-    formData.append('file', this.selectedFile);
+    formData.append('file', selectedFile);
     formData.append('shipmentNo', this.form.shipmentNo.trim().toUpperCase());
     formData.append('customer', this.form.customer.trim());
     formData.append('documentType', this.form.documentType);
@@ -417,6 +443,38 @@ export class LogisticsDocumentsComponent implements OnInit {
           window.alert(message);
         }
       });
+  }
+
+  protected editDocument(item: LogisticsDocument): void {
+    const row = item.raw;
+    if (!item.mongoId) return;
+    this.editingId = item.mongoId;
+    this.selectedFile = null;
+    this.form = {
+      documentNo: row.documentNumber || item.documentNo,
+      shipmentNo: row.shipmentNumber || item.shipmentNo,
+      customer: row.customerName || item.customer,
+      documentType: row.documentType || item.documentType,
+      documentTypeOther: row.documentTypeOther || item.documentTypeOther,
+      documentTitle: row.documentTitle || '',
+      issueDate: this.dateInputValue(row.issueDate),
+      expiryDate: this.dateInputValue(row.expiryDate),
+      issuingAuthority: row.issuingAuthority || '',
+      referenceNumber: row.referenceNumber || '',
+      status: row.status || item.status,
+      statusOther: row.statusOther || item.statusOther,
+      remarks: row.remarks || ''
+    };
+    this.showForm.set(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  protected deleteDocument(item: LogisticsDocument): void {
+    if (!item.mongoId || !window.confirm(`Delete document ${item.documentNo}?`)) return;
+    this.api.delete('/logistics/documents/' + item.mongoId).subscribe({
+      next: () => this.loadDocuments(),
+      error: (error: any) => window.alert(error?.error?.message || 'Unable to delete document.')
+    });
   }
 
   protected documentTypeLabel(type: string): string {
@@ -757,6 +815,17 @@ export class LogisticsDocumentsComponent implements OnInit {
         year: 'numeric'
       }
     ).format(date);
+  }
+
+  private dateInputValue(value: string | null | undefined): string {
+    if (!value) return '';
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? '' : date.toISOString().slice(0, 10);
+  }
+
+  private shipmentLookupFailure(error: any) {
+    this.errorMessage.set(error?.error?.message || 'Unable to load shipment options for documents.');
+    return of(null);
   }
 
   private emptyForm() {

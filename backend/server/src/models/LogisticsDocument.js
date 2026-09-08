@@ -19,6 +19,8 @@ export const LOGISTICS_DOCUMENT_TYPES =
     "phytosanitary",
     "lr",
     "warehouse-receipt",
+    "delivery-receipt",
+    "pod",
     "vendor-invoice",
     "customer-invoice",
     "other",

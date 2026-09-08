@@ -644,7 +644,7 @@ tbody tr:last-child td {
 }
 
 .action-buttons > button,
-.action-menu summary {
+.action-menu .menu-trigger {
   width: 29px;
   height: 29px;
 
@@ -673,23 +673,13 @@ tbody tr:last-child td {
   position: relative;
 }
 
-.action-menu details {
-  position: relative;
-}
-
-.action-menu summary {
+.action-menu .menu-trigger {
   list-style: none;
 }
 
-.action-menu summary::-webkit-details-marker {
-  display: none;
-}
-
 .action-dropdown {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 8px);
-  z-index: 30;
+  position: fixed;
+  z-index: 300;
 
   width: 180px;
 

@@ -1,4 +1,4 @@
-﻿<div class="invoice-list-page">
+<div class="invoice-list-page">
   <header class="page-header">
     <div>
       <div class="breadcrumb">
@@ -116,7 +116,20 @@
           <tbody>
             @for (invoice of filteredInvoices(); track invoice._id || invoice.invoiceNumber) {
               <tr>
-                <td><strong>{{ invoice.invoiceNumber || '-' }}</strong></td>
+                <td><strong>{{ invoice.invoiceNumber || '-' }}</strong>
+      @if (invoice.editHistory?.length) {
+        <div class="edit-audit" role="note">
+          <span>Edited by: {{ invoice.editHistory![invoice.editHistory!.length - 1].changedByName || invoice.editHistory![invoice.editHistory!.length - 1].changedBy || 'Unknown user' }}</span>
+          <span>Edited on: {{ invoice.editHistory![invoice.editHistory!.length - 1].changedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+          <details>
+            <summary>Edit history</summary>
+            @for (entry of invoice.editHistory; track $index) {
+              <div>{{ entry.changedByName || entry.changedBy || 'Unknown user' }} ? {{ entry.changedAt | date:'dd/MM/yyyy HH:mm' }}</div>
+            }
+          </details>
+        </div>
+      }
+</td>
                 <td>
                   <div class="stack"><strong>{{ invoice.customerName || '-' }}</strong><span>{{ invoice.mobile || invoice.email || '-' }}</span></div>
                 </td>
@@ -132,7 +145,6 @@
                   <div class="actions">
                     <button type="button" title="View" (click)="viewInvoice(invoice)">&#9673;</button>
                     <button type="button" title="Edit" (click)="editInvoice(invoice)">&#9998;</button>
-                    <button type="button" title="Delete" class="danger" (click)="deleteInvoice(invoice)">&#128465;</button>
                   </div>
                 </td>
               </tr>

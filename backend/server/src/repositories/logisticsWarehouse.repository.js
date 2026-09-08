@@ -12,7 +12,7 @@ class LogisticsWarehouseRepository {
     return LogisticsWarehouse.findOne({
       _id: warehouseId,
       companyId,
-      isActive: true,
+      isActive: { $ne: false },
     }).lean();
   }
 
@@ -30,7 +30,7 @@ class LogisticsWarehouseRepository {
   }) {
     const filter = {
       companyId,
-      isActive: true,
+      isActive: { $ne: false },
     };
 
     if (status) {
@@ -134,7 +134,7 @@ class LogisticsWarehouseRepository {
       {
         _id: warehouseId,
         companyId,
-        isActive: true,
+        isActive: { $ne: false },
       },
       { $set: payload },
       {
@@ -155,7 +155,7 @@ class LogisticsWarehouseRepository {
       {
         _id: warehouseId,
         companyId,
-        isActive: true,
+        isActive: { $ne: false },
       },
       {
         $push: {
@@ -208,7 +208,7 @@ class LogisticsWarehouseRepository {
       {
         _id: warehouseId,
         companyId,
-        isActive: true,
+        isActive: { $ne: false },
         "receipts._id": receiptId,
       },
       update,
@@ -228,7 +228,7 @@ class LogisticsWarehouseRepository {
       {
         _id: warehouseId,
         companyId,
-        isActive: true,
+        isActive: { $ne: false },
       },
       {
         $set: {
@@ -245,7 +245,7 @@ class LogisticsWarehouseRepository {
       {
         $match: {
           companyId,
-          isActive: true,
+          isActive: { $ne: false },
         },
       },
       {

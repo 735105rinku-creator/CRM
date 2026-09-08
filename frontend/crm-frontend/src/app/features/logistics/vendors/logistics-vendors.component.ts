@@ -5,6 +5,7 @@ import { finalize } from 'rxjs';
 
 import { ApiService } from '../../../core/services/api.service';
 
+
 interface Option { label: string; value: string; }
 interface PageResult<T> { data?: T[] | { data?: T[]; records?: T[] }; records?: T[]; pagination?: { total?: number }; }
 interface VendorRecord {
@@ -147,6 +148,15 @@ export class LogisticsVendorsComponent implements OnInit {
     this.form = this.formFromRecord(record);
     this.showForm.set(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  protected deleteVendor(item: VendorRecord): void {
+    const id = item.raw?._id || item._id;
+    if (!id || !window.confirm(`Delete vendor ${item.vendorName}?`)) return;
+    this.api.delete('/logistics/vendors/' + id).subscribe({
+      next: () => { this.selectedVendor.set(null); this.loadVendors(); },
+      error: (error: any) => window.alert(error?.error?.message || 'Unable to delete vendor.')
+    });
   }
 
   protected formatCurrency(value: number): string {

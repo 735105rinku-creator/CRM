@@ -11,6 +11,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { ApiService } from '../../../../../core/services/api.service';
+import { LogisticsSecondaryAction, LogisticsTableActionsComponent } from '../../../shared/table-actions/logistics-table-actions.component';
 
 type ShipmentStatus =
   | 'Booking Created'
@@ -59,6 +60,8 @@ interface ShipmentRow {
   chargeableWeight: number;
 
   amount: number;
+  currency: string;
+  receiptUploaded: boolean;
 
   status: ShipmentStatus;
 
@@ -108,7 +111,19 @@ interface LogisticsShipment {
   };
 
   charges?: {
+    freightAmount?: number;
+    chaCharge?: number;
+    documentationCharge?: number;
+    transportationCharge?: number;
+    warehouseCharge?: number;
+    handlingCharge?: number;
+    insuranceCharge?: number;
+    otherCharge?: number;
+    discount?: number;
+    gstRate?: number;
+    otherTax?: number;
     totalAmount?: number;
+    currency?: string;
   };
 
   status?:
@@ -173,6 +188,16 @@ interface CreateShipmentPayload {
 
   charges?: {
     freightAmount?: number;
+    chaCharge?: number;
+    documentationCharge?: number;
+    transportationCharge?: number;
+    warehouseCharge?: number;
+    handlingCharge?: number;
+    insuranceCharge?: number;
+    otherCharge?: number;
+    discount?: number;
+    gstRate?: number;
+    otherTax?: number;
     currency?: string;
   };
 
@@ -188,7 +213,8 @@ interface CreateShipmentPayload {
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule
+    FormsModule,
+    LogisticsTableActionsComponent
   ],
   templateUrl:
     './air-cargo-list.component.html',
@@ -248,6 +274,28 @@ export class AirCargoListComponent
 
   protected readonly errorMessage =
     signal('');
+
+  protected airCargoActions(shipment: ShipmentRow): readonly LogisticsSecondaryAction[] {
+    return [
+      { key: 'duplicate', label: 'Duplicate Shipment' },
+      ...(shipment.backendStatus === 'delivered'
+        ? [{ key: 'receipt', label: shipment.receiptUploaded ? 'Replace Delivery Receipt' : 'Upload Delivery Receipt' }]
+        : []),
+      { key: 'awb', label: 'AWB Details' },
+      { key: 'invoice', label: 'Generate Invoice' },
+      { key: 'status', label: 'Update Status' },
+      { key: 'delete', label: 'Delete Shipment', danger: true }
+    ];
+  }
+
+  protected handleAirCargoAction(shipment: ShipmentRow, actionKey: string): void {
+    if (actionKey === 'duplicate') this.duplicateShipment(shipment);
+    if (actionKey === 'receipt') document.getElementById(`receipt-${shipment.mongoId}`)?.click();
+    if (actionKey === 'awb') this.showAwb(shipment);
+    if (actionKey === 'invoice') this.createInvoice(shipment);
+    if (actionKey === 'status') this.updateStatus(shipment);
+    if (actionKey === 'delete') this.deleteShipment(shipment);
+  }
 
 
   /*
@@ -839,11 +887,22 @@ export class AirCargoListComponent
         freightAmount:
           this.number(
             raw.charges
-              ?.totalAmount
+              ?.freightAmount
           ),
 
+        chaCharge: this.number(raw.charges?.chaCharge),
+        documentationCharge: this.number(raw.charges?.documentationCharge),
+        transportationCharge: this.number(raw.charges?.transportationCharge),
+        warehouseCharge: this.number(raw.charges?.warehouseCharge),
+        handlingCharge: this.number(raw.charges?.handlingCharge),
+        insuranceCharge: this.number(raw.charges?.insuranceCharge),
+        otherCharge: this.number(raw.charges?.otherCharge),
+        discount: this.number(raw.charges?.discount),
+        gstRate: this.number(raw.charges?.gstRate),
+        otherTax: this.number(raw.charges?.otherTax),
+
         currency:
-          'INR'
+          raw.charges?.currency || 'INR'
       },
 
       status:
@@ -1293,24 +1352,62 @@ export class AirCargoListComponent
 
 
   protected formatCurrency(
-    value: number
+    value: number,
+    currency = 'INR'
   ): string {
+    const safeCurrency =
+      currency || 'INR';
 
     return new Intl.NumberFormat(
       'en-IN',
       {
         style:
-          'currency',
+          safeCurrency === 'INR' ? 'currency' : 'decimal',
 
         currency:
-          'INR',
+          safeCurrency === 'INR' ? 'INR' : undefined,
 
         maximumFractionDigits:
           0
       }
     ).format(
       value
-    );
+    ).replace(/^/, safeCurrency === 'INR' ? '' : `${safeCurrency} `);
+  }
+
+  protected uploadDeliveryReceipt(
+    shipment: ShipmentRow,
+    event: Event
+  ): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+
+    if (!file || shipment.backendStatus !== 'delivered') {
+      return;
+    }
+
+    if (!['image/jpeg'].includes(file.type)) {
+      this.errorMessage.set('Only JPG/JPEG delivery receipt files are allowed.');
+      return;
+    }
+
+    const data = new FormData();
+    data.append('file', file);
+    data.append('shipmentNo', shipment.shipmentId);
+    data.append('customer', shipment.customer);
+    data.append('documentType', 'delivery-receipt');
+    data.append('documentTitle', 'Delivery Receipt');
+    data.append('status', 'valid');
+    data.append('remarks', `Delivery receipt uploaded for ${shipment.shipmentId}.`);
+
+    this.api.post('/logistics/documents', data).subscribe({
+      next: () => {
+        shipment.receiptUploaded = true;
+        this.message.set('Receipt Uploaded');
+      },
+      error: (error) => this.errorMessage.set(error?.error?.message || 'Receipt upload failed.')
+    });
   }
 
 
@@ -1421,6 +1518,12 @@ export class AirCargoListComponent
           shipment.charges
             ?.totalAmount
         ),
+
+      currency:
+        shipment.charges?.currency || 'INR',
+
+      receiptUploaded:
+        false,
 
 
       status:

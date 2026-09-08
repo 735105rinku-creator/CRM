@@ -382,6 +382,14 @@ const chargesSchema =
     otherChargeDescription:
       optionalText,
 
+    subtotal: positiveNumber,
+    discount: positiveNumber,
+    taxableAmount: positiveNumber,
+    gstRate: positiveNumber,
+    gstAmount: positiveNumber,
+    otherTax: positiveNumber,
+    totalAmount: positiveNumber,
+
     currency:
       Joi.string()
         .trim()
@@ -456,6 +464,14 @@ const logisticsShipmentBaseSchema =
 
     customerReference:
       optionalText,
+
+
+    shipmentDate:
+      Joi.date()
+        .allow(
+          "",
+          null
+        ),
 
 
     origin:

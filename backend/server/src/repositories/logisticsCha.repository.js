@@ -9,7 +9,7 @@ class LogisticsChaRepository {
     return LogisticsCha.findOne({
       _id: chaId,
       companyId,
-      isActive: true,
+      isActive: { $ne: false },
     }).lean();
   }
 
@@ -17,7 +17,7 @@ class LogisticsChaRepository {
     return LogisticsCha.findOne({
       companyId,
       caseNumber: String(caseNumber || "").trim().toUpperCase(),
-      isActive: true,
+      isActive: { $ne: false },
     }).lean();
   }
 
@@ -36,7 +36,7 @@ class LogisticsChaRepository {
   }) {
     const filter = {
       companyId,
-      isActive: true,
+      isActive: { $ne: false },
     };
 
     if (shipmentNo) {
@@ -142,7 +142,7 @@ class LogisticsChaRepository {
       {
         _id: chaId,
         companyId,
-        isActive: true,
+        isActive: { $ne: false },
       },
       { $set: payload },
       {
@@ -164,7 +164,7 @@ class LogisticsChaRepository {
       {
         _id: chaId,
         companyId,
-        isActive: true,
+        isActive: { $ne: false },
       },
       {
         $set: {
@@ -205,7 +205,7 @@ class LogisticsChaRepository {
       {
         _id: chaId,
         companyId,
-        isActive: true,
+        isActive: { $ne: false },
       },
       {
         $set: {
@@ -222,7 +222,7 @@ class LogisticsChaRepository {
       {
         $match: {
           companyId,
-          isActive: true,
+          isActive: { $ne: false },
         },
       },
       {

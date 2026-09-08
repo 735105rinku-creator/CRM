@@ -353,6 +353,14 @@
                   placeholder="Enter B/L number"
                 />
               </div>
+
+              <div class="field">
+                <label>Shipment Date *</label>
+                <input
+                  type="date"
+                  [(ngModel)]="form.shipmentDate"
+                />
+              </div>
   
               <div class="field">
                 <label>ETD</label>
@@ -371,82 +379,198 @@
               </div>
             </div>
           </div>
-  
+
           <div class="section-block">
-            <h3>4. Charges</h3>
-  
+            <h3>4. CHA & Customs Details</h3>
+
             <div class="form-grid">
               <div class="field">
-                <label>Ocean Freight</label>
-                <input
-                  type="number"
-                  [(ngModel)]="form.freightAmount"
-                />
+                <label>CHA Required?</label>
+                <select [(ngModel)]="form.chaRequired" (change)="onChaRequiredChanged()">
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                </select>
               </div>
-  
-              <div class="field">
-                <label>Documentation Charge</label>
-                <input
-                  type="number"
-                  [(ngModel)]="form.documentationCharge"
-                />
-              </div>
-  
-              <div class="field">
-                <label>CHA Charge</label>
-                <input
-                  type="number"
-                  [(ngModel)]="form.chaCharge"
-                />
-              </div>
-  
-              <div class="field">
-                <label>Transportation Charge</label>
-                <input
-                  type="number"
-                  [(ngModel)]="form.transportationCharge"
-                />
-              </div>
-  
-              <div class="field">
-                <label>Other Charge</label>
-                <input
-                  type="number"
-                  [(ngModel)]="form.otherCharge"
-                />
-              </div>
+
+              @if (form.chaRequired === 'yes') {
+                <div class="field">
+                  <label>CHA *</label>
+                  <select [(ngModel)]="form.cha" (change)="onChaSelected()">
+                    <option value="">Select CHA</option>
+                    @for (option of chaOptions; track option.value) {
+                      <option [value]="option.value">
+                        {{ option.label }}
+                      </option>
+                    }
+                  </select>
+
+                  @if (form.cha === 'other') {
+                    <input
+                      class="other-input"
+                      [(ngModel)]="form.chaOther"
+                      placeholder="Enter CHA name"
+                    />
+                  }
+                </div>
+
+                <div class="field">
+                  <label>Contact Person</label>
+                  <input [(ngModel)]="form.chaContact" readonly class="readonly" />
+                </div>
+
+                <div class="field">
+                  <label>Mobile</label>
+                  <input [(ngModel)]="form.chaMobile" readonly class="readonly" />
+                </div>
+
+                <div class="field">
+                  <label>Email</label>
+                  <input [(ngModel)]="form.chaEmail" readonly class="readonly" />
+                </div>
+
+                <div class="field">
+                  <label>License Number</label>
+                  <input [(ngModel)]="form.chaLicenseNumber" readonly class="readonly" />
+                </div>
+
+                <div class="field span-2">
+                  <label>Address</label>
+                  <input [(ngModel)]="form.chaAddress" readonly class="readonly" />
+                </div>
+              }
             </div>
           </div>
   
           <div class="section-block">
-            <h3>5. Shipment Status</h3>
-  
+            <h3>5. Charges</h3>
+          
             <div class="form-grid">
-              <div class="field span-2">
-                <label>Status *</label>
-  
-                <select [(ngModel)]="form.status">
-                  @for (option of statusOptions; track option.value) {
+          
+              <div class="field">
+                <label>Currency</label>
+          
+                <select [(ngModel)]="form.currency">
+          
+                  @for (option of currencyOptions; track option.value) {
+          
                     <option [value]="option.value">
                       {{ option.label }}
                     </option>
+          
                   }
+          
                 </select>
-  
-                @if (form.status === 'other') {
+          
+                @if (form.currency === 'other') {
+          
                   <input
                     class="other-input"
-                    [(ngModel)]="form.statusOther"
-                    placeholder="Enter shipment status"
+                    maxlength="3"
+                    [(ngModel)]="form.currencyOther"
+                    placeholder="Currency Code"
                   />
+          
                 }
+          
               </div>
+          
+          
+              <div class="field">
+                <label>Ocean Freight</label>
+          
+                <input
+                  type="number"
+                  min="0"
+                  [(ngModel)]="form.freightAmount"
+                />
+          
+              </div>
+          
+          
+              <div class="field">
+                <label>Documentation Charge</label>
+          
+                <input
+                  type="number"
+                  min="0"
+                  [(ngModel)]="form.documentationCharge"
+                />
+          
+              </div>
+          
+          
+              <div class="field">
+                <label>CHA Charge</label>
+          
+                <input
+                  type="number"
+                  min="0"
+                  [(ngModel)]="form.chaCharge"
+                />
+          
+              </div>
+          
+          
+              <div class="field">
+                <label>Transportation Charge</label>
+          
+                <input
+                  type="number"
+                  min="0"
+                  [(ngModel)]="form.transportationCharge"
+                />
+          
+              </div>
+          
+          
+              <div class="field">
+                <label>Other Charge</label>
+          
+                <input
+                  type="number"
+                  min="0"
+                  [(ngModel)]="form.otherCharge"
+                />
+          
+              </div>
+          
+          
+              <!-- =====================================================
+                   AUTO CALCULATED TOTAL
+              ====================================================== -->
+          
+              <div class="field span-2">
+          
+                <label>Total Amount</label>
+          
+                <input
+                  type="text"
+                  class="readonly"
+                  readonly
+                  [value]="
+                    (form.currency === 'other'
+                      ? (form.currencyOther || 'INR').toUpperCase()
+                      : form.currency
+                    )
+                    + ' '
+                    + totalChargeAmount.toLocaleString(
+                        'en-IN',
+                        {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2
+                        }
+                      )
+                  "
+                />
+          
+              </div>
+          
             </div>
           </div>
   
           <!-- REMARKS MUST REMAIN LAST -->
           <div class="section-block remarks-block">
-            <h3>6. Remarks</h3>
+            <h3>7. Remarks</h3>
   
             <div class="field">
               <label>Remarks</label>
@@ -581,21 +705,8 @@
                   </td>
   
                   <td>
-                    <div class="actions">
-                      <button
-                        type="button"
-                        (click)="viewShipment(shipment)"
-                      >
-                        &#43;
-                      </button>
-  
-                      <button
-                        type="button"
-                        (click)="editShipment(shipment)"
-                      >
-                        &#43;
-                      </button>
-                    </div>
+                    <app-logistics-table-actions [rowId]="shipment.mongoId" [rowLabel]="shipment.shipmentNo"
+                      [secondaryActions]="[]" (view)="viewShipment(shipment)" (edit)="editShipment(shipment)" />
                   </td>
                 </tr>
               }

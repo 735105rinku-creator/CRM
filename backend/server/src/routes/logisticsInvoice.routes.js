@@ -22,8 +22,14 @@ import {
   getLogisticsInvoiceSummary,
   getLogisticsInvoiceById,
   updateLogisticsInvoice,
+  uploadLogisticsInvoiceCopy,
+  previewLogisticsInvoiceCopy,
   deleteLogisticsInvoice,
 } from "../controllers/logisticsInvoice.controller.js";
+
+import {
+  uploadSingleLogisticsDocument,
+} from "../middleware/logisticsDocumentUpload.middleware.js";
 
 
 const router = Router();
@@ -103,6 +109,25 @@ router
     ),
     deleteLogisticsInvoice
   );
+
+router.post(
+  "/:id/invoice-copy",
+  requireLogisticsPermission(
+    "edit",
+    "invoices"
+  ),
+  uploadSingleLogisticsDocument,
+  uploadLogisticsInvoiceCopy
+);
+
+router.get(
+  "/:id/invoice-copy/preview",
+  requireLogisticsPermission(
+    "view",
+    "invoices"
+  ),
+  previewLogisticsInvoiceCopy
+);
 
 
 export default router;

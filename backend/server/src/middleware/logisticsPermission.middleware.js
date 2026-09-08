@@ -1,14 +1,19 @@
 ﻿import { Employee } from "../models/Employee.js";
 import { User } from "../models/User.js";
+import { LogisticsShipment } from "../models/LogisticsShipment.js";
 import { ROLES } from "../constants/roles.js";
+
 import {
   LOGISTICS_PERMISSIONS,
   LOGISTICS_SUBMODULES,
 } from "../constants/logisticsPermissions.js";
+
 import { ApiError } from "../utils/apiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
+
 export { LOGISTICS_SUBMODULES };
+
 
 const ACTIONS = [
   "view",
@@ -25,7 +30,7 @@ const ACTIONS = [
 ============================================================ */
 
 /*
- * Logistics Employee ko in sab modules ka access milega.
+ * Core Logistics modules available to normal Logistics employee.
  */
 const EMPLOYEE_SUBMODULES = new Set([
   "airCargo",
@@ -39,14 +44,7 @@ const EMPLOYEE_SUBMODULES = new Set([
 
 
 /*
- * Operational modules:
- *
- * Employee:
- * - view
- * - create
- * - updateStatus
- *
- * kar sakta hai.
+ * Operational modules.
  */
 const EMPLOYEE_OPERATIONAL_SUBMODULES = new Set([
   "airCargo",
@@ -54,6 +52,34 @@ const EMPLOYEE_OPERATIONAL_SUBMODULES = new Set([
   "cha",
   "transporters",
   "warehouse",
+]);
+
+
+/*
+ * Vendor Payment workspace.
+ */
+const EMPLOYEE_PAYMENT_SUBMODULES = new Set([
+  "vendorPayments",
+]);
+
+
+/*
+ * Customer and Vendor Masters are required by normal
+ * Logistics employees for operational shipment/payment work.
+ *
+ * They can:
+ * - View
+ * - Create
+ * - Edit
+ *
+ * They cannot automatically:
+ * - Delete
+ */
+const EMPLOYEE_MASTER_SUBMODULES = new Set([
+  "customers",
+  "vendors",
+  "productsServices",
+  "invoices",
 ]);
 
 
@@ -69,20 +95,37 @@ export const buildLogisticsPermission = ({
   module: "logistics",
   subModule,
 
-  view: Boolean(allowed.view),
+  view:
+    Boolean(
+      allowed.view
+    ),
+
   viewScope,
 
-  create: Boolean(allowed.create),
-  edit: Boolean(allowed.edit),
-  delete: Boolean(allowed.delete),
+  create:
+    Boolean(
+      allowed.create
+    ),
 
-  updateStatus: Boolean(
-    allowed.updateStatus
-  ),
+  edit:
+    Boolean(
+      allowed.edit
+    ),
 
-  export: Boolean(
-    allowed.export
-  ),
+  delete:
+    Boolean(
+      allowed.delete
+    ),
+
+  updateStatus:
+    Boolean(
+      allowed.updateStatus
+    ),
+
+  export:
+    Boolean(
+      allowed.export
+    ),
 });
 
 
@@ -90,44 +133,74 @@ export const buildLogisticsPermission = ({
    DEFAULT PERMISSION SETS
 ============================================================ */
 
-const fullAccess = Object.freeze({
-  view: true,
-  create: true,
-  edit: true,
-  delete: true,
-  updateStatus: true,
-  export: true,
-});
+const fullAccess =
+  Object.freeze({
+    view: true,
+    create: true,
+    edit: true,
+    delete: true,
+    updateStatus: true,
+    export: true,
+  });
 
 
-const viewOnly = Object.freeze({
-  view: true,
-  create: false,
-  edit: false,
-  delete: false,
-  updateStatus: false,
-  export: false,
-});
+const viewOnly =
+  Object.freeze({
+    view: true,
+    create: false,
+    edit: false,
+    delete: false,
+    updateStatus: false,
+    export: false,
+  });
 
 
-const ownStatusOnly = Object.freeze({
-  view: true,
-  create: false,
-  edit: false,
-  delete: false,
-  updateStatus: true,
-  export: false,
-});
+const ownStatusOnly =
+  Object.freeze({
+    view: true,
+    create: false,
+    edit: true,
+    delete: false,
+    updateStatus: true,
+    export: false,
+  });
 
 
-const ownShipmentCreator = Object.freeze({
-  view: true,
-  create: true,
-  edit: false,
-  delete: false,
-  updateStatus: true,
-  export: false,
-});
+const ownShipmentCreator =
+  Object.freeze({
+    view: true,
+    create: true,
+    edit: true,
+    delete: false,
+    updateStatus: true,
+    export: false,
+  });
+
+
+const ownVendorPaymentEditor =
+  Object.freeze({
+    view: true,
+    create: true,
+    edit: true,
+    delete: false,
+    updateStatus: true,
+    export: false,
+  });
+
+
+/*
+ * Customer / Vendor Master permission for
+ * Logistics employee.
+ */
+const ownMasterEditor =
+  Object.freeze({
+    view: true,
+    create: true,
+    edit: true,
+    delete: false,
+    updateStatus: false,
+    export: false,
+  });
 
 
 /* ============================================================
@@ -138,7 +211,6 @@ const STRING_PERMISSION_MODULES =
   Object.freeze({
 
     airCargo: {
-
       read:
         LOGISTICS_PERMISSIONS
           .AIR_CARGO_READ,
@@ -158,7 +230,6 @@ const STRING_PERMISSION_MODULES =
 
 
     seaFreight: {
-
       read:
         LOGISTICS_PERMISSIONS
           .SEA_FREIGHT_READ,
@@ -178,7 +249,6 @@ const STRING_PERMISSION_MODULES =
 
 
     cha: {
-
       read:
         LOGISTICS_PERMISSIONS
           .CHA_READ,
@@ -198,7 +268,6 @@ const STRING_PERMISSION_MODULES =
 
 
     transporters: {
-
       read:
         LOGISTICS_PERMISSIONS
           .TRANSPORTER_READ,
@@ -218,7 +287,6 @@ const STRING_PERMISSION_MODULES =
 
 
     warehouse: {
-
       read:
         LOGISTICS_PERMISSIONS
           .WAREHOUSE_READ,
@@ -238,7 +306,6 @@ const STRING_PERMISSION_MODULES =
 
 
     tracking: {
-
       read:
         LOGISTICS_PERMISSIONS
           .TRACKING_READ,
@@ -254,7 +321,6 @@ const STRING_PERMISSION_MODULES =
 
 
     documents: {
-
       read:
         LOGISTICS_PERMISSIONS
           .DOCUMENT_READ,
@@ -271,6 +337,8 @@ const STRING_PERMISSION_MODULES =
         LOGISTICS_PERMISSIONS
           .DOCUMENT_DELETE,
     },
+
+
     customers: {
       read:
         LOGISTICS_PERMISSIONS
@@ -441,6 +509,7 @@ const mergePermissionSets = (
           current.updateStatus ||
           permission.updateStatus;
 
+
         current.export =
           current.export ||
           permission.export;
@@ -529,10 +598,10 @@ const structuredPermissionsFromStrings =
       role ===
         ROLES.SUPER_ADMIN ||
 
-        role ===
+      role ===
         ROLES.COMPANY_ADMIN ||
 
-        role ===
+      role ===
         ROLES.HR
 
         ? "all"
@@ -558,32 +627,43 @@ const structuredPermissionsFromStrings =
         ) => {
 
           const view =
-            assigned.has(
-              permissions.read
-            );
+            permissions.read
+              ? assigned.has(
+                permissions.read
+              )
+              : false;
 
 
           const create =
-            assigned.has(
-              permissions.create
-            );
+            permissions.create
+              ? assigned.has(
+                permissions.create
+              )
+              : false;
 
 
           const edit =
-            assigned.has(
-              permissions.update
-            );
+            permissions.update
+              ? assigned.has(
+                permissions.update
+              )
+              : false;
 
 
           const canDelete =
-            assigned.has(
-              permissions.delete
-            );
+            permissions.delete
+              ? assigned.has(
+                permissions.delete
+              )
+              : false;
+
 
           const canExport =
-            assigned.has(
-              permissions.export
-            );
+            permissions.export
+              ? assigned.has(
+                permissions.export
+              )
+              : false;
 
 
           if (
@@ -593,8 +673,10 @@ const structuredPermissionsFromStrings =
             !canDelete &&
             !canExport
           ) {
+
             return null;
           }
+
 
           return buildLogisticsPermission(
             {
@@ -645,11 +727,8 @@ const widerScope = (
 ) => {
 
   const rank = {
-
     own: 1,
-
     team: 2,
-
     all: 3,
   };
 
@@ -691,10 +770,10 @@ export const defaultLogisticsPermissionsForRole =
 
     if (
       normalizedRole ===
-      ROLES.SUPER_ADMIN ||
+        ROLES.SUPER_ADMIN ||
 
       normalizedRole ===
-      ROLES.COMPANY_ADMIN
+        ROLES.COMPANY_ADMIN
     ) {
 
       return LOGISTICS_SUBMODULES
@@ -724,7 +803,7 @@ export const defaultLogisticsPermissionsForRole =
 
     if (
       normalizedRole ===
-      ROLES.HR
+        ROLES.HR
     ) {
 
       return LOGISTICS_SUBMODULES
@@ -754,10 +833,10 @@ export const defaultLogisticsPermissionsForRole =
 
     if (
       normalizedRole ===
-      "manager" ||
+        "manager" ||
 
       normalizedRole ===
-      "team_leader"
+        "team_leader"
     ) {
 
       return LOGISTICS_SUBMODULES
@@ -787,10 +866,10 @@ export const defaultLogisticsPermissionsForRole =
 
     if (
       accessType ===
-      "employee" ||
+        "employee" ||
 
       normalizedRole ===
-      ROLES.EMPLOYEE
+        ROLES.EMPLOYEE
     ) {
 
       return LOGISTICS_SUBMODULES
@@ -805,9 +884,6 @@ export const defaultLogisticsPermissionsForRole =
              * CHA
              * Transporters
              * Warehouse
-             *
-             * Employee ko:
-             * view + create + updateStatus
              */
             if (
               EMPLOYEE_OPERATIONAL_SUBMODULES
@@ -826,6 +902,82 @@ export const defaultLogisticsPermissionsForRole =
 
                   allowed:
                     ownShipmentCreator,
+                }
+              );
+            }
+
+
+            /*
+             * Vendor Payments
+             */
+            if (
+              EMPLOYEE_PAYMENT_SUBMODULES
+                .has(
+                  subModule
+                )
+            ) {
+
+              return buildLogisticsPermission(
+                {
+
+                  subModule,
+
+                  viewScope:
+                    "own",
+
+                  allowed:
+                    ownVendorPaymentEditor,
+                }
+              );
+            }
+            /*
+            * Reports
+            *
+            * Logistics employee can view Reports.
+            * Export is not automatically granted.
+            */
+           if (
+             subModule ===
+               "reports"
+           ) {
+           
+             return buildLogisticsPermission(
+               {
+           
+                 subModule:
+                   "reports",
+           
+                 viewScope:
+                   "own",
+           
+                 allowed:
+                   viewOnly,
+               }
+             );
+           }
+
+            /*
+             * Customers + Vendors
+             *
+             * Required operational master data.
+             */
+            if (
+              EMPLOYEE_MASTER_SUBMODULES
+                .has(
+                  subModule
+                )
+            ) {
+
+              return buildLogisticsPermission(
+                {
+
+                  subModule,
+
+                  viewScope:
+                    "own",
+
+                  allowed:
+                    ownMasterEditor,
                 }
               );
             }
@@ -925,9 +1077,9 @@ export const resolveLogisticsPermissions =
       ) =>
         permission &&
         typeof permission ===
-        "object" &&
+          "object" &&
         permission.module ===
-        "logistics"
+          "logistics"
     );
 
 
@@ -966,19 +1118,26 @@ export const resolveLogisticsPermissions =
 
 
     /* ========================================================
-       IMPORTANT FIX:
-       EMPLOYEE CORE LOGISTICS ACCESS
+       EMPLOYEE RUNTIME COMPATIBILITY
+
+       This is intentionally runtime-only.
+
+       NO:
+       - DB update
+       - migration
+       - seed
+       - permission reset
     ======================================================== */
 
     if (
       req.logisticsAccess
         ?.accessType ===
-      "employee" ||
+        "employee" ||
 
       normalize(
         req.user?.role
       ) ===
-      ROLES.EMPLOYEE
+        ROLES.EMPLOYEE
     ) {
 
       const employeePermissions =
@@ -988,8 +1147,7 @@ export const resolveLogisticsPermissions =
           ) => {
 
             /*
-             * Force operational modules available
-             * even if old DB permissions exist.
+             * Operational modules.
              */
             if (
               EMPLOYEE_OPERATIONAL_SUBMODULES
@@ -1017,19 +1175,134 @@ export const resolveLogisticsPermissions =
             }
 
 
+            /*
+             * Vendor Payments.
+             */
+            if (
+              EMPLOYEE_PAYMENT_SUBMODULES
+                .has(
+                  permission.subModule
+                )
+            ) {
+
+              return {
+
+                ...permission,
+
+                view:
+                  true,
+
+                viewScope:
+                  "own",
+
+                create:
+                  true,
+
+                edit:
+                  true,
+
+                delete:
+                  false,
+
+                export:
+                  Boolean(
+                    permission.export
+                  ),
+              };
+            }
+            /*
+            * Reports
+            */
+           if (
+             permission.subModule ===
+               "reports"
+           ) {
+           
+             return {
+           
+               ...permission,
+           
+               view:
+                 true,
+           
+               viewScope:
+                 "own",
+           
+               create:
+                 false,
+           
+               edit:
+                 false,
+           
+               delete:
+                 false,
+           
+               updateStatus:
+                 false,
+           
+               export:
+                 Boolean(
+                   permission.export
+                 ),
+             };
+           }
+
+            /*
+             * CUSTOMERS + VENDORS
+             *
+             * This fixes old Logistics employee accounts
+             * where the stored structured permission does
+             * not include Customer/Vendor master permissions.
+             */
+            if (
+              EMPLOYEE_MASTER_SUBMODULES
+                .has(
+                  permission.subModule
+                )
+            ) {
+
+              return {
+
+                ...permission,
+
+                view:
+                  true,
+
+                viewScope:
+                  "own",
+
+                create:
+                  true,
+
+                edit:
+                  true,
+
+                delete:
+                  false,
+
+                updateStatus:
+                  false,
+
+                export:
+                  Boolean(
+                    permission.export
+                  ),
+              };
+            }
+
+
             return permission;
           }
         );
 
 
-      /*
-       * Agar old database permission list me
-       * CHA / Transporter / Warehouse entry hi
-       * nahi hai, to entry create kar denge.
-       */
+      /* --------------------------------------------------------
+         ENSURE OPERATIONAL MODULES EXIST
+      -------------------------------------------------------- */
+
       for (
         const subModule of
-        EMPLOYEE_OPERATIONAL_SUBMODULES
+          EMPLOYEE_OPERATIONAL_SUBMODULES
       ) {
 
         const existing =
@@ -1080,6 +1353,178 @@ export const resolveLogisticsPermissions =
 
         existing.updateStatus =
           true;
+      }
+
+
+      /* --------------------------------------------------------
+         ENSURE VENDOR PAYMENTS EXIST
+      -------------------------------------------------------- */
+
+      for (
+        const subModule of
+          EMPLOYEE_PAYMENT_SUBMODULES
+      ) {
+
+        const existing =
+          employeePermissions
+            .find(
+              (
+                permission
+              ) =>
+                permission
+                  .subModule ===
+                subModule
+            );
+
+
+        if (!existing) {
+
+          employeePermissions
+            .push(
+              buildLogisticsPermission(
+                {
+
+                  subModule,
+
+                  viewScope:
+                    "own",
+
+                  allowed:
+                    ownVendorPaymentEditor,
+                }
+              )
+            );
+
+          continue;
+        }
+
+
+        existing.view =
+          true;
+
+
+        existing.viewScope =
+          "own";
+
+
+        existing.create =
+          true;
+
+
+        existing.edit =
+          true;
+
+
+        existing.delete =
+          false;
+      }
+
+      /* --------------------------------------------------------
+      ENSURE REPORTS EXIST
+   -------------------------------------------------------- */
+   
+   {
+     const existingReportsPermission =
+       employeePermissions.find(
+         permission =>
+           permission.subModule ===
+           "reports"
+       );
+   
+     if (!existingReportsPermission) {
+   
+       employeePermissions.push(
+         buildLogisticsPermission({
+           subModule: "reports",
+           viewScope: "own",
+           allowed: viewOnly,
+         })
+       );
+   
+     } else {
+   
+       existingReportsPermission.view = true;
+       existingReportsPermission.viewScope = "own";
+       existingReportsPermission.create = false;
+       existingReportsPermission.edit = false;
+       existingReportsPermission.delete = false;
+       existingReportsPermission.updateStatus = false;
+     }
+   }
+      /* --------------------------------------------------------
+         ENSURE CUSTOMERS + VENDORS EXIST
+
+         Critical fix for:
+         "Permission denied for Logistics module"
+
+         No DB changes required.
+      -------------------------------------------------------- */
+
+      for (
+        const subModule of
+          EMPLOYEE_MASTER_SUBMODULES
+      ) {
+
+        const existing =
+          employeePermissions
+            .find(
+              (
+                permission
+              ) =>
+                permission
+                  .subModule ===
+                subModule
+            );
+
+
+        if (!existing) {
+
+          employeePermissions
+            .push(
+              buildLogisticsPermission(
+                {
+
+                  subModule,
+
+                  viewScope:
+                    "own",
+
+                  allowed:
+                    ownMasterEditor,
+                }
+              )
+            );
+
+          continue;
+        }
+
+
+        existing.view =
+          true;
+
+
+        existing.viewScope =
+          "own";
+
+
+        existing.create =
+          true;
+
+
+        existing.edit =
+          true;
+
+
+        /*
+         * Destructive delete is intentionally
+         * NOT automatically granted.
+         */
+        existing.delete =
+          false;
+
+
+        existing.updateStatus =
+          false;
       }
 
 
@@ -1145,7 +1590,7 @@ export const requireLogisticsPermission =
 
         if (
           !permission?.[
-          action
+            action
           ]
         ) {
 
@@ -1176,6 +1621,35 @@ export const requireLogisticsPermission =
         next();
       }
     );
+
+export const shipmentSubModuleForMode = (shipmentMode) => {
+  const normalized = String(shipmentMode || "").trim().toLowerCase();
+  if (normalized === "air_cargo" || normalized === "air") return "airCargo";
+  if (normalized === "sea_freight" || normalized === "sea") return "seaFreight";
+  throw new ApiError(400, "Unsupported shipment mode");
+};
+
+export const requireShipmentPermission = (action) =>
+  asyncHandler(async (req, _res, next) => {
+    let shipmentMode = req.body?.shipmentMode;
+    if (!shipmentMode && req.params?.id) {
+      const companyId = req.auth?.companyId || req.user?.companyId?._id || req.user?.companyId;
+      const shipment = await LogisticsShipment.findOne({
+        _id: req.params.id,
+        companyId,
+        isActive: { $ne: false },
+      }).select("shipmentMode").lean();
+      if (!shipment) throw new ApiError(404, "Logistics shipment not found");
+      shipmentMode = shipment.shipmentMode;
+    }
+    const subModule = shipmentSubModuleForMode(shipmentMode);
+    const permission = getLogisticsPermission(req, subModule);
+    if (!permission?.[action]) throw new ApiError(403, "Permission denied for Logistics module");
+    req.logisticsPermission = permission;
+    req.logisticsPermissions = resolveLogisticsPermissions(req);
+    req.logisticsScope = await resolveLogisticsScope(req, permission.viewScope);
+    next();
+  });
 
 
 /* ============================================================
@@ -1263,7 +1737,7 @@ export const resolveLogisticsScope =
 
     if (
       scope ===
-      "all"
+        "all"
     ) {
 
       return {
@@ -1307,7 +1781,7 @@ export const resolveLogisticsScope =
 
     if (
       scope ===
-      "own"
+        "own"
     ) {
 
       const employeeId =
@@ -1545,7 +2019,7 @@ function normalizePermission(
   if (
     !permission ||
     permission.module !==
-    "logistics"
+      "logistics"
   ) {
 
     return null;
@@ -1593,14 +2067,14 @@ function normalizePermission(
           action
         ) => [
 
-            action,
+          action,
 
-            Boolean(
-              permission[
+          Boolean(
+            permission[
               action
-              ]
-            ),
-          ]
+            ]
+          ),
+        ]
       )
     ),
   };

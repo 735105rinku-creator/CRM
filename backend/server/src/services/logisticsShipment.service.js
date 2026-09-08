@@ -4,6 +4,7 @@ import LogisticsShipment from "../models/LogisticsShipment.js";
 
 import logisticsShipmentRepository
   from "../repositories/logisticsShipment.repository.js";
+import { calculateLogisticsCharges } from "../utils/logisticsCharges.js";
 
 import {
     ApiError
@@ -1108,10 +1109,7 @@ class LogisticsShipmentService {
       normalized.charges = {
         ...normalized.charges,
 
-        totalAmount:
-          this.calculateCharges(
-            normalized.charges
-          ),
+        ...calculateLogisticsCharges(normalized.charges),
       };
     }
 
@@ -1128,39 +1126,7 @@ class LogisticsShipmentService {
     charges = {}
   ) {
 
-    return (
-      this.number(
-        charges.freightAmount
-      ) +
-
-      this.number(
-        charges.chaCharge
-      ) +
-
-      this.number(
-        charges.documentationCharge
-      ) +
-
-      this.number(
-        charges.transportationCharge
-      ) +
-
-      this.number(
-        charges.warehouseCharge
-      ) +
-
-      this.number(
-        charges.handlingCharge
-      ) +
-
-      this.number(
-        charges.insuranceCharge
-      ) +
-
-      this.number(
-        charges.otherCharge
-      )
-    );
+    return calculateLogisticsCharges(charges).totalAmount;
   }
 
 

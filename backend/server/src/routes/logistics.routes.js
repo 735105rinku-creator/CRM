@@ -18,6 +18,7 @@ import {
 import {
   attachLogisticsScope,
   requireLogisticsPermission,
+  requireShipmentPermission,
 } from "../middleware/logisticsPermission.middleware.js";
 
 
@@ -236,7 +237,7 @@ router
   )
 
   .post(
-    requireLogisticsPermission("create", "airCargo"),
+    requireShipmentPermission("create"),
     createLogisticsShipment
   );
 
@@ -252,12 +253,12 @@ router
   )
 
   .patch(
-    requireLogisticsPermission("edit", "airCargo"),
+    requireShipmentPermission("edit"),
     updateLogisticsShipment
   )
 
   .delete(
-    requireLogisticsPermission("delete", "airCargo"),
+    requireShipmentPermission("delete"),
     deleteLogisticsShipment
   );
 

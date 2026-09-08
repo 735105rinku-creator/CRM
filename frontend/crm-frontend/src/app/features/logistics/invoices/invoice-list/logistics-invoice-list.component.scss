@@ -79,3 +79,14 @@ td { padding: 14px; border-top: 1px solid #d8e4f1; font-size: .76rem; }
   .header-actions { width: 100%; }
   .header-actions button { flex: 1; }
 }
+
+.edit-audit {
+  display: grid;
+  gap: 3px;
+  margin: 8px 0;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: normal;
+}
+.edit-audit summary { cursor: pointer; }

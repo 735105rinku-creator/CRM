@@ -17,7 +17,7 @@
           <span class="cargo-badge">✈</span>
   
           <div>
-            <h1>New Air Cargo Shipment</h1>
+            <h1>{{ isEditMode() ? 'Edit Air Cargo Shipment' : 'New Air Cargo Shipment' }}</h1>
             <p>Create and manage a complete air-freight booking.</p>
           </div>
         </div>
@@ -42,7 +42,13 @@
       </div>
     </header>
   
-    <div class="page-grid">
+    @if (isLoadingEdit()) {
+      <section class="edit-loading" role="status" aria-live="polite">
+        <span class="loading-spinner" aria-hidden="true"></span>
+        <strong>Loading shipment details...</strong>
+      </section>
+    }
+    <div class="page-grid" [class.form-hidden]="isLoadingEdit()">
   
       <!-- ======================================================
            MAIN FORM
@@ -195,6 +201,18 @@
               <input
                 type="date"
                 [(ngModel)]="form.bookingDate"
+              />
+            </div>
+
+            <div class="field">
+              <label>
+                Shipment Date
+                <b class="required-star">*</b>
+              </label>
+
+              <input
+                type="date"
+                [(ngModel)]="form.shipmentDate"
               />
             </div>
   
@@ -979,7 +997,27 @@
           </div>
   
           <div class="form-grid form-grid-4">
-  
+            <div class="field">
+              <label>Currency</label>
+
+              <select [(ngModel)]="form.currency">
+                @for (option of currencyOptions; track option.value) {
+                  <option [value]="option.value">
+                    {{ option.label }}
+                  </option>
+                }
+              </select>
+
+              @if (form.currency === 'other') {
+                <input
+                  class="other-input"
+                  maxlength="3"
+                  [(ngModel)]="form.currencyOther"
+                  placeholder="Currency Code"
+                />
+              }
+            </div>
+
             <div class="field">
               <label>Air Freight Rate / Kg</label>
   

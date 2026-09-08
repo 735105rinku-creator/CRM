@@ -3,11 +3,11 @@
     <header class="page-header">
       <div>
         <div class="breadcrumb">
-          Logistics <b>›</b> Transporters
+          Logistics <b>â€º</b> Transporters
         </div>
   
         <div class="title-row">
-          <span class="title-icon">▣</span>
+          <span class="title-icon">â–£</span>
   
           <div>
             <h1>Transporter Management</h1>
@@ -31,7 +31,7 @@
   
       <section class="summary-grid">
         <article>
-          <span>▣</span>
+          <span>â–£</span>
           <div>
             <small>Total Transporters</small>
             <strong>{{ summary().total }}</strong>
@@ -40,7 +40,7 @@
         </article>
   
         <article>
-          <span>✓</span>
+          <span>âœ“</span>
           <div>
             <small>Active</small>
             <strong>{{ summary().active }}</strong>
@@ -49,7 +49,7 @@
         </article>
   
         <article>
-          <span>◷</span>
+          <span>â—·</span>
           <div>
             <small>Inactive</small>
             <strong>{{ summary().inactive }}</strong>
@@ -58,7 +58,7 @@
         </article>
   
         <article>
-          <span>🚚</span>
+          <span>ðŸšš</span>
           <div>
             <small>Total Vehicles</small>
             <strong>{{ summary().vehicles }}</strong>
@@ -75,7 +75,7 @@
             <div>
               <small>TRANSPORTER DETAILS</small>
               <h2>{{ item.transporterName || '-' }}</h2>
-              <p>{{ item.transporterCode || '-' }} � {{ item.contactPerson || '-' }} � {{ item.mobile || '-' }}</p>
+              <p>{{ item.transporterCode || '-' }} · {{ item.contactPerson || '-' }} · {{ item.mobile || '-' }}</p>
             </div>
           </div>
           <div class="detail-actions">
@@ -99,7 +99,7 @@
               class="close-button"
               (click)="closeForm()"
             >
-              ×
+              Ã—
             </button>
           </header>
   
@@ -462,7 +462,7 @@
       <section class="filter-card">
   
         <div class="search-box">
-          <span>⌕</span>
+          <span>âŒ•</span>
   
           <input
             #searchBox
@@ -551,6 +551,7 @@
                     <div class="actions">
                       <button type="button" title="View" (click)="viewTransporter(item)">&#128065;</button>
                       <button type="button" title="Edit" (click)="editTransporter(item)">&#9998;</button>
+                      <button type="button" title="Delete" (click)="deleteTransporter(item)">&#128465;</button>
                     </div>
                   </td>
                 </tr>

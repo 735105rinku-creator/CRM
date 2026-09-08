@@ -54,42 +54,49 @@ interface ReportRow {
 }
 
 
+interface ReportSummary {
+  shipments: number;
+  sales: number;
+  received: number;
+  outstanding: number;
+  vendorPayable: number;
+  gst: number;
+}
+
+
+interface ReportModeSummary {
+  air: number;
+  sea: number;
+  road: number;
+}
+
+
+interface ReportDeliverySummary {
+  delivered: number;
+  transit: number;
+  customs: number;
+  cancelled: number;
+}
+
+
 interface ReportApi {
   reportType?: string;
 
   rows?: ReportRow[];
 
-  summary?: {
-    shipments: number;
+  records?: ReportRow[];
 
-    sales: number;
+  items?: ReportRow[];
 
-    received: number;
+  summary?: ReportSummary;
 
-    outstanding: number;
+  modeSummary?: ReportModeSummary;
 
-    vendorPayable: number;
+  deliverySummary?: ReportDeliverySummary;
 
-    gst: number;
-  };
+  data?: any;
 
-  modeSummary?: {
-    air: number;
-
-    sea: number;
-
-    road: number;
-  };
-
-  deliverySummary?: {
-    delivered: number;
-
-    transit: number;
-
-    customs: number;
-
-    cancelled: number;
-  };
+  result?: any;
 }
 
 
@@ -128,26 +135,60 @@ export class LogisticsReportsComponent
       'shipment-performance'
     );
 
+
   protected readonly search =
     signal('');
+
 
   protected readonly modeFilter =
     signal('all');
 
+
   protected readonly statusFilter =
     signal('all');
+
 
   protected readonly dateFrom =
     signal('');
 
+
   protected readonly dateTo =
     signal('');
+
 
   protected readonly isLoading =
     signal(false);
 
+
+  protected readonly errorMessage =
+    signal('');
+
+
   protected readonly records =
     signal<ReportRow[]>([]);
+
+
+  /*
+   * Backend summary is stored separately so that,
+   * when backend supplies authoritative totals,
+   * we can use them.
+   */
+  protected readonly apiSummary =
+    signal<ReportSummary | null>(
+      null
+    );
+
+
+  protected readonly apiModeSummary =
+    signal<ReportModeSummary | null>(
+      null
+    );
+
+
+  protected readonly apiDeliverySummary =
+    signal<ReportDeliverySummary | null>(
+      null
+    );
 
 
   /* ============================================================
@@ -196,6 +237,7 @@ export class LogisticsReportsComponent
         value:
           'vendor-payment'
       }
+
     ];
 
 
@@ -225,6 +267,7 @@ export class LogisticsReportsComponent
         value:
           'road'
       }
+
     ];
 
 
@@ -270,6 +313,7 @@ export class LogisticsReportsComponent
         value:
           'cancelled'
       }
+
     ];
 
 
@@ -284,20 +328,69 @@ export class LogisticsReportsComponent
     );
 
 
+  /*
+   * Prefer backend summary when supplied.
+   *
+   * If backend does not return summary,
+   * calculate it safely from rows.
+   */
   protected readonly summary =
     computed(
       () => {
 
-        const r =
+        const backend =
+          this.apiSummary();
+
+        if (backend) {
+
+          return {
+
+            shipments:
+              this.number(
+                backend.shipments
+              ),
+
+            sales:
+              this.number(
+                backend.sales
+              ),
+
+            received:
+              this.number(
+                backend.received
+              ),
+
+            outstanding:
+              this.number(
+                backend.outstanding
+              ),
+
+            vendorPayable:
+              this.number(
+                backend.vendorPayable
+              ),
+
+            gst:
+              this.number(
+                backend.gst
+              )
+
+          };
+        }
+
+
+        const rows =
           this.records();
+
 
         return {
 
           shipments:
-            r.length,
+            rows.length,
+
 
           sales:
-            r.reduce(
+            rows.reduce(
               (
                 sum,
                 row
@@ -306,11 +399,13 @@ export class LogisticsReportsComponent
                 this.number(
                   row.invoiceAmount
                 ),
+
               0
             ),
 
+
           received:
-            r.reduce(
+            rows.reduce(
               (
                 sum,
                 row
@@ -319,11 +414,13 @@ export class LogisticsReportsComponent
                 this.number(
                   row.receivedAmount
                 ),
+
               0
             ),
 
+
           outstanding:
-            r.reduce(
+            rows.reduce(
               (
                 sum,
                 row
@@ -332,11 +429,13 @@ export class LogisticsReportsComponent
                 this.number(
                   row.outstandingAmount
                 ),
+
               0
             ),
 
+
           vendorPayable:
-            r.reduce(
+            rows.reduce(
               (
                 sum,
                 row
@@ -345,11 +444,13 @@ export class LogisticsReportsComponent
                 this.number(
                   row.vendorBalance
                 ),
+
               0
             ),
 
+
           gst:
-            r.reduce(
+            rows.reduce(
               (
                 sum,
                 row
@@ -358,8 +459,10 @@ export class LogisticsReportsComponent
                 this.number(
                   row.gstAmount
                 ),
+
               0
             )
+
         };
       }
     );
@@ -367,78 +470,162 @@ export class LogisticsReportsComponent
 
   protected readonly modeSummary =
     computed(
-      () => ({
+      () => {
 
-        air:
-          this.records()
-            .filter(
-              row =>
-                row.mode ===
-                'air-cargo'
-            )
-            .length,
+        const backend =
+          this.apiModeSummary();
 
-        sea:
-          this.records()
-            .filter(
-              row =>
-                row.mode ===
-                'sea-freight'
-            )
-            .length,
+        if (backend) {
 
-        road:
-          this.records()
-            .filter(
-              row =>
-                row.mode ===
-                'road'
-            )
-            .length
-      })
+          return {
+
+            air:
+              this.number(
+                backend.air
+              ),
+
+            sea:
+              this.number(
+                backend.sea
+              ),
+
+            road:
+              this.number(
+                backend.road
+              )
+
+          };
+        }
+
+
+        return {
+
+          air:
+            this.records()
+              .filter(
+                row =>
+                  this.normalizeMode(
+                    row.mode
+                  ) ===
+                  'air-cargo'
+              )
+              .length,
+
+
+          sea:
+            this.records()
+              .filter(
+                row =>
+                  this.normalizeMode(
+                    row.mode
+                  ) ===
+                  'sea-freight'
+              )
+              .length,
+
+
+          road:
+            this.records()
+              .filter(
+                row =>
+                  this.normalizeMode(
+                    row.mode
+                  ) ===
+                  'road'
+              )
+              .length
+
+        };
+      }
     );
 
 
   protected readonly deliverySummary =
     computed(
-      () => ({
+      () => {
 
-        delivered:
-          this.records()
-            .filter(
-              row =>
-                row.status ===
-                'delivered'
-            )
-            .length,
+        const backend =
+          this.apiDeliverySummary();
 
-        transit:
-          this.records()
-            .filter(
-              row =>
-                row.status ===
-                'in-transit'
-            )
-            .length,
+        if (backend) {
 
-        customs:
-          this.records()
-            .filter(
-              row =>
-                row.status ===
-                'customs'
-            )
-            .length,
+          return {
 
-        cancelled:
-          this.records()
-            .filter(
-              row =>
-                row.status ===
-                'cancelled'
-            )
-            .length
-      })
+            delivered:
+              this.number(
+                backend.delivered
+              ),
+
+            transit:
+              this.number(
+                backend.transit
+              ),
+
+            customs:
+              this.number(
+                backend.customs
+              ),
+
+            cancelled:
+              this.number(
+                backend.cancelled
+              )
+
+          };
+        }
+
+
+        return {
+
+          delivered:
+            this.records()
+              .filter(
+                row =>
+                  this.normalizeStatus(
+                    row.status
+                  ) ===
+                  'delivered'
+              )
+              .length,
+
+
+          transit:
+            this.records()
+              .filter(
+                row =>
+                  this.normalizeStatus(
+                    row.status
+                  ) ===
+                  'in-transit'
+              )
+              .length,
+
+
+          customs:
+            this.records()
+              .filter(
+                row =>
+                  this.normalizeStatus(
+                    row.status
+                  ) ===
+                  'customs'
+              )
+              .length,
+
+
+          cancelled:
+            this.records()
+              .filter(
+                row =>
+                  this.normalizeStatus(
+                    row.status
+                  ) ===
+                  'cancelled'
+              )
+              .length
+
+        };
+      }
     );
 
 
@@ -452,15 +639,18 @@ export class LogisticsReportsComponent
       this.route
         .snapshot
         .data[
-      'reportType'
-      ];
+          'reportType'
+        ];
 
 
     if (fromRoute) {
 
       this.reportType.set(
-        String(fromRoute)
+        String(
+          fromRoute
+        )
       );
+
     }
 
 
@@ -475,6 +665,13 @@ export class LogisticsReportsComponent
   protected setReportType(
     value: string
   ): void {
+
+    if (!value) {
+
+      return;
+
+    }
+
 
     this.reportType.set(
       value
@@ -492,19 +689,29 @@ export class LogisticsReportsComponent
   protected clearFilters():
     void {
 
-    this.search.set('');
+    this.search.set(
+      ''
+    );
+
 
     this.modeFilter.set(
       'all'
     );
 
+
     this.statusFilter.set(
       'all'
     );
 
-    this.dateFrom.set('');
 
-    this.dateTo.set('');
+    this.dateFrom.set(
+      ''
+    );
+
+
+    this.dateTo.set(
+      ''
+    );
 
 
     this.loadReport();
@@ -518,13 +725,27 @@ export class LogisticsReportsComponent
   protected loadReport():
     void {
 
+    if (
+      this.isLoading()
+    ) {
+
+      return;
+
+    }
+
+
     this.isLoading.set(
       true
     );
 
 
+    this.errorMessage.set(
+      ''
+    );
+
+
     this.api
-      .get<ReportApi>(
+      .get<any>(
         '/logistics/reports',
         this.queryParams()
       )
@@ -532,8 +753,9 @@ export class LogisticsReportsComponent
       .pipe(
         finalize(
           () =>
-            this.isLoading
-              .set(false)
+            this.isLoading.set(
+              false
+            )
         )
       )
 
@@ -544,19 +766,99 @@ export class LogisticsReportsComponent
             response
           ) => {
 
-            this.records.set(
-              response?.rows ||
-              []
+            /*
+             * Keep this temporarily while debugging.
+             * This will show the real API response in F12 Console.
+             */
+            console.log(
+              'LOGISTICS REPORT RESPONSE:',
+              response
             );
+
+
+            const payload =
+              this.extractReportPayload(
+                response
+              );
+
+
+            const rows =
+              this.extractReportRows(
+                response
+              );
+
+
+            console.log(
+              'LOGISTICS REPORT ROWS:',
+              rows
+            );
+
+
+            this.records.set(
+              rows
+            );
+
+
+            this.apiSummary.set(
+              this.extractSummary(
+                payload
+              )
+            );
+
+
+            this.apiModeSummary.set(
+              this.extractModeSummary(
+                payload
+              )
+            );
+
+
+            this.apiDeliverySummary.set(
+              this.extractDeliverySummary(
+                payload
+              )
+            );
+
           },
 
 
         error:
-          () => {
+          (
+            error
+          ) => {
+
+            console.error(
+              'Unable to load Logistics report:',
+              error
+            );
+
 
             this.records.set(
               []
             );
+
+
+            this.apiSummary.set(
+              null
+            );
+
+
+            this.apiModeSummary.set(
+              null
+            );
+
+
+            this.apiDeliverySummary.set(
+              null
+            );
+
+
+            this.errorMessage.set(
+              error?.error?.message ||
+              error?.message ||
+              'Unable to load Logistics report.'
+            );
+
           }
 
       });
@@ -564,7 +866,7 @@ export class LogisticsReportsComponent
 
 
   /* ============================================================
-     EXPORT
+     EXPORT EXCEL / CSV
   ============================================================ */
 
   protected exportExcel():
@@ -575,6 +877,7 @@ export class LogisticsReportsComponent
         '/logistics/reports/export.csv',
         this.queryParams()
       )
+
       .subscribe({
 
         next:
@@ -606,6 +909,7 @@ export class LogisticsReportsComponent
             link.href =
               url;
 
+
             link.download =
               `logistics-${this.reportType()}-${date}.csv`;
 
@@ -622,6 +926,7 @@ export class LogisticsReportsComponent
 
             link.click();
 
+
             link.remove();
 
 
@@ -630,8 +935,10 @@ export class LogisticsReportsComponent
                 URL.revokeObjectURL(
                   url
                 ),
+
               0
             );
+
           },
 
 
@@ -644,11 +951,22 @@ export class LogisticsReportsComponent
               'Unable to export logistics report',
               error
             );
+
+
+            window.alert(
+              error?.error?.message ||
+              'Unable to export Logistics report.'
+            );
+
           }
 
       });
   }
 
+
+  /* ============================================================
+     PDF
+  ============================================================ */
 
   protected exportPdf():
     void {
@@ -656,6 +974,10 @@ export class LogisticsReportsComponent
     window.print();
   }
 
+
+  /* ============================================================
+     PRINT
+  ============================================================ */
 
   protected printReport():
     void {
@@ -672,11 +994,14 @@ export class LogisticsReportsComponent
     string {
 
     return (
-      this.reportTypes.find(
-        item =>
-          item.value ===
-          this.reportType()
-      )?.label ||
+      this.reportTypes
+        .find(
+          item =>
+            item.value ===
+            this.reportType()
+        )
+        ?.label ||
+
       'Logistics Report'
     );
   }
@@ -686,13 +1011,24 @@ export class LogisticsReportsComponent
     value: string
   ): string {
 
+    const normalized =
+      this.normalizeMode(
+        value
+      );
+
+
     return (
-      this.shipmentModes.find(
-        item =>
-          item.value ===
-          value
-      )?.label ||
-      value
+      this.shipmentModes
+        .find(
+          item =>
+            item.value ===
+            normalized
+        )
+        ?.label ||
+
+      value ||
+
+      '-'
     );
   }
 
@@ -701,13 +1037,24 @@ export class LogisticsReportsComponent
     value: string
   ): string {
 
+    const normalized =
+      this.normalizeStatus(
+        value
+      );
+
+
     return (
-      this.shipmentStatuses.find(
-        item =>
-          item.value ===
-          value
-      )?.label ||
-      value
+      this.shipmentStatuses
+        .find(
+          item =>
+            item.value ===
+            normalized
+        )
+        ?.label ||
+
+      value ||
+
+      '-'
     );
   }
 
@@ -733,9 +1080,12 @@ export class LogisticsReportsComponent
 
 
     if (
-      invoiceAmount <= 0
+      invoiceAmount <=
+      0
     ) {
+
       return 0;
+
     }
 
 
@@ -778,9 +1128,12 @@ export class LogisticsReportsComponent
 
 
     if (
-      vendorAmount <= 0
+      vendorAmount <=
+      0
     ) {
+
       return 0;
+
     }
 
 
@@ -843,6 +1196,7 @@ export class LogisticsReportsComponent
     if (!value) {
 
       return '-';
+
     }
 
 
@@ -859,6 +1213,7 @@ export class LogisticsReportsComponent
     ) {
 
       return value;
+
     }
 
 
@@ -882,27 +1237,1068 @@ export class LogisticsReportsComponent
       string
     > {
 
-    return {
+    const params:
+      Record<
+        string,
+        string
+      > = {
 
       reportType:
-        this.reportType(),
+        this.reportType()
 
-      search:
-        this.search()
-          .trim(),
-
-      mode:
-        this.modeFilter(),
-
-      status:
-        this.statusFilter(),
-
-      fromDate:
-        this.dateFrom(),
-
-      toDate:
-        this.dateTo()
     };
+
+
+    const search =
+      this.search()
+        .trim();
+
+
+    /*
+     * IMPORTANT:
+     *
+     * Do not send:
+     *
+     * mode=all
+     * status=all
+     *
+     * because backend may interpret those
+     * as literal database values.
+     */
+    if (search) {
+
+      params[
+        'search'
+      ] =
+        search;
+
+    }
+
+
+    if (
+      this.modeFilter() &&
+      this.modeFilter() !==
+        'all'
+    ) {
+
+      params[
+        'mode'
+      ] =
+        this.modeFilter();
+
+    }
+
+
+    if (
+      this.statusFilter() &&
+      this.statusFilter() !==
+        'all'
+    ) {
+
+      params[
+        'status'
+      ] =
+        this.statusFilter();
+
+    }
+
+
+    if (
+      this.dateFrom()
+    ) {
+
+      params[
+        'fromDate'
+      ] =
+        this.dateFrom();
+
+    }
+
+
+    if (
+      this.dateTo()
+    ) {
+
+      params[
+        'toDate'
+      ] =
+        this.dateTo();
+
+    }
+
+
+    return params;
+  }
+
+
+  /* ============================================================
+     API PAYLOAD EXTRACTION
+  ============================================================ */
+
+  private extractReportPayload(
+    response: any
+  ): any {
+
+    if (!response) {
+
+      return null;
+
+    }
+
+
+    /*
+     * ApiService may already unwrap:
+     *
+     * { success, data }
+     *
+     * or may return data directly.
+     */
+
+    if (
+      response?.data &&
+      !Array.isArray(
+        response.data
+      )
+    ) {
+
+      /*
+       * Handles:
+       *
+       * {
+       *   data: {
+       *     rows: [],
+       *     summary: {}
+       *   }
+       * }
+       */
+
+      if (
+        response.data.rows ||
+        response.data.records ||
+        response.data.items ||
+        response.data.summary ||
+        response.data.modeSummary ||
+        response.data.deliverySummary
+      ) {
+
+        return response.data;
+
+      }
+
+
+      /*
+       * Handles:
+       *
+       * {
+       *   data: {
+       *     data: {
+       *       rows: []
+       *     }
+       *   }
+       * }
+       */
+
+      if (
+        response.data.data &&
+        typeof response.data.data ===
+          'object'
+      ) {
+
+        return response.data.data;
+
+      }
+
+    }
+
+
+    if (
+      response?.result &&
+      typeof response.result ===
+        'object'
+    ) {
+
+      return response.result;
+
+    }
+
+
+    return response;
+  }
+
+
+  /* ============================================================
+     ROW EXTRACTION
+  ============================================================ */
+
+  private extractReportRows(
+    response: any
+  ): ReportRow[] {
+
+    if (!response) {
+
+      return [];
+
+    }
+
+
+    /*
+     * Direct array response.
+     */
+    if (
+      Array.isArray(
+        response
+      )
+    ) {
+
+      return this.normalizeRows(
+        response
+      );
+
+    }
+
+
+    /*
+     * Direct:
+     *
+     * { rows: [] }
+     */
+    if (
+      Array.isArray(
+        response.rows
+      )
+    ) {
+
+      return this.normalizeRows(
+        response.rows
+      );
+
+    }
+
+
+    /*
+     * Direct:
+     *
+     * { records: [] }
+     */
+    if (
+      Array.isArray(
+        response.records
+      )
+    ) {
+
+      return this.normalizeRows(
+        response.records
+      );
+
+    }
+
+
+    /*
+     * Direct:
+     *
+     * { items: [] }
+     */
+    if (
+      Array.isArray(
+        response.items
+      )
+    ) {
+
+      return this.normalizeRows(
+        response.items
+      );
+
+    }
+
+
+    /*
+     * {
+     *   data: []
+     * }
+     */
+    if (
+      Array.isArray(
+        response.data
+      )
+    ) {
+
+      return this.normalizeRows(
+        response.data
+      );
+
+    }
+
+
+    /*
+     * {
+     *   data: {
+     *     rows: []
+     *   }
+     * }
+     */
+    if (
+      Array.isArray(
+        response.data?.rows
+      )
+    ) {
+
+      return this.normalizeRows(
+        response.data.rows
+      );
+
+    }
+
+
+    /*
+     * {
+     *   data: {
+     *     records: []
+     *   }
+     * }
+     */
+    if (
+      Array.isArray(
+        response.data?.records
+      )
+    ) {
+
+      return this.normalizeRows(
+        response.data.records
+      );
+
+    }
+
+
+    /*
+     * {
+     *   data: {
+     *     items: []
+     *   }
+     * }
+     */
+    if (
+      Array.isArray(
+        response.data?.items
+      )
+    ) {
+
+      return this.normalizeRows(
+        response.data.items
+      );
+
+    }
+
+
+    /*
+     * {
+     *   data: {
+     *     data: []
+     *   }
+     * }
+     */
+    if (
+      Array.isArray(
+        response.data?.data
+      )
+    ) {
+
+      return this.normalizeRows(
+        response.data.data
+      );
+
+    }
+
+
+    /*
+     * {
+     *   data: {
+     *     data: {
+     *       rows: []
+     *     }
+     *   }
+     * }
+     */
+    if (
+      Array.isArray(
+        response.data?.data?.rows
+      )
+    ) {
+
+      return this.normalizeRows(
+        response.data.data.rows
+      );
+
+    }
+
+
+    /*
+     * {
+     *   result: {
+     *     rows: []
+     *   }
+     * }
+     */
+    if (
+      Array.isArray(
+        response.result?.rows
+      )
+    ) {
+
+      return this.normalizeRows(
+        response.result.rows
+      );
+
+    }
+
+
+    /*
+     * {
+     *   report: {
+     *     rows: []
+     *   }
+     * }
+     */
+    if (
+      Array.isArray(
+        response.report?.rows
+      )
+    ) {
+
+      return this.normalizeRows(
+        response.report.rows
+      );
+
+    }
+
+
+    return [];
+  }
+
+
+  /* ============================================================
+     NORMALIZE ROWS
+  ============================================================ */
+
+  private normalizeRows(
+    rows: any[]
+  ): ReportRow[] {
+
+    return rows.map(
+      (
+        row,
+        index
+      ) => {
+
+        const invoiceAmount =
+          this.number(
+            row?.invoiceAmount ??
+            row?.invoiceValue ??
+            row?.totalAmount ??
+            row?.grandTotal ??
+            row?.amount ??
+            row?.invoice?.totalAmount ??
+            row?.invoice?.grandTotal
+          );
+
+
+        const receivedAmount =
+          this.number(
+            row?.receivedAmount ??
+            row?.amountReceived ??
+            row?.paidAmount ??
+            row?.received ??
+            row?.invoice?.paidAmount
+          );
+
+
+        const outstandingAmount =
+          this.number(
+            row?.outstandingAmount ??
+            row?.balanceAmount ??
+            row?.outstanding ??
+            (
+              invoiceAmount -
+              receivedAmount
+            )
+          );
+
+
+        const vendorAmount =
+          this.number(
+            row?.vendorAmount ??
+            row?.vendorPayable ??
+            row?.supplierAmount ??
+            row?.vendorPayment?.totalAmount
+          );
+
+
+        const vendorPaid =
+          this.number(
+            row?.vendorPaid ??
+            row?.vendorPaidAmount ??
+            row?.supplierPaid ??
+            row?.vendorPayment?.paidAmount
+          );
+
+
+        const vendorBalance =
+          this.number(
+            row?.vendorBalance ??
+            row?.vendorOutstanding ??
+            row?.supplierBalance ??
+            (
+              vendorAmount -
+              vendorPaid
+            )
+          );
+
+
+        const gstAmount =
+          this.number(
+            row?.gstAmount ??
+            row?.gst ??
+            row?.taxAmount ??
+            row?.charges?.gstAmount ??
+            row?.invoice?.gstAmount
+          );
+
+
+        return {
+
+          id:
+            String(
+              row?.id ??
+              row?._id ??
+              row?.shipmentId ??
+              index +
+                1
+            ),
+
+
+          shipmentNo:
+            String(
+              row?.shipmentNo ??
+              row?.shipmentNumber ??
+              row?.shipmentId?.shipmentNumber ??
+              row?.shipment?.shipmentNumber ??
+              '-'
+            ),
+
+
+          date:
+            String(
+              row?.date ??
+              row?.shipmentDate ??
+              row?.createdAt ??
+              row?.invoiceDate ??
+              ''
+            ),
+
+
+          customer:
+            String(
+              row?.customer ??
+              row?.customerName ??
+              row?.customerId?.customerName ??
+              row?.customerId?.name ??
+              row?.invoice?.customerName ??
+              '-'
+            ),
+
+
+          vendor:
+            String(
+              row?.vendor ??
+              row?.vendorName ??
+              row?.vendorId?.vendorName ??
+              row?.supplierName ??
+              '-'
+            ),
+
+
+          mode:
+            this.normalizeMode(
+              String(
+                row?.mode ??
+                row?.shipmentMode ??
+                row?.transportMode ??
+                ''
+              )
+            ),
+
+
+          origin:
+            this.locationText(
+              row?.origin ??
+              row?.source ??
+              row?.from
+            ),
+
+
+          destination:
+            this.locationText(
+              row?.destination ??
+              row?.to
+            ),
+
+
+          invoiceAmount:
+            invoiceAmount,
+
+
+          receivedAmount:
+            receivedAmount,
+
+
+          outstandingAmount:
+            outstandingAmount,
+
+
+          vendorAmount:
+            vendorAmount,
+
+
+          vendorPaid:
+            vendorPaid,
+
+
+          vendorBalance:
+            vendorBalance,
+
+
+          gstAmount:
+            gstAmount,
+
+
+          status:
+            this.normalizeStatus(
+              String(
+                row?.status ??
+                row?.shipmentStatus ??
+                row?.currentStatus ??
+                ''
+              )
+            )
+
+        };
+      }
+    );
+  }
+
+
+  /* ============================================================
+     SUMMARY EXTRACTION
+  ============================================================ */
+
+  private extractSummary(
+    payload: any
+  ): ReportSummary | null {
+
+    if (
+      !payload?.summary
+    ) {
+
+      return null;
+
+    }
+
+
+    const summary =
+      payload.summary;
+
+
+    return {
+
+      shipments:
+        this.number(
+          summary.shipments ??
+          summary.totalShipments ??
+          summary.count
+        ),
+
+
+      sales:
+        this.number(
+          summary.sales ??
+          summary.totalSales ??
+          summary.revenue
+        ),
+
+
+      received:
+        this.number(
+          summary.received ??
+          summary.amountReceived ??
+          summary.totalReceived
+        ),
+
+
+      outstanding:
+        this.number(
+          summary.outstanding ??
+          summary.totalOutstanding
+        ),
+
+
+      vendorPayable:
+        this.number(
+          summary.vendorPayable ??
+          summary.vendorOutstanding ??
+          summary.totalVendorPayable
+        ),
+
+
+      gst:
+        this.number(
+          summary.gst ??
+          summary.gstAmount ??
+          summary.totalGst
+        )
+
+    };
+  }
+
+
+  /* ============================================================
+     MODE SUMMARY EXTRACTION
+  ============================================================ */
+
+  private extractModeSummary(
+    payload: any
+  ): ReportModeSummary | null {
+
+    if (
+      !payload?.modeSummary
+    ) {
+
+      return null;
+
+    }
+
+
+    const summary =
+      payload.modeSummary;
+
+
+    return {
+
+      air:
+        this.number(
+          summary.air ??
+          summary.airCargo ??
+          summary[
+            'air-cargo'
+          ]
+        ),
+
+
+      sea:
+        this.number(
+          summary.sea ??
+          summary.seaFreight ??
+          summary[
+            'sea-freight'
+          ]
+        ),
+
+
+      road:
+        this.number(
+          summary.road ??
+          summary.roadTransport
+        )
+
+    };
+  }
+
+
+  /* ============================================================
+     DELIVERY SUMMARY EXTRACTION
+  ============================================================ */
+
+  private extractDeliverySummary(
+    payload: any
+  ): ReportDeliverySummary | null {
+
+    if (
+      !payload?.deliverySummary
+    ) {
+
+      return null;
+
+    }
+
+
+    const summary =
+      payload.deliverySummary;
+
+
+    return {
+
+      delivered:
+        this.number(
+          summary.delivered
+        ),
+
+
+      transit:
+        this.number(
+          summary.transit ??
+          summary.inTransit ??
+          summary[
+            'in-transit'
+          ]
+        ),
+
+
+      customs:
+        this.number(
+          summary.customs ??
+          summary.atCustoms
+        ),
+
+
+      cancelled:
+        this.number(
+          summary.cancelled ??
+          summary.canceled
+        )
+
+    };
+  }
+
+
+  /* ============================================================
+     NORMALIZE MODE
+  ============================================================ */
+
+  private normalizeMode(
+    value: unknown
+  ): string {
+
+    const normalized =
+      String(
+        value ??
+        ''
+      )
+        .trim()
+        .toLowerCase()
+        .replace(
+          /_/g,
+          '-'
+        )
+        .replace(
+          /\s+/g,
+          '-'
+        );
+
+
+    if (
+      [
+        'air',
+        'aircargo',
+        'air-cargo',
+        'air-freight'
+      ]
+        .includes(
+          normalized
+        )
+    ) {
+
+      return 'air-cargo';
+
+    }
+
+
+    if (
+      [
+        'sea',
+        'seafreight',
+        'sea-freight',
+        'ocean',
+        'ocean-freight'
+      ]
+        .includes(
+          normalized
+        )
+    ) {
+
+      return 'sea-freight';
+
+    }
+
+
+    if (
+      [
+        'road',
+        'road-transport',
+        'road-freight'
+      ]
+        .includes(
+          normalized
+        )
+    ) {
+
+      return 'road';
+
+    }
+
+
+    return normalized;
+  }
+
+
+  /* ============================================================
+     NORMALIZE STATUS
+  ============================================================ */
+
+  private normalizeStatus(
+    value: unknown
+  ): string {
+
+    const normalized =
+      String(
+        value ??
+        ''
+      )
+        .trim()
+        .toLowerCase()
+        .replace(
+          /_/g,
+          '-'
+        )
+        .replace(
+          /\s+/g,
+          '-'
+        );
+
+
+    if (
+      [
+        'booking-created',
+        'booked',
+        'created',
+        'booking'
+      ]
+        .includes(
+          normalized
+        )
+    ) {
+
+      return 'booking-created';
+
+    }
+
+
+    if (
+      [
+        'customs',
+        'at-customs',
+        'under-customs',
+        'custom-clearance',
+        'customs-clearance'
+      ]
+        .includes(
+          normalized
+        )
+    ) {
+
+      return 'customs';
+
+    }
+
+
+    if (
+      [
+        'in-transit',
+        'transit',
+        'intransit'
+      ]
+        .includes(
+          normalized
+        )
+    ) {
+
+      return 'in-transit';
+
+    }
+
+
+    if (
+      [
+        'delivered',
+        'delivery-completed',
+        'completed'
+      ]
+        .includes(
+          normalized
+        )
+    ) {
+
+      return 'delivered';
+
+    }
+
+
+    if (
+      [
+        'cancelled',
+        'canceled'
+      ]
+        .includes(
+          normalized
+        )
+    ) {
+
+      return 'cancelled';
+
+    }
+
+
+    return normalized;
+  }
+
+
+  /* ============================================================
+     LOCATION TEXT
+  ============================================================ */
+
+  private locationText(
+    value: any
+  ): string {
+
+    if (
+      value === null ||
+      value === undefined
+    ) {
+
+      return '-';
+
+    }
+
+
+    if (
+      typeof value ===
+      'string'
+    ) {
+
+      return (
+        value.trim() ||
+        '-'
+      );
+
+    }
+
+
+    return String(
+      value?.name ??
+      value?.city ??
+      value?.location ??
+      value?.address ??
+      value?.portName ??
+      value?.airportName ??
+      '-'
+    );
   }
 
 
@@ -913,6 +2309,55 @@ export class LogisticsReportsComponent
   private number(
     value: unknown
   ): number {
+
+    if (
+      value === null ||
+      value === undefined ||
+      value === ''
+    ) {
+
+      return 0;
+
+    }
+
+
+    if (
+      typeof value ===
+      'string'
+    ) {
+
+      /*
+       * Allows values such as:
+       *
+       * ₹8,250
+       * 8,250.00
+       */
+      const cleaned =
+        value
+          .replace(
+            /,/g,
+            ''
+          )
+          .replace(
+            /[^\d.-]/g,
+            ''
+          );
+
+
+      const parsed =
+        Number(
+          cleaned
+        );
+
+
+      return Number.isFinite(
+        parsed
+      )
+        ? parsed
+        : 0;
+
+    }
+
 
     const numberValue =
       Number(

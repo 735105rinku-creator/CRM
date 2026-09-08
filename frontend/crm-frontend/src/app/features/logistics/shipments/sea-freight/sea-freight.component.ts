@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 
 import { ApiService } from '../../../../core/services/api.service';
+import { LogisticsTableActionsComponent } from '../../shared/table-actions/logistics-table-actions.component';
 
 interface SelectOption {
   label: string;
@@ -27,6 +28,24 @@ interface CustomerListResponse {
   records?: CustomerApiRow[];
 }
 
+interface VendorApiRow {
+  _id?: string;
+  vendorCode?: string;
+  vendorName?: string;
+  companyName?: string;
+  contactPerson?: string;
+  mobile?: string;
+  email?: string;
+  chaLicenseNumber?: string;
+  address?: { addressLine1?: string; addressLine2?: string; city?: string; state?: string; country?: string; pincode?: string } | string;
+}
+
+interface VendorListResponse {
+  data?: VendorApiRow[] | { data?: VendorApiRow[]; records?: VendorApiRow[]; vendors?: VendorApiRow[]; items?: VendorApiRow[] };
+  records?: VendorApiRow[];
+  vendors?: VendorApiRow[];
+}
+
 interface SeaShipment {
   mongoId: string;
 
@@ -43,6 +62,15 @@ interface SeaShipment {
 
   etd: string;
   eta: string;
+  shipmentDate?: string;
+  chaRequired?: string;
+  cha?: string;
+  chaOther?: string;
+  chaContact?: string;
+  chaMobile?: string;
+  chaEmail?: string;
+  chaAddress?: string;
+  chaLicenseNumber?: string;
 
   status: string;
 
@@ -136,13 +164,25 @@ interface LogisticsShipment {
   };
 
   charges?: {
+    freightAmount?: number;
+    documentationCharge?: number;
+    chaCharge?: number;
+    transportationCharge?: number;
+    otherCharge?: number;
     totalAmount?: number;
+    currency?: string;
   };
 
   status?: BackendShipmentStatus;
   statusOther?: string;
 
   remarks?: string;
+  shipmentDate?: string;
+
+  customs?: {
+    chaRequired?: boolean;
+    chaVendorId?: string | null;
+  };
 
   createdAt?: string;
 }
@@ -232,8 +272,16 @@ interface CreateSeaShipmentPayload {
     transportationCharge?: number;
     otherCharge?: number;
     otherChargeDescription?: string;
+    totalAmount?: number;
     currency?: string;
   };
+
+  customs?: {
+    chaRequired?: boolean;
+    chaVendorId?: string | null;
+  };
+
+  shipmentDate?: string | null;
 
   estimatedDeparture?: string | null;
   estimatedArrival?: string | null;
@@ -261,7 +309,8 @@ interface CreateSeaShipmentPayload {
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule
+    FormsModule,
+    LogisticsTableActionsComponent
   ],
   templateUrl:
     './sea-freight.component.html',
@@ -308,39 +357,7 @@ export class SeaFreightComponent
     signal<string | null>(null);
 
 
-  protected customers:
-    SelectOption[] = [
-      {
-        label:
-          'Global Traders',
-        value:
-          'global-traders'
-      },
-      {
-        label:
-          'Apex Exports',
-        value:
-          'apex-exports'
-      },
-      {
-        label:
-          'Sunrise Enterprises',
-        value:
-          'sunrise-enterprises'
-      },
-      {
-        label:
-          'Royal International',
-        value:
-          'royal-international'
-      },
-      {
-        label:
-          'Other',
-        value:
-          'other'
-      }
-    ];
+  protected customers: SelectOption[] = [{ label: 'Other', value: 'other' }];
 
 
   private readonly customerRows = signal<CustomerApiRow[]>([]);
@@ -654,6 +671,30 @@ export class SeaFreightComponent
   protected form =
     this.emptyForm();
 
+  private readonly chaRows =
+    signal<VendorApiRow[]>([]);
+
+  protected chaOptions: SelectOption[] = [
+    { label: 'Other', value: 'other' }
+  ];
+
+  protected readonly currencyOptions: SelectOption[] = [
+    { label: 'INR - Indian Rupee', value: 'INR' },
+    { label: 'USD - US Dollar', value: 'USD' },
+    { label: 'AED - UAE Dirham', value: 'AED' },
+    { label: 'EUR - Euro', value: 'EUR' },
+    { label: 'GBP - British Pound', value: 'GBP' },
+    { label: 'SAR - Saudi Riyal', value: 'SAR' },
+    { label: 'SGD - Singapore Dollar', value: 'SGD' },
+    { label: 'JPY - Japanese Yen', value: 'JPY' },
+    { label: 'QAR - Qatari Riyal', value: 'QAR' },
+    { label: 'OMR - Omani Rial', value: 'OMR' },
+    { label: 'BHD - Bahraini Dinar', value: 'BHD' },
+    { label: 'KWD - Kuwaiti Dinar', value: 'KWD' },
+    { label: 'CNY - Chinese Yuan', value: 'CNY' },
+    { label: 'Other', value: 'other' }
+  ];
+
 
   protected readonly shipments =
     signal<SeaShipment[]>([]);
@@ -761,10 +802,42 @@ export class SeaFreightComponent
 
     }));
 
+    /* ==========================================================
+   AUTO-CALCULATED TOTAL CHARGES
+========================================================== */
+
+protected get totalChargeAmount(): number {
+
+  return (
+
+    this.number(
+      this.form.freightAmount
+    ) +
+
+    this.number(
+      this.form.documentationCharge
+    ) +
+
+    this.number(
+      this.form.chaCharge
+    ) +
+
+    this.number(
+      this.form.transportationCharge
+    ) +
+
+    this.number(
+      this.form.otherCharge
+    )
+
+  );
+}
+
 
   ngOnInit(): void {
     this.loadShipments();
     this.loadCustomers();
+    this.loadChaVendors();
   }
 
 
@@ -914,11 +987,6 @@ export class SeaFreightComponent
     this.form.originPortOther = customer.pickupAddress?.city || this.form.originPortOther;
   }
 
-  @HostListener('window:focus')
-  protected refreshCustomersOnFocus(): void {
-    this.loadCustomers();
-  }
-
   private loadCustomers(): void {
     this.api
       .get<CustomerListResponse>('/logistics/customers', {
@@ -943,6 +1011,58 @@ export class SeaFreightComponent
         },
         error: (error) => this.errorMessage.set(error?.error?.message || 'Unable to load Logistics customers.')
       });
+  }
+
+  private loadChaVendors(): void {
+    this.api
+      .get<VendorListResponse>('/logistics/cha/masters', {
+        page: 1,
+        limit: 100,
+        status: 'active',
+        vendorType: 'cha',
+        sortBy: 'vendorName',
+        sortOrder: 'asc'
+      })
+      .subscribe({
+        next: (response) => {
+          const rows = this.extractVendorRows(response);
+          this.chaRows.set(rows);
+          this.chaOptions = [
+            ...rows.filter((row) => row._id).map((row) => ({
+              label: row.vendorName || row.companyName || row.vendorCode || 'CHA',
+              value: row._id!
+            })),
+            { label: 'Other', value: 'other' }
+          ];
+        },
+        error: (error) => this.errorMessage.set(error?.error?.message || 'Unable to load CHA records.')
+      });
+  }
+
+  protected onChaRequiredChanged(): void {
+    if (this.form.chaRequired === 'no') {
+      this.form.cha = '';
+      this.form.chaOther = '';
+      this.form.chaContact = '';
+      this.form.chaMobile = '';
+      this.form.chaEmail = '';
+      this.form.chaAddress = '';
+      this.form.chaLicenseNumber = '';
+    }
+  }
+
+  protected onChaSelected(): void {
+    const cha = this.chaRows().find((row) => row._id === this.form.cha);
+
+    if (!cha) {
+      return;
+    }
+
+    this.form.chaContact = cha.contactPerson || this.form.chaContact;
+    this.form.chaMobile = cha.mobile || this.form.chaMobile;
+    this.form.chaEmail = cha.email || this.form.chaEmail;
+    this.form.chaLicenseNumber = cha.chaLicenseNumber || this.form.chaLicenseNumber;
+    this.form.chaAddress = this.formatChaAddress(cha.address) || this.form.chaAddress;
   }
 
   protected applyDateFilter(): void {
@@ -978,8 +1098,17 @@ export class SeaFreightComponent
     return data?.data || data?.records || data?.customers || data?.items || response?.records || [];
   }
 
+  private extractVendorRows(
+    response: VendorListResponse | VendorApiRow[] | null | undefined
+  ): VendorApiRow[] {
+    if (Array.isArray(response)) return response;
+    const data = response?.data;
+    if (Array.isArray(data)) return data;
+    return data?.data || data?.records || data?.vendors || data?.items || response?.records || response?.vendors || [];
+  }
+
   private customerValue(customer: CustomerApiRow): string {
-    return customer._id || customer.customerCode || this.slug(customer.customerName || customer.companyName || 'customer');
+    return customer._id || '';
   }
 
   private formatCustomerAddress(address: CustomerApiRow['billingAddress']): string {
@@ -1346,6 +1475,10 @@ export class SeaFreightComponent
       return 'Email is required.';
     }
 
+    if (!this.form.shipmentDate) {
+      return 'Shipment Date is required.';
+    }
+
 
     if (
       !this.form
@@ -1384,6 +1517,18 @@ export class SeaFreightComponent
         .trim()
     ) {
       return 'Enter Commodity because Other is selected.';
+    }
+
+    if (this.form.chaRequired === 'yes' && !this.form.cha) {
+      return 'CHA is required.';
+    }
+
+    if (this.form.chaRequired === 'yes' && this.form.cha === 'other' && !this.form.chaOther.trim()) {
+      return 'Enter CHA Name because Other is selected.';
+    }
+
+    if (this.form.currency === 'other' && !/^[A-Za-z]{3}$/.test(this.form.currencyOther.trim())) {
+      return 'Enter a valid 3-letter Currency Code.';
     }
 
 
@@ -1557,6 +1702,8 @@ export class SeaFreightComponent
         this.form.customer,
         this.form.customerOther
       );
+    const selectedCha =
+      this.chaRows().find((row) => row._id === this.form.cha);
 
 
     const originPort =
@@ -1603,6 +1750,11 @@ export class SeaFreightComponent
 
       shipmentMode:
         'sea_freight',
+
+      shipmentDate:
+        this.dateOrNull(
+          this.form.shipmentDate
+        ),
 
 
       customerName,
@@ -1885,18 +2037,30 @@ export class SeaFreightComponent
           ),
 
 
-        otherChargeDescription:
+          otherChargeDescription:
           this.number(
             this.form
               .otherCharge
           )
             ? 'Other Sea Freight charges'
             : '',
-
-
+        
+        
+        totalAmount:
+          this.totalChargeAmount,
+        
+        
         currency:
-          'INR'
+          this.selectedCurrency()
 
+      },
+
+      customs: {
+        chaRequired:
+          this.form.chaRequired === 'yes',
+
+        chaVendorId:
+          selectedCha?._id || null
       },
 
 
@@ -2032,6 +2196,37 @@ export class SeaFreightComponent
         this.dateForInput(
           sea.eta
         ),
+
+      shipmentDate:
+        this.dateForInput(
+          shipment.shipmentDate
+        ),
+
+      chaRequired:
+        shipment.customs?.chaRequired
+          ? 'yes'
+          : 'no',
+
+      cha:
+        shipment.customs?.chaVendorId || '',
+
+      chaOther:
+        '',
+
+      chaContact:
+        '',
+
+      chaMobile:
+        '',
+
+      chaEmail:
+        '',
+
+      chaAddress:
+        '',
+
+      chaLicenseNumber:
+        '',
 
 
       status:
@@ -2359,25 +2554,55 @@ export class SeaFreightComponent
           sea.eta
         ),
 
+      shipmentDate:
+        this.dateForInput(
+          shipment.shipmentDate
+        ),
 
-      /*
-       * Existing backend only returns totalAmount here.
-       * Individual components stay at zero unless present
-       * in a later expanded response model.
-       */
+      chaRequired:
+        shipment.customs?.chaRequired
+          ? 'yes'
+          : 'no',
+
+      cha:
+        shipment.customs?.chaVendorId || '',
+
+      chaOther:
+        '',
+
+      chaContact:
+        '',
+
+      chaMobile:
+        '',
+
+      chaEmail:
+        '',
+
+      chaAddress:
+        '',
+
+      chaLicenseNumber:
+        '',
+
+
       freightAmount:
         this.number(
           shipment.charges
-            ?.totalAmount
+            ?.freightAmount
         ),
 
 
-      documentationCharge:
-        0,
+      documentationCharge: this.number(shipment.charges?.documentationCharge),
 
 
-      chaCharge:
-        0,
+      chaCharge: this.number(shipment.charges?.chaCharge),
+
+      currency:
+        shipment.charges?.currency || 'INR',
+
+      currencyOther:
+        '',
 
 
       transportationCharge:
@@ -2793,6 +3018,33 @@ export class SeaFreightComponent
       eta:
         '',
 
+      shipmentDate:
+        '',
+
+      chaRequired:
+        'no',
+
+      cha:
+        '',
+
+      chaOther:
+        '',
+
+      chaContact:
+        '',
+
+      chaMobile:
+        '',
+
+      chaEmail:
+        '',
+
+      chaAddress:
+        '',
+
+      chaLicenseNumber:
+        '',
+
 
       freightAmount:
         0,
@@ -2809,6 +3061,12 @@ export class SeaFreightComponent
       otherCharge:
         0,
 
+      currency:
+        'INR',
+
+      currencyOther:
+        '',
+
 
       status:
         'booking-created',
@@ -2821,6 +3079,25 @@ export class SeaFreightComponent
         ''
 
     };
+  }
+
+  private selectedCurrency(): string {
+    return this.form.currency === 'other'
+      ? this.form.currencyOther.trim().toUpperCase()
+      : this.form.currency || 'INR';
+  }
+
+  private formatChaAddress(address: VendorApiRow['address']): string {
+    if (!address) return '';
+    if (typeof address === 'string') return address;
+    return [
+      address.addressLine1,
+      address.addressLine2,
+      address.city,
+      address.state,
+      address.country,
+      address.pincode
+    ].filter(Boolean).join(', ');
   }
 }
 

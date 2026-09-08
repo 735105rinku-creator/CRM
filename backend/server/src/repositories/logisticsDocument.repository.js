@@ -41,8 +41,7 @@ class LogisticsDocumentRepository {
       !includeInactive
     ) {
 
-      filter.isActive =
-        true;
+      filter.isActive = { $ne: false };
     }
 
 
@@ -79,8 +78,7 @@ class LogisticsDocumentRepository {
             .trim()
             .toUpperCase(),
 
-        isActive:
-          true,
+        isActive: { $ne: false },
       })
       .lean();
   }
@@ -107,8 +105,7 @@ class LogisticsDocumentRepository {
           .trim()
           .toUpperCase(),
 
-      isActive:
-        true,
+      isActive: { $ne: false },
     };
 
 
@@ -311,8 +308,7 @@ class LogisticsDocumentRepository {
 
           companyId,
 
-          isActive:
-            true,
+          isActive: { $ne: false },
         },
 
         {
@@ -353,8 +349,7 @@ class LogisticsDocumentRepository {
 
           companyId,
 
-          isActive:
-            true,
+          isActive: { $ne: false },
         },
 
         {
@@ -392,8 +387,7 @@ class LogisticsDocumentRepository {
         {
           companyId,
 
-          isActive:
-            true,
+          isActive: { $ne: false },
 
           expiryDate: {
             $ne:
@@ -446,8 +440,7 @@ class LogisticsDocumentRepository {
             companyId:
               companyObjectId,
 
-            isActive:
-              true,
+            isActive: { $ne: false },
           },
         },
 
@@ -527,8 +520,7 @@ class LogisticsDocumentRepository {
     const filter = {
       companyId,
 
-      isActive:
-        true,
+      isActive: { $ne: false },
     };
 
 

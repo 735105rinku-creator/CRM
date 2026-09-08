@@ -1,4 +1,6 @@
 import { ROLES } from "../constants/roles.js";
+import fs from "fs";
+import path from "path";
 import service from "../services/logisticsInvoice.service.js";
 import { createLogisticsInvoiceSchema, updateLogisticsInvoiceSchema, logisticsInvoiceQuerySchema } from "../validators/logisticsInvoice.validator.js";
 import { ApiResponse } from "../utils/apiResponse.js";
@@ -10,5 +12,7 @@ export const createLogisticsInvoice=asyncHandler(async(req,res)=>{const data=awa
 export const getLogisticsInvoices=asyncHandler(async(req,res)=>{const data=await service.list({companyId:companyIdForRequest(req),query:validate(logisticsInvoiceQuerySchema,req.query)});res.json(new ApiResponse(200,data,"Logistics invoices fetched successfully"));});
 export const getLogisticsInvoiceSummary=asyncHandler(async(req,res)=>res.json(new ApiResponse(200,await service.summary(companyIdForRequest(req)),"Invoice summary fetched successfully")));
 export const getLogisticsInvoiceById=asyncHandler(async(req,res)=>res.json(new ApiResponse(200,await service.get({companyId:companyIdForRequest(req),invoiceId:req.params.id}),"Logistics invoice fetched successfully")));
-export const updateLogisticsInvoice=asyncHandler(async(req,res)=>res.json(new ApiResponse(200,await service.update({companyId:companyIdForRequest(req),invoiceId:req.params.id,userId:req.user?._id||null,payload:validate(updateLogisticsInvoiceSchema,req.body)}),"Logistics invoice updated successfully")));
+export const updateLogisticsInvoice=asyncHandler(async(req,res)=>res.json(new ApiResponse(200,await service.update({companyId:companyIdForRequest(req),invoiceId:req.params.id,userId:req.user?._id||null,userName:req.user?.name||"",payload:validate(updateLogisticsInvoiceSchema,req.body)}),"Logistics invoice updated successfully")));
+export const uploadLogisticsInvoiceCopy=asyncHandler(async(req,res)=>{if(!req.file)throw new ApiError(400,"Invoice copy file is required");try{const data=await service.attachInvoiceCopy({companyId:companyIdForRequest(req),invoiceId:req.params.id,userId:req.user?._id||null,file:req.file});res.status(201).json(new ApiResponse(201,data,"Invoice copy uploaded successfully"));}catch(error){if(req.file?.path&&fs.existsSync(req.file.path))fs.unlinkSync(req.file.path);throw error;}});
+export const previewLogisticsInvoiceCopy=asyncHandler(async(req,res)=>{const invoice=await service.get({companyId:companyIdForRequest(req),invoiceId:req.params.id});const copy=invoice.invoiceCopy;if(!copy?.filePath)throw new ApiError(404,"Invoice copy not found");const safePath=path.resolve(copy.filePath);if(!fs.existsSync(safePath))throw new ApiError(404,"Invoice copy file not found");res.setHeader("Content-Type",copy.mimeType||"application/octet-stream");res.setHeader("Content-Disposition",`inline; filename="${String(copy.originalName||copy.fileName||"invoice-copy").replace(/[\r\n"]/g,"_")}"`);return res.sendFile(safePath);});
 export const deleteLogisticsInvoice=asyncHandler(async(req,res)=>{await service.remove({companyId:companyIdForRequest(req),invoiceId:req.params.id,userId:req.user?._id||null});res.json(new ApiResponse(200,null,"Logistics invoice deleted successfully"));});

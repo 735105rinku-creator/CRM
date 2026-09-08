@@ -1,0 +1,60 @@
+:host { display: inline-block; }
+
+.logistics-table-actions { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+
+.action-icon {
+  width: 36px;
+  height: 36px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.66);
+  border-radius: 10px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(230, 235, 241, 0.84));
+  box-shadow: 3px 3px 7px rgba(166, 176, 188, 0.28), -3px -3px 7px rgba(255, 255, 255, 0.88);
+  color: #26364c;
+  font: inherit;
+  font-size: 16px;
+  cursor: pointer;
+  transition: color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.action-icon:hover:not(:disabled) { color: #a97927; transform: translateY(-1px); }
+.action-icon:active:not(:disabled), .action-icon[aria-expanded='true'] {
+  transform: translateY(0);
+  box-shadow: inset 2px 2px 5px rgba(166, 176, 188, 0.3), inset -2px -2px 5px rgba(255, 255, 255, 0.82);
+}
+.action-icon:focus-visible, .logistics-action-menu button:focus-visible {
+  outline: 2px solid #b88938;
+  outline-offset: 2px;
+}
+.action-icon:disabled, .logistics-action-menu button:disabled { opacity: 0.42; cursor: not-allowed; transform: none; }
+.more-trigger { font-size: 22px; line-height: 1; }
+
+.logistics-action-menu {
+  position: relative;
+  z-index: 1200;
+  width: 190px;
+  display: grid;
+  gap: 3px;
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 12px;
+  background: rgba(242, 245, 249, 0.98);
+  box-shadow: 9px 9px 22px rgba(142, 153, 166, 0.28), -6px -6px 18px rgba(255, 255, 255, 0.92);
+}
+
+.logistics-action-menu button {
+  min-height: 36px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #3f4e63;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.logistics-action-menu button:hover:not(:disabled) { background: rgba(184, 137, 56, 0.12); color: #26364c; }
+.logistics-action-menu button.danger { color: #a53d44; }
+.logistics-action-menu button.danger:hover:not(:disabled) { background: rgba(165, 61, 68, 0.1); }

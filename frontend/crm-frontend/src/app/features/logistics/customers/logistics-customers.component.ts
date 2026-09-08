@@ -5,6 +5,7 @@ import { finalize } from 'rxjs';
 
 import { ApiService } from '../../../core/services/api.service';
 
+
 interface Option { label: string; value: string; }
 
 interface PageResult<T> { data?: T[] | { data?: T[]; records?: T[] }; records?: T[]; total?: number; }
@@ -192,6 +193,15 @@ export class LogisticsCustomersComponent implements OnInit {
     this.form = this.formFromRecord(record);
     this.showForm.set(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  protected deleteCustomer(item: CustomerRecord): void {
+    const id = item.raw?._id || item._id;
+    if (!id || !window.confirm(`Delete customer ${item.customerName}?`)) return;
+    this.api.delete('/logistics/customers/' + id).subscribe({
+      next: () => { this.selectedCustomer.set(null); this.loadCustomers(); },
+      error: (error: any) => window.alert(error?.error?.message || 'Unable to delete customer.')
+    });
   }
 
   protected viewCustomer(item: CustomerRecord): void {

@@ -1,0 +1,27 @@
+<div class="logistics-table-actions" (click)="$event.stopPropagation()">
+  @if (showView()) {
+    <button type="button" class="action-icon" title="View" [attr.aria-label]="'View ' + rowLabel()"
+      [disabled]="viewDisabled() || !rowId()" (click)="selectPrimary('view')">&#128065;</button>
+  }
+  @if (showEdit()) {
+    <button type="button" class="action-icon" title="Edit" [attr.aria-label]="'Edit ' + rowLabel()"
+      [disabled]="editDisabled() || !rowId()" (click)="selectPrimary('edit')">&#9998;</button>
+  }
+  <button type="button" class="action-icon more-trigger" title="More actions"
+    [attr.aria-label]="'More actions for ' + rowLabel()" [attr.aria-expanded]="menu.isOpen(rowId())"
+    [disabled]="!rowId() || secondaryActions().length === 0" cdkOverlayOrigin #origin="cdkOverlayOrigin"
+    (click)="menu.toggle(rowId())">&#8942;</button>
+
+  <ng-template cdkConnectedOverlay [cdkConnectedOverlayOrigin]="origin"
+    [cdkConnectedOverlayOpen]="menu.isOpen(rowId())" [cdkConnectedOverlayPositions]="positions"
+    [cdkConnectedOverlayScrollStrategy]="scrollStrategy" [cdkConnectedOverlayHasBackdrop]="true"
+    cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop"
+    (backdropClick)="menu.close()" (detach)="menu.close()">
+    <div class="logistics-action-menu" role="menu" [attr.aria-label]="'Actions for ' + rowLabel()">
+      @for (action of secondaryActions(); track action.key) {
+        <button type="button" role="menuitem" [class.danger]="action.danger" [disabled]="action.disabled"
+          (click)="selectSecondary(action)">{{ action.label }}</button>
+      }
+    </div>
+  </ng-template>
+</div>

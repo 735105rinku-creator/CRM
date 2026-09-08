@@ -37,7 +37,7 @@ class LogisticsShipmentRepository {
     };
 
     if (!includeInactive) {
-      filter.isActive = true;
+      filter.isActive = { $ne: false };
     }
 
     return LogisticsShipment
@@ -94,7 +94,7 @@ class LogisticsShipmentRepository {
           String(shipmentNumber)
             .trim()
             .toUpperCase(),
-        isActive: true,
+        isActive: { $ne: false },
       })
       .lean();
   }
@@ -118,7 +118,7 @@ class LogisticsShipmentRepository {
           .trim()
           .toUpperCase(),
 
-      isActive: true,
+      isActive: { $ne: false },
     };
 
     if (excludeId) {
@@ -344,8 +344,7 @@ class LogisticsShipmentRepository {
 
           companyId,
 
-          isActive:
-            true,
+          isActive: { $ne: false },
 
           ...scopeFilter,
         },
@@ -476,8 +475,7 @@ class LogisticsShipmentRepository {
 
           companyId,
 
-          isActive:
-            true,
+          isActive: { $ne: false },
 
           ...scopeFilter,
         },
@@ -529,8 +527,7 @@ class LogisticsShipmentRepository {
 
           companyId,
 
-          isActive:
-            true,
+          isActive: { $ne: false },
 
           ...scopeFilter,
         },
@@ -566,7 +563,7 @@ class LogisticsShipmentRepository {
 
     const filter = {
       companyId,
-      isActive: true,
+      isActive: { $ne: false },
       ...scopeFilter,
     };
 
@@ -633,8 +630,7 @@ class LogisticsShipmentRepository {
             companyId:
               companyObjectId,
 
-            isActive:
-              true,
+            isActive: { $ne: false },
 
             ...scopedMatch,
           },
@@ -841,7 +837,7 @@ class LogisticsShipmentRepository {
       .findOne({
         _id: shipmentId,
         companyId,
-        isActive: true,
+        isActive: { $ne: false },
         ...scopeFilter,
       })
       .select("shipmentNumber customerName shipmentMode status statusHistory")
@@ -919,7 +915,7 @@ class LogisticsShipmentRepository {
 
     const filter = {
       companyId,
-      isActive: true,
+      isActive: { $ne: false },
     };
 
     if (

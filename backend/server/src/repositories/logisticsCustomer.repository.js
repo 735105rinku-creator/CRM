@@ -19,8 +19,7 @@ class LogisticsCustomerRepository {
 
         companyId,
 
-        isActive:
-          true,
+        isActive: { $ne: false },
       })
       .lean();
   }
@@ -40,8 +39,7 @@ class LogisticsCustomerRepository {
     const filter = {
       companyId,
 
-      isActive:
-        true,
+      isActive: { $ne: false },
     };
 
     if (customerType) {
@@ -233,8 +231,7 @@ class LogisticsCustomerRepository {
 
           companyId,
 
-          isActive:
-            true,
+          isActive: { $ne: false },
         },
 
         {
@@ -266,8 +263,7 @@ class LogisticsCustomerRepository {
 
           companyId,
 
-          isActive:
-            true,
+          isActive: { $ne: false },
         },
 
         {
@@ -296,8 +292,7 @@ class LogisticsCustomerRepository {
         $match: {
           companyId,
 
-          isActive:
-            true,
+          isActive: { $ne: false },
         },
       },
 

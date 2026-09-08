@@ -1625,3 +1625,14 @@
     }
   
   }
+
+.edit-audit {
+  display: grid;
+  gap: 3px;
+  margin: 8px 0;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: normal;
+}
+.edit-audit summary { cursor: pointer; }

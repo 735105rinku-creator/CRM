@@ -81,6 +81,62 @@ const bankDetailsSchema =
   );
 
 
+const invoiceCopySchema =
+  new mongoose.Schema(
+    {
+      fileName: {
+        type: String,
+        trim: true,
+        default: "",
+      },
+
+      originalName: {
+        type: String,
+        trim: true,
+        default: "",
+      },
+
+      filePath: {
+        type: String,
+        trim: true,
+        default: "",
+      },
+
+      fileUrl: {
+        type: String,
+        trim: true,
+        default: "",
+      },
+
+      mimeType: {
+        type: String,
+        trim: true,
+        default: "",
+      },
+
+      fileSize: {
+        type: Number,
+        min: 0,
+        default: 0,
+      },
+
+      uploadedAt: {
+        type: Date,
+        default: null,
+      },
+
+      uploadedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        default: null,
+      },
+    },
+    {
+      _id: false,
+    }
+  );
+
+
 /* ============================================================
    INVOICE ITEM
 ============================================================ */
@@ -784,6 +840,15 @@ const logisticsInvoiceSchema =
       },
 
 
+      invoiceCopy: {
+        type:
+          invoiceCopySchema,
+
+        default:
+          {},
+      },
+
+
       /* ======================================================
          TERMS / REMARKS
       ====================================================== */
@@ -862,6 +927,16 @@ const logisticsInvoiceSchema =
         default:
           null,
       },
+
+    // Append-only edit attribution, following Logistics embedded history conventions.
+    editHistory: {
+      type: [new mongoose.Schema({
+        changedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+        changedByName: { type: String, default: "" },
+        changedAt: { type: Date, default: Date.now },
+      }, { _id: false })],
+      default: [],
+    },
 
       updatedBy: {
         type:

@@ -9,6 +9,7 @@ import {
 import {
   logisticsImportFile,
 } from "../middleware/logisticsImportExport.middleware.js";
+import { requireLogisticsPermission } from "../middleware/logisticsPermission.middleware.js";
 
 const router =
   Router();
@@ -17,16 +18,19 @@ const router =
 
 router.get(
   "/template/:module",
+  requireLogisticsPermission("view", "productsServices"),
   downloadImportTemplate
 );
 
 router.get(
   "/export/:module",
+  requireLogisticsPermission("export", "reports"),
   exportLogisticsData
 );
 
 router.post(
   "/import/:module",
+  requireLogisticsPermission("create", "productsServices"),
   logisticsImportFile,
   importLogisticsData
 );
