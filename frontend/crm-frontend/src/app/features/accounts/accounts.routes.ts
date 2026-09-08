@@ -248,10 +248,10 @@ export const ACCOUNTS_ROUTES: Routes = [
 
         loadComponent: () =>
           import(
-            './pages/placeholder/accounts-placeholder.component'
+            './pages/expense-register/expense-register.component'
           ).then(
             (module) =>
-              module.AccountsPlaceholderComponent
+              module.ExpenseRegisterComponent
           ),
 
         data: {
@@ -259,7 +259,7 @@ export const ACCOUNTS_ROUTES: Routes = [
           section: 'Accounts',
           feature: 'expenses',
           description:
-            'Company expenses and expense approvals.'
+            'Read-only operational expense register and expense review.'
         }
       },
 
