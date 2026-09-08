@@ -50,6 +50,37 @@ export class VoucherService {
   }
 
 
+  /* =========================================================
+     PURCHASE VOUCHERS
+  ========================================================= */
+
+  getPurchaseVouchers(
+    query: VoucherQuery = {}
+  ): Observable<Voucher[]> {
+
+    return this.api.get<Voucher[]>(
+      this.basePath,
+      {
+        ...query,
+        voucherType: 'purchase'
+      }
+    );
+  }
+
+
+  createPurchaseVoucher(
+    payload: Omit<CreateVoucherPayload, 'voucherType'>
+  ): Observable<Voucher> {
+
+    return this.api.post<Voucher>(
+      this.basePath,
+      {
+        ...payload,
+        voucherType: 'purchase'
+      }
+    );
+  }
+
   getVoucher(
     voucherId: string
   ): Observable<Voucher> {
