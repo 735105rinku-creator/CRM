@@ -1043,3 +1043,181 @@ export interface GstReport {
 
   netGst: GstNetResult;
 }
+
+/* =========================================================
+   ACCOUNTING VOUCHERS
+========================================================= */
+
+export type VoucherType =
+  | 'journal'
+  | 'payment'
+  | 'receipt'
+  | 'contra'
+  | 'sales'
+  | 'purchase'
+  | 'credit_note'
+  | 'debit_note';
+
+
+export type VoucherStatus =
+  | 'draft'
+  | 'posted'
+  | 'void';
+
+
+export type VoucherSortField =
+  | 'voucherNumber'
+  | 'voucherDate'
+  | 'voucherType'
+  | 'financialYear'
+  | 'status'
+  | 'totalDebit'
+  | 'totalCredit'
+  | 'createdAt'
+  | 'updatedAt';
+
+
+export type VoucherSortOrder =
+  | 'asc'
+  | 'desc';
+
+
+export interface VoucherLine {
+  _id?: string;
+
+  accountId: string;
+
+  accountCode?: string;
+
+  accountName?: string;
+
+  description?: string;
+
+  debit: number;
+
+  credit: number;
+}
+
+
+export interface Voucher {
+  _id?: string;
+
+  companyId?: string;
+
+  voucherNumber: string;
+
+  voucherType: VoucherType;
+
+  voucherDate: string;
+
+  financialYear?: string;
+
+  narration?: string;
+
+  referenceNo?: string;
+
+  referenceDate?: string | null;
+
+  partyAccountId?: string | null;
+
+  partyAccountCode?: string;
+
+  partyAccountName?: string;
+
+  status: VoucherStatus;
+
+  totalDebit: number;
+
+  totalCredit: number;
+
+  lines: VoucherLine[];
+
+  journalEntryId?: string | null;
+
+  createdBy?: string | null;
+
+  updatedBy?: string | null;
+
+  postedBy?: string | null;
+
+  postedAt?: string | null;
+
+  voidedBy?: string | null;
+
+  voidedAt?: string | null;
+
+  voidReason?: string;
+
+  createdAt?: string;
+
+  updatedAt?: string;
+}
+
+
+export interface VoucherLinePayload {
+  accountId: string;
+
+  description?: string;
+
+  debit: number;
+
+  credit: number;
+}
+
+
+export interface CreateVoucherPayload {
+  voucherType: VoucherType;
+
+  voucherDate: string;
+
+  narration?: string;
+
+  referenceNo?: string;
+
+  referenceDate?: string | null;
+
+  partyAccountId?: string | null;
+
+  lines: VoucherLinePayload[];
+}
+
+
+export interface UpdateVoucherPayload {
+  voucherType?: VoucherType;
+
+  voucherDate?: string;
+
+  narration?: string;
+
+  referenceNo?: string;
+
+  referenceDate?: string | null;
+
+  partyAccountId?: string | null;
+
+  lines?: VoucherLinePayload[];
+}
+
+
+export interface VoucherQuery {
+  search?: string;
+
+  voucherType?: VoucherType;
+
+  status?: VoucherStatus;
+
+  financialYear?: string;
+
+  from?: string;
+
+  to?: string;
+
+  sortBy?: VoucherSortField;
+
+  sortOrder?: VoucherSortOrder;
+}
+
+
+export interface VoidVoucherPayload {
+  reason: string;
+}
