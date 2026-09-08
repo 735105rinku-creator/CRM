@@ -199,6 +199,18 @@ export class AccountsSidebarComponent {
 
         items: [
           {
+            label: 'Journal Vouchers',
+            route: '/accounts/journal',
+            icon: 'journal'
+          },
+
+          {
+            label: 'Contra',
+            route: '/accounts/contra',
+            icon: 'bank'
+          },
+
+          {
             label: 'Journal Entries',
             route: '/accounts/journal-entries',
             icon: 'journal'

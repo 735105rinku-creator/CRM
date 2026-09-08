@@ -1,0 +1,514 @@
+<section class="voucher-page">
+
+  <header class="page-header">
+
+    <div>
+      <p class="eyebrow">
+        ACCOUNTING / VOUCHERS
+      </p>
+
+      <h1>{{ title() }}</h1>
+
+      <p class="subtitle">
+        Create balanced accounting vouchers,
+        save drafts, post approved entries
+        and preserve posted history.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="primary-button"
+      (click)="openNewVoucher()">
+      New Voucher
+    </button>
+
+  </header>
+
+
+  @if (message()) {
+    <div class="message success">
+      {{ message() }}
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div class="message error">
+      {{ errorMessage() }}
+    </div>
+  }
+
+
+  <section class="filter-card">
+
+    <div class="filter-grid">
+
+      <label>
+        <span>Search</span>
+
+        <input
+          type="search"
+          [value]="search()"
+          (input)="search.set($any($event.target).value)"
+          placeholder="Voucher no. or reference">
+      </label>
+
+      <label>
+        <span>Status</span>
+
+        <select
+          [value]="statusFilter()"
+          (change)="statusFilter.set($any($event.target).value)">
+
+          <option value="">
+            All Statuses
+          </option>
+
+          <option value="draft">
+            Draft
+          </option>
+
+          <option value="posted">
+            Posted
+          </option>
+
+          <option value="void">
+            Void
+          </option>
+
+        </select>
+      </label>
+
+      <label>
+        <span>From</span>
+
+        <input
+          type="date"
+          [value]="fromDate()"
+          (change)="fromDate.set($any($event.target).value)">
+      </label>
+
+      <label>
+        <span>To</span>
+
+        <input
+          type="date"
+          [value]="toDate()"
+          (change)="toDate.set($any($event.target).value)">
+      </label>
+
+    </div>
+
+    <div class="filter-actions">
+
+      <button
+        type="button"
+        class="secondary-button"
+        (click)="applyFilters()">
+        Apply
+      </button>
+
+      <button
+        type="button"
+        class="ghost-button"
+        (click)="resetFilters()">
+        Reset
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <section class="register-card">
+
+    <div class="section-heading">
+      <div>
+        <h2>Voucher Register</h2>
+        <p>
+          {{ vouchers().length }}
+          voucher(s)
+        </p>
+      </div>
+    </div>
+
+
+    @if (loading()) {
+
+      <div class="empty-state">
+        Loading vouchers...
+      </div>
+
+    } @else if (!vouchers().length) {
+
+      <div class="empty-state">
+        No vouchers found.
+      </div>
+
+    } @else {
+
+      <div class="table-wrap">
+
+        <table>
+
+          <thead>
+            <tr>
+              <th>Voucher Number</th>
+              <th>Voucher Date</th>
+              <th>Reference</th>
+              <th>Narration</th>
+              <th class="number">
+                Amount
+              </th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+
+            @for (
+              voucher of vouchers();
+              track trackVoucher($index, voucher)
+            ) {
+
+              <tr>
+
+                <td>
+                  <strong>
+                    {{ voucher.voucherNumber }}
+                  </strong>
+                </td>
+
+                <td>
+                  {{ voucher.voucherDate | date:'dd MMM yyyy' }}
+                </td>
+
+                <td>
+                  {{ voucher.referenceNo || '—' }}
+                </td>
+
+                <td>
+                  {{ voucher.narration || '—' }}
+                </td>
+
+                <td class="number">
+                  {{
+                    voucher.totalDebit
+                      | number:'1.2-2'
+                  }}
+                </td>
+
+                <td>
+                  <span
+                    class="status-pill"
+                    [ngClass]="statusClass(voucher.status)">
+                    {{ voucher.status | titlecase }}
+                  </span>
+                </td>
+
+                <td>
+
+                  <div class="row-actions">
+
+                    @if (voucher.status === 'draft') {
+
+                      <button
+                        type="button"
+                        class="text-button"
+                        (click)="editVoucher(voucher)">
+                        Edit
+                      </button>
+
+                      <button
+                        type="button"
+                        class="text-button success-text"
+                        (click)="postVoucher(voucher)">
+                        Post Voucher
+                      </button>
+
+                    }
+
+                    @if (voucher.status === 'posted') {
+
+                      <button
+                        type="button"
+                        class="text-button danger-text"
+                        (click)="voidVoucher(voucher)">
+                        Void
+                      </button>
+
+                    }
+
+                  </div>
+
+                </td>
+
+              </tr>
+            }
+
+          </tbody>
+
+        </table>
+
+      </div>
+    }
+
+  </section>
+
+
+  @if (formOpen()) {
+
+    <div class="form-overlay">
+
+      <section class="voucher-form-card">
+
+        <header class="form-header">
+
+          <div>
+            <p class="eyebrow">
+              {{ voucherType() | uppercase }}
+              VOUCHER
+            </p>
+
+            <h2>
+              {{
+                editingVoucherId()
+                  ? 'Edit Draft Voucher'
+                  : 'New Voucher'
+              }}
+            </h2>
+          </div>
+
+          <button
+            type="button"
+            class="close-button"
+            aria-label="Close"
+            (click)="closeForm()">
+            ×
+          </button>
+
+        </header>
+
+
+        <form
+          [formGroup]="voucherForm"
+          (ngSubmit)="saveDraft()">
+
+          <div class="form-grid">
+
+            <label>
+              <span>Voucher Date</span>
+
+              <input
+                type="date"
+                formControlName="voucherDate">
+            </label>
+
+            <label>
+              <span>Reference No.</span>
+
+              <input
+                type="text"
+                formControlName="referenceNo"
+                placeholder="Optional reference">
+            </label>
+
+            <label>
+              <span>Reference Date</span>
+
+              <input
+                type="date"
+                formControlName="referenceDate">
+            </label>
+
+            <label class="full-width">
+              <span>Narration</span>
+
+              <textarea
+                rows="3"
+                formControlName="narration"
+                placeholder="Voucher narration">
+              </textarea>
+            </label>
+
+          </div>
+
+
+          <div class="lines-heading">
+
+            <div>
+              <h3>Accounting Lines</h3>
+              <p>
+                Every voucher must have
+                equal debit and credit totals.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              class="secondary-button"
+              (click)="addLine()">
+              + Add Line
+            </button>
+
+          </div>
+
+
+          <div
+            class="lines"
+            formArrayName="lines">
+
+            @for (
+              control of lines.controls;
+              track $index
+            ) {
+
+              <div
+                class="line-row"
+                [formGroupName]="$index">
+
+                <label class="account-field">
+                  <span>Account</span>
+
+                  <select
+                    formControlName="accountId">
+
+                    <option value="">
+                      Select account
+                    </option>
+
+                    @for (
+                      account of accounts();
+                      track trackAccount($index, account)
+                    ) {
+
+                      <option
+                        [value]="account._id">
+
+                        {{ account.accountCode }}
+                        ·
+                        {{ account.accountName }}
+
+                      </option>
+                    }
+
+                  </select>
+                </label>
+
+                <label class="description-field">
+                  <span>Description</span>
+
+                  <input
+                    type="text"
+                    formControlName="description"
+                    placeholder="Line description">
+                </label>
+
+                <label>
+                  <span>Debit</span>
+
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    formControlName="debit"
+                    (input)="onDebitInput($index)">
+                </label>
+
+                <label>
+                  <span>Credit</span>
+
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    formControlName="credit"
+                    (input)="onCreditInput($index)">
+                </label>
+
+                <button
+                  type="button"
+                  class="remove-line"
+                  aria-label="Remove line"
+                  [disabled]="lines.length <= 2"
+                  (click)="removeLine($index)">
+                  ×
+                </button>
+
+              </div>
+            }
+
+          </div>
+
+
+          <div class="totals-card">
+
+            <div>
+              <span>Total Debit</span>
+              <strong>
+                {{
+                  totalDebit()
+                    | number:'1.2-2'
+                }}
+              </strong>
+            </div>
+
+            <div>
+              <span>Total Credit</span>
+              <strong>
+                {{
+                  totalCredit()
+                    | number:'1.2-2'
+                }}
+              </strong>
+            </div>
+
+            <div
+              class="balance-state"
+              [class.balanced]="balanced()">
+
+              {{
+                balanced()
+                  ? 'Balanced'
+                  : 'Not Balanced'
+              }}
+
+            </div>
+
+          </div>
+
+
+          <footer class="form-actions">
+
+            <button
+              type="button"
+              class="ghost-button"
+              [disabled]="saving()"
+              (click)="closeForm()">
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              class="primary-button"
+              [disabled]="saving()">
+
+              {{
+                saving()
+                  ? 'Saving...'
+                  : 'Save Draft'
+              }}
+
+            </button>
+
+          </footer>
+
+        </form>
+
+      </section>
+
+    </div>
+  }
+
+</section>

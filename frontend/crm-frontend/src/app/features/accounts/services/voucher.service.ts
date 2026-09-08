@@ -33,6 +33,33 @@ export class VoucherService {
 
 
   /* =========================================================
+     GENERIC VOUCHER WORKFLOW
+  ========================================================= */
+
+  getVouchers(
+    query: VoucherQuery = {}
+  ): Observable<Voucher[]> {
+
+    return this.api.get<Voucher[]>(
+      this.basePath,
+      {
+        ...query
+      }
+    );
+  }
+
+
+  createVoucher(
+    payload: CreateVoucherPayload
+  ): Observable<Voucher> {
+
+    return this.api.post<Voucher>(
+      this.basePath,
+      payload
+    );
+  }
+
+  /* =========================================================
      SALES VOUCHERS
   ========================================================= */
 

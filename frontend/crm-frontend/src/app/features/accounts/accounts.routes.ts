@@ -136,10 +136,10 @@ export const ACCOUNTS_ROUTES: Routes = [
 
         loadComponent: () =>
           import(
-            './pages/placeholder/accounts-placeholder.component'
+            './pages/voucher-entry/voucher-entry.component'
           ).then(
             (module) =>
-              module.AccountsPlaceholderComponent
+              module.VoucherEntryComponent
           ),
 
         data: {
@@ -147,7 +147,8 @@ export const ACCOUNTS_ROUTES: Routes = [
           section: 'Accounts',
           feature: 'receipts',
           description:
-            'Customer payments and money received.'
+            'Customer payments and money received.',
+          voucherType: 'receipt'
         }
       },
 
@@ -156,10 +157,10 @@ export const ACCOUNTS_ROUTES: Routes = [
 
         loadComponent: () =>
           import(
-            './pages/placeholder/accounts-placeholder.component'
+            './pages/voucher-entry/voucher-entry.component'
           ).then(
             (module) =>
-              module.AccountsPlaceholderComponent
+              module.VoucherEntryComponent
           ),
 
         data: {
@@ -167,7 +168,8 @@ export const ACCOUNTS_ROUTES: Routes = [
           section: 'Accounts',
           feature: 'credit-notes',
           description:
-            'Customer credit adjustments and returns.'
+            'Customer credit adjustments and returns.',
+          voucherType: 'credit_note'
         }
       },
 
@@ -200,10 +202,10 @@ export const ACCOUNTS_ROUTES: Routes = [
 
         loadComponent: () =>
           import(
-            './pages/placeholder/accounts-placeholder.component'
+            './pages/voucher-entry/voucher-entry.component'
           ).then(
             (module) =>
-              module.AccountsPlaceholderComponent
+              module.VoucherEntryComponent
           ),
 
         data: {
@@ -211,7 +213,8 @@ export const ACCOUNTS_ROUTES: Routes = [
           section: 'Accounts',
           feature: 'payments',
           description:
-            'Payments made to suppliers, vendors and other parties.'
+            'Payments made to suppliers, vendors and other parties.',
+          voucherType: 'payment'
         }
       },
 
@@ -220,10 +223,10 @@ export const ACCOUNTS_ROUTES: Routes = [
 
         loadComponent: () =>
           import(
-            './pages/placeholder/accounts-placeholder.component'
+            './pages/voucher-entry/voucher-entry.component'
           ).then(
             (module) =>
-              module.AccountsPlaceholderComponent
+              module.VoucherEntryComponent
           ),
 
         data: {
@@ -231,7 +234,8 @@ export const ACCOUNTS_ROUTES: Routes = [
           section: 'Accounts',
           feature: 'debit-notes',
           description:
-            'Vendor debit adjustments and purchase returns.'
+            'Vendor debit adjustments and purchase returns.',
+          voucherType: 'debit_note'
         }
       },
 
@@ -283,8 +287,44 @@ export const ACCOUNTS_ROUTES: Routes = [
 
       {
         path: 'journal',
-        pathMatch: 'full',
-        redirectTo: 'journal-entries'
+
+        loadComponent: () =>
+          import(
+            './pages/voucher-entry/voucher-entry.component'
+          ).then(
+            (module) =>
+              module.VoucherEntryComponent
+          ),
+
+        data: {
+          title: 'Journal Vouchers',
+          section: 'Accounts',
+          feature: 'journal-vouchers',
+          description:
+            'Tally-style journal vouchers and balanced accounting entries.',
+          voucherType: 'journal'
+        }
+      },
+
+      {
+        path: 'contra',
+
+        loadComponent: () =>
+          import(
+            './pages/voucher-entry/voucher-entry.component'
+          ).then(
+            (module) =>
+              module.VoucherEntryComponent
+          ),
+
+        data: {
+          title: 'Contra',
+          section: 'Accounts',
+          feature: 'contra',
+          description:
+            'Cash and bank transfer vouchers.',
+          voucherType: 'contra'
+        }
       },
 
       {
