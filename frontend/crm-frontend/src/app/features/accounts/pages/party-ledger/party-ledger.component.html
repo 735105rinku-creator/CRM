@@ -1,0 +1,381 @@
+<section class="party-ledger-page">
+
+  <header class="page-header">
+
+    <div>
+
+      <p class="eyebrow">
+        Accounts
+      </p>
+
+      <h1>
+        {{ title() }}
+      </h1>
+
+      <p class="description">
+        Review posted transactions, opening balance,
+        debit and credit movement, and closing balance
+        for the selected
+        {{ partyType() === 'vendor' ? 'vendor' : 'customer' }}.
+      </p>
+
+    </div>
+
+
+    <button
+      type="button"
+      class="nm-button"
+      [disabled]="loadingParties() || loadingLedger()"
+      (click)="refresh()">
+      Refresh
+    </button>
+
+  </header>
+
+
+  <section class="filter-card">
+
+    <div class="field field--party">
+
+      <label for="party-ledger-party">
+        {{ partyType() === 'vendor' ? 'Vendor' : 'Customer' }}
+      </label>
+
+      <select
+        id="party-ledger-party"
+        [ngModel]="selectedPartyId()"
+        [disabled]="loadingParties()"
+        (ngModelChange)="onPartyChange($event)">
+
+        <option value="">
+          Select
+          {{ partyType() === 'vendor' ? 'Vendor' : 'Customer' }}
+        </option>
+
+        <option
+          *ngFor="
+            let party of parties();
+            let index = index;
+            trackBy: trackParty
+          "
+          [value]="party._id">
+
+          {{ partyLabel(party) }}
+
+          {{ party.status === 'inactive' ? ' (Inactive)' : '' }}
+
+        </option>
+
+      </select>
+
+    </div>
+
+
+    <div class="field">
+
+      <label for="party-ledger-from">
+        From
+      </label>
+
+      <input
+        id="party-ledger-from"
+        type="date"
+        [ngModel]="fromDate()"
+        (ngModelChange)="onFromDateChange($event)">
+
+    </div>
+
+
+    <div class="field">
+
+      <label for="party-ledger-to">
+        To
+      </label>
+
+      <input
+        id="party-ledger-to"
+        type="date"
+        [ngModel]="toDate()"
+        (ngModelChange)="onToDateChange($event)">
+
+    </div>
+
+
+    <div class="filter-actions">
+
+      <button
+        type="button"
+        class="nm-button nm-button--primary"
+        [disabled]="!selectedPartyId() || loadingLedger()"
+        (click)="applyDateFilter()">
+        Apply
+      </button>
+
+      <button
+        type="button"
+        class="nm-button"
+        [disabled]="loadingLedger()"
+        (click)="resetDates()">
+        Reset
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <div
+    class="state-card"
+    *ngIf="loadingParties() || loadingLedger()">
+
+    Loading {{ title() }}...
+
+  </div>
+
+
+  <div
+    class="state-card state-card--error"
+    *ngIf="
+      !loadingParties() &&
+      !loadingLedger() &&
+      errorMessage()
+    ">
+
+    {{ errorMessage() }}
+
+  </div>
+
+
+  <div
+    class="state-card"
+    *ngIf="
+      !loadingParties() &&
+      !loadingLedger() &&
+      !errorMessage() &&
+      !selectedPartyId()
+    ">
+
+    Select a
+    {{ partyType() === 'vendor' ? 'vendor' : 'customer' }}
+    to view the ledger.
+
+  </div>
+
+
+  <ng-container
+    *ngIf="
+      !loadingLedger() &&
+      !errorMessage() &&
+      ledger() as data
+    ">
+
+    <section class="account-card">
+
+      <div>
+
+        <span class="account-code">
+          {{ data.account.accountCode || selectedParty()?.accountCode || '-' }}
+        </span>
+
+        <h2>
+          {{ data.account.accountName || selectedParty()?.accountName || '-' }}
+        </h2>
+
+      </div>
+
+
+      <span class="status-pill">
+        {{ data.account.status || selectedParty()?.status || '-' }}
+      </span>
+
+    </section>
+
+
+    <section class="summary-grid">
+
+      <article class="summary-card">
+
+        <span>
+          Opening Balance
+        </span>
+
+        <strong>
+          {{ formatBalance(data.openingBalance) }}
+        </strong>
+
+      </article>
+
+
+      <article class="summary-card">
+
+        <span>
+          Total Debit
+        </span>
+
+        <strong>
+          {{ formatMoney(data.totals.debit) }}
+        </strong>
+
+      </article>
+
+
+      <article class="summary-card">
+
+        <span>
+          Total Credit
+        </span>
+
+        <strong>
+          {{ formatMoney(data.totals.credit) }}
+        </strong>
+
+      </article>
+
+
+      <article class="summary-card">
+
+        <span>
+          Closing Balance
+        </span>
+
+        <strong>
+          {{ formatBalance(data.closingBalance) }}
+        </strong>
+
+      </article>
+
+    </section>
+
+
+    <section class="ledger-card">
+
+      <div class="ledger-card__header">
+
+        <div>
+
+          <h2>
+            Transaction History
+          </h2>
+
+          <p>
+            Posted accounting movements only.
+          </p>
+
+        </div>
+
+        <span>
+          {{ data.entries.length }}
+          {{ data.entries.length === 1 ? 'Entry' : 'Entries' }}
+        </span>
+
+      </div>
+
+
+      <div
+        class="empty-state"
+        *ngIf="data.entries.length === 0">
+
+        No posted ledger entries found for this account.
+
+      </div>
+
+
+      <div
+        class="table-wrapper"
+        *ngIf="data.entries.length > 0">
+
+        <table>
+
+          <thead>
+
+            <tr>
+
+              <th>
+                Date
+              </th>
+
+              <th>
+                Reference
+              </th>
+
+              <th>
+                Narration
+              </th>
+
+              <th class="number">
+                Debit
+              </th>
+
+              <th class="number">
+                Credit
+              </th>
+
+              <th class="number">
+                Balance
+              </th>
+
+            </tr>
+
+          </thead>
+
+
+          <tbody>
+
+            <tr
+              *ngFor="
+                let entry of data.entries;
+                let index = index;
+                trackBy: trackEntry
+              ">
+
+              <td>
+                {{ entryDate(entry) }}
+              </td>
+
+              <td>
+                {{ entryReference(entry) }}
+              </td>
+
+              <td>
+                {{ entryNarration(entry) }}
+              </td>
+
+              <td class="number debit">
+                {{ formatMoney(entry.debit) }}
+              </td>
+
+              <td class="number credit">
+                {{ formatMoney(entry.credit) }}
+              </td>
+
+              <td class="number">
+                {{ formatRunningBalance(entry) }}
+              </td>
+
+            </tr>
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </section>
+
+  </ng-container>
+
+
+  <aside class="read-only-note">
+
+    <strong>
+      Read-only ledger
+    </strong>
+
+    <span>
+      This screen only reads existing posted accounting data.
+      It does not create, edit, post, void or delete transactions.
+    </span>
+
+  </aside>
+
+</section>

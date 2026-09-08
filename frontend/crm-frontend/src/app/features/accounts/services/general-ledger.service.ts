@@ -29,6 +29,10 @@ export interface GeneralLedgerQuery {
 
   status?: string;
 
+  from?: string;
+
+  to?: string;
+
   sortBy?: string;
 
   sortOrder?:
@@ -323,6 +327,42 @@ export class GeneralLedgerService {
 
       result['status'] =
         status;
+
+    }
+
+
+    const from =
+      String(
+        query.from ||
+        ''
+      )
+        .trim();
+
+
+    if (
+      from
+    ) {
+
+      result['from'] =
+        from;
+
+    }
+
+
+    const to =
+      String(
+        query.to ||
+        ''
+      )
+        .trim();
+
+
+    if (
+      to
+    ) {
+
+      result['to'] =
+        to;
 
     }
 

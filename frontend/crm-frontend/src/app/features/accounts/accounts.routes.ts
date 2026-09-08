@@ -349,10 +349,10 @@ export const ACCOUNTS_ROUTES: Routes = [
 
         loadComponent: () =>
           import(
-            './pages/placeholder/accounts-placeholder.component'
+            './pages/party-ledger/party-ledger.component'
           ).then(
             (module) =>
-              module.AccountsPlaceholderComponent
+              module.PartyLedgerComponent
           ),
 
         data: {
@@ -360,7 +360,8 @@ export const ACCOUNTS_ROUTES: Routes = [
           section: 'Accounts',
           feature: 'customer-ledger',
           description:
-            'Customer outstanding balances and receivable history.'
+            'Customer outstanding balances and receivable history.',
+          partyType: 'customer'
         }
       },
 
@@ -369,10 +370,10 @@ export const ACCOUNTS_ROUTES: Routes = [
 
         loadComponent: () =>
           import(
-            './pages/placeholder/accounts-placeholder.component'
+            './pages/party-ledger/party-ledger.component'
           ).then(
             (module) =>
-              module.AccountsPlaceholderComponent
+              module.PartyLedgerComponent
           ),
 
         data: {
@@ -380,7 +381,8 @@ export const ACCOUNTS_ROUTES: Routes = [
           section: 'Accounts',
           feature: 'vendor-ledger',
           description:
-            'Vendor outstanding balances and payable history.'
+            'Vendor outstanding balances and payable history.',
+          partyType: 'vendor'
         }
       },
 
