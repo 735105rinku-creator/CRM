@@ -533,10 +533,10 @@ export const ACCOUNTS_ROUTES: Routes = [
 
         loadComponent: () =>
           import(
-            './pages/placeholder/accounts-placeholder.component'
+            './pages/financial-reports-hub/financial-reports-hub.component'
           ).then(
             (module) =>
-              module.AccountsPlaceholderComponent
+              module.FinancialReportsHubComponent
           ),
 
         data: {
@@ -544,10 +544,9 @@ export const ACCOUNTS_ROUTES: Routes = [
           section: 'Accounts',
           feature: 'reports',
           description:
-            'Profit & Loss, Balance Sheet, Trial Balance and Cash Flow.'
+            'Central access to existing accounting and statutory reports.'
         }
       },
-
       /* ======================================================
          SETTINGS
       ====================================================== */
