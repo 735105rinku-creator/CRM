@@ -459,10 +459,10 @@ export const ACCOUNTS_ROUTES: Routes = [
 
         loadComponent: () =>
           import(
-            './pages/placeholder/accounts-placeholder.component'
+            './pages/tax-hub/tax-hub.component'
           ).then(
             (module) =>
-              module.AccountsPlaceholderComponent
+              module.TaxHubComponent
           ),
 
         data: {
@@ -470,10 +470,9 @@ export const ACCOUNTS_ROUTES: Routes = [
           section: 'Accounts',
           feature: 'tax',
           description:
-            'GST, TDS and other statutory accounting.'
+            'GST reporting access and statutory accounting capability overview.'
         }
       },
-
       /* ======================================================
          REPORTS
       ====================================================== */

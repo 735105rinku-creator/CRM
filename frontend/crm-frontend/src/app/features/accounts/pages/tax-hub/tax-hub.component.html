@@ -1,0 +1,250 @@
+<section class="tax-hub">
+
+  <header class="hero-card">
+
+    <div class="hero-copy">
+
+      <p class="eyebrow">
+        Accounts · Statutory Overview
+      </p>
+
+      <h1>
+        GST & Tax
+      </h1>
+
+      <p class="hero-description">
+        Review the statutory accounting capabilities currently available
+        in Accounts. GST reporting uses the existing posted accounting
+        transactions as its source of truth.
+      </p>
+
+    </div>
+
+    <a
+      class="primary-action"
+      [routerLink]="gstReportRoute">
+      Open GST Report
+    </a>
+
+  </header>
+
+
+  <section class="availability-card">
+
+    <div class="availability-heading">
+
+      <div>
+        <p class="section-label">
+          Available Now
+        </p>
+
+        <h2>
+          GST Report
+        </h2>
+      </div>
+
+      <span class="status-badge available">
+        Available
+      </span>
+
+    </div>
+
+    <p>
+      The existing GST Report calculates GST from posted accounting
+      transactions. This Tax Hub does not create a second GST calculation
+      or duplicate tax API.
+    </p>
+
+    <a
+      class="secondary-action"
+      [routerLink]="gstReportRoute">
+      Open GST Report
+    </a>
+
+  </section>
+
+
+  <section class="gst-grid">
+
+    <article class="tax-card">
+
+      <div class="card-icon">
+        OUT
+      </div>
+
+      <div>
+        <span class="card-kicker">
+          GST
+        </span>
+
+        <h2>
+          Output GST
+        </h2>
+
+        <p>
+          Output tax is represented through the existing GST Report
+          using posted sales and applicable credit-note activity.
+        </p>
+      </div>
+
+    </article>
+
+
+    <article class="tax-card">
+
+      <div class="card-icon">
+        IN
+      </div>
+
+      <div>
+        <span class="card-kicker">
+          GST
+        </span>
+
+        <h2>
+          Input GST
+        </h2>
+
+        <p>
+          Input tax is represented through the existing GST Report
+          using posted purchases and applicable debit-note activity.
+        </p>
+      </div>
+
+    </article>
+
+
+    <article class="tax-card">
+
+      <div class="card-icon">
+        NET
+      </div>
+
+      <div>
+        <span class="card-kicker">
+          GST
+        </span>
+
+        <h2>
+          Net GST Position
+        </h2>
+
+        <p>
+          Open the GST Report to review whether the calculated net
+          position is payable, receivable or settled for the selected
+          reporting period.
+        </p>
+      </div>
+
+    </article>
+
+  </section>
+
+
+  <section class="statutory-section">
+
+    <div class="section-heading">
+
+      <div>
+        <p class="section-label">
+          Future Statutory Capabilities
+        </p>
+
+        <h2>
+          Other Taxes
+        </h2>
+      </div>
+
+      <p>
+        These capabilities are shown for clarity only. No figures are
+        generated until a real accounting implementation is configured.
+      </p>
+
+    </div>
+
+
+    <div class="statutory-grid">
+
+      <article class="statutory-card">
+
+        <div class="statutory-card-heading">
+
+          <div>
+            <span class="card-kicker">
+              Withholding
+            </span>
+
+            <h3>
+              TDS
+            </h3>
+          </div>
+
+          <span class="status-badge unavailable">
+            Not configured
+          </span>
+
+        </div>
+
+        <p>
+          TDS calculation, deduction, deposit and return reporting are
+          not currently configured in the Accounts accounting backend.
+        </p>
+
+        <div class="information-note">
+          No TDS amount is calculated on this page.
+        </div>
+
+      </article>
+
+
+      <article class="statutory-card">
+
+        <div class="statutory-card-heading">
+
+          <div>
+            <span class="card-kicker">
+              Statutory
+            </span>
+
+            <h3>
+              Other Statutory Taxes
+            </h3>
+          </div>
+
+          <span class="status-badge unavailable">
+            Not configured
+          </span>
+
+        </div>
+
+        <p>
+          Additional statutory tax workflows will remain unavailable
+          until their accounting rules and backend contracts are
+          explicitly implemented.
+        </p>
+
+        <div class="information-note">
+          No statutory amount is estimated or generated here.
+        </div>
+
+      </article>
+
+    </div>
+
+  </section>
+
+
+  <footer class="source-note">
+
+    <strong>
+      Single source of truth:
+    </strong>
+
+    <span>
+      GST figures remain inside the existing GST Report. This hub is
+      navigation and information only.
+    </span>
+
+  </footer>
+
+</section>
