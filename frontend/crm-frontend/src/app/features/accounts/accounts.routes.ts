@@ -556,10 +556,10 @@ export const ACCOUNTS_ROUTES: Routes = [
 
         loadComponent: () =>
           import(
-            './pages/placeholder/accounts-placeholder.component'
+            './pages/accounts-settings/accounts-settings.component'
           ).then(
             (module) =>
-              module.AccountsPlaceholderComponent
+              module.AccountsSettingsComponent
           ),
 
         data: {
@@ -567,7 +567,7 @@ export const ACCOUNTS_ROUTES: Routes = [
           section: 'Accounts',
           feature: 'settings',
           description:
-            'Financial year, payment terms and accounting configuration.'
+            'Read-only overview of the existing Accounts configuration.'
         }
       },
 
