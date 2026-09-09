@@ -333,9 +333,7 @@ const chartOfAccountSchema =
 chartOfAccountSchema.pre(
   "validate",
 
-  function validateSelfParent(
-    next
-  ) {
+  function validateSelfParent() {
 
     if (
       this._id &&
@@ -348,15 +346,10 @@ chartOfAccountSchema.pre(
       )
     ) {
 
-      return next(
-        new Error(
-          "An account cannot be its own parent."
-        )
+      throw new Error(
+        "An account cannot be its own parent."
       );
     }
-
-
-    next();
   }
 );
 

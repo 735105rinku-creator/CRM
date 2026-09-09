@@ -12,8 +12,12 @@ import OutstandingService
 import chartOfAccountRepository
   from "../repositories/chartOfAccount.repository.js";
 
-import generalLedgerService
-  from "../services/generalLedger.service.js";
+import {
+  GeneralLedgerService
+} from "../services/generalLedger.service.js";
+
+import journalEntryRepository
+  from "../repositories/journalEntry.repository.js";
 
 
 export class OutstandingController {
@@ -69,6 +73,13 @@ export class OutstandingController {
   }
 
 }
+
+
+const generalLedgerService =
+  new GeneralLedgerService({
+    chartOfAccountRepository,
+    journalEntryRepository,
+  });
 
 
 const outstandingService =

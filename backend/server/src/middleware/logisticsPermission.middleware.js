@@ -1,4 +1,4 @@
-﻿import { Employee } from "../models/Employee.js";
+import { Employee } from "../models/Employee.js";
 import { User } from "../models/User.js";
 import { LogisticsShipment } from "../models/LogisticsShipment.js";
 import { ROLES } from "../constants/roles.js";
@@ -1631,16 +1631,23 @@ export const shipmentSubModuleForMode = (shipmentMode) => {
 
 export const requireShipmentPermission = (action) =>
   asyncHandler(async (req, _res, next) => {
-    let shipmentMode = req.body?.shipmentMode;
-    if (!shipmentMode && req.params?.id) {
+    let shipmentMode;
+
+    if (req.params?.id) {
       const companyId = req.auth?.companyId || req.user?.companyId?._id || req.user?.companyId;
       const shipment = await LogisticsShipment.findOne({
         _id: req.params.id,
         companyId,
         isActive: { $ne: false },
       }).select("shipmentMode").lean();
-      if (!shipment) throw new ApiError(404, "Logistics shipment not found");
+
+      if (!shipment) {
+        throw new ApiError(404, "Logistics shipment not found");
+      }
+
       shipmentMode = shipment.shipmentMode;
+    } else {
+      shipmentMode = req.body?.shipmentMode;
     }
     const subModule = shipmentSubModuleForMode(shipmentMode);
     const permission = getLogisticsPermission(req, subModule);
