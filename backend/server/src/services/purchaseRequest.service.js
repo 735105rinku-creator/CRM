@@ -3,6 +3,19 @@ import crypto from "node:crypto";
 import purchaseRequestRepository
   from "../repositories/purchaseRequest.repository.js";
 
+import {
+  createNotificationRecord,
+} from "../repositories/communication.repository.js";
+
+import {
+  NOTIFICATION_PRIORITY,
+  NOTIFICATION_TYPE,
+} from "../models/Notification.js";
+
+import {
+  emitNotificationToUser,
+} from "../socket/socket.js";
+
   import {
     Employee
   } from "../models/Employee.js";
@@ -183,6 +196,12 @@ export class PurchaseRequestService {
 
       employeeModel =
         Employee,
+
+      notificationCreator =
+        createNotificationRecord,
+
+      notificationEmitter =
+        emitNotificationToUser,
     } = {}
   ) {
 
@@ -193,6 +212,161 @@ export class PurchaseRequestService {
     this.employeeModel =
       employeeModel;
 
+
+    this.notificationCreator =
+      notificationCreator;
+
+
+    this.notificationEmitter =
+      notificationEmitter;
+
+  }
+
+
+  async createWorkflowNotification({
+    companyId,
+    recipientUserId,
+    senderUserId,
+    title,
+    message,
+    purchaseRequestId,
+  }) {
+
+    if (
+      !recipientUserId ||
+      String(recipientUserId) === String(senderUserId)
+    ) {
+      return;
+    }
+
+
+    try {
+      const notification =
+        await this.notificationCreator({
+          companyId,
+          recipientUserId,
+          senderUserId: senderUserId || null,
+          type: NOTIFICATION_TYPE.SYSTEM,
+          title,
+          message,
+          entityType: "PurchaseRequest",
+          entityId: purchaseRequestId,
+          priority: NOTIFICATION_PRIORITY.NORMAL,
+          actionUrl: `/purchase/purchase-requests/${purchaseRequestId}`,
+          createdBy: senderUserId || null,
+        });
+
+      this.notificationEmitter(
+        recipientUserId,
+        notification
+      );
+    } catch (error) {
+      console.error(
+        "Purchase Request notification delivery failed:",
+        error
+      );
+    }
+  }
+
+
+  async findPurchaseApprover({
+    companyId,
+    departmentId,
+    requesterUserId,
+  }) {
+
+    const activeFilter = {
+      companyId,
+      departmentId,
+      employeeStatus: "active",
+      isActive: true,
+      userId: { $ne: null },
+    };
+
+    const requester =
+      await this.employeeModel
+        .findOne({
+          companyId,
+          userId: requesterUserId,
+          departmentId,
+        })
+        .select("reportingManagerId")
+        .lean();
+
+    if (requester?.reportingManagerId) {
+      const manager =
+        await this.employeeModel
+          .findOne({
+            ...activeFilter,
+            _id: requester.reportingManagerId,
+            organizationRole: {
+              $in: [
+                "department_head",
+                "team_leader",
+              ],
+            },
+          })
+          .select("userId")
+          .lean();
+
+      if (
+        manager?.userId &&
+        String(manager.userId) !== String(requesterUserId)
+      ) {
+        return manager.userId;
+      }
+    }
+
+    for (const organizationRole of [
+      "department_head",
+      "team_leader",
+    ]) {
+      const approver =
+        await this.employeeModel
+          .findOne({
+            ...activeFilter,
+            organizationRole,
+            userId: { $nin: [null, requesterUserId] },
+          })
+          .select("userId")
+          .lean();
+
+      if (approver?.userId) {
+        return approver.userId;
+      }
+    }
+
+    return null;
+  }
+
+
+  async resolveRequesterUserId({
+    companyId,
+    request,
+  }) {
+
+    const requestedBy =
+      request?.requestedBy?._id ||
+      request?.requestedBy;
+
+    if (requestedBy) {
+      return requestedBy;
+    }
+
+    if (!request?.requestedEmployeeCode) {
+      return null;
+    }
+
+    const employee =
+      await this.employeeModel
+        .findOne({
+          companyId,
+          employeeCode: request.requestedEmployeeCode,
+        })
+        .select("userId")
+        .lean();
+
+    return employee?.userId || null;
   }
 
 
@@ -819,6 +993,23 @@ export class PurchaseRequestService {
     }
 
 
+    const approverUserId =
+      await this.findPurchaseApprover({
+        companyId,
+        departmentId: request.departmentId,
+        requesterUserId: userId,
+      });
+
+    await this.createWorkflowNotification({
+      companyId,
+      recipientUserId: approverUserId,
+      senderUserId: userId,
+      title: "Purchase Request awaiting approval",
+      message: `${request.prNumber || "Purchase Request"} was submitted for your approval.`,
+      purchaseRequestId: request._id,
+    });
+
+
     return request;
   }
 
@@ -865,6 +1056,22 @@ export class PurchaseRequestService {
         "Purchase Request not found or cannot be approved."
       );
     }
+
+
+    const requesterUserId =
+      await this.resolveRequesterUserId({
+        companyId,
+        request,
+      });
+
+    await this.createWorkflowNotification({
+      companyId,
+      recipientUserId: requesterUserId,
+      senderUserId: userId,
+      title: "Purchase Request approved",
+      message: `${request.prNumber || "Your Purchase Request"} has been approved.`,
+      purchaseRequestId: request._id,
+    });
 
 
     return request;
@@ -924,6 +1131,22 @@ export class PurchaseRequestService {
         "Purchase Request not found or cannot be rejected."
       );
     }
+
+
+    const requesterUserId =
+      await this.resolveRequesterUserId({
+        companyId,
+        request,
+      });
+
+    await this.createWorkflowNotification({
+      companyId,
+      recipientUserId: requesterUserId,
+      senderUserId: userId,
+      title: "Purchase Request rejected",
+      message: `${request.prNumber || "Your Purchase Request"} has been rejected.`,
+      purchaseRequestId: request._id,
+    });
 
 
     return request;

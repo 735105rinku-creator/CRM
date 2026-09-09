@@ -44,6 +44,8 @@ export const loginSchema = Joi.object({
       "accounts"
     )
     .allow("", null),
+
+  rememberMe: Joi.boolean().default(false),
 });
 
 export const createUserSchema = Joi.object({

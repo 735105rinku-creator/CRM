@@ -43,6 +43,11 @@ const cookieOptions = {
   path: "/",
 };
 
+const sessionCookieOptions = (rememberMe, maxAge) =>
+  rememberMe
+    ? { ...cookieOptions, maxAge }
+    : { ...cookieOptions };
+
 //  X-Forwarded-For can be a comma-separated list of IPs
 // (client, proxy1, proxy2…). Always take the first value — that is
 // the original client IP. req.ip is set correctly when trust proxy is
@@ -280,12 +285,10 @@ if (
   // Authorization headers when browser cookie state is stale during local dev.
   res
     .cookie("accessToken", tokens.accessToken, {
-      ...cookieOptions,
-      maxAge: 15 * 60 * 1000,
+      ...sessionCookieOptions(value.rememberMe, 15 * 60 * 1000),
     })
     .cookie("refreshToken", tokens.refreshToken, {
-      ...cookieOptions,
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      ...sessionCookieOptions(value.rememberMe, 7 * 24 * 60 * 60 * 1000),
     })
     .status(200)
     .json(
@@ -326,6 +329,7 @@ export const logout = asyncHandler(async (req, res) => {
 // ─── REFRESH TOKEN ────────────────────────────────────────────────────────────
 export const refreshToken = asyncHandler(async (req, res) => {
   const token = getRefreshTokenFromReq(req);
+  const rememberMe = req.body?.rememberMe === true;
 
   if (!token) {
     throw new ApiError(401, "Refresh token required");
@@ -355,12 +359,10 @@ export const refreshToken = asyncHandler(async (req, res) => {
 
   res
     .cookie("accessToken", tokens.accessToken, {
-      ...cookieOptions,
-      maxAge: 15 * 60 * 1000,
+      ...sessionCookieOptions(rememberMe, 15 * 60 * 1000),
     })
     .cookie("refreshToken", tokens.refreshToken, {
-      ...cookieOptions,
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      ...sessionCookieOptions(rememberMe, 7 * 24 * 60 * 60 * 1000),
     })
     .status(200)
     .json(new ApiResponse(200, {
