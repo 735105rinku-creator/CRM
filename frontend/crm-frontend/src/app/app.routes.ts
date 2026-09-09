@@ -1460,6 +1460,14 @@ export const routes: Routes = [
         }
       },
 
+      {
+        path: 'purchase',
+        canActivate: [authGuard],
+        loadChildren: () =>
+          import('./features/purchase/purchase.routes')
+            .then((module) => module.PURCHASE_ROUTES)
+      },
+
 
       /* ====================================================
          REPORTS

@@ -4,7 +4,7 @@
   <p role="alert">{{ errorMessage() }}</p>
 } @else {
 <div class="invoice-page">
-      @if (editHistory?.length) {
+  @if (editHistory.length) {
         <div class="edit-audit" role="note">
           <span>Edited by: {{ editHistory![editHistory!.length - 1].changedByName || editHistory![editHistory!.length - 1].changedBy || 'Unknown user' }}</span>
           <span>Edited on: {{ editHistory![editHistory!.length - 1].changedAt | date:'dd/MM/yyyy HH:mm' }}</span>

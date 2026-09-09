@@ -1,0 +1,809 @@
+<section class="goods-receipts-page">
+
+  <!-- =========================================================
+       PAGE HEADER
+  ========================================================== -->
+
+  <div class="page-header">
+
+    <div class="page-title-block">
+      <p class="eyebrow">
+        Purchase Department
+      </p>
+
+      <h1>
+        Goods Receipt / GRN
+      </h1>
+
+      <p class="subtitle">
+        Track received goods, accepted quantity, rejected quantity
+        and remaining Purchase Order quantity.
+      </p>
+    </div>
+
+    <div class="header-actions">
+
+      <button
+        type="button"
+        class="btn btn-secondary"
+        [disabled]="loading"
+        (click)="loadGoodsReceipts(); loadStatusCounts()"
+      >
+        <span class="btn-icon" aria-hidden="true">
+          ↻
+        </span>
+
+        Refresh
+      </button>
+
+      <button
+        type="button"
+        class="btn btn-primary"
+        (click)="createGoodsReceipt()"
+      >
+        <span class="btn-icon" aria-hidden="true">
+          +
+        </span>
+
+        Create GRN
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- =========================================================
+       STATUS SUMMARY
+  ========================================================== -->
+
+  <div class="summary-grid">
+
+    <button
+      type="button"
+      class="summary-card summary-card--total"
+      [class.active]="filters.status === ''"
+      (click)="setStatusFilter('')"
+    >
+
+      <div class="summary-icon">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            d="M4 5h16v14H4V5Zm2 2v10h12V7H6Zm3 2h6v2H9V9Zm0 4h6v2H9v-2Z"
+          />
+        </svg>
+      </div>
+
+      <div class="summary-content">
+        <span class="summary-label">
+          Total GRNs
+        </span>
+
+        <strong>
+          {{
+            statusCounts.received +
+            statusCounts.partial +
+            statusCounts.rejected +
+            statusCounts.completed
+          }}
+        </strong>
+      </div>
+
+    </button>
+
+
+    <button
+      type="button"
+      class="summary-card summary-card--partial"
+      [class.active]="filters.status === 'partial'"
+      (click)="setStatusFilter('partial')"
+    >
+
+      <div class="summary-icon partial">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            d="M12 2a10 10 0 1 0 10 10h-2a8 8 0 1 1-8-8V2Zm1 5h-2v6l5 3 1-1.7-4-2.3V7Z"
+          />
+        </svg>
+      </div>
+
+      <div class="summary-content">
+        <span class="summary-label">
+          Partial
+        </span>
+
+        <strong>
+          {{ statusCounts.partial }}
+        </strong>
+      </div>
+
+    </button>
+
+
+    <button
+      type="button"
+      class="summary-card summary-card--received"
+      [class.active]="filters.status === 'received'"
+      (click)="setStatusFilter('received')"
+    >
+
+      <div class="summary-icon received">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            d="M3 6h11v9h2.2l1.8-3H21v6h-2.2a3 3 0 0 1-5.6 0H9.8a3 3 0 0 1-5.6 0H3V6Zm13 8h1l1-1.5h1V16h-3v-2ZM7 16.5A1.5 1.5 0 1 0 7 19.5a1.5 1.5 0 0 0 0-3Zm9 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z"
+          />
+        </svg>
+      </div>
+
+      <div class="summary-content">
+        <span class="summary-label">
+          Received
+        </span>
+
+        <strong>
+          {{ statusCounts.received }}
+        </strong>
+      </div>
+
+    </button>
+
+
+    <button
+      type="button"
+      class="summary-card summary-card--completed"
+      [class.active]="filters.status === 'completed'"
+      (click)="setStatusFilter('completed')"
+    >
+
+      <div class="summary-icon completed">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm-1 15-4-4 1.4-1.4L11 14.2l5.6-5.6L18 10l-7 7Z"
+          />
+        </svg>
+      </div>
+
+      <div class="summary-content">
+        <span class="summary-label">
+          Completed
+        </span>
+
+        <strong>
+          {{ statusCounts.completed }}
+        </strong>
+      </div>
+
+    </button>
+
+
+    <button
+      type="button"
+      class="summary-card summary-card--rejected"
+      [class.active]="filters.status === 'rejected'"
+      (click)="setStatusFilter('rejected')"
+    >
+
+      <div class="summary-icon rejected">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm4.3 13-1.3 1.3L12 13.3l-3 3L7.7 15l3-3-3-3L9 7.7l3 3 3-3L16.3 9l-3 3 3 3Z"
+          />
+        </svg>
+      </div>
+
+      <div class="summary-content">
+        <span class="summary-label">
+          Rejected
+        </span>
+
+        <strong>
+          {{ statusCounts.rejected }}
+        </strong>
+      </div>
+
+    </button>
+
+  </div>
+
+
+  <!-- =========================================================
+       FILTER PANEL
+  ========================================================== -->
+
+  <div class="filter-panel">
+
+    <div class="filter-main">
+
+      <div class="search-field">
+
+        <span class="search-icon" aria-hidden="true">
+          ⌕
+        </span>
+
+        <input
+          type="text"
+          [(ngModel)]="filters.search"
+          placeholder="Search GRN, PO, vendor, warehouse, item or challan..."
+          (keyup.enter)="onSearchEnter()"
+        />
+
+      </div>
+
+
+      <div class="filter-field">
+
+        <label>
+          Status
+        </label>
+
+        <select
+          [(ngModel)]="filters.status"
+        >
+          <option value="">
+            All Status
+          </option>
+
+          <option
+            *ngFor="let option of statusOptions"
+            [value]="option.value"
+          >
+            {{ option.label }}
+          </option>
+        </select>
+
+      </div>
+
+
+      <div class="filter-field">
+
+        <label>
+          From
+        </label>
+
+        <input
+          type="date"
+          [(ngModel)]="filters.fromDate"
+        />
+
+      </div>
+
+
+      <div class="filter-field">
+
+        <label>
+          To
+        </label>
+
+        <input
+          type="date"
+          [(ngModel)]="filters.toDate"
+        />
+
+      </div>
+
+    </div>
+
+
+    <div class="filter-actions">
+
+      <button
+        type="button"
+        class="btn btn-secondary"
+        (click)="resetFilters()"
+      >
+        <span class="btn-icon" aria-hidden="true">
+          ↺
+        </span>
+
+        Reset
+      </button>
+
+      <button
+        type="button"
+        class="btn btn-primary"
+        [disabled]="loading"
+        (click)="applyFilters()"
+      >
+        <span class="btn-icon" aria-hidden="true">
+          ✓
+        </span>
+
+        Apply
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- =========================================================
+       ERROR
+  ========================================================== -->
+
+  <div
+    *ngIf="errorMessage"
+    class="alert alert-error"
+  >
+    <span class="alert-icon">
+      !
+    </span>
+
+    <span>
+      {{ errorMessage }}
+    </span>
+  </div>
+
+
+  <!-- =========================================================
+       LOADING
+  ========================================================== -->
+
+  <div
+    *ngIf="loading"
+    class="loading-state"
+  >
+    <div class="spinner"></div>
+
+    <p>
+      Loading Goods Receipts...
+    </p>
+  </div>
+
+
+  <!-- =========================================================
+       EMPTY STATE
+  ========================================================== -->
+
+  <div
+    *ngIf="
+      !loading &&
+      !errorMessage &&
+      goodsReceipts.length === 0
+    "
+    class="empty-state"
+  >
+
+    <div class="empty-icon">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path
+          d="M4 5h16v14H4V5Zm2 2v10h12V7H6Zm3 2h6v2H9V9Zm0 4h6v2H9v-2Z"
+        />
+      </svg>
+    </div>
+
+    <h3>
+      No Goods Receipts found
+    </h3>
+
+    <p>
+      No GRN matches the selected filters,
+      or no Goods Receipt has been created yet.
+    </p>
+
+    <button
+      type="button"
+      class="btn btn-primary"
+      (click)="createGoodsReceipt()"
+    >
+      <span class="btn-icon">
+        +
+      </span>
+
+      Create First GRN
+    </button>
+
+  </div>
+
+
+  <!-- =========================================================
+       DESKTOP TABLE
+  ========================================================== -->
+
+  <div
+    *ngIf="
+      !loading &&
+      goodsReceipts.length > 0
+    "
+    class="table-card"
+  >
+
+    <div class="table-scroll">
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>GRN</th>
+            <th>Receipt Date</th>
+            <th>Purchase Order</th>
+            <th>Vendor</th>
+            <th>Warehouse</th>
+            <th class="number-column">Received</th>
+            <th class="number-column">Accepted</th>
+            <th class="number-column">Rejected</th>
+            <th class="number-column">Remaining</th>
+            <th>Status</th>
+            <th class="actions-column">Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          <tr
+            *ngFor="
+              let grn of goodsReceipts;
+              trackBy: trackByGoodsReceipt
+            "
+          >
+
+            <td>
+              <div class="reference-cell">
+
+                <strong>
+                  {{ grn.grnNumber }}
+                </strong>
+
+                <small
+                  *ngIf="grn.deliveryChallanNumber"
+                >
+                  Challan:
+                  {{ grn.deliveryChallanNumber }}
+                </small>
+
+              </div>
+            </td>
+
+
+            <td>
+              {{ formatDate(grn.receiptDate) }}
+            </td>
+
+
+            <td>
+              <div class="reference-cell">
+
+                <strong>
+                  {{ grn.poNumber || '—' }}
+                </strong>
+
+                <small>
+                  {{ grn.items.length }}
+                  item{{ grn.items.length === 1 ? '' : 's' }}
+                </small>
+
+              </div>
+            </td>
+
+
+            <td>
+              <div class="reference-cell">
+
+                <strong>
+                  {{ grn.vendorName || '—' }}
+                </strong>
+
+                <small
+                  *ngIf="grn.vendorCode"
+                >
+                  {{ grn.vendorCode }}
+                </small>
+
+              </div>
+            </td>
+
+
+            <td>
+              <div class="reference-cell">
+
+                <strong>
+                  {{ grn.warehouseName || '—' }}
+                </strong>
+
+                <small
+                  *ngIf="grn.warehouseCode"
+                >
+                  {{ grn.warehouseCode }}
+                </small>
+
+              </div>
+            </td>
+
+
+            <td class="number-column quantity-received">
+              {{
+                totalCurrentReceived(grn)
+                | number:'1.0-4'
+              }}
+            </td>
+
+
+            <td class="number-column quantity-accepted">
+              {{
+                totalAccepted(grn)
+                | number:'1.0-4'
+              }}
+            </td>
+
+
+            <td class="number-column quantity-rejected">
+              {{
+                totalRejected(grn)
+                | number:'1.0-4'
+              }}
+            </td>
+
+
+            <td class="number-column quantity-remaining">
+              {{
+                totalRemaining(grn)
+                | number:'1.0-4'
+              }}
+            </td>
+
+
+            <td>
+              <span
+                class="status-badge"
+                [ngClass]="statusClass(grn.status)"
+              >
+                {{ statusLabel(grn.status) }}
+              </span>
+            </td>
+
+
+            <td class="actions-column">
+
+              <button
+                type="button"
+                class="icon-button"
+                title="View Goods Receipt"
+                (click)="viewGoodsReceipt(grn)"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M12 5c5.5 0 9.5 5.2 9.5 7s-4 7-9.5 7S2.5 13.8 2.5 12 6.5 5 12 5Zm0 2c-3.8 0-6.8 3.2-7.4 5 .6 1.8 3.6 5 7.4 5s6.8-3.2 7.4-5c-.6-1.8-3.6-5-7.4-5Zm0 2.5A2.5 2.5 0 1 1 12 14a2.5 2.5 0 0 1 0-5Z"
+                  />
+                </svg>
+              </button>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+
+  <!-- =========================================================
+       MOBILE CARDS
+  ========================================================== -->
+
+  <div
+    *ngIf="
+      !loading &&
+      goodsReceipts.length > 0
+    "
+    class="mobile-list"
+  >
+
+    <article
+      *ngFor="
+        let grn of goodsReceipts;
+        trackBy: trackByGoodsReceipt
+      "
+      class="mobile-grn-card"
+    >
+
+      <div class="mobile-card-header">
+
+        <div>
+          <span class="mobile-label">
+            GRN Number
+          </span>
+
+          <strong>
+            {{ grn.grnNumber }}
+          </strong>
+        </div>
+
+        <span
+          class="status-badge"
+          [ngClass]="statusClass(grn.status)"
+        >
+          {{ statusLabel(grn.status) }}
+        </span>
+
+      </div>
+
+
+      <div class="mobile-details">
+
+        <div>
+          <span>PO</span>
+          <strong>{{ grn.poNumber || '—' }}</strong>
+        </div>
+
+        <div>
+          <span>Receipt Date</span>
+          <strong>{{ formatDate(grn.receiptDate) }}</strong>
+        </div>
+
+        <div>
+          <span>Vendor</span>
+          <strong>{{ grn.vendorName || '—' }}</strong>
+        </div>
+
+        <div>
+          <span>Warehouse</span>
+          <strong>{{ grn.warehouseName || '—' }}</strong>
+        </div>
+
+      </div>
+
+
+      <div class="mobile-quantity-grid">
+
+        <div class="quantity-box">
+          <span>Received</span>
+          <strong>
+            {{
+              totalCurrentReceived(grn)
+              | number:'1.0-4'
+            }}
+          </strong>
+        </div>
+
+        <div class="quantity-box">
+          <span>Accepted</span>
+          <strong>
+            {{
+              totalAccepted(grn)
+              | number:'1.0-4'
+            }}
+          </strong>
+        </div>
+
+        <div class="quantity-box">
+          <span>Rejected</span>
+          <strong>
+            {{
+              totalRejected(grn)
+              | number:'1.0-4'
+            }}
+          </strong>
+        </div>
+
+        <div class="quantity-box">
+          <span>Remaining</span>
+          <strong>
+            {{
+              totalRemaining(grn)
+              | number:'1.0-4'
+            }}
+          </strong>
+        </div>
+
+      </div>
+
+
+      <div
+        *ngIf="grn.deliveryChallanNumber"
+        class="mobile-challan"
+      >
+        <span class="mobile-challan-icon">
+          #
+        </span>
+
+        <span>
+          Delivery Challan:
+          <strong>
+            {{ grn.deliveryChallanNumber }}
+          </strong>
+        </span>
+      </div>
+
+
+      <button
+        type="button"
+        class="btn btn-secondary mobile-view-button"
+        (click)="viewGoodsReceipt(grn)"
+      >
+        <span class="btn-icon">
+          ◉
+        </span>
+
+        View GRN
+      </button>
+
+    </article>
+
+  </div>
+
+
+  <!-- =========================================================
+       PAGINATION
+  ========================================================== -->
+
+  <div
+    *ngIf="
+      !loading &&
+      goodsReceipts.length > 0
+    "
+    class="pagination-bar"
+  >
+
+    <div class="pagination-info">
+      Showing page
+      <strong>
+        {{ pagination.page }}
+      </strong>
+
+      of
+
+      <strong>
+        {{ pagination.pages }}
+      </strong>
+
+      <span class="separator">
+        •
+      </span>
+
+      Total
+
+      <strong>
+        {{ pagination.total }}
+      </strong>
+
+      GRNs
+    </div>
+
+
+    <div class="pagination-actions">
+
+      <button
+        type="button"
+        class="pagination-button"
+        [disabled]="
+          pagination.page <= 1 ||
+          loading
+        "
+        (click)="previousPage()"
+      >
+        ‹
+      </button>
+
+
+      <button
+        *ngFor="let page of pageNumbers"
+        type="button"
+        class="pagination-button page-number"
+        [class.active]="page === pagination.page"
+        [disabled]="loading"
+        (click)="goToPage(page)"
+      >
+        {{ page }}
+      </button>
+
+
+      <button
+        type="button"
+        class="pagination-button"
+        [disabled]="
+          pagination.page >= pagination.pages ||
+          loading
+        "
+        (click)="nextPage()"
+      >
+        ›
+      </button>
+
+    </div>
+
+  </div>
+
+</section>

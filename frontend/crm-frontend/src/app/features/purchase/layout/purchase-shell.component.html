@@ -1,0 +1,517 @@
+<div class="purchase-shell">
+
+  <app-purchase-sidebar>
+  </app-purchase-sidebar>
+
+
+  <section class="purchase-shell__main">
+
+    <!-- =======================================================
+         PURCHASE TOPBAR
+    ======================================================== -->
+
+    <header class="purchase-topbar">
+
+      <div class="purchase-topbar__left">
+
+        <p>
+          {{ companyName() }}
+
+          <span>
+            / Purchase
+          </span>
+        </p>
+
+        <h1>
+          {{ pageTitle() }}
+        </h1>
+
+      </div>
+
+
+      <div class="purchase-topbar__right">
+
+        <!-- ===================================================
+             SEARCH BUTTON
+        ==================================================== -->
+
+        <button
+          type="button"
+          class="purchase-topbar__icon-button"
+          aria-label="Search"
+          (click)="toggleSearch($event)"
+        >
+          <span>
+            ⌕
+          </span>
+        </button>
+
+
+        <!-- ===================================================
+             NOTIFICATION BUTTON
+        ==================================================== -->
+
+        <button
+          type="button"
+          class="purchase-topbar__icon-button"
+          aria-label="Notifications"
+          (click)="toggleNotifications($event)"
+        >
+          <span>
+            ◇
+          </span>
+
+          <span
+            *ngIf="unreadNotificationCount() > 0"
+            class="purchase-topbar__notification-badge"
+          >
+            {{
+              unreadNotificationCount() > 9
+                ? '9+'
+                : unreadNotificationCount()
+            }}
+          </span>
+        </button>
+
+
+        <!-- ===================================================
+             SEARCH DROPDOWN
+        ==================================================== -->
+
+        <div
+          *ngIf="searchOpen()"
+          class="purchase-topbar__dropdown purchase-search"
+          (click)="$event.stopPropagation()"
+        >
+
+          <input
+            type="search"
+            placeholder="Search Purchase..."
+            [value]="searchTerm()"
+            (input)="
+              updateSearchTerm(
+                $any($event.target).value
+              )
+            "
+          />
+
+
+          <div class="purchase-search__results">
+
+            <button
+              *ngFor="let item of searchResults()"
+              type="button"
+              (click)="openSearchItem(item)"
+            >
+
+              <strong>
+                {{ item.label }}
+              </strong>
+
+              <small>
+                {{ item.description }}
+              </small>
+
+            </button>
+
+
+            <p *ngIf="!searchResults().length">
+              No matching Purchase screen.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <!-- ===================================================
+             NOTIFICATIONS DROPDOWN
+        ==================================================== -->
+
+        <div
+          *ngIf="notificationOpen()"
+          class="
+            purchase-topbar__dropdown
+            purchase-notifications
+          "
+          (click)="$event.stopPropagation()"
+        >
+
+          <!-- HEADER -->
+
+          <div class="purchase-notifications__heading">
+
+            <div class="purchase-notifications__title">
+
+              <strong>
+                Notifications
+              </strong>
+
+              <small>
+                {{ unreadNotificationCount() }}
+                {{
+                  unreadNotificationCount() === 1
+                    ? 'new update'
+                    : 'new updates'
+                }}
+              </small>
+
+            </div>
+
+
+            <button
+              type="button"
+              class="purchase-notifications__close"
+              aria-label="Close notifications"
+              (click)="toggleNotifications($event)"
+            >
+              ×
+            </button>
+
+          </div>
+
+
+          <!-- NOTIFICATION LIST -->
+
+          <div
+            *ngIf="notifications().length > 0"
+            class="purchase-notifications__list"
+          >
+
+            <article
+              *ngFor="
+                let notification of notifications()
+              "
+              class="purchase-notifications__item"
+              [class.purchase-notifications__item--read]="
+                notification.isRead
+              "
+            >
+
+              <span
+                class="purchase-notifications__status"
+                [class.read]="notification.isRead"
+              >
+              </span>
+
+
+              <div class="purchase-notifications__content">
+
+                <strong>
+                  {{
+                    notification.title ||
+                    'Notification'
+                  }}
+                </strong>
+
+                <p>
+                  {{
+                    notification.message ||
+                    '-'
+                  }}
+                </p>
+
+                <small>
+                  {{
+                    notificationTime(
+                      notification.createdAt
+                    )
+                  }}
+                </small>
+
+              </div>
+
+            </article>
+
+          </div>
+
+
+          <!-- EMPTY STATE -->
+
+          <div
+            *ngIf="!notifications().length"
+            class="purchase-notifications__empty"
+          >
+
+            <span
+              class="purchase-notifications__empty-icon"
+            >
+              ✓
+            </span>
+
+            <strong>
+              You're all caught up
+            </strong>
+
+            <p>
+              No notifications available.
+            </p>
+
+          </div>
+
+
+          <!-- FOOTER -->
+
+          <button
+            type="button"
+            class="purchase-notifications__all"
+            (click)="openAllNotifications()"
+          >
+
+            <span>
+              View all notifications
+            </span>
+
+            <span
+              class="purchase-notifications__all-arrow"
+            >
+              →
+            </span>
+
+          </button>
+
+        </div>
+
+
+        <!-- ===================================================
+             EMPLOYEE PROFILE
+        ==================================================== -->
+
+        <div class="purchase-profile">
+
+          <button
+            type="button"
+            class="purchase-profile__trigger"
+            [class.purchase-profile__trigger--open]="
+              profileOpen()
+            "
+            (click)="toggleProfile($event)"
+          >
+
+            <div class="purchase-profile__avatar">
+
+              <img
+                *ngIf="
+                  employeePhotoUrl();
+                  else profileInitial
+                "
+                [src]="employeePhotoUrl()"
+                [alt]="userName()"
+                (error)="handleAvatarError()"
+              />
+
+
+              <ng-template #profileInitial>
+
+                <span>
+                  {{ userInitial() }}
+                </span>
+
+              </ng-template>
+
+            </div>
+
+
+            <div class="purchase-profile__copy">
+
+              <strong>
+                {{ userName() }}
+              </strong>
+
+              <span>
+                {{ userDesignation() }}
+              </span>
+
+            </div>
+
+
+            <span
+              class="purchase-profile__chevron"
+              [class.purchase-profile__chevron--open]="
+                profileOpen()
+              "
+            >
+              ▾
+            </span>
+
+          </button>
+
+
+          <!-- =================================================
+               PROFILE DROPDOWN
+          ================================================== -->
+
+          <div
+            *ngIf="profileOpen()"
+            class="purchase-profile__menu"
+            (click)="$event.stopPropagation()"
+          >
+
+            <div class="purchase-profile__menu-header">
+
+              <div class="purchase-profile__menu-avatar">
+
+                <img
+                  *ngIf="
+                    employeePhotoUrl();
+                    else menuInitial
+                  "
+                  [src]="employeePhotoUrl()"
+                  [alt]="userName()"
+                  (error)="handleAvatarError()"
+                />
+
+
+                <ng-template #menuInitial>
+
+                  <span>
+                    {{ userInitial() }}
+                  </span>
+
+                </ng-template>
+
+              </div>
+
+
+              <div>
+
+                <strong>
+                  {{ userName() }}
+                </strong>
+
+                <span>
+                  {{ userDesignation() }}
+                </span>
+
+              </div>
+
+            </div>
+
+
+            <div
+              class="purchase-profile__menu-divider"
+            >
+            </div>
+
+
+            <!-- MY PROFILE -->
+
+            <button
+              type="button"
+              class="purchase-profile__menu-item"
+              (click)="openProfile()"
+            >
+
+              <span
+                class="purchase-profile__menu-icon"
+              >
+                P
+              </span>
+
+
+              <div>
+
+                <strong>
+                  My Profile
+                </strong>
+
+                <small>
+                  View personal details
+                </small>
+
+              </div>
+
+            </button>
+
+
+            <!-- SETTINGS -->
+
+            <button
+              type="button"
+              class="purchase-profile__menu-item"
+              (click)="openSettings()"
+            >
+
+              <span
+                class="purchase-profile__menu-icon"
+              >
+                S
+              </span>
+
+
+              <div>
+
+                <strong>
+                  Settings
+                </strong>
+
+                <small>
+                  Account and password settings
+                </small>
+
+              </div>
+
+            </button>
+
+
+            <div
+              class="purchase-profile__menu-divider"
+            >
+            </div>
+
+
+            <!-- LOGOUT -->
+
+            <button
+              type="button"
+              class="
+                purchase-profile__menu-item
+                purchase-profile__menu-item--logout
+              "
+              (click)="logout()"
+            >
+
+              <span
+                class="purchase-profile__menu-icon"
+              >
+                ↪
+              </span>
+
+
+              <div>
+
+                <strong>
+                  Logout
+                </strong>
+
+                <small>
+                  Sign out of CRM
+                </small>
+
+              </div>
+
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </header>
+
+
+    <!-- =======================================================
+         PURCHASE CONTENT
+    ======================================================== -->
+
+    <main class="purchase-shell__content">
+
+      <router-outlet>
+      </router-outlet>
+
+    </main>
+
+  </section>
+
+</div>

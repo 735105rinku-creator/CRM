@@ -1,0 +1,1015 @@
+<section class="quotation-comparison-page">
+
+    <!-- =========================================================
+         PAGE HEADER
+    ========================================================== -->
+  
+    <div class="page-header">
+  
+      <div class="page-title-wrap">
+  
+        <div class="eyebrow">
+          Purchase Department
+        </div>
+  
+        <h1>
+          Quotation Comparison
+        </h1>
+  
+        <p>
+          Compare vendor pricing, taxes, delivery terms and commercial conditions before selecting the preferred quotation.
+        </p>
+  
+      </div>
+  
+      <div class="page-header-actions">
+  
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="backToQuotations()">
+  
+          Back to Quotations
+  
+        </button>
+  
+        <button
+          type="button"
+          class="btn btn-secondary"
+          [disabled]="isLoading"
+          (click)="loadComparison()">
+  
+          {{ isLoading ? 'Refreshing...' : 'Refresh' }}
+  
+        </button>
+  
+      </div>
+  
+    </div>
+  
+  
+    <!-- =========================================================
+         SUCCESS
+    ========================================================== -->
+  
+    <div
+      *ngIf="successMessage"
+      class="message-box message-box--success">
+  
+      <div class="message-content">
+  
+        <span class="message-icon">
+          ✓
+        </span>
+  
+        <span>
+          {{ successMessage }}
+        </span>
+  
+      </div>
+  
+      <button
+        type="button"
+        class="message-close"
+        (click)="clearMessages()">
+  
+        ×
+  
+      </button>
+  
+    </div>
+  
+  
+    <!-- =========================================================
+         ERROR
+    ========================================================== -->
+  
+    <div
+      *ngIf="errorMessage"
+      class="message-box message-box--error">
+  
+      <div class="message-content">
+  
+        <span class="message-icon">
+          !
+        </span>
+  
+        <span>
+          {{ errorMessage }}
+        </span>
+  
+      </div>
+  
+      <button
+        type="button"
+        class="message-close"
+        (click)="clearMessages()">
+  
+        ×
+  
+      </button>
+  
+    </div>
+  
+  
+    <!-- =========================================================
+         PURCHASE REQUEST SUMMARY
+    ========================================================== -->
+  
+    <div
+      *ngIf="purchaseRequest"
+      class="request-summary-card">
+  
+      <div class="summary-primary">
+  
+        <div class="summary-icon">
+          PR
+        </div>
+  
+        <div>
+  
+          <span class="summary-label">
+            Purchase Request
+          </span>
+  
+          <strong>
+            {{ getPurchaseRequestNumber() }}
+          </strong>
+  
+        </div>
+  
+      </div>
+  
+  
+      <div class="summary-detail">
+  
+        <span>
+          Item
+        </span>
+  
+        <strong>
+          {{ getPurchaseRequestItem() }}
+        </strong>
+  
+      </div>
+  
+  
+      <div class="summary-detail">
+  
+        <span>
+          Required Quantity
+        </span>
+  
+        <strong>
+          {{ getPurchaseRequestQuantity() }}
+        </strong>
+  
+      </div>
+  
+  
+      <div class="summary-detail">
+  
+        <span>
+          Priority
+        </span>
+  
+        <strong class="priority-text">
+          {{ purchaseRequest.priority | titlecase }}
+        </strong>
+  
+      </div>
+  
+  
+      <div class="summary-detail">
+  
+        <span>
+          Status
+        </span>
+  
+        <strong class="approved-text">
+          {{ purchaseRequest.status | titlecase }}
+        </strong>
+  
+      </div>
+  
+    </div>
+  
+  
+    <!-- =========================================================
+         SENIOR ACCESS INFO
+    ========================================================== -->
+  
+    <div
+      *ngIf="purchaseAccess"
+      class="access-card"
+      [class.access-card--senior]="canApprove">
+  
+      <div class="access-icon">
+        {{ canApprove ? '✓' : 'i' }}
+      </div>
+  
+      <div>
+  
+        <strong>
+          {{
+            canApprove
+              ? 'Purchase Senior Decision Access'
+              : 'Quotation Comparison View'
+          }}
+        </strong>
+  
+        <p>
+          {{
+            canApprove
+              ? 'You can compare, select or reject eligible vendor quotations.'
+              : 'You can compare quotations. Final selection and rejection are restricted to authorized Purchase Seniors.'
+          }}
+        </p>
+  
+      </div>
+  
+    </div>
+  
+  
+    <!-- =========================================================
+         LOADING
+    ========================================================== -->
+  
+    <div
+      *ngIf="isLoading"
+      class="state-card">
+  
+      <div class="spinner">
+      </div>
+  
+      <strong>
+        Loading quotation comparison...
+      </strong>
+  
+      <span>
+        Comparing vendor commercial offers.
+      </span>
+  
+    </div>
+  
+  
+    <!-- =========================================================
+         EMPTY
+    ========================================================== -->
+  
+    <div
+      *ngIf="
+        !isLoading &&
+        comparisonRows.length === 0 &&
+        !errorMessage
+      "
+      class="state-card">
+  
+      <div class="empty-icon">
+        ⇄
+      </div>
+  
+      <strong>
+        No quotations available for comparison
+      </strong>
+  
+      <span>
+        Received quotations linked to this Purchase Request will appear here.
+      </span>
+  
+      <button
+        type="button"
+        class="btn btn-secondary"
+        (click)="backToQuotations()">
+  
+        View Quotations
+  
+      </button>
+  
+    </div>
+  
+  
+    <!-- =========================================================
+         COMPARISON CONTENT
+    ========================================================== -->
+  
+    <ng-container
+      *ngIf="
+        !isLoading &&
+        comparisonRows.length > 0
+      ">
+  
+  
+      <!-- =======================================================
+           HIGHLIGHTS
+      ======================================================== -->
+  
+      <div class="highlight-grid">
+  
+        <div class="highlight-card">
+  
+          <span class="highlight-label">
+            Quotations Compared
+          </span>
+  
+          <strong class="highlight-value">
+            {{ comparisonRows.length }}
+          </strong>
+  
+          <small>
+            Vendor offers linked to this PR
+          </small>
+  
+        </div>
+  
+  
+        <div class="highlight-card">
+  
+          <span class="highlight-label">
+            Lowest Comparable Total
+          </span>
+  
+          <strong class="highlight-value">
+  
+            {{
+              lowestComparableAmount !== null
+                ? formatMoney(lowestComparableAmount)
+                : '-'
+            }}
+  
+          </strong>
+  
+          <small>
+            Rejected quotations excluded
+          </small>
+  
+        </div>
+  
+  
+        <div class="highlight-card">
+  
+          <span class="highlight-label">
+            Fastest Delivery
+          </span>
+  
+          <strong class="highlight-value">
+  
+            {{
+              shortestDeliveryDays !== null
+                ? shortestDeliveryDays + ' day(s)'
+                : '-'
+            }}
+  
+          </strong>
+  
+          <small>
+            Based on readable delivery duration
+          </small>
+  
+        </div>
+  
+  
+        <div class="highlight-card">
+  
+          <span class="highlight-label">
+            Selected Vendor
+          </span>
+  
+          <strong class="highlight-value highlight-value--small">
+  
+            <ng-container
+              *ngIf="
+                comparisonRows
+                  .find(row => row.status === 'selected') as selected;
+                else noSelection
+              ">
+  
+              {{ selected.vendorName }}
+  
+            </ng-container>
+  
+            <ng-template #noSelection>
+              Not Selected
+            </ng-template>
+  
+          </strong>
+  
+          <small>
+            Final Purchase Senior decision
+          </small>
+  
+        </div>
+  
+      </div>
+  
+  
+      <!-- =======================================================
+           TABLE
+      ======================================================== -->
+  
+      <div class="comparison-card">
+  
+        <div class="comparison-card-header">
+  
+          <div>
+  
+            <h2>
+              Vendor Comparison Matrix
+            </h2>
+  
+            <p>
+              Price is one factor only. Delivery time, validity and payment terms should also be reviewed.
+            </p>
+  
+          </div>
+  
+        </div>
+  
+  
+        <div class="table-scroll">
+  
+          <table>
+  
+            <thead>
+  
+              <tr>
+  
+                <th>
+                  Vendor
+                </th>
+  
+                <th>
+                  Quotation
+                </th>
+  
+                <th>
+                  Unit Price
+                </th>
+  
+                <th>
+                  Subtotal
+                </th>
+  
+                <th>
+                  Tax
+                </th>
+  
+                <th>
+                  Freight
+                </th>
+  
+                <th>
+                  Other Charges
+                </th>
+  
+                <th>
+                  Grand Total
+                </th>
+  
+                <th>
+                  Delivery
+                </th>
+  
+                <th>
+                  Payment Terms
+                </th>
+  
+                <th>
+                  Valid Until
+                </th>
+  
+                <th>
+                  Status
+                </th>
+  
+                <th class="actions-column">
+                  Actions
+                </th>
+  
+              </tr>
+  
+            </thead>
+  
+  
+            <tbody>
+  
+              <tr
+                *ngFor="
+                  let row of comparisonRows;
+                  trackBy: trackByQuotationId
+                "
+                [class.selected-row]="row.status === 'selected'"
+                [class.rejected-row]="row.status === 'rejected'">
+  
+  
+                <!-- Vendor -->
+  
+                <td>
+  
+                  <div class="vendor-cell">
+  
+                    <div class="vendor-avatar">
+  
+                      {{
+                        getVendorName(row)
+                          .charAt(0)
+                          .toUpperCase()
+                      }}
+  
+                    </div>
+  
+                    <div>
+  
+                        <strong>
+                            {{ getVendorName(row) }}
+                          </strong>
+
+  
+                    </div>
+  
+                  </div>
+  
+                </td>
+  
+  
+                <!-- Quotation -->
+  
+                <td>
+  
+                  <div class="quotation-cell">
+  
+                    <strong>
+                      {{ row.quotationNumber }}
+                    </strong>
+  
+                  </div>
+  
+                </td>
+  
+  
+                <!-- Unit Price -->
+  
+                <td>
+  
+                  <strong class="money-value">
+                    {{ formatMoney(getUnitPrice(row)) }}
+                  </strong>
+  
+                </td>
+  
+  
+                <!-- Subtotal -->
+  
+                <td>
+  
+                  <span class="money-value">
+                    {{ formatMoney(getSubtotal(row)) }}
+                  </span>
+  
+                </td>
+  
+  
+                <!-- Tax -->
+  
+                <td>
+  
+                  <span class="money-value">
+                    {{ formatMoney(getTaxTotal(row)) }}
+                  </span>
+  
+                </td>
+  
+  
+                <!-- Freight -->
+  
+                <td>
+  
+                  <span class="money-value">
+                    {{ formatMoney(getFreight(row)) }}
+                  </span>
+  
+                </td>
+  
+  
+                <!-- Other -->
+  
+                <td>
+  
+                  <span class="money-value">
+                    {{ formatMoney(getOtherCharges(row)) }}
+                  </span>
+  
+                </td>
+  
+  
+                <!-- Grand Total -->
+  
+                <td>
+  
+                  <div class="grand-total-cell">
+  
+                    <strong>
+                      {{ formatMoney(getGrandTotal(row)) }}
+                    </strong>
+  
+                    <span
+                      *ngIf="isLowestPrice(row)"
+                      class="comparison-badge comparison-badge--best">
+  
+                      Lowest Price
+  
+                    </span>
+  
+                  </div>
+  
+                </td>
+  
+  
+                <!-- Delivery -->
+  
+                <td>
+  
+                  <div class="delivery-cell">
+  
+                    <strong>
+                      {{ row.deliveryTime || '-' }}
+                    </strong>
+  
+                    <span
+                      *ngIf="isShortestDelivery(row)"
+                      class="comparison-badge comparison-badge--fast">
+  
+                      Fastest
+  
+                    </span>
+  
+                  </div>
+  
+                </td>
+  
+  
+                <!-- Payment Terms -->
+  
+                <td>
+  
+                  <span
+                    class="terms-text"
+                    [title]="row.paymentTerms || '-'">
+  
+                    {{ row.paymentTerms || '-' }}
+  
+                  </span>
+  
+                </td>
+  
+  
+                <!-- Validity -->
+  
+                <td>
+  
+                  <div
+                    class="validity-cell"
+                    [class.validity-cell--expired]="isExpired(row)">
+  
+                    <span>
+                      {{ formatDate(row.validUntil) }}
+                    </span>
+  
+                    <small *ngIf="isExpired(row)">
+                      Expired
+                    </small>
+  
+                  </div>
+  
+                </td>
+  
+  
+                <!-- Status -->
+  
+                <td>
+  
+                  <span
+                    class="status-badge"
+                    [ngClass]="getStatusClass(row.status)">
+  
+                    {{ getStatusLabel(row.status) }}
+  
+                  </span>
+  
+                </td>
+  
+  
+                <!-- Actions -->
+  
+                <td class="actions-column">
+  
+                  <div class="row-actions">
+  
+  
+                    <button
+                      type="button"
+                      class="action-btn action-btn--view"
+                      (click)="openQuotation(row)">
+  
+                      Open
+  
+                    </button>
+  
+  
+                    <button
+                      *ngIf="
+                        canApprove &&
+                        row.status !== 'selected' &&
+                        row.status !== 'rejected'
+                      "
+                      type="button"
+                      class="action-btn action-btn--select"
+                      [disabled]="isActionLoading"
+                      (click)="selectQuotation(row)">
+  
+                      {{ getSelectionText(row) }}
+  
+                    </button>
+  
+  
+                    <button
+                      *ngIf="
+                        canApprove &&
+                        row.status !== 'selected' &&
+                        row.status !== 'rejected'
+                      "
+                      type="button"
+                      class="action-btn action-btn--reject"
+                      [disabled]="isActionLoading"
+                      (click)="rejectQuotation(row)">
+  
+                      {{
+                        isActionLoading &&
+                        actionQuotationId === row.quotationId
+                          ? 'Working...'
+                          : 'Reject'
+                      }}
+  
+                    </button>
+  
+  
+                    <button
+                      *ngIf="row.status === 'selected'"
+                      type="button"
+                      class="action-btn action-btn--po"
+                      (click)="createPurchaseOrder(row)">
+  
+                      Create PO
+  
+                    </button>
+  
+                  </div>
+  
+                </td>
+  
+              </tr>
+  
+            </tbody>
+  
+          </table>
+  
+        </div>
+  
+      </div>
+  
+  
+      <!-- =======================================================
+           MOBILE COMPARISON CARDS
+      ======================================================== -->
+  
+      <div class="mobile-comparison-list">
+  
+        <article
+          *ngFor="
+            let row of comparisonRows;
+            trackBy: trackByQuotationId
+          "
+          class="mobile-quotation-card"
+          [class.mobile-quotation-card--selected]="row.status === 'selected'"
+          [class.mobile-quotation-card--rejected]="row.status === 'rejected'">
+  
+  
+          <div class="mobile-card-header">
+  
+            <div class="vendor-cell">
+  
+              <div class="vendor-avatar">
+  
+                {{
+                  getVendorName(row)
+                    .charAt(0)
+                    .toUpperCase()
+                }}
+  
+              </div>
+  
+              <div>
+  
+                <strong>
+                  {{ getVendorName(row) }}
+                </strong>
+  
+                <span>
+                  {{ row.quotationNumber }}
+                </span>
+  
+              </div>
+  
+            </div>
+  
+  
+            <span
+              class="status-badge"
+              [ngClass]="getStatusClass(row.status)">
+  
+              {{ getStatusLabel(row.status) }}
+  
+            </span>
+  
+          </div>
+  
+  
+          <div class="mobile-badges">
+  
+            <span
+              *ngIf="isLowestPrice(row)"
+              class="comparison-badge comparison-badge--best">
+  
+              Lowest Price
+  
+            </span>
+  
+            <span
+              *ngIf="isShortestDelivery(row)"
+              class="comparison-badge comparison-badge--fast">
+  
+              Fastest Delivery
+  
+            </span>
+  
+          </div>
+  
+  
+          <div class="mobile-detail-grid">
+  
+            <div>
+  
+              <span>
+                Unit Price
+              </span>
+  
+              <strong>
+                {{ formatMoney(getUnitPrice(row)) }}
+              </strong>
+  
+            </div>
+  
+  
+            <div>
+  
+              <span>
+                Tax
+              </span>
+  
+              <strong>
+                {{ formatMoney(getTaxTotal(row)) }}
+              </strong>
+  
+            </div>
+  
+  
+            <div>
+  
+              <span>
+                Freight
+              </span>
+  
+              <strong>
+                {{ formatMoney(getFreight(row)) }}
+              </strong>
+  
+            </div>
+  
+  
+            <div>
+  
+              <span>
+                Delivery
+              </span>
+  
+              <strong>
+                {{ row.deliveryTime || '-' }}
+              </strong>
+  
+            </div>
+  
+  
+            <div>
+  
+              <span>
+                Valid Until
+              </span>
+  
+              <strong>
+                {{ formatDate(row.validUntil) }}
+              </strong>
+  
+            </div>
+  
+  
+            <div>
+  
+              <span>
+                Grand Total
+              </span>
+  
+              <strong class="mobile-grand-total">
+                {{ formatMoney(getGrandTotal(row)) }}
+              </strong>
+  
+            </div>
+  
+          </div>
+  
+  
+          <div class="mobile-terms">
+  
+            <span>
+              Payment Terms
+            </span>
+  
+            <strong>
+              {{ row.paymentTerms || '-' }}
+            </strong>
+  
+          </div>
+  
+  
+          <div class="mobile-actions">
+  
+            <button
+              type="button"
+              class="action-btn action-btn--view"
+              (click)="openQuotation(row)">
+  
+              Open
+  
+            </button>
+  
+  
+            <button
+              *ngIf="
+                canApprove &&
+                row.status !== 'selected' &&
+                row.status !== 'rejected'
+              "
+              type="button"
+              class="action-btn action-btn--select"
+              [disabled]="isActionLoading"
+              (click)="selectQuotation(row)">
+  
+              {{ getSelectionText(row) }}
+  
+            </button>
+  
+  
+            <button
+              *ngIf="
+                canApprove &&
+                row.status !== 'selected' &&
+                row.status !== 'rejected'
+              "
+              type="button"
+              class="action-btn action-btn--reject"
+              [disabled]="isActionLoading"
+              (click)="rejectQuotation(row)">
+  
+              Reject
+  
+            </button>
+  
+  
+            <button
+              *ngIf="row.status === 'selected'"
+              type="button"
+              class="action-btn action-btn--po"
+              (click)="createPurchaseOrder(row)">
+  
+              Create Purchase Order
+  
+            </button>
+  
+          </div>
+  
+        </article>
+  
+      </div>
+  
+    </ng-container>
+  
+  </section>

@@ -1,0 +1,1010 @@
+<section class="purchase-orders-page">
+
+    <!-- =========================================================
+         PAGE HEADER
+    ========================================================== -->
+  
+    <header class="page-header">
+  
+      <div class="page-header__content">
+  
+        <div>
+  
+          <span class="page-eyebrow">
+            Purchase Department
+          </span>
+  
+          <h1>
+            Purchase Orders
+          </h1>
+  
+          <p>
+            Manage Purchase Orders, approval workflow,
+            vendor dispatch and goods receipt progress.
+          </p>
+  
+        </div>
+  
+  
+        <div class="page-header__actions">
+  
+          <button
+            type="button"
+            class="nm-button nm-button--secondary"
+            [disabled]="isLoading"
+            (click)="refresh()"
+          >
+            <span class="button-icon">
+              ↻
+            </span>
+  
+            Refresh
+          </button>
+  
+  
+          <button
+            type="button"
+            class="nm-button nm-button--primary"
+            (click)="createPurchaseOrder()"
+          >
+            <span class="button-icon">
+              +
+            </span>
+  
+            New Purchase Order
+          </button>
+  
+        </div>
+  
+      </div>
+  
+    </header>
+  
+  
+    <!-- =========================================================
+         SUMMARY CARDS
+    ========================================================== -->
+  
+    <section class="summary-grid">
+  
+      <button
+        type="button"
+        class="summary-card summary-card--draft"
+        [class.summary-card--active]="statusControl.value === 'draft'"
+        (click)="filterByStatus('draft')"
+      >
+  
+        <div class="summary-card__icon">
+          📝
+        </div>
+  
+        <div class="summary-card__content">
+  
+          <span class="summary-card__label">
+            Draft
+          </span>
+  
+          <strong>
+            {{ statusCounts.draft }}
+          </strong>
+  
+        </div>
+  
+      </button>
+  
+  
+      <button
+        type="button"
+        class="summary-card summary-card--approved"
+        [class.summary-card--active]="statusControl.value === 'approved'"
+        (click)="filterByStatus('approved')"
+      >
+  
+        <div class="summary-card__icon">
+          ✓
+        </div>
+  
+        <div class="summary-card__content">
+  
+          <span class="summary-card__label">
+            Approved
+          </span>
+  
+          <strong>
+            {{ statusCounts.approved }}
+          </strong>
+  
+        </div>
+  
+      </button>
+  
+  
+      <button
+        type="button"
+        class="summary-card summary-card--sent"
+        [class.summary-card--active]="statusControl.value === 'sent'"
+        (click)="filterByStatus('sent')"
+      >
+  
+        <div class="summary-card__icon">
+          ➜
+        </div>
+  
+        <div class="summary-card__content">
+  
+          <span class="summary-card__label">
+            Sent
+          </span>
+  
+          <strong>
+            {{ statusCounts.sent }}
+          </strong>
+  
+        </div>
+  
+      </button>
+  
+  
+      <button
+        type="button"
+        class="summary-card summary-card--partial"
+        [class.summary-card--active]="statusControl.value === 'partially_received'"
+        (click)="filterByStatus('partially_received')"
+      >
+  
+        <div class="summary-card__icon">
+          ◐
+        </div>
+  
+        <div class="summary-card__content">
+  
+          <span class="summary-card__label">
+            Partial Receipt
+          </span>
+  
+          <strong>
+            {{ statusCounts.partially_received }}
+          </strong>
+  
+        </div>
+  
+      </button>
+  
+  
+      <button
+        type="button"
+        class="summary-card summary-card--received"
+        [class.summary-card--active]="statusControl.value === 'received'"
+        (click)="filterByStatus('received')"
+      >
+  
+        <div class="summary-card__icon">
+          ✓✓
+        </div>
+  
+        <div class="summary-card__content">
+  
+          <span class="summary-card__label">
+            Received
+          </span>
+  
+          <strong>
+            {{ statusCounts.received }}
+          </strong>
+  
+        </div>
+  
+      </button>
+  
+  
+      <button
+        type="button"
+        class="summary-card summary-card--cancelled"
+        [class.summary-card--active]="statusControl.value === 'cancelled'"
+        (click)="filterByStatus('cancelled')"
+      >
+  
+        <div class="summary-card__icon">
+          ×
+        </div>
+  
+        <div class="summary-card__content">
+  
+          <span class="summary-card__label">
+            Cancelled
+          </span>
+  
+          <strong>
+            {{ statusCounts.cancelled }}
+          </strong>
+  
+        </div>
+  
+      </button>
+  
+  
+      <button
+        type="button"
+        class="summary-card summary-card--pending"
+        (click)="filterByStatus('sent')"
+      >
+  
+        <div class="summary-card__icon">
+          🚚
+        </div>
+  
+        <div class="summary-card__content">
+  
+          <span class="summary-card__label">
+            Pending Deliveries
+          </span>
+  
+          <strong>
+            {{ deliverySummary.pendingDeliveries }}
+          </strong>
+  
+        </div>
+  
+      </button>
+  
+  
+      <div
+        class="summary-card summary-card--overdue"
+      >
+  
+        <div class="summary-card__icon">
+          !
+        </div>
+  
+        <div class="summary-card__content">
+  
+          <span class="summary-card__label">
+            Overdue
+          </span>
+  
+          <strong>
+            {{ deliverySummary.overdueDeliveries }}
+          </strong>
+  
+        </div>
+  
+      </div>
+  
+    </section>
+  
+  
+    <!-- =========================================================
+         FILTER PANEL
+    ========================================================== -->
+  
+    <section class="filters-card">
+  
+      <div class="filters-card__header">
+  
+        <div>
+  
+          <h2>
+            Search & Filters
+          </h2>
+  
+          <p>
+            Find Purchase Orders by number,
+            vendor, reference or status.
+          </p>
+  
+        </div>
+  
+  
+        <button
+          type="button"
+          class="clear-filter-button"
+          (click)="clearFilters()"
+        >
+          Clear Filters
+        </button>
+  
+      </div>
+  
+  
+      <div class="filter-grid">
+  
+        <label class="form-field form-field--search">
+  
+          <span>
+            Search
+          </span>
+  
+          <div class="input-with-icon">
+  
+            <span class="input-icon">
+              ⌕
+            </span>
+  
+            <input
+              type="search"
+              [formControl]="searchControl"
+              placeholder="PO, PR, vendor, quotation..."
+            />
+  
+          </div>
+  
+        </label>
+  
+  
+        <label class="form-field">
+  
+          <span>
+            Status
+          </span>
+  
+          <select
+            [formControl]="statusControl"
+          >
+  
+            <option value="">
+              All Statuses
+            </option>
+  
+            <option
+              *ngFor="let option of statusOptions"
+              [value]="option.value"
+            >
+              {{ option.label }}
+            </option>
+  
+          </select>
+  
+        </label>
+  
+  
+        <label class="form-field">
+  
+          <span>
+            From Date
+          </span>
+  
+          <input
+            type="date"
+            [formControl]="fromDateControl"
+          />
+  
+        </label>
+  
+  
+        <label class="form-field">
+  
+          <span>
+            To Date
+          </span>
+  
+          <input
+            type="date"
+            [formControl]="toDateControl"
+          />
+  
+        </label>
+  
+      </div>
+  
+    </section>
+  
+  
+    <!-- =========================================================
+         ERROR
+    ========================================================== -->
+  
+    <div
+      *ngIf="errorMessage"
+      class="page-alert page-alert--error"
+    >
+  
+      <span class="page-alert__icon">
+        !
+      </span>
+  
+      <div>
+  
+        <strong>
+          Unable to load Purchase Orders
+        </strong>
+  
+        <p>
+          {{ errorMessage }}
+        </p>
+  
+      </div>
+  
+    </div>
+  
+  
+    <!-- =========================================================
+         TABLE CARD
+    ========================================================== -->
+  
+    <section class="orders-card">
+  
+      <div class="orders-card__header">
+  
+        <div>
+  
+          <h2>
+            Purchase Order Register
+          </h2>
+  
+          <p>
+            {{ totalRecords }}
+            record{{ totalRecords === 1 ? '' : 's' }}
+          </p>
+  
+        </div>
+  
+  
+        <div
+          *ngIf="canApprove"
+          class="senior-access-badge"
+        >
+          Purchase Senior Approval Access
+        </div>
+  
+      </div>
+  
+  
+      <!-- =======================================================
+           LOADING
+      ======================================================== -->
+  
+      <div
+        *ngIf="isLoading"
+        class="loading-state"
+      >
+  
+        <div class="loader">
+        </div>
+  
+        <strong>
+          Loading Purchase Orders...
+        </strong>
+  
+        <span>
+          Please wait while the latest records are fetched.
+        </span>
+  
+      </div>
+  
+  
+      <!-- =======================================================
+           EMPTY
+      ======================================================== -->
+  
+      <div
+        *ngIf="
+          !isLoading &&
+          !errorMessage &&
+          purchaseOrders.length === 0
+        "
+        class="empty-state"
+      >
+  
+        <div class="empty-state__icon">
+          📄
+        </div>
+  
+        <h3>
+          No Purchase Orders found
+        </h3>
+  
+        <p>
+          Create a Purchase Order from a selected vendor quotation
+          or adjust the current filters.
+        </p>
+  
+        <button
+          type="button"
+          class="nm-button nm-button--primary"
+          (click)="createPurchaseOrder()"
+        >
+          Create Purchase Order
+        </button>
+  
+      </div>
+  
+  
+      <!-- =======================================================
+           TABLE
+      ======================================================== -->
+  
+      <div
+        *ngIf="
+          !isLoading &&
+          purchaseOrders.length > 0
+        "
+        class="table-wrapper"
+      >
+  
+        <table class="purchase-orders-table">
+  
+          <thead>
+  
+            <tr>
+  
+              <th>
+                PO Details
+              </th>
+  
+              <th>
+                Vendor
+              </th>
+  
+              <th>
+                References
+              </th>
+  
+              <th>
+                Delivery
+              </th>
+  
+              <th class="text-right">
+                Quantity
+              </th>
+  
+              <th class="text-right">
+                Total
+              </th>
+  
+              <th>
+                Status
+              </th>
+  
+              <th class="actions-column">
+                Actions
+              </th>
+  
+            </tr>
+  
+          </thead>
+  
+  
+          <tbody>
+  
+            <tr
+              *ngFor="
+                let purchaseOrder of purchaseOrders;
+                trackBy: trackByPurchaseOrderId
+              "
+              [class.row--overdue]="isDeliveryOverdue(purchaseOrder)"
+            >
+  
+              <!-- ===============================================
+                   PO DETAILS
+              ================================================ -->
+  
+              <td>
+  
+                <div class="primary-cell">
+  
+                  <strong class="po-number">
+                    {{ purchaseOrder.poNumber }}
+                  </strong>
+  
+                  <span>
+                    PO Date:
+                    {{ getDateValue(purchaseOrder.poDate) }}
+                  </span>
+  
+                  <span
+                  *ngIf="purchaseOrder.items.length"
+                  >
+                    {{ purchaseOrder.items.length }}
+                    item{{ purchaseOrder.items.length === 1 ? '' : 's' }}
+                  </span>
+  
+                </div>
+  
+              </td>
+  
+  
+              <!-- ===============================================
+                   VENDOR
+              ================================================ -->
+  
+              <td>
+  
+                <div class="primary-cell">
+  
+                  <strong>
+                    {{ getVendorName(purchaseOrder) }}
+                  </strong>
+  
+                  <span
+                    *ngIf="purchaseOrder.paymentTerms"
+                  >
+                    {{ purchaseOrder.paymentTerms }}
+                  </span>
+  
+                </div>
+  
+              </td>
+  
+  
+              <!-- ===============================================
+                   REFERENCES
+              ================================================ -->
+  
+              <td>
+  
+                <div class="reference-stack">
+  
+                  <span>
+  
+                    <small>
+                      PR
+                    </small>
+  
+                    <strong>
+                      {{ getPurchaseRequestNumber(purchaseOrder) }}
+                    </strong>
+  
+                  </span>
+  
+  
+                  <span>
+  
+                    <small>
+                      Quotation
+                    </small>
+  
+                    <strong>
+                      {{ getQuotationNumber(purchaseOrder) }}
+                    </strong>
+  
+                  </span>
+  
+                </div>
+  
+              </td>
+  
+  
+              <!-- ===============================================
+                   DELIVERY
+              ================================================ -->
+  
+              <td>
+  
+                <div class="delivery-cell">
+  
+                  <strong>
+                    {{ getWarehouseName(purchaseOrder) }}
+                  </strong>
+  
+                  <span>
+                    Expected:
+                    {{ getDateValue(purchaseOrder.expectedDeliveryDate) }}
+                  </span>
+  
+                  <span
+                    *ngIf="isDeliveryOverdue(purchaseOrder)"
+                    class="overdue-label"
+                  >
+                    Overdue
+                  </span>
+  
+                </div>
+  
+              </td>
+  
+  
+              <!-- ===============================================
+                   QUANTITY
+              ================================================ -->
+  
+              <td class="text-right">
+  
+                <div class="quantity-stack">
+  
+                  <span>
+  
+                    <small>
+                      Ordered
+                    </small>
+  
+                    <strong>
+                      {{ getOrderedQuantity(purchaseOrder) }}
+                    </strong>
+  
+                  </span>
+  
+  
+                  <span>
+  
+                    <small>
+                      Received
+                    </small>
+  
+                    <strong>
+                      {{ getReceivedQuantity(purchaseOrder) }}
+                    </strong>
+  
+                  </span>
+  
+  
+                  <span class="quantity-stack__remaining">
+  
+                    <small>
+                      Remaining
+                    </small>
+  
+                    <strong>
+                      {{ getRemainingQuantity(purchaseOrder) }}
+                    </strong>
+  
+                  </span>
+  
+                </div>
+  
+              </td>
+  
+  
+              <!-- ===============================================
+                   TOTAL
+              ================================================ -->
+  
+              <td class="text-right">
+  
+                <div class="amount-cell">
+  
+                  <strong>
+                    {{ formatCurrency(purchaseOrder.grandTotal) }}
+                  </strong>
+  
+                  <span>
+                    Subtotal:
+                    {{ formatCurrency(purchaseOrder.subtotal) }}
+                  </span>
+  
+                </div>
+  
+              </td>
+  
+  
+              <!-- ===============================================
+                   STATUS
+              ================================================ -->
+  
+              <td>
+  
+                <span
+                  class="status-badge"
+                  [ngClass]="getStatusClass(purchaseOrder.status)"
+                >
+                  {{ getStatusLabel(purchaseOrder.status) }}
+                </span>
+  
+              </td>
+  
+  
+              <!-- ===============================================
+                   ACTIONS
+              ================================================ -->
+  
+              <td>
+  
+                <div class="row-actions">
+  
+                  <button
+                    type="button"
+                    class="action-button action-button--view"
+                    title="Open Purchase Order"
+                    [disabled]="isProcessing(purchaseOrder)"
+                    (click)="openPurchaseOrder(purchaseOrder)"
+                  >
+                    View
+                  </button>
+  
+  
+                  <button
+                    *ngIf="canEdit(purchaseOrder)"
+                    type="button"
+                    class="action-button action-button--edit"
+                    title="Edit Purchase Order"
+                    [disabled]="isProcessing(purchaseOrder)"
+                    (click)="openPurchaseOrder(purchaseOrder)"
+                  >
+                    Edit
+                  </button>
+  
+  
+                  <button
+                    *ngIf="
+                      canApprove &&
+                      purchaseOrder.status === 'draft'
+                    "
+                    type="button"
+                    class="action-button action-button--approve"
+                    title="Approve Purchase Order"
+                    [disabled]="isProcessing(purchaseOrder)"
+                    (click)="approvePurchaseOrder(purchaseOrder)"
+                  >
+                    {{
+                      isProcessing(purchaseOrder)
+                        ? 'Working...'
+                        : 'Approve'
+                    }}
+                  </button>
+  
+  
+                  <button
+                    *ngIf="canSend(purchaseOrder)"
+                    type="button"
+                    class="action-button action-button--send"
+                    title="Mark Purchase Order as Sent"
+                    [disabled]="isProcessing(purchaseOrder)"
+                    (click)="sendPurchaseOrder(purchaseOrder)"
+                  >
+                    {{
+                      isProcessing(purchaseOrder)
+                        ? 'Working...'
+                        : 'Send'
+                    }}
+                  </button>
+  
+  
+                  <button
+                    *ngIf="canCreateGrn(purchaseOrder)"
+                    type="button"
+                    class="action-button action-button--grn"
+                    title="Create Goods Receipt"
+                    [disabled]="isProcessing(purchaseOrder)"
+                    (click)="createGoodsReceipt(purchaseOrder)"
+                  >
+                    GRN
+                  </button>
+  
+  
+                  <button
+                    *ngIf="canCancel(purchaseOrder)"
+                    type="button"
+                    class="action-button action-button--cancel"
+                    title="Cancel Purchase Order"
+                    [disabled]="isProcessing(purchaseOrder)"
+                    (click)="cancelPurchaseOrder(purchaseOrder)"
+                  >
+                    Cancel
+                  </button>
+  
+                </div>
+  
+              </td>
+  
+            </tr>
+  
+          </tbody>
+  
+        </table>
+  
+      </div>
+  
+  
+      <!-- =======================================================
+           PAGINATION
+      ======================================================== -->
+  
+      <footer
+        *ngIf="
+          !isLoading &&
+          purchaseOrders.length > 0
+        "
+        class="pagination-bar"
+      >
+  
+        <div class="pagination-bar__summary">
+  
+          Page
+          <strong>
+            {{ currentPage }}
+          </strong>
+  
+          of
+  
+          <strong>
+            {{ totalPages }}
+          </strong>
+  
+          <span>
+            •
+          </span>
+  
+          {{ totalRecords }}
+          total records
+  
+        </div>
+  
+  
+        <div class="pagination-bar__actions">
+  
+          <button
+            type="button"
+            class="pagination-button"
+            [disabled]="currentPage <= 1 || isLoading"
+            (click)="goToPreviousPage()"
+          >
+            Previous
+          </button>
+  
+  
+          <span class="pagination-current">
+            {{ currentPage }}
+          </span>
+  
+  
+          <button
+            type="button"
+            class="pagination-button"
+            [disabled]="currentPage >= totalPages || isLoading"
+            (click)="goToNextPage()"
+          >
+            Next
+          </button>
+  
+        </div>
+  
+      </footer>
+  
+    </section>
+  
+  
+    <!-- =========================================================
+         BOTTOM SUCCESS / ERROR / WARNING MESSAGE
+    ========================================================== -->
+  
+    <div
+      *ngIf="actionMessage"
+      class="bottom-message"
+      [class.bottom-message--success]="actionMessageType === 'success'"
+      [class.bottom-message--error]="actionMessageType === 'error'"
+      [class.bottom-message--warning]="actionMessageType === 'warning'"
+    >
+  
+      <div class="bottom-message__content">
+  
+        <span class="bottom-message__icon">
+  
+          <ng-container
+            [ngSwitch]="actionMessageType"
+          >
+  
+            <span *ngSwitchCase="'success'">
+              ✓
+            </span>
+  
+            <span *ngSwitchCase="'error'">
+              !
+            </span>
+  
+            <span *ngSwitchCase="'warning'">
+              ⚠
+            </span>
+  
+          </ng-container>
+  
+        </span>
+  
+  
+        <span>
+          {{ actionMessage }}
+        </span>
+  
+      </div>
+  
+  
+      <button
+        type="button"
+        class="bottom-message__close"
+        aria-label="Close message"
+        (click)="clearActionMessage()"
+      >
+        ×
+      </button>
+  
+    </div>
+  
+  </section>

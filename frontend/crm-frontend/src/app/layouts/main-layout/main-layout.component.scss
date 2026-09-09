@@ -61,14 +61,18 @@ app-sidebar {
 .sidebar-collapsed.company-admin-workspace-layout .layout-main,
 
 .logistics-workspace-layout .layout-main,
-.sidebar-collapsed.logistics-workspace-layout .layout-main {
+.sidebar-collapsed.logistics-workspace-layout .layout-main,
+
+.purchase-workspace-layout .layout-main,
+.sidebar-collapsed.purchase-workspace-layout .layout-main {
   margin-left: 0;
 }
 
 .hr-workspace-layout .content-area,
 .super-admin-workspace-layout .content-area,
 .company-admin-workspace-layout .content-area,
-.logistics-workspace-layout .content-area {
+.logistics-workspace-layout .content-area,
+.purchase-workspace-layout .content-area {
   padding: 0;
 }
 
@@ -81,6 +85,23 @@ app-sidebar {
 }
 
 .logistics-workspace-layout .content-area {
+  min-height: 100dvh;
+}
+
+/*
+ * Purchase components also provide their own
+ * department workspace background and layout.
+ */
+.purchase-workspace-layout {
+  background: #eef2f7;
+}
+
+.purchase-workspace-layout .layout-main {
+  width: 100%;
+}
+
+.purchase-workspace-layout .content-area {
+  width: 100%;
   min-height: 100dvh;
 }
 
@@ -129,7 +150,8 @@ app-sidebar {
   .hr-workspace-layout .content-area,
   .super-admin-workspace-layout .content-area,
   .company-admin-workspace-layout .content-area,
-  .logistics-workspace-layout .content-area {
+  .logistics-workspace-layout .content-area,
+  .purchase-workspace-layout .content-area {
     padding: 0;
   }
 }

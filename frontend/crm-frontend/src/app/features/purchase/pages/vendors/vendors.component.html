@@ -1,0 +1,643 @@
+<section class="vendors-page">
+
+    <!-- =========================================================
+         PAGE HEADER
+    ========================================================== -->
+  
+    <header class="page-header">
+  
+      <div class="page-title-group">
+  
+        <div class="page-icon">
+          <span>VM</span>
+        </div>
+  
+        <div>
+          <p class="eyebrow">
+            Purchase Department
+          </p>
+  
+          <h1>
+            Vendor Master
+          </h1>
+  
+          <p class="subtitle">
+            Read-only view of active vendors from the existing Vendor Master.
+          </p>
+        </div>
+  
+      </div>
+  
+  
+      <div class="header-actions">
+  
+        <button
+          type="button"
+          class="action-button secondary"
+          [disabled]="loading"
+          (click)="refresh()"
+        >
+          <span class="button-icon">
+            ↻
+          </span>
+  
+          <span>
+            Refresh
+          </span>
+        </button>
+  
+      </div>
+  
+    </header>
+  
+  
+    <!-- =========================================================
+         ERROR
+    ========================================================== -->
+  
+    <div
+      *ngIf="errorMessage"
+      class="alert alert-error"
+    >
+  
+      <div class="alert-icon">
+        !
+      </div>
+  
+      <div class="alert-content">
+  
+        <strong>
+          Unable to load vendor data
+        </strong>
+  
+        <span>
+          {{ errorMessage }}
+        </span>
+  
+      </div>
+  
+    </div>
+  
+  
+    <!-- =========================================================
+         SUMMARY CARDS
+    ========================================================== -->
+  
+    <div class="summary-grid">
+  
+      <article class="summary-card">
+  
+        <div class="summary-icon">
+          <span>
+            V
+          </span>
+        </div>
+  
+        <div class="summary-content">
+  
+          <span class="summary-label">
+            Total Vendors
+          </span>
+  
+          <strong class="summary-value">
+            {{ totalVendors }}
+          </strong>
+  
+          <span class="summary-note">
+            Current loaded vendor records
+          </span>
+  
+        </div>
+  
+      </article>
+  
+  
+      <article class="summary-card">
+  
+        <div class="summary-icon">
+          <span>
+            ✓
+          </span>
+        </div>
+  
+        <div class="summary-content">
+  
+          <span class="summary-label">
+            Active Vendors
+          </span>
+  
+          <strong class="summary-value">
+            {{ activeVendors }}
+          </strong>
+  
+          <span class="summary-note">
+            Available for Purchase use
+          </span>
+  
+        </div>
+  
+      </article>
+  
+  
+      <article class="summary-card">
+  
+        <div class="summary-icon">
+          <span>
+            GST
+          </span>
+        </div>
+  
+        <div class="summary-content">
+  
+          <span class="summary-label">
+            GST Available
+          </span>
+  
+          <strong class="summary-value">
+            {{ vendorsWithGst }}
+          </strong>
+  
+          <span class="summary-note">
+            Vendors with GST information
+          </span>
+  
+        </div>
+  
+      </article>
+  
+  
+      <article class="summary-card">
+  
+        <div class="summary-icon">
+          <span>
+            @
+          </span>
+        </div>
+  
+        <div class="summary-content">
+  
+          <span class="summary-label">
+            Email Available
+          </span>
+  
+          <strong class="summary-value">
+            {{ vendorsWithEmail }}
+          </strong>
+  
+          <span class="summary-note">
+            Vendors with email contact
+          </span>
+  
+        </div>
+  
+      </article>
+  
+    </div>
+  
+  
+    <!-- =========================================================
+         SEARCH / FILTER PANEL
+    ========================================================== -->
+  
+    <section class="filter-panel">
+  
+      <div class="filter-heading">
+  
+        <div>
+  
+          <h2>
+            Vendor Directory
+          </h2>
+  
+          <p>
+            Search by vendor name, code, company, contact, mobile, email or GST number.
+          </p>
+  
+        </div>
+  
+        <span class="readonly-badge">
+          Read Only
+        </span>
+  
+      </div>
+  
+  
+      <div class="filter-row">
+  
+        <div class="search-field">
+  
+          <label for="vendorSearch">
+            Search Vendor
+          </label>
+  
+          <div class="search-input-wrap">
+  
+            <span class="search-icon">
+              ⌕
+            </span>
+  
+            <input
+              id="vendorSearch"
+              type="text"
+              [(ngModel)]="searchTerm"
+              placeholder="Search vendor name, code, GST, phone..."
+              autocomplete="off"
+              [disabled]="loading"
+              (keydown)="onSearchKeydown($event)"
+            />
+  
+            <button
+              *ngIf="searchTerm"
+              type="button"
+              class="clear-search"
+              [disabled]="loading"
+              aria-label="Clear search"
+              title="Clear search"
+              (click)="clearSearch()"
+            >
+              ×
+            </button>
+  
+          </div>
+  
+        </div>
+  
+  
+        <button
+          type="button"
+          class="action-button primary search-button"
+          [disabled]="loading"
+          (click)="search()"
+        >
+  
+          <span *ngIf="!loading">
+            Search
+          </span>
+  
+          <span
+            *ngIf="loading"
+            class="button-loading"
+          >
+            Loading...
+          </span>
+  
+        </button>
+  
+      </div>
+  
+    </section>
+  
+  
+    <!-- =========================================================
+         LOADING
+    ========================================================== -->
+  
+    <section
+      *ngIf="loading && !vendors.length"
+      class="loading-card"
+    >
+  
+      <div class="loader"></div>
+  
+      <strong>
+        Loading Vendor Master
+      </strong>
+  
+      <span>
+        Fetching active vendors for your company...
+      </span>
+  
+    </section>
+  
+  
+    <!-- =========================================================
+         EMPTY STATE
+    ========================================================== -->
+  
+    <section
+      *ngIf="!loading && !vendors.length && !errorMessage"
+      class="empty-state"
+    >
+  
+      <div class="empty-icon">
+        V
+      </div>
+  
+      <h3>
+        No vendors found
+      </h3>
+  
+      <p *ngIf="searchTerm">
+        No active Vendor Master record matched
+        "<strong>{{ searchTerm }}</strong>".
+      </p>
+  
+      <p *ngIf="!searchTerm">
+        No active vendors are currently available for this company.
+      </p>
+  
+      <button
+        *ngIf="searchTerm"
+        type="button"
+        class="action-button secondary"
+        (click)="clearSearch()"
+      >
+        Clear Search
+      </button>
+  
+    </section>
+  
+  
+    <!-- =========================================================
+         VENDOR TABLE
+    ========================================================== -->
+  
+    <section
+      *ngIf="vendors.length"
+      class="table-card"
+    >
+  
+      <div class="table-toolbar">
+  
+        <div>
+  
+          <h2>
+            Vendor Records
+          </h2>
+  
+          <p>
+            Showing {{ vendors.length }} vendor record{{ vendors.length === 1 ? '' : 's' }}.
+          </p>
+  
+        </div>
+  
+  
+        <div
+          *ngIf="loading"
+          class="inline-loading"
+        >
+          <span class="mini-loader"></span>
+  
+          Updating...
+        </div>
+  
+      </div>
+  
+  
+      <div class="table-scroll">
+  
+        <table class="vendors-table">
+  
+          <thead>
+  
+            <tr>
+  
+              <th>
+                Vendor
+              </th>
+  
+              <th>
+                Code
+              </th>
+  
+              <th>
+                Contact
+              </th>
+  
+              <th>
+                Mobile
+              </th>
+  
+              <th>
+                Email
+              </th>
+  
+              <th>
+                GST
+              </th>
+  
+              <th>
+                Payment Terms
+              </th>
+  
+              <th>
+                Currency
+              </th>
+  
+              <th class="status-column">
+                Status
+              </th>
+  
+            </tr>
+  
+          </thead>
+  
+  
+          <tbody>
+  
+            <tr
+              *ngFor="
+                let vendor of vendors;
+                trackBy: trackByVendorId
+              "
+            >
+  
+              <!-- Vendor -->
+  
+              <td>
+  
+                <div class="vendor-cell">
+  
+                  <div class="vendor-avatar">
+                    {{
+                      vendorDisplayName(vendor)
+                        .charAt(0)
+                        .toUpperCase()
+                    }}
+                  </div>
+  
+  
+                  <div class="vendor-info">
+  
+                    <strong>
+                      {{ vendorDisplayName(vendor) }}
+                    </strong>
+  
+                    <span
+                      *ngIf="
+                        vendorCompanyName(vendor) !== '—'
+                      "
+                    >
+                      {{ vendorCompanyName(vendor) }}
+                    </span>
+  
+                    <small>
+                      Existing Vendor Master
+                    </small>
+  
+                  </div>
+  
+                </div>
+  
+              </td>
+  
+  
+              <!-- Code -->
+  
+              <td>
+  
+                <span class="code-badge">
+                  {{ vendorCode(vendor) }}
+                </span>
+  
+              </td>
+  
+  
+              <!-- Contact -->
+  
+              <td>
+  
+                <span
+                  class="text-value"
+                  [class.muted-value]="
+                    contactPerson(vendor) === '—'
+                  "
+                >
+                  {{ contactPerson(vendor) }}
+                </span>
+  
+              </td>
+  
+  
+              <!-- Mobile -->
+  
+              <td>
+  
+                <span
+                  class="text-value"
+                  [class.muted-value]="
+                    mobile(vendor) === '—'
+                  "
+                >
+                  {{ mobile(vendor) }}
+                </span>
+  
+              </td>
+  
+  
+              <!-- Email -->
+  
+              <td>
+  
+                <span
+                  class="email-value"
+                  [class.muted-value]="
+                    email(vendor) === '—'
+                  "
+                  [title]="email(vendor)"
+                >
+                  {{ email(vendor) }}
+                </span>
+  
+              </td>
+  
+  
+              <!-- GST -->
+  
+              <td>
+  
+                <span
+                  class="gst-value"
+                  [class.muted-value]="
+                    gstNumber(vendor) === '—'
+                  "
+                >
+                  {{ gstNumber(vendor) }}
+                </span>
+  
+              </td>
+  
+  
+              <!-- Payment Terms -->
+  
+              <td>
+  
+                <span
+                  class="payment-value"
+                  [class.muted-value]="
+                    paymentTerms(vendor) === '—'
+                  "
+                >
+                  {{ paymentTerms(vendor) }}
+                </span>
+  
+              </td>
+  
+  
+              <!-- Currency -->
+  
+              <td>
+  
+                <span class="currency-badge">
+                  {{ currency(vendor) }}
+                </span>
+  
+              </td>
+  
+  
+              <!-- Status -->
+  
+              <td class="status-column">
+  
+                <span
+                  class="status-badge"
+                  [class.active]="
+                    isVendorActive(vendor)
+                  "
+                  [class.inactive]="
+                    !isVendorActive(vendor)
+                  "
+                >
+  
+                  <span class="status-dot"></span>
+  
+                  {{ vendorStatus(vendor) }}
+  
+                </span>
+  
+              </td>
+  
+            </tr>
+  
+          </tbody>
+  
+        </table>
+  
+      </div>
+  
+  
+      <!-- =======================================================
+           FOOTER NOTE
+      ======================================================== -->
+  
+      <footer class="table-footer">
+  
+        <div class="info-note">
+  
+          <span class="info-icon">
+            i
+          </span>
+  
+          <p>
+            Vendor records are managed by the existing Vendor Master.
+            Purchase Department has read-only access here and uses these
+            vendors for enquiries, quotations and purchase orders.
+          </p>
+  
+        </div>
+  
+      </footer>
+  
+    </section>
+  
+  </section>

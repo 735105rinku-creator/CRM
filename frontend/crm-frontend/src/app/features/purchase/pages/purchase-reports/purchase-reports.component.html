@@ -1,0 +1,975 @@
+<section class="purchase-reports-page">
+
+  <!-- =========================================================
+       HEADER
+  ========================================================== -->
+
+  <header class="page-header">
+
+    <div>
+
+      <p class="eyebrow">
+        PURCHASE DEPARTMENT
+      </p>
+
+      <h1>
+        Purchase Reports
+      </h1>
+
+      <p class="subtitle">
+        Review Purchase Requests, Vendor Enquiries, Quotations,
+        Purchase Orders, Goods Receipts and vendor activity
+        from one reporting workspace.
+      </p>
+
+    </div>
+
+
+    <button
+      type="button"
+      class="report-refresh-btn"
+      (click)="refreshReports()"
+      [disabled]="loading()"
+    >
+
+      <span
+        *ngIf="!loading()"
+      >
+        Refresh
+      </span>
+
+      <span
+        *ngIf="loading()"
+      >
+        Loading...
+      </span>
+
+    </button>
+
+  </header>
+
+
+  <!-- =========================================================
+       LOADING INFORMATION
+  ========================================================== -->
+
+  <section
+    *ngIf="loading()"
+    class="reports-status-message"
+  >
+
+    <div class="reports-status-spinner"></div>
+
+    <div>
+
+      <strong>
+        Loading Purchase Reports
+      </strong>
+
+      <p>
+        Fetching the latest Purchase department data.
+      </p>
+
+    </div>
+
+  </section>
+
+
+  <!-- =========================================================
+       ERROR / PARTIAL ERROR
+  ========================================================== -->
+
+  <section
+    *ngIf="loadError()"
+    class="reports-error-message"
+  >
+
+    <div class="reports-error-icon">
+      !
+    </div>
+
+    <div>
+
+      <strong>
+        Report Notice
+      </strong>
+
+      <p>
+        {{ loadError() }}
+      </p>
+
+    </div>
+
+  </section>
+
+
+  <!-- =========================================================
+       MAIN SUMMARY
+  ========================================================== -->
+
+  <section class="report-summary-grid">
+
+    <!-- PURCHASE REQUESTS -->
+
+    <article class="report-summary-card">
+
+      <span class="report-summary-label">
+        Purchase Requests
+      </span>
+
+      <strong>
+        {{ summary().purchaseRequests }}
+      </strong>
+
+      <small>
+        Total purchase requirements
+      </small>
+
+    </article>
+
+
+    <!-- VENDOR ENQUIRIES -->
+
+    <article class="report-summary-card">
+
+      <span class="report-summary-label">
+        Vendor Enquiries
+      </span>
+
+      <strong>
+        {{ summary().vendorEnquiries }}
+      </strong>
+
+      <small>
+        RFQs created
+      </small>
+
+    </article>
+
+
+    <!-- QUOTATIONS -->
+
+    <article class="report-summary-card">
+
+      <span class="report-summary-label">
+        Quotations
+      </span>
+
+      <strong>
+        {{ summary().quotations }}
+      </strong>
+
+      <small>
+        Vendor quotations recorded
+      </small>
+
+    </article>
+
+
+    <!-- PURCHASE ORDERS -->
+
+    <article class="report-summary-card">
+
+      <span class="report-summary-label">
+        Purchase Orders
+      </span>
+
+      <strong>
+        {{ summary().purchaseOrders }}
+      </strong>
+
+      <small>
+        Purchase orders issued
+      </small>
+
+    </article>
+
+
+    <!-- GOODS RECEIPTS -->
+
+    <article class="report-summary-card">
+
+      <span class="report-summary-label">
+        Goods Receipts
+      </span>
+
+      <strong>
+        {{ summary().goodsReceipts }}
+      </strong>
+
+      <small>
+        GRNs recorded
+      </small>
+
+    </article>
+
+
+    <!-- VENDORS -->
+
+    <article class="report-summary-card">
+
+      <span class="report-summary-label">
+        Vendors
+      </span>
+
+      <strong>
+        {{ summary().vendors }}
+      </strong>
+
+      <small>
+        Active vendors available
+      </small>
+
+    </article>
+
+  </section>
+
+
+  <!-- =========================================================
+       DELIVERY SUMMARY
+  ========================================================== -->
+
+  <section class="report-delivery-summary">
+
+    <article class="report-summary-card">
+
+      <span class="report-summary-label">
+        Pending Deliveries
+      </span>
+
+      <strong>
+        {{ summary().pendingDeliveries }}
+      </strong>
+
+      <small>
+        Purchase Orders awaiting complete receipt
+      </small>
+
+    </article>
+
+
+    <article class="report-summary-card">
+
+      <span class="report-summary-label">
+        Overdue Deliveries
+      </span>
+
+      <strong>
+        {{ summary().overdueDeliveries }}
+      </strong>
+
+      <small>
+        Deliveries past expected date
+      </small>
+
+    </article>
+
+  </section>
+
+
+  <!-- =========================================================
+       PURCHASE REQUEST STATUS
+  ========================================================== -->
+
+  <section class="report-status-section">
+
+    <div class="report-section-heading">
+
+      <div>
+
+        <p class="eyebrow">
+          PURCHASE REQUESTS
+        </p>
+
+        <h2>
+          Purchase Request Status
+        </h2>
+
+      </div>
+
+    </div>
+
+
+    <div class="report-status-grid">
+
+      <article class="report-status-card">
+
+        <span>
+          Draft
+        </span>
+
+        <strong>
+          {{
+            purchaseRequestStatusCounts()['draft'] || 0
+          }}
+        </strong>
+
+      </article>
+
+
+      <article class="report-status-card">
+
+        <span>
+          Pending Approval
+        </span>
+
+        <strong>
+          {{
+            purchaseRequestStatusCounts()['pending_approval'] || 0
+          }}
+        </strong>
+
+      </article>
+
+
+      <article class="report-status-card">
+
+        <span>
+          Approved
+        </span>
+
+        <strong>
+          {{
+            purchaseRequestStatusCounts()['approved'] || 0
+          }}
+        </strong>
+
+      </article>
+
+
+      <article class="report-status-card">
+
+        <span>
+          Rejected
+        </span>
+
+        <strong>
+          {{
+            purchaseRequestStatusCounts()['rejected'] || 0
+          }}
+        </strong>
+
+      </article>
+
+    </div>
+
+  </section>
+
+
+  <!-- =========================================================
+       RFQ STATUS
+  ========================================================== -->
+
+  <section class="report-status-section">
+
+    <div class="report-section-heading">
+
+      <div>
+
+        <p class="eyebrow">
+          VENDOR ENQUIRY / RFQ
+        </p>
+
+        <h2>
+          RFQ Status
+        </h2>
+
+      </div>
+
+    </div>
+
+
+    <div class="report-status-grid">
+
+      <article class="report-status-card">
+
+        <span>
+          Draft
+        </span>
+
+        <strong>
+          {{
+            vendorEnquiryStatusCounts()['draft'] || 0
+          }}
+        </strong>
+
+      </article>
+
+
+      <article class="report-status-card">
+
+        <span>
+          Requested
+        </span>
+
+        <strong>
+          {{
+            vendorEnquiryStatusCounts()['requested'] || 0
+          }}
+        </strong>
+
+      </article>
+
+
+      <article class="report-status-card">
+
+        <span>
+          Received
+        </span>
+
+        <strong>
+          {{
+            vendorEnquiryStatusCounts()['received'] || 0
+          }}
+        </strong>
+
+      </article>
+
+
+      <article class="report-status-card">
+
+        <span>
+          Closed
+        </span>
+
+        <strong>
+          {{
+            vendorEnquiryStatusCounts()['closed'] || 0
+          }}
+        </strong>
+
+      </article>
+
+    </div>
+
+  </section>
+
+
+  <!-- =========================================================
+       QUOTATION STATUS
+  ========================================================== -->
+
+  <section class="report-status-section">
+
+    <div class="report-section-heading">
+
+      <div>
+
+        <p class="eyebrow">
+          QUOTATIONS
+        </p>
+
+        <h2>
+          Quotation Status
+        </h2>
+
+      </div>
+
+    </div>
+
+
+    <div class="report-status-grid">
+
+      <article class="report-status-card">
+
+        <span>
+          Requested
+        </span>
+
+        <strong>
+          {{
+            quotationStatusCounts()['requested'] || 0
+          }}
+        </strong>
+
+      </article>
+
+
+      <article class="report-status-card">
+
+        <span>
+          Received
+        </span>
+
+        <strong>
+          {{
+            quotationStatusCounts()['received'] || 0
+          }}
+        </strong>
+
+      </article>
+
+
+      <article class="report-status-card">
+
+        <span>
+          Selected
+        </span>
+
+        <strong>
+          {{
+            quotationStatusCounts()['selected'] || 0
+          }}
+        </strong>
+
+      </article>
+
+
+      <article class="report-status-card">
+
+        <span>
+          Rejected
+        </span>
+
+        <strong>
+          {{
+            quotationStatusCounts()['rejected'] || 0
+          }}
+        </strong>
+
+      </article>
+
+    </div>
+
+  </section>
+
+
+  <!-- =========================================================
+       PURCHASE ORDER STATUS
+  ========================================================== -->
+
+  <section class="report-status-section">
+
+    <div class="report-section-heading">
+
+      <div>
+
+        <p class="eyebrow">
+          PURCHASE ORDERS
+        </p>
+
+        <h2>
+          Purchase Order Status
+        </h2>
+
+      </div>
+
+    </div>
+
+
+    <div class="report-status-grid">
+
+      <article class="report-status-card">
+
+        <span>
+          Draft
+        </span>
+
+        <strong>
+          {{
+            purchaseOrderStatusCounts()['draft'] || 0
+          }}
+        </strong>
+
+      </article>
+
+
+      <article class="report-status-card">
+
+        <span>
+          Approved
+        </span>
+
+        <strong>
+          {{
+            purchaseOrderStatusCounts()['approved'] || 0
+          }}
+        </strong>
+
+      </article>
+
+
+      <article class="report-status-card">
+
+        <span>
+          Sent
+        </span>
+
+        <strong>
+          {{
+            purchaseOrderStatusCounts()['sent'] || 0
+          }}
+        </strong>
+
+      </article>
+
+
+      <article class="report-status-card">
+
+        <span>
+          Partially Received
+        </span>
+
+        <strong>
+          {{
+            purchaseOrderStatusCounts()['partially_received'] || 0
+          }}
+        </strong>
+
+      </article>
+
+
+      <article class="report-status-card">
+
+        <span>
+          Received
+        </span>
+
+        <strong>
+          {{
+            purchaseOrderStatusCounts()['received'] || 0
+          }}
+        </strong>
+
+      </article>
+
+
+      <article class="report-status-card">
+
+        <span>
+          Cancelled
+        </span>
+
+        <strong>
+          {{
+            purchaseOrderStatusCounts()['cancelled'] || 0
+          }}
+        </strong>
+
+      </article>
+
+    </div>
+
+  </section>
+
+
+  <!-- =========================================================
+       GOODS RECEIPT STATUS
+  ========================================================== -->
+
+  <section class="report-status-section">
+
+    <div class="report-section-heading">
+
+      <div>
+
+        <p class="eyebrow">
+          GOODS RECEIPTS
+        </p>
+
+        <h2>
+          GRN Status
+        </h2>
+
+      </div>
+
+    </div>
+
+
+    <div class="report-status-grid">
+
+      <article
+        class="report-status-card"
+        *ngFor="
+          let item of goodsReceiptStatusCounts() | keyvalue
+        "
+      >
+
+        <span>
+          {{
+            item.key
+              | titlecase
+          }}
+        </span>
+
+        <strong>
+          {{ item.value }}
+        </strong>
+
+      </article>
+
+
+      <article
+        class="report-status-card"
+        *ngIf="
+          (
+            goodsReceiptStatusCounts()
+            | keyvalue
+          ).length === 0
+        "
+      >
+
+        <span>
+          No GRN Status
+        </span>
+
+        <strong>
+          0
+        </strong>
+
+      </article>
+
+    </div>
+
+  </section>
+
+
+  <!-- =========================================================
+       REPORT NAVIGATION
+  ========================================================== -->
+
+  <section class="reports-grid">
+
+    <!-- PR REPORT -->
+
+    <a
+      routerLink="/purchase/purchase-requests"
+      class="report-card"
+    >
+
+      <div class="report-card-icon">
+        PR
+      </div>
+
+      <div>
+
+        <h2>
+          Purchase Request Report
+        </h2>
+
+        <p>
+          Review draft, pending, approved and rejected
+          Purchase Requests.
+        </p>
+
+        <small>
+          Total:
+          {{ summary().purchaseRequests }}
+        </small>
+
+      </div>
+
+      <span class="report-arrow">
+        →
+      </span>
+
+    </a>
+
+
+    <!-- RFQ REPORT -->
+
+    <a
+      routerLink="/purchase/vendor-enquiries"
+      class="report-card"
+    >
+
+      <div class="report-card-icon">
+        RFQ
+      </div>
+
+      <div>
+
+        <h2>
+          Vendor Enquiry / RFQ Report
+        </h2>
+
+        <p>
+          Review vendor enquiries, RFQs and enquiry statuses.
+        </p>
+
+        <small>
+          Total:
+          {{ summary().vendorEnquiries }}
+        </small>
+
+      </div>
+
+      <span class="report-arrow">
+        →
+      </span>
+
+    </a>
+
+
+    <!-- QUOTATION REPORT -->
+
+    <a
+      routerLink="/purchase/quotations"
+      class="report-card"
+    >
+
+      <div class="report-card-icon">
+        QT
+      </div>
+
+      <div>
+
+        <h2>
+          Quotation Report
+        </h2>
+
+        <p>
+          Review supplier quotations, selections and comparison
+          activity.
+        </p>
+
+        <small>
+          Total:
+          {{ summary().quotations }}
+        </small>
+
+      </div>
+
+      <span class="report-arrow">
+        →
+      </span>
+
+    </a>
+
+
+    <!-- PO REPORT -->
+
+    <a
+      routerLink="/purchase/purchase-orders"
+      class="report-card"
+    >
+
+      <div class="report-card-icon">
+        PO
+      </div>
+
+      <div>
+
+        <h2>
+          Purchase Order Report
+        </h2>
+
+        <p>
+          Review Purchase Orders, status and delivery progress.
+        </p>
+
+        <small>
+          Total:
+          {{ summary().purchaseOrders }}
+        </small>
+
+      </div>
+
+      <span class="report-arrow">
+        →
+      </span>
+
+    </a>
+
+
+    <!-- GRN REPORT -->
+
+    <a
+      routerLink="/purchase/goods-receipts"
+      class="report-card"
+    >
+
+      <div class="report-card-icon">
+        GRN
+      </div>
+
+      <div>
+
+        <h2>
+          Goods Receipt Report
+        </h2>
+
+        <p>
+          Review received, accepted, rejected and receipt
+          activity.
+        </p>
+
+        <small>
+          Total:
+          {{ summary().goodsReceipts }}
+        </small>
+
+      </div>
+
+      <span class="report-arrow">
+        →
+      </span>
+
+    </a>
+
+
+    <!-- VENDOR REPORT -->
+
+    <a
+      routerLink="/purchase/vendors"
+      class="report-card"
+    >
+
+      <div class="report-card-icon">
+        VM
+      </div>
+
+      <div>
+
+        <h2>
+          Vendor Report
+        </h2>
+
+        <p>
+          Review active vendors available from the existing
+          Vendor Master.
+        </p>
+
+        <small>
+          Active Vendors:
+          {{ summary().vendors }}
+        </small>
+
+      </div>
+
+      <span class="report-arrow">
+        →
+      </span>
+
+    </a>
+
+  </section>
+
+
+  <!-- =========================================================
+       REPORTING NOTE
+  ========================================================== -->
+
+  <section class="reports-note">
+
+    <div class="reports-note-icon">
+      i
+    </div>
+
+    <div>
+
+      <strong>
+        Live Purchase Reporting
+      </strong>
+
+      <p>
+        Summary values on this page are loaded from the existing
+        Purchase APIs. Open any report above to review the
+        corresponding Purchase records in detail.
+      </p>
+
+    </div>
+
+  </section>
+
+</section>

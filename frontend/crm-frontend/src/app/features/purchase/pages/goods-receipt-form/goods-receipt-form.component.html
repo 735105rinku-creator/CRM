@@ -1,0 +1,1570 @@
+<section class="goods-receipt-form-page">
+
+  <!-- =========================================================
+       PAGE HEADER
+  ========================================================== -->
+
+  <div class="page-header">
+
+    <div class="title-block">
+
+      <button
+        type="button"
+        class="back-button"
+        (click)="back()"
+        aria-label="Back"
+      >
+        <svg
+          class="ui-icon"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <path
+            d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.42-1.41L7.83 13H20v-2Z"
+          />
+        </svg>
+      </button>
+
+      <div>
+        <p class="eyebrow">
+          Purchase Department
+        </p>
+
+        <h1>
+          {{
+            isViewMode
+              ? 'Goods Receipt Details'
+              : 'Create Goods Receipt / GRN'
+          }}
+        </h1>
+
+        <p class="subtitle">
+          {{
+            isViewMode
+              ? 'Review received, accepted, rejected and remaining Purchase Order quantities.'
+              : 'Record material received against an approved Purchase Order.'
+          }}
+        </p>
+      </div>
+
+    </div>
+
+    <div
+      *ngIf="
+        isViewMode &&
+        existingGoodsReceipt
+      "
+      class="grn-number-box"
+    >
+      <span>
+        GRN Number
+      </span>
+
+      <strong>
+        {{ existingGoodsReceipt.grnNumber }}
+      </strong>
+    </div>
+
+  </div>
+
+
+  <!-- =========================================================
+       ERROR / SUCCESS
+  ========================================================== -->
+
+  <div
+    *ngIf="errorMessage"
+    class="alert alert-error"
+  >
+    <span class="alert-ui-icon">
+      !
+    </span>
+
+    <span>
+      {{ errorMessage }}
+    </span>
+  </div>
+
+
+  <div
+    *ngIf="successMessage"
+    class="alert alert-success"
+  >
+    <span class="alert-ui-icon">
+      ✓
+    </span>
+
+    <span>
+      {{ successMessage }}
+    </span>
+  </div>
+
+
+  <!-- =========================================================
+       MAIN LOADING
+
+       Important:
+       Full page loading is only used while viewing
+       an existing GRN.
+
+       Create mode must render immediately.
+  ========================================================== -->
+
+  <div
+    *ngIf="
+      loading &&
+      isViewMode
+    "
+    class="loading-panel"
+  >
+    <div class="spinner"></div>
+
+    <p>
+      Loading Goods Receipt...
+    </p>
+  </div>
+
+
+  <!-- =========================================================
+       FORM CONTENT
+
+       Create mode:
+       Always render immediately.
+
+       View mode:
+       Render after existing GRN finishes loading.
+  ========================================================== -->
+
+  <ng-container
+    *ngIf="
+      !isViewMode ||
+      !loading
+    "
+  >
+
+    <!-- =======================================================
+         CREATE MODE
+    ======================================================== -->
+
+    <ng-container *ngIf="!isViewMode">
+
+      <!-- =====================================================
+           PURCHASE ORDER SELECTION
+      ====================================================== -->
+
+      <div class="section-card">
+
+        <div class="section-heading">
+
+          <div class="section-icon">
+            <svg
+              class="ui-icon"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                d="M7 4h-2L3 6v2h2l2.6 5.59-1 1.81A2 2 0 0 0 8.35 18H19v-2H8.42a.25.25 0 0 1-.22-.37L8.75 14h7.45a2 2 0 0 0 1.8-1.1L21 7H7.42L7 6H7V4Zm2 15a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"
+              />
+            </svg>
+          </div>
+
+          <div>
+            <h2>
+              Purchase Order
+            </h2>
+
+            <p>
+              Select the Purchase Order against which goods have been received.
+            </p>
+          </div>
+
+        </div>
+
+
+        <div class="form-grid">
+
+          <div class="form-field span-2">
+
+            <label for="purchaseOrder">
+              Purchase Order
+
+              <span class="required">
+                *
+              </span>
+            </label>
+
+            <select
+              id="purchaseOrder"
+              name="purchaseOrder"
+              [(ngModel)]="purchaseOrderId"
+              [disabled]="loadingPurchaseOrder || saving"
+              (ngModelChange)="onPurchaseOrderChange()"
+            >
+
+              <option value="">
+                Select Purchase Order
+              </option>
+
+              <option
+                *ngFor="
+                  let purchaseOrder of purchaseOrders
+                "
+                [value]="purchaseOrder._id"
+              >
+                {{ purchaseOrder.poNumber }}
+                -
+                {{ purchaseOrderVendorName(purchaseOrder) }}
+              </option>
+
+            </select>
+
+
+            <small
+              *ngIf="
+                !loadingPurchaseOrder &&
+                purchaseOrders.length === 0
+              "
+              class="field-hint warning-text"
+            >
+              No approved, sent or partially received Purchase Order is currently available.
+            </small>
+
+          </div>
+
+
+          <div class="form-field">
+
+            <label for="receiptDate">
+              Receipt Date
+
+              <span class="required">
+                *
+              </span>
+            </label>
+
+            <input
+              id="receiptDate"
+              name="receiptDate"
+              type="date"
+              [(ngModel)]="receiptDate"
+              [disabled]="saving"
+            />
+
+          </div>
+
+
+          <div class="form-field">
+
+            <label for="deliveryChallan">
+              Delivery Challan Number
+            </label>
+
+            <input
+              id="deliveryChallan"
+              name="deliveryChallan"
+              type="text"
+              [(ngModel)]="deliveryChallanNumber"
+              [disabled]="saving"
+              maxlength="100"
+              placeholder="Enter delivery challan number"
+            />
+
+          </div>
+
+        </div>
+
+
+        <div
+          *ngIf="loadingPurchaseOrder"
+          class="inline-loading"
+        >
+          <div class="small-spinner"></div>
+
+          <span>
+            Loading Purchase Order details...
+          </span>
+        </div>
+
+      </div>
+
+
+      <!-- =====================================================
+           SELECTED PO SUMMARY
+      ====================================================== -->
+
+      <div
+        *ngIf="
+          selectedPurchaseOrder &&
+          !loadingPurchaseOrder
+        "
+        class="section-card"
+      >
+
+        <div class="section-heading">
+
+          <div class="section-icon">
+            <svg
+              class="ui-icon"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                d="M6 2h12v20l-3-2-3 2-3-2-3 2V2Zm3 5v2h6V7H9Zm0 4v2h6v-2H9Zm0 4v2h4v-2H9Z"
+              />
+            </svg>
+          </div>
+
+          <div>
+            <h2>
+              Purchase Order Summary
+            </h2>
+
+            <p>
+              Purchase Order and vendor information for this receipt.
+            </p>
+          </div>
+
+        </div>
+
+
+        <div class="summary-details-grid">
+
+          <div class="summary-detail">
+            <span>
+              PO Number
+            </span>
+
+            <strong>
+              {{ selectedPurchaseOrder.poNumber }}
+            </strong>
+          </div>
+
+
+          <div class="summary-detail">
+            <span>
+              Vendor
+            </span>
+
+            <strong>
+              {{ purchaseOrderVendorName(selectedPurchaseOrder) }}
+            </strong>
+          </div>
+
+
+          <div class="summary-detail">
+            <span>
+              PO Date
+            </span>
+
+            <strong>
+              {{ formatDate(selectedPurchaseOrder.poDate) }}
+            </strong>
+          </div>
+
+
+          <div class="summary-detail">
+            <span>
+              PO Status
+            </span>
+
+            <strong class="status-text">
+              {{ selectedPurchaseOrder.status | titlecase }}
+            </strong>
+          </div>
+
+
+          <div class="summary-detail">
+            <span>
+              Expected Delivery
+            </span>
+
+            <strong>
+              {{
+                formatDate(
+                  selectedPurchaseOrder.expectedDeliveryDate
+                )
+              }}
+            </strong>
+          </div>
+
+
+          <div class="summary-detail">
+            <span>
+              Existing GRNs
+            </span>
+
+            <strong>
+              {{ receiptSummary?.grnCount || 0 }}
+            </strong>
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- =====================================================
+           WAREHOUSE
+      ====================================================== -->
+
+      <div
+        *ngIf="
+          selectedPurchaseOrder &&
+          !loadingPurchaseOrder
+        "
+        class="section-card"
+      >
+
+        <div class="section-heading">
+
+          <div class="section-icon">
+            <svg
+              class="ui-icon"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                d="M3 9 12 3l9 6v12h-4v-8H7v8H3V9Zm6 6h6v6H9v-6Z"
+              />
+            </svg>
+          </div>
+
+          <div>
+            <h2>
+              Receipt Location
+            </h2>
+
+            <p>
+              Select the warehouse where these goods have been received.
+            </p>
+          </div>
+
+        </div>
+
+
+        <div class="form-grid">
+
+          <div class="form-field span-2">
+
+            <label for="warehouse">
+              Warehouse / Location
+
+              <span class="required">
+                *
+              </span>
+            </label>
+
+            <select
+              id="warehouse"
+              name="warehouse"
+              [(ngModel)]="warehouseId"
+              [disabled]="saving || loadingWarehouses"
+            >
+
+              <option value="">
+                {{
+                  loadingWarehouses
+                    ? 'Loading Warehouses...'
+                    : 'Select Warehouse'
+                }}
+              </option>
+
+              <option
+                *ngFor="
+                  let warehouse of warehouses
+                "
+                [value]="warehouse._id"
+              >
+                {{ warehouseDisplayName(warehouse) }}
+              </option>
+
+            </select>
+
+
+            <small
+              *ngIf="
+                loadingWarehouses
+              "
+              class="field-hint"
+            >
+              Loading available warehouses...
+            </small>
+
+
+            <small
+              *ngIf="
+                !loadingWarehouses &&
+                warehouses.length === 0
+              "
+              class="field-hint warning-text"
+            >
+              No active warehouse is currently available.
+            </small>
+
+          </div>
+
+
+          <div
+            *ngIf="selectedPurchaseOrder.warehouse"
+            class="po-location-info"
+          >
+
+            <span class="info-symbol">
+              i
+            </span>
+
+            <div>
+              <span>
+                Purchase Order Location
+              </span>
+
+              <strong>
+                {{
+                  purchaseOrderWarehouseName(
+                    selectedPurchaseOrder
+                  )
+                }}
+              </strong>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- =====================================================
+           QUANTITY SUMMARY
+      ====================================================== -->
+
+      <div
+        *ngIf="
+          selectedPurchaseOrder &&
+          !loadingPurchaseOrder
+        "
+        class="quantity-summary-grid"
+      >
+
+        <div class="quantity-summary-card">
+
+          <svg
+            class="ui-icon"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              d="M4 5h16v14H4V5Zm2 2v10h12V7H6Zm3 2h6v2H9V9Zm0 4h6v2H9v-2Z"
+            />
+          </svg>
+
+          <div>
+            <small>
+              Ordered
+            </small>
+
+            <strong>
+              {{ totalOrderedQuantity | number:'1.0-4' }}
+            </strong>
+          </div>
+
+        </div>
+
+
+        <div class="quantity-summary-card">
+
+          <span class="quantity-symbol">
+            ↺
+          </span>
+
+          <div>
+            <small>
+              Previously Received
+            </small>
+
+            <strong>
+              {{ totalPreviouslyReceivedQuantity | number:'1.0-4' }}
+            </strong>
+          </div>
+
+        </div>
+
+
+        <div class="quantity-summary-card">
+
+          <span class="quantity-symbol">
+            …
+          </span>
+
+          <div>
+            <small>
+              Available to Receive
+            </small>
+
+            <strong>
+              {{ totalAvailableQuantity | number:'1.0-4' }}
+            </strong>
+          </div>
+
+        </div>
+
+
+        <div class="quantity-summary-card received-card">
+
+          <span class="quantity-symbol">
+            ↓
+          </span>
+
+          <div>
+            <small>
+              Receiving Now
+            </small>
+
+            <strong>
+              {{ totalCurrentReceivedQuantity | number:'1.0-4' }}
+            </strong>
+          </div>
+
+        </div>
+
+
+        <div class="quantity-summary-card accepted-card">
+
+          <span class="quantity-symbol">
+            ✓
+          </span>
+
+          <div>
+            <small>
+              Accepted
+            </small>
+
+            <strong>
+              {{ totalAcceptedQuantity | number:'1.0-4' }}
+            </strong>
+          </div>
+
+        </div>
+
+
+        <div class="quantity-summary-card rejected-card">
+
+          <span class="quantity-symbol">
+            ×
+          </span>
+
+          <div>
+            <small>
+              Rejected
+            </small>
+
+            <strong>
+              {{ totalRejectedQuantity | number:'1.0-4' }}
+            </strong>
+          </div>
+
+        </div>
+
+
+        <div class="quantity-summary-card remaining-card">
+
+          <span class="quantity-symbol">
+            ◷
+          </span>
+
+          <div>
+            <small>
+              Remaining After GRN
+            </small>
+
+            <strong>
+              {{ totalRemainingAfterReceipt | number:'1.0-4' }}
+            </strong>
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- =====================================================
+           ITEM RECEIPT TABLE
+      ====================================================== -->
+
+      <div
+        *ngIf="
+          selectedPurchaseOrder &&
+          !loadingPurchaseOrder
+        "
+        class="section-card"
+      >
+
+        <div class="section-heading">
+
+          <div class="section-icon">
+            <span class="section-symbol">
+              ✓
+            </span>
+          </div>
+
+          <div>
+            <h2>
+              Received Items
+            </h2>
+
+            <p>
+              Enter received quantity and classify it as accepted or rejected.
+            </p>
+          </div>
+
+        </div>
+
+
+        <div
+          *ngIf="items.length === 0"
+          class="empty-items"
+        >
+
+          <span class="empty-symbol">
+            ✓
+          </span>
+
+          <h3>
+            No Quantity Pending
+          </h3>
+
+          <p>
+            All Purchase Order quantities have already been received.
+          </p>
+
+        </div>
+
+
+        <div
+          *ngIf="items.length > 0"
+          class="items-table-wrapper"
+        >
+
+          <table class="items-table">
+
+            <thead>
+              <tr>
+                <th>
+                  Item
+                </th>
+
+                <th>
+                  Unit
+                </th>
+
+                <th class="number-column">
+                  Ordered
+                </th>
+
+                <th class="number-column">
+                  Previously Received
+                </th>
+
+                <th class="number-column">
+                  Remaining
+                </th>
+
+                <th class="number-column">
+                  Received Now
+                </th>
+
+                <th class="number-column">
+                  Accepted
+                </th>
+
+                <th class="number-column">
+                  Rejected
+                </th>
+
+                <th class="number-column">
+                  Remaining After
+                </th>
+              </tr>
+            </thead>
+
+
+            <tbody>
+
+              <ng-container
+                *ngFor="
+                  let item of items;
+                  let i = index;
+                  trackBy: itemTrackBy
+                "
+              >
+
+                <tr>
+
+                  <td>
+                    <div class="item-description">
+
+                      <strong>
+                        {{ item.itemName }}
+                      </strong>
+
+                      <span *ngIf="item.description">
+                        {{ item.description }}
+                      </span>
+
+                    </div>
+                  </td>
+
+
+                  <td>
+                    {{ item.unit }}
+                  </td>
+
+
+                  <td class="number-column">
+                    {{ item.orderedQuantity | number:'1.0-4' }}
+                  </td>
+
+
+                  <td class="number-column">
+                    {{ item.previouslyReceivedQuantity | number:'1.0-4' }}
+                  </td>
+
+
+                  <td class="number-column available-qty">
+                    {{ item.availableQuantity | number:'1.0-4' }}
+                  </td>
+
+
+                  <td class="number-column">
+
+                    <input
+                      type="number"
+                      class="quantity-input"
+                      min="0"
+                      step="0.0001"
+                      [max]="item.availableQuantity"
+                      [(ngModel)]="item.currentReceivedQuantity"
+                      [name]="'received-' + i"
+                      [disabled]="saving"
+                      (ngModelChange)="onCurrentReceivedChange(item)"
+                    />
+
+                  </td>
+
+
+                  <td class="number-column">
+
+                    <input
+                      type="number"
+                      class="quantity-input accepted-input"
+                      min="0"
+                      step="0.0001"
+                      [max]="item.currentReceivedQuantity"
+                      [(ngModel)]="item.acceptedQuantity"
+                      [name]="'accepted-' + i"
+                      [disabled]="
+                        saving ||
+                        item.currentReceivedQuantity <= 0
+                      "
+                      (ngModelChange)="onAcceptedChange(item)"
+                    />
+
+                  </td>
+
+
+                  <td class="number-column">
+
+                    <input
+                      type="number"
+                      class="quantity-input rejected-input"
+                      min="0"
+                      step="0.0001"
+                      [max]="item.currentReceivedQuantity"
+                      [(ngModel)]="item.rejectedQuantity"
+                      [name]="'rejected-' + i"
+                      [disabled]="
+                        saving ||
+                        item.currentReceivedQuantity <= 0
+                      "
+                      (ngModelChange)="onRejectedChange(item)"
+                    />
+
+                  </td>
+
+
+                  <td class="number-column remaining-after">
+                    {{ remainingAfterReceipt(item) | number:'1.0-4' }}
+                  </td>
+
+                </tr>
+
+
+                <tr
+                  *ngIf="item.rejectedQuantity > 0"
+                  class="rejection-row"
+                >
+
+                  <td colspan="9">
+
+                    <div class="rejection-reason-field">
+
+                      <label
+                        [for]="'rejectionReason-' + i"
+                      >
+                        Rejection / Damage Reason
+
+                        <span class="required">
+                          *
+                        </span>
+                      </label>
+
+
+                      <textarea
+                        [id]="'rejectionReason-' + i"
+                        [name]="'rejectionReason-' + i"
+                        [(ngModel)]="item.rejectionReason"
+                        [disabled]="saving"
+                        rows="2"
+                        maxlength="1000"
+                        placeholder="Enter rejection, damage or quality issue reason..."
+                      ></textarea>
+
+                    </div>
+
+                  </td>
+
+                </tr>
+
+              </ng-container>
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+
+      <!-- =====================================================
+           REMARKS
+      ====================================================== -->
+
+      <div
+        *ngIf="selectedPurchaseOrder"
+        class="section-card"
+      >
+
+        <div class="section-heading">
+
+          <div class="section-icon">
+            <span class="section-symbol">
+              ≡
+            </span>
+          </div>
+
+          <div>
+            <h2>
+              Remarks
+            </h2>
+
+            <p>
+              Add any receiving, quality or delivery notes.
+            </p>
+          </div>
+
+        </div>
+
+
+        <div class="form-field">
+
+          <label for="remarks">
+            GRN Remarks
+          </label>
+
+          <textarea
+            id="remarks"
+            name="remarks"
+            [(ngModel)]="remarks"
+            [disabled]="saving"
+            rows="4"
+            maxlength="2000"
+            placeholder="Enter Goods Receipt remarks..."
+          ></textarea>
+
+        </div>
+
+      </div>
+
+
+      <!-- =====================================================
+           ACTIONS
+      ====================================================== -->
+
+      <div
+        *ngIf="selectedPurchaseOrder"
+        class="form-actions"
+      >
+
+        <button
+          type="button"
+          class="btn btn-secondary"
+          [disabled]="saving"
+          (click)="cancel()"
+        >
+          <span class="button-symbol">
+            ×
+          </span>
+
+          Cancel
+        </button>
+
+
+        <button
+          type="button"
+          class="btn btn-primary"
+          [disabled]="
+            saving ||
+            loadingPurchaseOrder ||
+            loadingWarehouses ||
+            items.length === 0
+          "
+          (click)="save()"
+        >
+
+          <svg
+            *ngIf="!saving"
+            class="button-ui-icon"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              d="M4 5h16v14H4V5Zm2 2v10h12V7H6Zm3 2h6v2H9V9Zm0 4h6v2H9v-2Z"
+            />
+          </svg>
+
+          <span
+            *ngIf="saving"
+            class="button-spinner"
+          ></span>
+
+          {{
+            saving
+              ? 'Creating GRN...'
+              : 'Create Goods Receipt'
+          }}
+
+        </button>
+
+      </div>
+
+    </ng-container>
+
+
+    <!-- =======================================================
+         VIEW MODE
+    ======================================================== -->
+
+    <ng-container
+      *ngIf="
+        isViewMode &&
+        existingGoodsReceipt
+      "
+    >
+
+      <!-- =====================================================
+           GRN BASIC INFO
+      ====================================================== -->
+
+      <div class="section-card">
+
+        <div class="section-heading">
+
+          <div class="section-icon">
+            <svg
+              class="ui-icon"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                d="M4 5h16v14H4V5Zm2 2v10h12V7H6Zm3 2h6v2H9V9Zm0 4h6v2H9v-2Z"
+              />
+            </svg>
+          </div>
+
+          <div>
+            <h2>
+              Goods Receipt Information
+            </h2>
+
+            <p>
+              Recorded Goods Receipt details.
+            </p>
+          </div>
+
+        </div>
+
+
+        <div class="summary-details-grid">
+
+          <div class="summary-detail">
+            <span>
+              GRN Number
+            </span>
+
+            <strong>
+              {{ existingGoodsReceipt.grnNumber }}
+            </strong>
+          </div>
+
+
+          <div class="summary-detail">
+            <span>
+              PO Number
+            </span>
+
+            <strong>
+              {{ existingGoodsReceipt.poNumber }}
+            </strong>
+          </div>
+
+
+          <div class="summary-detail">
+            <span>
+              Receipt Date
+            </span>
+
+            <strong>
+              {{ formatDate(existingGoodsReceipt.receiptDate) }}
+            </strong>
+          </div>
+
+
+          <div class="summary-detail">
+            <span>
+              Status
+            </span>
+
+            <strong class="status-text">
+              {{ existingGoodsReceipt.status | titlecase }}
+            </strong>
+          </div>
+
+
+          <div class="summary-detail">
+            <span>
+              Vendor
+            </span>
+
+            <strong>
+              {{ existingGoodsReceipt.vendorName }}
+            </strong>
+          </div>
+
+
+          <div class="summary-detail">
+            <span>
+              Vendor Code
+            </span>
+
+            <strong>
+              {{ existingGoodsReceipt.vendorCode || '—' }}
+            </strong>
+          </div>
+
+
+          <div class="summary-detail">
+            <span>
+              Warehouse
+            </span>
+
+            <strong>
+              {{ existingGoodsReceipt.warehouseName }}
+            </strong>
+          </div>
+
+
+          <div class="summary-detail">
+            <span>
+              Warehouse Code
+            </span>
+
+            <strong>
+              {{ existingGoodsReceipt.warehouseCode || '—' }}
+            </strong>
+          </div>
+
+
+          <div class="summary-detail">
+            <span>
+              Delivery Challan
+            </span>
+
+            <strong>
+              {{ existingGoodsReceipt.deliveryChallanNumber || '—' }}
+            </strong>
+          </div>
+
+
+          <div class="summary-detail">
+            <span>
+              Received By
+            </span>
+
+            <strong>
+              {{ existingGoodsReceipt.receivedByName || '—' }}
+            </strong>
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- =====================================================
+           VIEW TOTALS
+      ====================================================== -->
+
+      <div class="quantity-summary-grid">
+
+        <div class="quantity-summary-card">
+
+          <svg
+            class="ui-icon"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              d="M4 5h16v14H4V5Zm2 2v10h12V7H6Zm3 2h6v2H9V9Zm0 4h6v2H9v-2Z"
+            />
+          </svg>
+
+          <div>
+            <small>
+              Ordered
+            </small>
+
+            <strong>
+              {{ totalOrderedQuantity | number:'1.0-4' }}
+            </strong>
+          </div>
+
+        </div>
+
+
+        <div class="quantity-summary-card">
+
+          <span class="quantity-symbol">
+            ↺
+          </span>
+
+          <div>
+            <small>
+              Previous
+            </small>
+
+            <strong>
+              {{ totalPreviouslyReceivedQuantity | number:'1.0-4' }}
+            </strong>
+          </div>
+
+        </div>
+
+
+        <div class="quantity-summary-card received-card">
+
+          <span class="quantity-symbol">
+            ↓
+          </span>
+
+          <div>
+            <small>
+              Received
+            </small>
+
+            <strong>
+              {{ totalCurrentReceivedQuantity | number:'1.0-4' }}
+            </strong>
+          </div>
+
+        </div>
+
+
+        <div class="quantity-summary-card accepted-card">
+
+          <span class="quantity-symbol">
+            ✓
+          </span>
+
+          <div>
+            <small>
+              Accepted
+            </small>
+
+            <strong>
+              {{ totalAcceptedQuantity | number:'1.0-4' }}
+            </strong>
+          </div>
+
+        </div>
+
+
+        <div class="quantity-summary-card rejected-card">
+
+          <span class="quantity-symbol">
+            ×
+          </span>
+
+          <div>
+            <small>
+              Rejected
+            </small>
+
+            <strong>
+              {{ totalRejectedQuantity | number:'1.0-4' }}
+            </strong>
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- =====================================================
+           VIEW ITEMS
+      ====================================================== -->
+
+      <div class="section-card">
+
+        <div class="section-heading">
+
+          <div class="section-icon">
+            <span class="section-symbol">
+              ✓
+            </span>
+          </div>
+
+          <div>
+            <h2>
+              Received Items
+            </h2>
+
+            <p>
+              Item-wise quantity recorded in this GRN.
+            </p>
+          </div>
+
+        </div>
+
+
+        <div class="items-table-wrapper">
+
+          <table class="items-table">
+
+            <thead>
+              <tr>
+                <th>
+                  Item
+                </th>
+
+                <th>
+                  Unit
+                </th>
+
+                <th class="number-column">
+                  Ordered
+                </th>
+
+                <th class="number-column">
+                  Previous
+                </th>
+
+                <th class="number-column">
+                  Received
+                </th>
+
+                <th class="number-column">
+                  Accepted
+                </th>
+
+                <th class="number-column">
+                  Rejected
+                </th>
+
+                <th class="number-column">
+                  Remaining
+                </th>
+              </tr>
+            </thead>
+
+
+            <tbody>
+
+              <ng-container
+                *ngFor="
+                  let item of items;
+                  let i = index;
+                  trackBy: itemTrackBy
+                "
+              >
+
+                <tr>
+
+                  <td>
+                    <div class="item-description">
+
+                      <strong>
+                        {{ item.itemName }}
+                      </strong>
+
+                      <span *ngIf="item.description">
+                        {{ item.description }}
+                      </span>
+
+                    </div>
+                  </td>
+
+
+                  <td>
+                    {{ item.unit }}
+                  </td>
+
+
+                  <td class="number-column">
+                    {{ item.orderedQuantity | number:'1.0-4' }}
+                  </td>
+
+
+                  <td class="number-column">
+                    {{ item.previouslyReceivedQuantity | number:'1.0-4' }}
+                  </td>
+
+
+                  <td class="number-column received-qty">
+                    {{ item.currentReceivedQuantity | number:'1.0-4' }}
+                  </td>
+
+
+                  <td class="number-column accepted-qty">
+                    {{ item.acceptedQuantity | number:'1.0-4' }}
+                  </td>
+
+
+                  <td class="number-column rejected-qty">
+                    {{ item.rejectedQuantity | number:'1.0-4' }}
+                  </td>
+
+
+                  <td class="number-column">
+                    {{ remainingAfterReceipt(item) | number:'1.0-4' }}
+                  </td>
+
+                </tr>
+
+
+                <tr
+                  *ngIf="item.rejectionReason"
+                  class="rejection-row view-rejection-row"
+                >
+
+                  <td colspan="8">
+
+                    <div class="view-rejection-reason">
+
+                      <span class="warning-symbol">
+                        !
+                      </span>
+
+                      <div>
+                        <span>
+                          Rejection / Damage Reason
+                        </span>
+
+                        <strong>
+                          {{ item.rejectionReason }}
+                        </strong>
+                      </div>
+
+                    </div>
+
+                  </td>
+
+                </tr>
+
+              </ng-container>
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+
+      <!-- =====================================================
+           VIEW REMARKS
+      ====================================================== -->
+
+      <div
+        *ngIf="remarks"
+        class="section-card"
+      >
+
+        <div class="section-heading">
+
+          <div class="section-icon">
+            <span class="section-symbol">
+              ≡
+            </span>
+          </div>
+
+          <div>
+            <h2>
+              Remarks
+            </h2>
+          </div>
+
+        </div>
+
+
+        <div class="remarks-view">
+          {{ remarks }}
+        </div>
+
+      </div>
+
+
+      <!-- =====================================================
+           VIEW ACTION
+      ====================================================== -->
+
+      <div class="form-actions">
+
+        <button
+          type="button"
+          class="btn btn-primary"
+          (click)="back()"
+        >
+
+          <svg
+            class="button-ui-icon"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.42-1.41L7.83 13H20v-2Z"
+            />
+          </svg>
+
+          Back to Goods Receipts
+
+        </button>
+
+      </div>
+
+    </ng-container>
+
+  </ng-container>
+
+</section>

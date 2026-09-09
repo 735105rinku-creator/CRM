@@ -1,0 +1,1011 @@
+<section class="quotation-form-page">
+
+    <!-- =========================================================
+         PAGE HEADER
+    ========================================================== -->
+  
+    <div class="page-header">
+  
+      <div class="page-title-wrap">
+  
+        <div class="eyebrow">
+          Purchase Department
+        </div>
+  
+        <h1>
+          {{ pageTitle }}
+        </h1>
+  
+        <p>
+          {{ pageSubtitle }}
+        </p>
+  
+      </div>
+  
+      <div class="page-header-actions">
+  
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="cancel()">
+  
+          Back
+  
+        </button>
+  
+      </div>
+  
+    </div>
+  
+  
+    <!-- =========================================================
+         SUCCESS MESSAGE
+    ========================================================== -->
+  
+    <div
+      *ngIf="successMessage"
+      class="message-box message-box--success">
+  
+      <div class="message-content">
+  
+        <span class="message-icon">
+          ✓
+        </span>
+  
+        <span>
+          {{ successMessage }}
+        </span>
+  
+      </div>
+  
+      <button
+        type="button"
+        class="message-close"
+        (click)="clearMessages()">
+  
+        ×
+  
+      </button>
+  
+    </div>
+  
+  
+    <!-- =========================================================
+         ERROR MESSAGE
+    ========================================================== -->
+  
+    <div
+      *ngIf="errorMessage"
+      class="message-box message-box--error">
+  
+      <div class="message-content">
+  
+        <span class="message-icon">
+          !
+        </span>
+  
+        <span>
+          {{ errorMessage }}
+        </span>
+  
+      </div>
+  
+      <button
+        type="button"
+        class="message-close"
+        (click)="clearMessages()">
+  
+        ×
+  
+      </button>
+  
+    </div>
+  
+  
+    <!-- =========================================================
+         LOADING
+    ========================================================== -->
+  
+    <div
+      *ngIf="isLoading"
+      class="loading-card">
+  
+      <div class="spinner">
+      </div>
+  
+      <p>
+        Loading quotation...
+      </p>
+  
+    </div>
+  
+  
+    <!-- =========================================================
+         MAIN FORM
+    ========================================================== -->
+  
+    <form
+      *ngIf="!isLoading"
+      class="form-card"
+      [formGroup]="form"
+      (ngSubmit)="save()">
+  
+  
+      <!-- =======================================================
+           READ ONLY
+      ======================================================== -->
+  
+      <div
+        *ngIf="isReadOnly"
+        class="readonly-notice">
+  
+        <span class="readonly-icon">
+          🔒
+        </span>
+  
+        <div>
+  
+          <strong>
+            This quotation is read-only
+          </strong>
+  
+          <p>
+            Selected or rejected quotations cannot be edited.
+          </p>
+  
+        </div>
+  
+      </div>
+  
+  
+      <!-- =======================================================
+           REFERENCES
+      ======================================================== -->
+  
+      <div class="form-section">
+  
+        <div class="section-header">
+  
+          <div>
+  
+            <h2>
+              Quotation Reference
+            </h2>
+  
+            <p>
+              Link this quotation with an approved Purchase Request or received vendor enquiry.
+            </p>
+  
+          </div>
+  
+        </div>
+  
+  
+        <div class="form-grid">
+  
+  
+          <div class="field">
+  
+            <label for="purchaseRequestId">
+              Purchase Request
+            </label>
+  
+            <select
+              id="purchaseRequestId"
+              formControlName="purchaseRequestId">
+  
+              <option value="">
+                No Purchase Request
+              </option>
+  
+              <option
+                *ngFor="let request of approvedPurchaseRequests"
+                [value]="request._id">
+  
+                {{ request.prNumber }}
+                -
+                {{ request.itemName }}
+                -
+                {{ request.requiredQuantity }}
+                {{ request.unit }}
+  
+              </option>
+  
+            </select>
+  
+            <small class="field-help">
+              Selecting an approved PR will prefill the first line item.
+            </small>
+  
+          </div>
+  
+  
+          <div class="field">
+  
+            <label for="vendorEnquiryId">
+              Vendor Enquiry / RFQ
+            </label>
+  
+            <select
+              id="vendorEnquiryId"
+              formControlName="vendorEnquiryId">
+  
+              <option value="">
+                No Vendor Enquiry
+              </option>
+  
+              <option
+                *ngFor="let enquiry of receivedVendorEnquiries"
+                [value]="enquiry._id">
+  
+                {{
+                  enquiry.rfqNumber ||
+                  enquiry.enquiryNumber
+                }}
+  
+                -
+                {{ enquiry.vendorName }}
+  
+                -
+                {{ enquiry.itemName }}
+  
+              </option>
+  
+            </select>
+  
+            <small class="field-help">
+              Selecting a received enquiry can prefill vendor, item, quoted price, tax and terms.
+            </small>
+  
+          </div>
+  
+  
+          <div class="field">
+  
+            <label for="vendorId">
+  
+              Vendor
+  
+              <span class="required">
+                *
+              </span>
+  
+            </label>
+  
+            <select
+              id="vendorId"
+              formControlName="vendorId">
+  
+              <option value="">
+                Select Vendor
+              </option>
+  
+              <option
+                *ngFor="let vendor of vendors"
+                [value]="vendor._id">
+  
+                {{
+                  vendor.vendorName ||
+                  vendor.companyName ||
+                  vendor.name
+                }}
+  
+                <ng-container *ngIf="vendor.vendorCode">
+                  ({{ vendor.vendorCode }})
+                </ng-container>
+  
+              </option>
+  
+            </select>
+  
+            <small
+              *ngIf="
+                form.controls.vendorId.touched &&
+                form.controls.vendorId.hasError('required')
+              "
+              class="field-error">
+  
+              Vendor is required.
+  
+            </small>
+  
+            <small
+              *ngIf="isReferenceLoading"
+              class="field-help">
+  
+              Loading Purchase references...
+  
+            </small>
+  
+          </div>
+  
+  
+          <div class="field">
+  
+            <label for="quotationDate">
+              Quotation Date
+            </label>
+  
+            <input
+              id="quotationDate"
+              type="date"
+              formControlName="quotationDate">
+  
+          </div>
+  
+  
+          <div
+            *ngIf="selectedVendor"
+            class="vendor-preview field--full">
+  
+            <div class="vendor-preview-avatar">
+  
+              {{
+                (
+                  selectedVendor.vendorName ||
+                  selectedVendor.companyName ||
+                  selectedVendor.name ||
+                  'V'
+                )
+                  .charAt(0)
+                  .toUpperCase()
+              }}
+  
+            </div>
+  
+            <div class="vendor-preview-content">
+  
+              <strong>
+                {{
+                  selectedVendor.vendorName ||
+                  selectedVendor.companyName ||
+                  selectedVendor.name
+                }}
+              </strong>
+  
+              <span *ngIf="selectedVendor.vendorCode">
+                {{ selectedVendor.vendorCode }}
+              </span>
+  
+              <span *ngIf="selectedVendor.city || selectedVendor.state">
+  
+                {{ selectedVendor.city || '' }}
+  
+                <ng-container
+                  *ngIf="
+                    selectedVendor.city &&
+                    selectedVendor.state
+                  ">
+                  ,
+                </ng-container>
+  
+                {{ selectedVendor.state || '' }}
+  
+              </span>
+  
+            </div>
+  
+          </div>
+  
+        </div>
+  
+      </div>
+  
+  
+      <!-- =======================================================
+           ITEMS
+      ======================================================== -->
+  
+      <div class="form-section">
+  
+        <div class="section-header section-header--items">
+  
+          <div>
+  
+            <h2>
+              Quotation Items
+            </h2>
+  
+            <p>
+              Add one or more items with quantity, price and tax.
+            </p>
+  
+          </div>
+  
+          <button
+            *ngIf="!isReadOnly"
+            type="button"
+            class="btn btn-secondary btn-add-item"
+            (click)="addItem()">
+  
+            + Add Item
+  
+          </button>
+  
+        </div>
+  
+  
+        <div
+          class="items-wrapper"
+          formArrayName="items">
+  
+  
+          <div
+            *ngFor="
+              let item of items.controls;
+              let index = index
+            "
+            class="item-card"
+            [formGroupName]="index">
+  
+  
+            <div class="item-card-header">
+  
+              <div>
+  
+                <span class="item-number">
+                  Item {{ index + 1 }}
+                </span>
+  
+              </div>
+  
+              <button
+                *ngIf="!isReadOnly"
+                type="button"
+                class="remove-item-btn"
+                [disabled]="items.length <= 1"
+                (click)="removeItem(index)">
+  
+                Remove
+  
+              </button>
+  
+            </div>
+  
+  
+            <div class="item-grid">
+  
+  
+              <div class="field item-name-field">
+  
+                <label [for]="'itemName-' + index">
+  
+                  Item / Product
+  
+                  <span class="required">
+                    *
+                  </span>
+  
+                </label>
+  
+                <input
+                  [id]="'itemName-' + index"
+                  type="text"
+                  formControlName="itemName"
+                  placeholder="Enter item name">
+  
+                <small
+                  *ngIf="
+                    item.controls.itemName.touched &&
+                    item.controls.itemName.hasError('required')
+                  "
+                  class="field-error">
+  
+                  Item name is required.
+  
+                </small>
+  
+              </div>
+  
+  
+              <div class="field">
+  
+                <label [for]="'quantity-' + index">
+  
+                  Quantity
+  
+                  <span class="required">
+                    *
+                  </span>
+  
+                </label>
+  
+                <input
+                  [id]="'quantity-' + index"
+                  type="number"
+                  min="0.000001"
+                  step="any"
+                  formControlName="quantity">
+  
+                <small
+                  *ngIf="
+                    item.controls.quantity.touched &&
+                    (
+                      item.controls.quantity.hasError('required') ||
+                      item.controls.quantity.hasError('min')
+                    )
+                  "
+                  class="field-error">
+  
+                  Enter valid quantity.
+  
+                </small>
+  
+              </div>
+  
+  
+              <div class="field">
+  
+                <label [for]="'unit-' + index">
+  
+                  Unit
+  
+                  <span class="required">
+                    *
+                  </span>
+  
+                </label>
+  
+                <input
+                  [id]="'unit-' + index"
+                  type="text"
+                  formControlName="unit"
+                  placeholder="Kg, Ton, Pcs">
+  
+                <small
+                  *ngIf="
+                    item.controls.unit.touched &&
+                    item.controls.unit.hasError('required')
+                  "
+                  class="field-error">
+  
+                  Unit is required.
+  
+                </small>
+  
+              </div>
+  
+  
+              <div class="field">
+  
+                <label [for]="'unitPrice-' + index">
+  
+                  Unit Price
+  
+                  <span class="required">
+                    *
+                  </span>
+  
+                </label>
+  
+                <div class="input-shell">
+  
+                  <span class="input-prefix">
+                    ₹
+                  </span>
+  
+                  <input
+                    [id]="'unitPrice-' + index"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    formControlName="unitPrice"
+                    placeholder="0.00">
+  
+                </div>
+  
+                <small
+                  *ngIf="
+                    item.controls.unitPrice.touched &&
+                    (
+                      item.controls.unitPrice.hasError('required') ||
+                      item.controls.unitPrice.hasError('min')
+                    )
+                  "
+                  class="field-error">
+  
+                  Enter a valid unit price.
+  
+                </small>
+  
+              </div>
+  
+  
+              <div class="field">
+  
+                <label [for]="'taxPercent-' + index">
+                  Tax %
+                </label>
+  
+                <input
+                  [id]="'taxPercent-' + index"
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.01"
+                  formControlName="taxPercent"
+                  placeholder="0">
+  
+                <small
+                  *ngIf="
+                    item.controls.taxPercent.touched &&
+                    (
+                      item.controls.taxPercent.hasError('min') ||
+                      item.controls.taxPercent.hasError('max')
+                    )
+                  "
+                  class="field-error">
+  
+                  Tax must be between 0 and 100%.
+  
+                </small>
+  
+              </div>
+  
+  
+              <div class="field description-field">
+  
+                <label [for]="'description-' + index">
+                  Description
+                </label>
+  
+                <textarea
+                  [id]="'description-' + index"
+                  rows="2"
+                  formControlName="description"
+                  placeholder="Specification or item description">
+                </textarea>
+  
+              </div>
+  
+            </div>
+  
+  
+            <!-- =================================================
+                 LINE CALCULATION
+            ================================================== -->
+  
+            <div class="line-total-panel">
+  
+              <div>
+  
+                <span>
+                  Line Subtotal
+                </span>
+  
+                <strong>
+                  {{ formatMoney(getLineSubtotal(index)) }}
+                </strong>
+  
+              </div>
+  
+              <div>
+  
+                <span>
+                  Tax
+                </span>
+  
+                <strong>
+                  {{ formatMoney(getLineTax(index)) }}
+                </strong>
+  
+              </div>
+  
+              <div class="line-grand-total">
+  
+                <span>
+                  Line Total
+                </span>
+  
+                <strong>
+                  {{ formatMoney(getLineTotal(index)) }}
+                </strong>
+  
+              </div>
+  
+            </div>
+  
+          </div>
+  
+        </div>
+  
+      </div>
+  
+  
+      <!-- =======================================================
+           COMMERCIAL DETAILS
+      ======================================================== -->
+  
+      <div class="form-section">
+  
+        <div class="section-header">
+  
+          <div>
+  
+            <h2>
+              Commercial Terms
+            </h2>
+  
+            <p>
+              Add freight, additional charges, delivery and payment conditions.
+            </p>
+  
+          </div>
+  
+        </div>
+  
+  
+        <div class="form-grid">
+  
+  
+          <div class="field">
+  
+            <label for="freightCharges">
+              Freight Charges
+            </label>
+  
+            <div class="input-shell">
+  
+              <span class="input-prefix">
+                ₹
+              </span>
+  
+              <input
+                id="freightCharges"
+                type="number"
+                min="0"
+                step="0.01"
+                formControlName="freightCharges"
+                placeholder="0.00">
+  
+            </div>
+  
+            <small
+              *ngIf="
+                form.controls.freightCharges.touched &&
+                form.controls.freightCharges.hasError('min')
+              "
+              class="field-error">
+  
+              Freight cannot be negative.
+  
+            </small>
+  
+          </div>
+  
+  
+          <div class="field">
+  
+            <label for="otherCharges">
+              Other Charges
+            </label>
+  
+            <div class="input-shell">
+  
+              <span class="input-prefix">
+                ₹
+              </span>
+  
+              <input
+                id="otherCharges"
+                type="number"
+                min="0"
+                step="0.01"
+                formControlName="otherCharges"
+                placeholder="0.00">
+  
+            </div>
+  
+            <small
+              *ngIf="
+                form.controls.otherCharges.touched &&
+                form.controls.otherCharges.hasError('min')
+              "
+              class="field-error">
+  
+              Other charges cannot be negative.
+  
+            </small>
+  
+          </div>
+  
+  
+          <div class="field">
+  
+            <label for="deliveryTime">
+              Delivery Time
+            </label>
+  
+            <input
+              id="deliveryTime"
+              type="text"
+              formControlName="deliveryTime"
+              placeholder="e.g. 7 days">
+  
+          </div>
+  
+  
+          <div class="field">
+  
+            <label for="validUntil">
+              Valid Until
+            </label>
+  
+            <input
+              id="validUntil"
+              type="date"
+              formControlName="validUntil">
+  
+          </div>
+  
+  
+          <div class="field field--full">
+  
+            <label for="paymentTerms">
+              Payment Terms
+            </label>
+  
+            <input
+              id="paymentTerms"
+              type="text"
+              formControlName="paymentTerms"
+              placeholder="e.g. 30% advance, balance on delivery">
+  
+          </div>
+  
+  
+          <div class="field field--full">
+  
+            <label for="remarks">
+              Remarks
+            </label>
+  
+            <textarea
+              id="remarks"
+              rows="4"
+              formControlName="remarks"
+              placeholder="Add commercial notes or quotation remarks">
+            </textarea>
+  
+          </div>
+  
+        </div>
+  
+      </div>
+  
+  
+      <!-- =======================================================
+           TOTALS
+      ======================================================== -->
+  
+      <div class="form-section totals-section">
+  
+        <div class="section-header">
+  
+          <div>
+  
+            <h2>
+              Quotation Summary
+            </h2>
+  
+            <p>
+              Live quotation totals calculated from line items and charges.
+            </p>
+  
+          </div>
+  
+        </div>
+  
+  
+        <div class="totals-card">
+  
+          <div class="total-row">
+  
+            <span>
+              Subtotal
+            </span>
+  
+            <strong>
+              {{ formatMoney(subtotal) }}
+            </strong>
+  
+          </div>
+  
+  
+          <div class="total-row">
+  
+            <span>
+              Tax Total
+            </span>
+  
+            <strong>
+              {{ formatMoney(taxTotal) }}
+            </strong>
+  
+          </div>
+  
+  
+          <div class="total-row">
+  
+            <span>
+              Freight Charges
+            </span>
+  
+            <strong>
+              {{ formatMoney(freightCharges) }}
+            </strong>
+  
+          </div>
+  
+  
+          <div class="total-row">
+  
+            <span>
+              Other Charges
+            </span>
+  
+            <strong>
+              {{ formatMoney(otherCharges) }}
+            </strong>
+  
+          </div>
+  
+  
+          <div class="total-row total-row--grand">
+  
+            <span>
+              Grand Total
+            </span>
+  
+            <strong>
+              {{ formatMoney(grandTotal) }}
+            </strong>
+  
+          </div>
+  
+        </div>
+  
+      </div>
+  
+  
+      <!-- =======================================================
+           ACTIONS
+      ======================================================== -->
+  
+      <div class="form-actions">
+  
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="cancel()">
+  
+          Cancel
+  
+        </button>
+  
+  
+        <button
+          *ngIf="!isReadOnly"
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="
+            form.invalid ||
+            isSaving ||
+            isReferenceLoading
+          ">
+  
+          {{
+            isSaving
+              ? 'Saving...'
+              : isEditMode
+                ? 'Update Quotation'
+                : 'Create Quotation'
+          }}
+  
+        </button>
+  
+      </div>
+  
+    </form>
+  
+  </section>

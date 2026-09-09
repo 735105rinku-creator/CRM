@@ -24,6 +24,7 @@ import meetingRoutes from "./routes/meeting.routes.js";
 import hrDashboardRoutes from "./routes/hrDashboard.routes.js";
 import hrReportRoutes from "./routes/hrReport.routes.js";
 import communicationRoutes from "./routes/communication.routes.js";
+import purchaseRoutes from "./routes/purchase.routes.js";
 
 import companyReportRoutes from "./routes/companyReport.routes.js";
 
@@ -214,21 +215,6 @@ app.use(
 );
 
 
-/*
- * Logistics Documents middleware currently stores files here:
- *
- * uploads/logistics-documents
- *
- * This is separate from:
- *
- * public/uploads
- *
- * Therefore expose it explicitly.
- *
- * Preview/download APIs remain protected;
- * this static path is only required if fileUrl
- * is used elsewhere in the CRM.
- */
 app.use(
   "/uploads/logistics-documents",
 
@@ -262,6 +248,7 @@ app.use(
     }
   )
 );
+
 
 
 /* ============================================================
@@ -690,6 +677,11 @@ app.use(
 app.use(
   "/accounting",
   accountingRoutes
+);
+
+app.use(
+  "/purchase",
+  purchaseRoutes
 );
 
 

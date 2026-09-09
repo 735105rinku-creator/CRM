@@ -1,0 +1,817 @@
+<section class="purchase-requests-page">
+
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+  
+    <header class="page-header">
+  
+      <div class="page-header__content">
+  
+        <p class="page-header__eyebrow">
+          PURCHASE OPERATIONS
+        </p>
+  
+        <h1>
+          Purchase Requests
+        </h1>
+  
+        <p class="page-header__subtitle">
+          Manage material and product requirements before vendor enquiry,
+          quotation and purchase order processing.
+        </p>
+  
+      </div>
+  
+  
+      <div class="page-header__actions">
+  
+        <a
+          routerLink="/purchase/purchase-requests/new"
+          class="primary-action"
+        >
+          <span class="primary-action__icon">
+            +
+          </span>
+  
+          New Purchase Request
+        </a>
+  
+      </div>
+  
+    </header>
+  
+  
+    <!-- =====================================================
+         WORKFLOW MESSAGE
+    ====================================================== -->
+  
+    <section
+      *ngIf="actionMessage"
+      class="state-panel state-panel--success"
+    >
+  
+      <div class="state-panel__icon">
+        ✓
+      </div>
+  
+      <div class="state-panel__content">
+  
+        <strong>
+          Success
+        </strong>
+  
+        <span>
+          {{ actionMessage }}
+        </span>
+  
+      </div>
+  
+      <button
+        type="button"
+        class="state-panel__action"
+        (click)="clearActionMessage()"
+        aria-label="Close success message"
+      >
+        Close
+      </button>
+  
+    </section>
+  
+  
+    <section
+      *ngIf="actionErrorMessage"
+      class="state-panel state-panel--error"
+    >
+  
+      <div class="state-panel__icon">
+        !
+      </div>
+  
+      <div class="state-panel__content">
+  
+        <strong>
+          Action could not be completed
+        </strong>
+  
+        <span>
+          {{ actionErrorMessage }}
+        </span>
+  
+      </div>
+  
+      <button
+        type="button"
+        class="state-panel__action"
+        (click)="clearActionMessage()"
+        aria-label="Close error message"
+      >
+        Close
+      </button>
+  
+    </section>
+  
+  
+    <!-- =====================================================
+         FILTERS
+    ====================================================== -->
+  
+    <section class="filter-panel">
+  
+      <div class="filter-panel__main">
+  
+        <!-- SEARCH -->
+  
+        <div class="filter-field filter-field--search">
+  
+          <label for="purchase-request-search">
+            Search
+          </label>
+  
+          <div class="search-control">
+  
+            <span class="search-control__icon">
+  
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  d="M10.5 4a6.5 6.5 0 1 0 3.96 11.65L19.8 21l1.2-1.2-5.35-5.34A6.5 6.5 0 0 0 10.5 4Zm0 2a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9Z"
+                />
+              </svg>
+  
+            </span>
+  
+            <input
+              id="purchase-request-search"
+              type="search"
+              [formControl]="searchControl"
+              placeholder="PR number, item, employee..."
+              autocomplete="off"
+            >
+  
+          </div>
+  
+        </div>
+  
+  
+        <!-- STATUS -->
+  
+        <div class="filter-field">
+  
+          <label for="purchase-request-status">
+            Status
+          </label>
+  
+          <select
+            id="purchase-request-status"
+            [formControl]="statusControl"
+          >
+  
+            <option value="">
+              All Statuses
+            </option>
+  
+            <option
+              *ngFor="let option of statusOptions"
+              [value]="option.value"
+            >
+              {{ option.label }}
+            </option>
+  
+          </select>
+  
+        </div>
+  
+  
+        <!-- PRIORITY -->
+  
+        <div class="filter-field">
+  
+          <label for="purchase-request-priority">
+            Priority
+          </label>
+  
+          <select
+            id="purchase-request-priority"
+            [formControl]="priorityControl"
+          >
+  
+            <option value="">
+              All Priorities
+            </option>
+  
+            <option
+              *ngFor="let option of priorityOptions"
+              [value]="option.value"
+            >
+              {{ option.label }}
+            </option>
+  
+          </select>
+  
+        </div>
+  
+      </div>
+  
+  
+      <button
+        type="button"
+        class="clear-filter-button"
+        (click)="clearFilters()"
+        [disabled]="isLoading"
+      >
+        Clear Filters
+      </button>
+  
+    </section>
+  
+  
+    <!-- =====================================================
+         RESULT SUMMARY
+    ====================================================== -->
+  
+    <section class="result-meta">
+  
+      <div>
+  
+        <strong>
+          {{ totalRecords }}
+        </strong>
+  
+        <span>
+          Purchase Request{{ totalRecords === 1 ? '' : 's' }}
+        </span>
+  
+      </div>
+  
+  
+      <span
+        *ngIf="totalPages > 1"
+        class="result-meta__page"
+      >
+        Page {{ currentPage }} of {{ totalPages }}
+      </span>
+  
+    </section>
+  
+  
+    <!-- =====================================================
+         ERROR STATE
+    ====================================================== -->
+  
+    <section
+      *ngIf="
+        errorMessage &&
+        !isLoading
+      "
+      class="state-panel state-panel--error"
+    >
+  
+      <div class="state-panel__icon">
+        !
+      </div>
+  
+      <div class="state-panel__content">
+  
+        <strong>
+          Purchase requests could not be loaded
+        </strong>
+  
+        <span>
+          {{ errorMessage }}
+        </span>
+  
+      </div>
+  
+      <button
+        type="button"
+        class="state-panel__action"
+        (click)="loadPurchaseRequests()"
+      >
+        Retry
+      </button>
+  
+    </section>
+  
+  
+    <!-- =====================================================
+         LOADING STATE
+    ====================================================== -->
+  
+    <section
+      *ngIf="isLoading"
+      class="table-panel"
+    >
+  
+      <div class="loading-state">
+  
+        <span class="loading-spinner"></span>
+  
+        <strong>
+          Loading purchase requests
+        </strong>
+  
+        <span>
+          Retrieving the latest Purchase Department records.
+        </span>
+  
+      </div>
+  
+    </section>
+  
+  
+    <!-- =====================================================
+         TABLE
+    ====================================================== -->
+  
+    <section
+      *ngIf="
+        !isLoading &&
+        !errorMessage &&
+        requests.length > 0
+      "
+      class="table-panel"
+    >
+  
+      <div class="table-wrapper">
+  
+        <table class="purchase-table">
+  
+          <thead>
+  
+            <tr>
+  
+              <th>PR Number</th>
+  
+              <th>Request Date</th>
+  
+              <th>Item</th>
+  
+              <th>Quantity</th>
+  
+              <th>Requested By</th>
+  
+              <th>Department</th>
+  
+              <th>Required Date</th>
+  
+              <th>Priority</th>
+  
+              <th>Status</th>
+  
+              <th class="purchase-table__action-heading">
+                Actions
+              </th>
+  
+            </tr>
+  
+          </thead>
+  
+  
+          <tbody>
+  
+            <tr
+              *ngFor="
+                let request of requests;
+                trackBy: trackByRequest
+              "
+            >
+  
+              <!-- PR NUMBER -->
+  
+              <td>
+  
+                <div class="reference-cell">
+  
+                  <strong>
+                    {{ request.prNumber || '—' }}
+                  </strong>
+  
+                  <span
+                    *ngIf="request.purpose"
+                    [title]="request.purpose"
+                  >
+                    {{ request.purpose }}
+                  </span>
+  
+                </div>
+  
+              </td>
+  
+  
+              <!-- REQUEST DATE -->
+  
+              <td>
+                {{ getDateValue(request.requestDate) }}
+              </td>
+  
+  
+              <!-- ITEM -->
+  
+              <td>
+  
+                <div class="item-cell">
+  
+                  <strong>
+                    {{ getItemName(request) }}
+                  </strong>
+  
+                  <span
+                    *ngIf="request.description"
+                    [title]="request.description"
+                  >
+                    {{ request.description }}
+                  </span>
+  
+                </div>
+  
+              </td>
+  
+  
+              <!-- QUANTITY -->
+  
+              <td>
+  
+                <div class="quantity-cell">
+  
+                  <strong>
+                    {{ request.requiredQuantity }}
+                  </strong>
+  
+                  <span>
+                    {{ request.unit || '—' }}
+                  </span>
+  
+                </div>
+  
+              </td>
+  
+  
+              <!-- REQUESTED BY -->
+  
+              <td>
+                {{ getRequestedByName(request) }}
+              </td>
+  
+  
+              <!-- DEPARTMENT -->
+  
+              <td>
+                {{ getDepartmentName(request) }}
+              </td>
+  
+  
+              <!-- REQUIRED DATE -->
+  
+              <td>
+                {{ getDateValue(request.requiredDate) }}
+              </td>
+  
+  
+              <!-- PRIORITY -->
+  
+              <td>
+  
+                <span
+                  class="priority-badge"
+                  [ngClass]="getPriorityClass(request.priority)"
+                >
+                  {{ getPriorityLabel(request.priority) }}
+                </span>
+  
+              </td>
+  
+  
+              <!-- STATUS -->
+  
+              <td>
+  
+                <span
+                  class="status-badge"
+                  [ngClass]="getStatusClass(request.status)"
+                >
+                  {{ getStatusLabel(request.status) }}
+                </span>
+  
+              </td>
+  
+  
+              <!-- ACTIONS -->
+  
+              <td class="purchase-table__action-cell">
+  
+                <div class="request-actions">
+  
+                  <!-- OPEN -->
+  
+                  <a
+                    [routerLink]="[
+                      '/purchase/purchase-requests',
+                      request._id,
+                      'edit'
+                    ]"
+                    class="table-action"
+                    title="Open purchase request"
+                  >
+                    <span>
+                      Open
+                    </span>
+  
+                    <span
+                      class="table-action__arrow"
+                      aria-hidden="true"
+                    >
+                      →
+                    </span>
+                  </a>
+  
+  
+                  <!-- =========================================
+                       DRAFT -> SUBMIT
+                  ========================================== -->
+  
+                  <button
+                    *ngIf="request.status === 'draft'"
+                    type="button"
+                    class="workflow-action workflow-action--submit"
+                    (click)="submitForApproval(request)"
+                    [disabled]="isRequestActionLoading(request._id)"
+                    title="Submit purchase request for approval"
+                  >
+  
+                    <span
+                      *ngIf="isSubmitting(request._id)"
+                      class="workflow-action__spinner"
+                      aria-hidden="true"
+                    ></span>
+  
+                    <span>
+                      {{
+                        isSubmitting(request._id)
+                          ? 'Submitting...'
+                          : 'Submit'
+                      }}
+                    </span>
+  
+                  </button>
+  
+  
+                  <!-- =========================================
+                       PENDING -> APPROVE
+                       PURCHASE SENIOR ONLY
+                  ========================================== -->
+  
+                  <button
+                    *ngIf="
+                      request.status === 'pending_approval' &&
+                      canApprove
+                    "
+                    type="button"
+                    class="workflow-action workflow-action--approve"
+                    (click)="approveRequest(request)"
+                    [disabled]="isRequestActionLoading(request._id)"
+                    title="Approve purchase request"
+                  >
+  
+                    <span
+                      *ngIf="isApproving(request._id)"
+                      class="workflow-action__spinner"
+                      aria-hidden="true"
+                    ></span>
+  
+                    <span>
+                      {{
+                        isApproving(request._id)
+                          ? 'Approving...'
+                          : 'Approve'
+                      }}
+                    </span>
+  
+                  </button>
+  
+  
+                  <!-- =========================================
+                       PENDING -> REJECT
+                       PURCHASE SENIOR ONLY
+                  ========================================== -->
+  
+                  <button
+                    *ngIf="
+                      request.status === 'pending_approval' &&
+                      canApprove
+                    "
+                    type="button"
+                    class="workflow-action workflow-action--reject"
+                    (click)="rejectRequest(request)"
+                    [disabled]="isRequestActionLoading(request._id)"
+                    title="Reject purchase request"
+                  >
+  
+                    <span
+                      *ngIf="isRejecting(request._id)"
+                      class="workflow-action__spinner"
+                      aria-hidden="true"
+                    ></span>
+  
+                    <span>
+                      {{
+                        isRejecting(request._id)
+                          ? 'Rejecting...'
+                          : 'Reject'
+                      }}
+                    </span>
+  
+                  </button>
+  
+  
+                  <!-- =========================================
+                       PENDING - NORMAL EMPLOYEE
+                  ========================================== -->
+  
+                  <span
+                    *ngIf="
+                      request.status === 'pending_approval' &&
+                      !canApprove &&
+                      !isAccessLoading
+                    "
+                    class="workflow-state workflow-state--pending"
+                  >
+                    Awaiting Senior Approval
+                  </span>
+  
+  
+                  <!-- APPROVED -->
+  
+                  <span
+                    *ngIf="request.status === 'approved'"
+                    class="workflow-state workflow-state--approved"
+                  >
+                    Approved
+                  </span>
+  
+  
+                  <!-- REJECTED -->
+  
+                  <span
+                    *ngIf="request.status === 'rejected'"
+                    class="workflow-state workflow-state--rejected"
+                  >
+                    Rejected
+                  </span>
+  
+                </div>
+  
+              </td>
+  
+            </tr>
+  
+          </tbody>
+  
+        </table>
+  
+      </div>
+  
+  
+      <!-- ===================================================
+           PAGINATION
+      ==================================================== -->
+  
+      <footer
+        *ngIf="totalPages > 1"
+        class="pagination"
+      >
+  
+        <button
+          type="button"
+          class="pagination__button"
+          (click)="goToPreviousPage()"
+          [disabled]="
+            currentPage <= 1 ||
+            isLoading
+          "
+        >
+          ← Previous
+        </button>
+  
+  
+        <div class="pagination__info">
+  
+          <span>
+            Page
+          </span>
+  
+          <strong>
+            {{ currentPage }}
+          </strong>
+  
+          <span>
+            of
+          </span>
+  
+          <strong>
+            {{ totalPages }}
+          </strong>
+  
+        </div>
+  
+  
+        <button
+          type="button"
+          class="pagination__button"
+          (click)="goToNextPage()"
+          [disabled]="
+            currentPage >= totalPages ||
+            isLoading
+          "
+        >
+          Next →
+        </button>
+  
+      </footer>
+  
+    </section>
+  
+  
+    <!-- =====================================================
+         EMPTY STATE
+    ====================================================== -->
+  
+    <section
+      *ngIf="
+        !isLoading &&
+        !errorMessage &&
+        requests.length === 0
+      "
+      class="table-panel"
+    >
+  
+      <div class="empty-state">
+  
+        <div class="empty-state__icon">
+  
+          <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              d="M7 3h8l4 4v14H5V3h2Zm7 1.5V8h3.5L14 4.5ZM8 12h8v2H8v-2Zm0 4h8v2H8v-2Z"
+            />
+          </svg>
+  
+        </div>
+  
+  
+        <h2>
+          No purchase requests found
+        </h2>
+  
+  
+        <p>
+          {{
+            searchControl.value ||
+            statusControl.value ||
+            priorityControl.value
+              ? 'No records match the selected filters.'
+              : 'Create the first purchase request to start the procurement workflow.'
+          }}
+        </p>
+  
+  
+        <div class="empty-state__actions">
+  
+          <button
+            *ngIf="
+              searchControl.value ||
+              statusControl.value ||
+              priorityControl.value
+            "
+            type="button"
+            class="secondary-action"
+            (click)="clearFilters()"
+          >
+            Clear Filters
+          </button>
+  
+  
+          <a
+            routerLink="/purchase/purchase-requests/new"
+            class="primary-action"
+          >
+  
+            <span class="primary-action__icon">
+              +
+            </span>
+  
+            New Purchase Request
+  
+          </a>
+  
+        </div>
+  
+      </div>
+  
+    </section>
+  
+  </section>

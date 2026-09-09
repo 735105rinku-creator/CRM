@@ -1,38 +1,85 @@
-import { Component, HostListener, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
-import { filter } from 'rxjs';
+import {
+  Component,
+  HostListener,
+  signal
+} from '@angular/core';
 
-import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
-import { SidebarComponent } from '../../shared/components/sidebar/sidebar.component';
+import {
+  takeUntilDestroyed
+} from '@angular/core/rxjs-interop';
+
+import {
+  NavigationEnd,
+  Router,
+  RouterOutlet
+} from '@angular/router';
+
+import {
+  filter
+} from 'rxjs';
+
+import {
+  NavbarComponent
+} from '../../shared/components/navbar/navbar.component';
+
+import {
+  SidebarComponent
+} from '../../shared/components/sidebar/sidebar.component';
+
 
 @Component({
   selector: 'app-main-layout',
+
   imports: [
     NavbarComponent,
     RouterOutlet,
     SidebarComponent
   ],
-  templateUrl: './main-layout.component.html',
-  styleUrl: './main-layout.component.scss'
+
+  templateUrl:
+    './main-layout.component.html',
+
+  styleUrl:
+    './main-layout.component.scss'
 })
 export class MainLayoutComponent {
-  protected readonly isCollapsed = signal(false);
-  protected readonly isMobileOpen = signal(false);
 
-  protected readonly isHrWorkspace = signal(false);
-  protected readonly isSuperAdminWorkspace = signal(false);
-  protected readonly isCompanyAdminWorkspace = signal(false);
+  protected readonly isCollapsed =
+    signal(false);
+
+  protected readonly isMobileOpen =
+    signal(false);
+
+
+  protected readonly isHrWorkspace =
+    signal(false);
+
+  protected readonly isSuperAdminWorkspace =
+    signal(false);
+
+  protected readonly isCompanyAdminWorkspace =
+    signal(false);
+
 
   // Logistics pages render their own premium workspace UI.
-  protected readonly isLogisticsWorkspace = signal(false);
+  protected readonly isLogisticsWorkspace =
+    signal(false);
+
+
+  // Purchase pages also render their own
+  // department workspace UI, same pattern as Logistics.
+  protected readonly isPurchaseWorkspace =
+    signal(false);
+
 
   constructor(
     private readonly router: Router
   ) {
+
     this.updateWorkspaceLayout(
       this.router.url
     );
+
 
     this.router.events
       .pipe(
@@ -45,87 +92,149 @@ export class MainLayoutComponent {
         takeUntilDestroyed()
       )
       .subscribe(
-        (event) =>
+        (
+          event
+        ) =>
           this.updateWorkspaceLayout(
             event.urlAfterRedirects
           )
       );
   }
 
+
   @HostListener('window:resize')
-  protected closeMobileSidebar(): void {
-    if (window.innerWidth > 992) {
-      this.isMobileOpen.set(false);
+  protected closeMobileSidebar():
+    void {
+
+    if (
+      window.innerWidth > 992
+    ) {
+
+      this.isMobileOpen.set(
+        false
+      );
     }
   }
 
-  protected toggleSidebar(): void {
-    if (window.innerWidth <= 992) {
+
+  protected toggleSidebar():
+    void {
+
+    if (
+      window.innerWidth <= 992
+    ) {
+
       this.isMobileOpen.update(
-        (isOpen) => !isOpen
+        (
+          isOpen
+        ) =>
+          !isOpen
       );
 
       return;
     }
 
+
     this.isCollapsed.update(
-      (isCollapsed) => !isCollapsed
+      (
+        isCollapsed
+      ) =>
+        !isCollapsed
     );
   }
 
-  protected toggleCollapse(): void {
+
+  protected toggleCollapse():
+    void {
+
     this.isCollapsed.update(
-      (isCollapsed) => !isCollapsed
+      (
+        isCollapsed
+      ) =>
+        !isCollapsed
     );
   }
 
-  protected closeMobileMenu(): void {
-    this.isMobileOpen.set(false);
+
+  protected closeMobileMenu():
+    void {
+
+    this.isMobileOpen.set(
+      false
+    );
   }
 
-  protected usesGlobalNavigation(): boolean {
+
+  protected usesGlobalNavigation():
+    boolean {
+
     return (
       !this.isHrWorkspace() &&
       !this.isSuperAdminWorkspace() &&
       !this.isCompanyAdminWorkspace() &&
-      !this.isLogisticsWorkspace()
+      !this.isLogisticsWorkspace() &&
+      !this.isPurchaseWorkspace()
     );
   }
+
 
   private updateWorkspaceLayout(
     url: string
   ): void {
+
     const path =
-      url.split('?')[0]
+      url
+        .split('?')[0]
         .split('#')[0];
+
 
     this.isHrWorkspace.set(
       [
         '/hr-dashboard',
         '/employee-dashboard',
         '/employee/dashboard'
-      ].includes(path)
+      ].includes(
+        path
+      )
     );
+
 
     this.isSuperAdminWorkspace.set(
       [
         '/super-admin',
         '/super-admin/dashboard',
         '/opasbizz/admin/dashboard'
-      ].includes(path)
+      ].includes(
+        path
+      )
     );
+
 
     this.isCompanyAdminWorkspace.set(
       [
         '/dashboard',
         '/company/dashboard'
-      ].includes(path)
+      ].includes(
+        path
+      )
     );
+
 
     this.isLogisticsWorkspace.set(
       path === '/logistics' ||
-      path.startsWith('/logistics/')
+      path.startsWith(
+        '/logistics/'
+      )
     );
+
+
+    this.isPurchaseWorkspace.set(
+      path === '/purchase' ||
+      path.startsWith(
+        '/purchase/'
+      )
+    );
+
 
     // Never leave the old mobile overlay open after
     // entering a self-contained workspace.
@@ -133,9 +242,14 @@ export class MainLayoutComponent {
       this.isHrWorkspace() ||
       this.isSuperAdminWorkspace() ||
       this.isCompanyAdminWorkspace() ||
-      this.isLogisticsWorkspace()
+      this.isLogisticsWorkspace() ||
+      this.isPurchaseWorkspace()
     ) {
-      this.isMobileOpen.set(false);
+
+      this.isMobileOpen.set(
+        false
+      );
     }
   }
+
 }

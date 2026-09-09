@@ -1,0 +1,767 @@
+<section class="purchase-request-form-page">
+
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+  
+    <header class="page-header">
+  
+      <div class="page-header__content">
+  
+        <p class="page-header__eyebrow">
+          PURCHASE OPERATIONS
+        </p>
+  
+        <h1>
+          {{
+            isEditMode
+              ? 'Edit Purchase Request'
+              : 'New Purchase Request'
+          }}
+        </h1>
+  
+        <p class="page-header__subtitle">
+          {{
+            isEditMode
+              ? 'Review and update the purchase requirement before approval and vendor enquiry processing.'
+              : 'Create a new material or product requirement for the Purchase Department.'
+          }}
+        </p>
+  
+        <div
+          *ngIf="
+            isEditMode &&
+            existingRequest
+          "
+          class="request-meta"
+        >
+  
+          <span
+            *ngIf="getExistingReference()"
+            class="request-meta__reference"
+          >
+            {{ getExistingReference() }}
+          </span>
+  
+          <span
+            *ngIf="getExistingStatusLabel()"
+            class="request-meta__status"
+          >
+            {{ getExistingStatusLabel() }}
+          </span>
+  
+        </div>
+  
+      </div>
+  
+  
+      <div class="page-header__actions">
+  
+        <a
+          routerLink="/purchase/purchase-requests"
+          class="secondary-action"
+        >
+          ← Back to Requests
+        </a>
+  
+      </div>
+  
+    </header>
+  
+  
+    <!-- =====================================================
+         LOAD ERROR
+    ====================================================== -->
+  
+    <section
+      *ngIf="
+        loadErrorMessage &&
+        !isLoading
+      "
+      class="message-panel message-panel--error"
+    >
+  
+      <div class="message-panel__icon">
+        !
+      </div>
+  
+      <div class="message-panel__content">
+  
+        <strong>
+          Purchase request could not be loaded
+        </strong>
+  
+        <span>
+          {{ loadErrorMessage }}
+        </span>
+  
+      </div>
+  
+      <a
+        routerLink="/purchase/purchase-requests"
+        class="message-panel__action"
+      >
+        Back
+      </a>
+  
+    </section>
+  
+  
+    <!-- =====================================================
+         LOADING
+    ====================================================== -->
+  
+    <section
+      *ngIf="isLoading"
+      class="form-panel"
+    >
+  
+      <div class="loading-state">
+  
+        <span class="loading-spinner"></span>
+  
+        <strong>
+          Loading purchase request
+        </strong>
+  
+        <span>
+          Retrieving the latest request details.
+        </span>
+  
+      </div>
+  
+    </section>
+  
+  
+    <!-- =====================================================
+         FORM
+    ====================================================== -->
+  
+    <form
+      *ngIf="
+        !isLoading &&
+        !loadErrorMessage
+      "
+      [formGroup]="form"
+      (ngSubmit)="submit()"
+      novalidate
+    >
+  
+      <!-- ===================================================
+           GENERAL INFORMATION
+      ==================================================== -->
+  
+      <section class="form-panel">
+  
+        <header class="section-header">
+  
+          <div>
+  
+            <span class="section-header__index">
+              01
+            </span>
+  
+            <div>
+  
+              <h2>
+                Request Information
+              </h2>
+  
+              <p>
+                Define when the requirement is being raised
+                and when the material is required.
+              </p>
+  
+            </div>
+  
+          </div>
+  
+        </header>
+  
+  
+        <div class="form-grid form-grid--2">
+  
+          <!-- REQUEST DATE -->
+  
+          <div class="form-field">
+  
+            <label for="requestDate">
+              Request Date
+              <span class="required-mark">*</span>
+            </label>
+  
+            <input
+              id="requestDate"
+              type="date"
+              formControlName="requestDate"
+              class="form-control"
+              [class.form-control--invalid]="
+                isInvalid('requestDate')
+              "
+            >
+  
+            <small
+              *ngIf="isInvalid('requestDate')"
+              class="field-error"
+            >
+              Request date is required.
+            </small>
+  
+          </div>
+  
+  
+          <!-- REQUIRED DATE -->
+  
+          <div class="form-field">
+  
+            <label for="requiredDate">
+              Required Date
+              <span class="required-mark">*</span>
+            </label>
+  
+            <input
+              id="requiredDate"
+              type="date"
+              formControlName="requiredDate"
+              class="form-control"
+              [class.form-control--invalid]="
+                isInvalid('requiredDate')
+              "
+            >
+  
+            <small
+              *ngIf="isInvalid('requiredDate')"
+              class="field-error"
+            >
+              Required date is required.
+            </small>
+  
+          </div>
+  
+        </div>
+  
+      </section>
+  
+  
+      <!-- ===================================================
+           ITEM DETAILS
+      ==================================================== -->
+  
+      <section class="form-panel">
+  
+        <header class="section-header">
+  
+          <div>
+  
+            <span class="section-header__index">
+              02
+            </span>
+  
+            <div>
+  
+              <h2>
+                Item Details
+              </h2>
+  
+              <p>
+                Enter the required item, quantity and unit.
+              </p>
+  
+            </div>
+  
+          </div>
+  
+        </header>
+  
+  
+        <div class="form-grid form-grid--2">
+  
+          <!-- ITEM NAME -->
+  
+          <div class="form-field form-field--full">
+  
+            <label for="itemName">
+              Item / Product
+              <span class="required-mark">*</span>
+            </label>
+  
+            <input
+              id="itemName"
+              type="text"
+              formControlName="itemName"
+              class="form-control"
+              [class.form-control--invalid]="
+                isInvalid('itemName')
+              "
+              placeholder="Enter item or product name"
+              autocomplete="off"
+            >
+  
+            <div
+              *ngIf="isInvalid('itemName')"
+              class="field-error"
+            >
+  
+              <span
+                *ngIf="hasError('itemName', 'required')"
+              >
+                Item name is required.
+              </span>
+  
+              <span
+                *ngIf="hasError('itemName', 'maxlength')"
+              >
+                Item name cannot exceed 160 characters.
+              </span>
+  
+            </div>
+  
+          </div>
+  
+  
+          <!-- QUANTITY -->
+  
+          <div class="form-field">
+  
+            <label for="requiredQuantity">
+              Required Quantity
+              <span class="required-mark">*</span>
+            </label>
+  
+            <input
+              id="requiredQuantity"
+              type="number"
+              min="0.0001"
+              step="any"
+              formControlName="requiredQuantity"
+              class="form-control"
+              [class.form-control--invalid]="
+                isInvalid('requiredQuantity')
+              "
+              placeholder="Enter quantity"
+            >
+  
+            <div
+              *ngIf="isInvalid('requiredQuantity')"
+              class="field-error"
+            >
+  
+              <span
+                *ngIf="
+                  hasError(
+                    'requiredQuantity',
+                    'required'
+                  )
+                "
+              >
+                Quantity is required.
+              </span>
+  
+              <span
+                *ngIf="
+                  hasError(
+                    'requiredQuantity',
+                    'min'
+                  )
+                "
+              >
+                Quantity must be greater than zero.
+              </span>
+  
+            </div>
+  
+          </div>
+  
+  
+          <!-- UNIT -->
+  
+          <div class="form-field">
+  
+            <label for="unit">
+              Unit
+              <span class="required-mark">*</span>
+            </label>
+  
+            <select
+              id="unit"
+              formControlName="unit"
+              class="form-select"
+              [class.form-select--invalid]="
+                isInvalid('unit')
+              "
+            >
+  
+              <option
+                *ngFor="let unit of unitOptions"
+                [value]="unit"
+              >
+                {{ unit }}
+              </option>
+  
+            </select>
+  
+            <small
+              *ngIf="isInvalid('unit')"
+              class="field-error"
+            >
+              Unit is required.
+            </small>
+  
+          </div>
+  
+  
+          <!-- DESCRIPTION -->
+  
+          <div class="form-field form-field--full">
+  
+            <label for="description">
+              Description
+            </label>
+  
+            <textarea
+              id="description"
+              rows="4"
+              formControlName="description"
+              class="form-textarea"
+              [class.form-textarea--invalid]="
+                isInvalid('description')
+              "
+              placeholder="Add specifications, grade, size, model or any other item details"
+            ></textarea>
+  
+            <div class="field-meta">
+  
+              <small
+                *ngIf="isInvalid('description')"
+                class="field-error"
+              >
+                Description cannot exceed 1000 characters.
+              </small>
+  
+              <span>
+                {{
+                  (
+                    getControlValue('description')?.toString()?.length
+                    || 0
+                  )
+                }}/1000
+              </span>
+  
+            </div>
+  
+          </div>
+  
+        </div>
+  
+      </section>
+  
+  
+      <!-- ===================================================
+           PURPOSE & PRIORITY
+      ==================================================== -->
+  
+      <section class="form-panel">
+  
+        <header class="section-header">
+  
+          <div>
+  
+            <span class="section-header__index">
+              03
+            </span>
+  
+            <div>
+  
+              <h2>
+                Requirement Details
+              </h2>
+  
+              <p>
+                Explain why the requirement is needed and
+                assign its operational priority.
+              </p>
+  
+            </div>
+  
+          </div>
+  
+        </header>
+  
+  
+        <div class="form-grid form-grid--2">
+  
+          <!-- PRIORITY -->
+  
+          <div class="form-field">
+  
+            <label for="priority">
+              Priority
+              <span class="required-mark">*</span>
+            </label>
+  
+            <select
+              id="priority"
+              formControlName="priority"
+              class="form-select"
+              [class.form-select--invalid]="
+                isInvalid('priority')
+              "
+            >
+  
+              <option
+                *ngFor="let option of priorityOptions"
+                [value]="option.value"
+              >
+                {{ option.label }}
+              </option>
+  
+            </select>
+  
+            <small
+              *ngIf="isInvalid('priority')"
+              class="field-error"
+            >
+              Priority is required.
+            </small>
+  
+          </div>
+  
+  
+          <!-- PURPOSE -->
+  
+          <div class="form-field form-field--full">
+  
+            <label for="purpose">
+              Purpose / Justification
+              <span class="required-mark">*</span>
+            </label>
+  
+            <textarea
+              id="purpose"
+              rows="4"
+              formControlName="purpose"
+              class="form-textarea"
+              [class.form-textarea--invalid]="
+                isInvalid('purpose')
+              "
+              placeholder="Explain why this purchase is required"
+            ></textarea>
+  
+            <div class="field-meta">
+  
+              <div>
+  
+                <span
+                  *ngIf="
+                    isInvalid('purpose') &&
+                    hasError('purpose', 'required')
+                  "
+                  class="field-error"
+                >
+                  Purpose or justification is required.
+                </span>
+  
+                <span
+                  *ngIf="
+                    isInvalid('purpose') &&
+                    hasError('purpose', 'maxlength')
+                  "
+                  class="field-error"
+                >
+                  Purpose cannot exceed 1000 characters.
+                </span>
+  
+              </div>
+  
+              <span>
+                {{
+                  (
+                    getControlValue('purpose')?.toString()?.length
+                    || 0
+                  )
+                }}/1000
+              </span>
+  
+            </div>
+  
+          </div>
+  
+  
+          <!-- REMARKS -->
+  
+          <div class="form-field form-field--full">
+  
+            <label for="remarks">
+              Remarks
+            </label>
+  
+            <textarea
+              id="remarks"
+              rows="4"
+              formControlName="remarks"
+              class="form-textarea"
+              [class.form-textarea--invalid]="
+                isInvalid('remarks')
+              "
+              placeholder="Optional internal remarks"
+            ></textarea>
+  
+            <div class="field-meta">
+  
+              <small
+                *ngIf="isInvalid('remarks')"
+                class="field-error"
+              >
+                Remarks cannot exceed 1500 characters.
+              </small>
+  
+              <span>
+                {{
+                  (
+                    getControlValue('remarks')?.toString()?.length
+                    || 0
+                  )
+                }}/1500
+              </span>
+  
+            </div>
+  
+          </div>
+  
+        </div>
+  
+      </section>
+  
+  
+      <!-- ===================================================
+           INFORMATION
+      ==================================================== -->
+  
+      <section class="info-panel">
+  
+        <div class="info-panel__icon">
+          i
+        </div>
+  
+        <div>
+  
+          <strong>
+            Request ownership
+          </strong>
+  
+          <p>
+            Requested By, Company and Department should be determined
+            by the authenticated CRM user and backend access context.
+            Users should not manually enter internal MongoDB IDs.
+          </p>
+  
+        </div>
+  
+      </section>
+  
+  
+      <!-- ===================================================
+           SUBMIT ERROR
+      ==================================================== -->
+  
+      <section
+        *ngIf="submitErrorMessage"
+        class="message-panel message-panel--error"
+      >
+  
+        <div class="message-panel__icon">
+          !
+        </div>
+  
+        <div class="message-panel__content">
+  
+          <strong>
+            Request could not be saved
+          </strong>
+  
+          <span>
+            {{ submitErrorMessage }}
+          </span>
+  
+        </div>
+  
+      </section>
+  
+  
+      <!-- ===================================================
+           SUCCESS
+      ==================================================== -->
+  
+      <section
+        *ngIf="successMessage"
+        class="message-panel message-panel--success"
+      >
+  
+        <div class="message-panel__icon">
+          ✓
+        </div>
+  
+        <div class="message-panel__content">
+  
+          <strong>
+            Saved successfully
+          </strong>
+  
+          <span>
+            {{ successMessage }}
+          </span>
+  
+        </div>
+  
+      </section>
+  
+  
+      <!-- ===================================================
+           FOOTER ACTIONS
+      ==================================================== -->
+  
+      <footer class="form-actions">
+  
+        <button
+          type="button"
+          class="secondary-action secondary-action--button"
+          (click)="cancel()"
+          [disabled]="isSubmitting"
+        >
+          Cancel
+        </button>
+  
+  
+        <button
+          type="submit"
+          class="primary-action"
+          [disabled]="
+            isSubmitting ||
+            isLoading
+          "
+        >
+  
+          <span
+            *ngIf="isSubmitting"
+            class="button-spinner"
+          ></span>
+  
+          <span>
+            {{
+              isSubmitting
+                ? 'Saving...'
+                : (
+                    isEditMode
+                      ? 'Update Purchase Request'
+                      : 'Create Purchase Request'
+                  )
+            }}
+          </span>
+  
+        </button>
+  
+      </footer>
+  
+    </form>
+  
+  </section>

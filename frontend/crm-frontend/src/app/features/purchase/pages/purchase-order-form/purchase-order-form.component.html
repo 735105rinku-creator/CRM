@@ -1,0 +1,976 @@
+<section class="purchase-order-form-page">
+
+    <!-- =========================================================
+         HEADER
+    ========================================================== -->
+  
+    <header class="form-header">
+  
+      <div class="form-header__content">
+  
+        <div>
+  
+          <span class="page-eyebrow">
+            Purchase Department
+          </span>
+  
+          <h1>
+            {{ pageTitle }}
+          </h1>
+  
+          <p>
+            {{ pageSubtitle }}
+          </p>
+  
+        </div>
+  
+  
+        <div class="form-header__actions">
+  
+          <button
+            type="button"
+            class="nm-button nm-button--secondary"
+            [disabled]="isSaving"
+            (click)="cancel()"
+          >
+            Back
+          </button>
+  
+  
+          <button
+            *ngIf="!isReadOnly"
+            type="button"
+            class="nm-button nm-button--primary"
+            [disabled]="isSaving || isLoading || isLoadingReferences"
+            (click)="submit()"
+          >
+            {{
+              isSaving
+                ? 'Saving...'
+                : isEditMode
+                  ? 'Update Purchase Order'
+                  : 'Create Purchase Order'
+            }}
+          </button>
+  
+        </div>
+  
+      </div>
+  
+    </header>
+  
+  
+    <!-- =========================================================
+         LOADING
+    ========================================================== -->
+  
+    <div
+      *ngIf="isLoading || isLoadingReferences || isLoadingQuotation"
+      class="loading-panel"
+    >
+  
+      <div class="loader">
+      </div>
+  
+      <div>
+  
+        <strong>
+          Loading Purchase Order data...
+        </strong>
+  
+        <p>
+          Please wait while reference information is being loaded.
+        </p>
+  
+      </div>
+  
+    </div>
+  
+  
+    <!-- =========================================================
+         ERROR
+    ========================================================== -->
+  
+    <div
+      *ngIf="errorMessage"
+      class="page-alert page-alert--error"
+    >
+  
+      <span class="page-alert__icon">
+        !
+      </span>
+  
+      <div>
+  
+        <strong>
+          Unable to continue
+        </strong>
+  
+        <p>
+          {{ errorMessage }}
+        </p>
+  
+      </div>
+  
+    </div>
+  
+  
+    <!-- =========================================================
+         SUCCESS
+    ========================================================== -->
+  
+    <div
+      *ngIf="successMessage"
+      class="page-alert page-alert--success"
+    >
+  
+      <span class="page-alert__icon">
+        ✓
+      </span>
+  
+      <div>
+  
+        <strong>
+          Success
+        </strong>
+  
+        <p>
+          {{ successMessage }}
+        </p>
+  
+      </div>
+  
+    </div>
+  
+  
+    <!-- =========================================================
+         READ ONLY
+    ========================================================== -->
+  
+    <div
+      *ngIf="isReadOnly"
+      class="page-alert page-alert--warning"
+    >
+  
+      <span class="page-alert__icon">
+        ⚠
+      </span>
+  
+      <div>
+  
+        <strong>
+          Read-only Purchase Order
+        </strong>
+  
+        <p>
+          Only Draft Purchase Orders can be edited.
+        </p>
+  
+      </div>
+  
+    </div>
+  
+  
+    <!-- =========================================================
+         FORM
+    ========================================================== -->
+  
+    <form
+      *ngIf="!isLoading"
+      class="purchase-order-form"
+      [formGroup]="form"
+      (ngSubmit)="submit()"
+    >
+  
+      <!-- =======================================================
+           SOURCE / REFERENCES
+      ======================================================== -->
+  
+      <section class="form-card">
+  
+        <div class="form-card__header">
+  
+          <div>
+  
+            <span class="section-kicker">
+              Step 1
+            </span>
+  
+            <h2>
+              Purchase Source
+            </h2>
+  
+            <p>
+              Select the approved vendor quotation used for this Purchase Order.
+            </p>
+  
+          </div>
+  
+        </div>
+  
+  
+        <div class="form-grid form-grid--3">
+  
+          <label class="form-field form-field--wide">
+  
+            <span>
+              Selected Quotation
+              <em>
+                *
+              </em>
+            </span>
+  
+            <select
+              formControlName="quotationId"
+              [class.field-invalid]="fieldInvalid('quotationId')"
+              [disabled]="isEditMode"
+              (change)="onQuotationChange()"
+            >
+  
+              <option value="">
+                Select quotation
+              </option>
+  
+              <option
+                *ngFor="
+                  let quotation of quotations;
+                  trackBy: trackByQuotation
+                "
+                [value]="quotation._id"
+              >
+                {{
+                  quotation.quotationNumber
+                }}
+                —
+                {{
+                  quotation.rfqNumber || 'No RFQ'
+                }}
+                —
+                {{
+                  quotation.grandTotal
+                    | currency:'INR':'symbol':'1.2-2'
+                }}
+              </option>
+  
+            </select>
+  
+            <small
+              *ngIf="fieldInvalid('quotationId')"
+              class="field-error"
+            >
+              Selected quotation is required.
+            </small>
+  
+          </label>
+  
+  
+          <div class="reference-box">
+  
+            <span class="reference-box__label">
+              Purchase Request
+            </span>
+  
+            <strong>
+              {{ purchaseRequestNumber }}
+            </strong>
+  
+          </div>
+  
+  
+          <div class="reference-box">
+  
+            <span class="reference-box__label">
+              RFQ
+            </span>
+  
+            <strong>
+              {{ rfqNumber }}
+            </strong>
+  
+          </div>
+  
+        </div>
+  
+  
+        <div
+          *ngIf="selectedQuotation || purchaseOrder"
+          class="source-summary"
+        >
+  
+          <div class="source-summary__item">
+  
+            <span>
+              Vendor
+            </span>
+  
+            <strong>
+              {{ vendorName }}
+            </strong>
+  
+          </div>
+  
+  
+          <div class="source-summary__item">
+  
+            <span>
+              Quotation Total
+            </span>
+  
+            <strong>
+              {{
+                selectedQuotation?.grandTotal ||
+                purchaseOrder?.grandTotal ||
+                0
+                  | currency:'INR':'symbol':'1.2-2'
+              }}
+            </strong>
+  
+          </div>
+  
+  
+          <div class="source-summary__item">
+  
+            <span>
+              Payment Terms
+            </span>
+  
+            <strong>
+              {{
+                selectedQuotation?.paymentTerms ||
+                purchaseOrder?.paymentTerms ||
+                '—'
+              }}
+            </strong>
+  
+          </div>
+  
+  
+          <div class="source-summary__item">
+  
+            <span>
+              Valid Until
+            </span>
+  
+            <strong>
+              {{
+                selectedQuotation?.validUntil
+                  ? (
+                      selectedQuotation?.validUntil
+                        | date:'dd MMM yyyy'
+                    )
+                  : '—'
+              }}
+            </strong>
+  
+          </div>
+  
+        </div>
+  
+      </section>
+  
+  
+      <!-- =======================================================
+           PO INFORMATION
+      ======================================================== -->
+  
+      <section class="form-card">
+  
+        <div class="form-card__header">
+  
+          <div>
+  
+            <span class="section-kicker">
+              Step 2
+            </span>
+  
+            <h2>
+              Purchase Order Details
+            </h2>
+  
+            <p>
+              Set PO date, delivery warehouse and expected delivery information.
+            </p>
+  
+          </div>
+  
+        </div>
+  
+  
+        <div class="form-grid form-grid--3">
+  
+          <label class="form-field">
+  
+            <span>
+              PO Date
+              <em>
+                *
+              </em>
+            </span>
+  
+            <input
+              type="date"
+              formControlName="poDate"
+              [class.field-invalid]="fieldInvalid('poDate')"
+            />
+  
+            <small
+              *ngIf="fieldInvalid('poDate')"
+              class="field-error"
+            >
+              PO date is required.
+            </small>
+  
+          </label>
+  
+  
+          <label class="form-field">
+  
+            <span>
+              Warehouse / Delivery Location
+              <em>
+                *
+              </em>
+            </span>
+  
+            <select
+              formControlName="warehouseId"
+              [class.field-invalid]="fieldInvalid('warehouseId')"
+              (change)="onWarehouseChange()"
+            >
+  
+              <option value="">
+                Select warehouse
+              </option>
+  
+              <option
+                *ngFor="
+                  let warehouse of warehouses;
+                  trackBy: trackByWarehouse
+                "
+                [value]="warehouse._id"
+              >
+                {{ warehouse.name }}
+                <ng-container *ngIf="warehouse.code">
+                  ({{ warehouse.code }})
+                </ng-container>
+              </option>
+  
+            </select>
+  
+            <small
+              *ngIf="fieldInvalid('warehouseId')"
+              class="field-error"
+            >
+              Warehouse is required.
+            </small>
+  
+          </label>
+  
+  
+          <label class="form-field">
+  
+            <span>
+              Expected Delivery Date
+              <em>
+                *
+              </em>
+            </span>
+  
+            <input
+              type="date"
+              formControlName="expectedDeliveryDate"
+              [class.field-invalid]="fieldInvalid('expectedDeliveryDate')"
+            />
+  
+            <small
+              *ngIf="fieldInvalid('expectedDeliveryDate')"
+              class="field-error"
+            >
+              Expected delivery date is required.
+            </small>
+  
+          </label>
+  
+  
+          <label class="form-field form-field--full">
+  
+            <span>
+              Delivery Address
+              <em>
+                *
+              </em>
+            </span>
+  
+            <textarea
+              rows="3"
+              formControlName="deliveryAddress"
+              [class.field-invalid]="fieldInvalid('deliveryAddress')"
+              placeholder="Enter complete delivery address"
+            >
+            </textarea>
+  
+            <small
+              *ngIf="fieldInvalid('deliveryAddress')"
+              class="field-error"
+            >
+              Delivery address is required.
+            </small>
+  
+          </label>
+  
+        </div>
+  
+      </section>
+  
+  
+      <!-- =======================================================
+           ITEMS
+      ======================================================== -->
+  
+      <section class="form-card">
+  
+        <div class="form-card__header">
+  
+          <div>
+  
+            <span class="section-kicker">
+              Step 3
+            </span>
+  
+            <h2>
+              Ordered Items
+            </h2>
+  
+            <p>
+              Item values are taken from the selected vendor quotation.
+            </p>
+  
+          </div>
+  
+  
+          <span class="locked-source-badge">
+            Quotation Controlled
+          </span>
+  
+        </div>
+  
+  
+        <div
+          *ngIf="items.length === 0"
+          class="items-empty"
+        >
+  
+          <div class="items-empty__icon">
+            📦
+          </div>
+  
+          <strong>
+            No items loaded
+          </strong>
+  
+          <p>
+            Select a quotation to load Purchase Order items.
+          </p>
+  
+        </div>
+  
+  
+        <div
+          *ngIf="items.length > 0"
+          class="items-table-wrapper"
+          formArrayName="items"
+        >
+  
+          <table class="items-table">
+  
+            <thead>
+  
+              <tr>
+  
+                <th>
+                  Item
+                </th>
+  
+                <th>
+                  Description
+                </th>
+  
+                <th class="text-right">
+                  Qty
+                </th>
+  
+                <th>
+                  Unit
+                </th>
+  
+                <th class="text-right">
+                  Unit Price
+                </th>
+  
+                <th class="text-right">
+                  Tax %
+                </th>
+  
+                <th class="text-right">
+                  Subtotal
+                </th>
+  
+                <th class="text-right">
+                  Tax
+                </th>
+  
+                <th class="text-right">
+                  Total
+                </th>
+  
+              </tr>
+  
+            </thead>
+  
+  
+            <tbody>
+  
+              <tr
+                *ngFor="
+                  let itemControl of items.controls;
+                  let i = index;
+                  trackBy: trackByItem
+                "
+                [formGroupName]="i"
+              >
+  
+                <td>
+  
+                  <input
+                    type="text"
+                    formControlName="itemName"
+                    readonly
+                    [class.field-invalid]="itemFieldInvalid(i, 'itemName')"
+                  />
+  
+                </td>
+  
+  
+                <td>
+  
+                  <textarea
+                    rows="2"
+                    formControlName="description"
+                    readonly
+                  >
+                  </textarea>
+  
+                </td>
+  
+  
+                <td>
+  
+                  <input
+                    class="text-right"
+                    type="number"
+                    step="0.0001"
+                    min="0.0001"
+                    formControlName="orderedQuantity"
+                    readonly
+                    [class.field-invalid]="itemFieldInvalid(i, 'orderedQuantity')"
+                  />
+  
+                </td>
+  
+  
+                <td>
+  
+                  <input
+                    type="text"
+                    formControlName="unit"
+                    readonly
+                    [class.field-invalid]="itemFieldInvalid(i, 'unit')"
+                  />
+  
+                </td>
+  
+  
+                <td>
+  
+                  <input
+                    class="text-right"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    formControlName="unitPrice"
+                    readonly
+                    [class.field-invalid]="itemFieldInvalid(i, 'unitPrice')"
+                  />
+  
+                </td>
+  
+  
+                <td>
+  
+                  <input
+                    class="text-right"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max="100"
+                    formControlName="taxPercent"
+                    readonly
+                    [class.field-invalid]="itemFieldInvalid(i, 'taxPercent')"
+                  />
+  
+                </td>
+  
+  
+                <td class="amount-value">
+                  {{ formatCurrency(getItemSubtotal(i)) }}
+                </td>
+  
+  
+                <td class="amount-value">
+                  {{ formatCurrency(getItemTax(i)) }}
+                </td>
+  
+  
+                <td class="amount-value amount-value--strong">
+                  {{ formatCurrency(getItemTotal(i)) }}
+                </td>
+  
+              </tr>
+  
+            </tbody>
+  
+          </table>
+  
+        </div>
+  
+      </section>
+  
+  
+      <!-- =======================================================
+           COMMERCIALS
+      ======================================================== -->
+  
+      <section class="form-card">
+  
+        <div class="form-card__header">
+  
+          <div>
+  
+            <span class="section-kicker">
+              Step 4
+            </span>
+  
+            <h2>
+              Commercial Details
+            </h2>
+  
+            <p>
+              Confirm charges and commercial terms before saving the PO.
+            </p>
+  
+          </div>
+  
+        </div>
+  
+  
+        <div class="commercial-layout">
+  
+          <div class="commercial-fields">
+  
+            <div class="form-grid form-grid--2">
+  
+              <label class="form-field">
+  
+                <span>
+                  Freight Charges
+                </span>
+  
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  formControlName="freightCharges"
+                />
+  
+              </label>
+  
+  
+              <label class="form-field">
+  
+                <span>
+                  Other Charges
+                </span>
+  
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  formControlName="otherCharges"
+                />
+  
+              </label>
+  
+  
+              <label class="form-field form-field--full">
+  
+                <span>
+                  Payment Terms
+                </span>
+  
+                <textarea
+                  rows="3"
+                  formControlName="paymentTerms"
+                  placeholder="Enter payment terms"
+                >
+                </textarea>
+  
+              </label>
+  
+  
+              <label class="form-field form-field--full">
+  
+                <span>
+                  Remarks
+                </span>
+  
+                <textarea
+                  rows="4"
+                  formControlName="remarks"
+                  placeholder="Purchase Order remarks"
+                >
+                </textarea>
+  
+              </label>
+  
+            </div>
+  
+          </div>
+  
+  
+          <!-- ===================================================
+               TOTALS
+          ==================================================== -->
+  
+          <aside class="totals-card">
+  
+            <div class="totals-card__header">
+  
+              <span>
+                Purchase Order Summary
+              </span>
+  
+            </div>
+  
+  
+            <div class="total-row">
+  
+              <span>
+                Subtotal
+              </span>
+  
+              <strong>
+                {{ formatCurrency(subtotal) }}
+              </strong>
+  
+            </div>
+  
+  
+            <div class="total-row">
+  
+              <span>
+                Tax
+              </span>
+  
+              <strong>
+                {{ formatCurrency(taxTotal) }}
+              </strong>
+  
+            </div>
+  
+  
+            <div class="total-row">
+  
+              <span>
+                Freight
+              </span>
+  
+              <strong>
+                {{ formatCurrency(freightCharges) }}
+              </strong>
+  
+            </div>
+  
+  
+            <div class="total-row">
+  
+              <span>
+                Other Charges
+              </span>
+  
+              <strong>
+                {{ formatCurrency(otherCharges) }}
+              </strong>
+  
+            </div>
+  
+  
+            <div class="total-row total-row--grand">
+  
+              <span>
+                Grand Total
+              </span>
+  
+              <strong>
+                {{ formatCurrency(grandTotal) }}
+              </strong>
+  
+            </div>
+  
+  
+            <p class="totals-note">
+              Final amount is recalculated and validated by the backend.
+            </p>
+  
+          </aside>
+  
+        </div>
+  
+      </section>
+  
+  
+      <!-- =======================================================
+           FOOTER ACTIONS
+      ======================================================== -->
+  
+      <footer class="form-footer">
+  
+        <button
+          type="button"
+          class="nm-button nm-button--secondary"
+          [disabled]="isSaving"
+          (click)="cancel()"
+        >
+          Cancel
+        </button>
+  
+  
+        <button
+          *ngIf="!isReadOnly"
+          type="submit"
+          class="nm-button nm-button--primary"
+          [disabled]="isSaving || form.invalid"
+        >
+          {{
+            isSaving
+              ? 'Saving Purchase Order...'
+              : isEditMode
+                ? 'Update Purchase Order'
+                : 'Create Purchase Order'
+          }}
+        </button>
+  
+      </footer>
+  
+    </form>
+  
+  </section>

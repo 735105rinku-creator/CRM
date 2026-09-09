@@ -1,0 +1,424 @@
+<section class="purchase-dashboard">
+
+  <!-- =====================================================
+       LOGISTICS-STYLE PURCHASE HERO
+  ====================================================== -->
+
+  <section class="purchase-hero">
+    <div class="purchase-hero__content">
+
+      <p class="purchase-hero__eyebrow">
+        PURCHASE OPERATIONS
+      </p>
+
+      <h1>
+        {{ greeting() }},
+        <span>{{ employeeName() }}</span>
+      </h1>
+
+      <p class="purchase-hero__subtitle">
+        Track purchase requests, vendor enquiries, quotations,
+        purchase orders and goods receipts from one workspace.
+      </p>
+
+      <p class="purchase-hero__date">
+        {{ currentDate() }}
+      </p>
+
+    </div>
+
+    <div class="purchase-hero__actions">
+
+      <a
+        routerLink="/purchase/vendor-enquiries/new"
+        class="hero-action hero-action--green"
+      >
+        <span class="hero-action__icon">₹</span>
+        Vendor Enquiry
+      </a>
+
+      <a
+        routerLink="/purchase/purchase-requests/new"
+        class="hero-action hero-action--light"
+      >
+        <span class="hero-action__icon">+</span>
+        New Purchase Request
+      </a>
+
+    </div>
+  </section>
+
+
+  <!-- =====================================================
+       KPI CARDS
+  ====================================================== -->
+
+  <section class="purchase-kpis">
+
+    <a
+      *ngFor="
+        let card of summaryCards();
+        trackBy: trackByCard
+      "
+      [routerLink]="card.route"
+      class="purchase-kpi"
+    >
+
+      <div
+        class="purchase-kpi__icon"
+        [attr.data-icon]="card.icon"
+      >
+
+        <ng-container [ngSwitch]="card.icon">
+
+          <!-- PURCHASE REQUEST -->
+
+          <svg
+            *ngSwitchCase="'request'"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              d="M7 3h8l4 4v14H5V3h2Zm7 1.5V8h3.5L14 4.5ZM8 12h8v2H8v-2Zm0 4h8v2H8v-2Z"
+            />
+          </svg>
+
+
+          <!-- QUOTATION -->
+
+          <svg
+            *ngSwitchCase="'quotation'"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              d="M5 3h14v18H5V3Zm3 4v2h8V7H8Zm0 4v2h8v-2H8Zm0 4v2h5v-2H8Z"
+            />
+          </svg>
+
+
+          <!-- PURCHASE ORDER -->
+
+          <svg
+            *ngSwitchCase="'order'"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              d="M7 3h10v3h3v15H4V6h3V3Zm2 3h6V5H9v1Zm-2 4v2h10v-2H7Zm0 4v2h7v-2H7Z"
+            />
+          </svg>
+
+
+          <!-- GOODS RECEIPT -->
+
+          <svg
+            *ngSwitchCase="'receipt'"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              d="M4 5h5V3h6v2h5v16H4V5Zm7 0v2h2V5h-2ZM8 11v2h8v-2H8Zm0 4v2h6v-2H8Z"
+            />
+          </svg>
+
+
+          <!-- DELIVERY -->
+
+          <svg
+            *ngSwitchCase="'delivery'"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              d="M3 5h11v10h2.2l1.8-3H21v6h-2.2a3 3 0 0 1-5.6 0H9.8a3 3 0 0 1-5.6 0H3V5Zm13 9h1l1-1.5h1V16h-3v-2ZM7 16.5A1.5 1.5 0 1 0 7 19.5a1.5 1.5 0 0 0 0-3Zm9 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z"
+            />
+          </svg>
+
+
+          <!-- VENDOR -->
+
+          <svg
+            *ngSwitchCase="'vendor'"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              d="M12 3a4 4 0 1 1 0 8 4 4 0 0 1 0-8Zm-7 17c0-4 3.1-7 7-7s7 3 7 7v1H5v-1Z"
+            />
+          </svg>
+
+        </ng-container>
+
+      </div>
+
+
+      <div class="purchase-kpi__content">
+
+        <span class="purchase-kpi__label">
+          {{ card.label }}
+        </span>
+
+        <strong class="purchase-kpi__value">
+          {{ card.value }}
+        </strong>
+
+        <small class="purchase-kpi__caption">
+          {{ card.caption }}
+        </small>
+
+      </div>
+
+      <span class="purchase-kpi__arrow">
+        ↗
+      </span>
+
+    </a>
+
+  </section>
+
+
+  <!-- =====================================================
+       QUICK ACTIONS
+  ====================================================== -->
+
+  <section class="purchase-workspace-panel">
+
+    <header class="purchase-workspace-panel__header">
+
+      <div>
+        <p>WORKSPACE</p>
+
+        <h2>
+          Quick Actions
+        </h2>
+      </div>
+
+      <span>
+        Frequently used purchase operations
+      </span>
+
+    </header>
+
+
+    <div class="purchase-quick-actions">
+
+      <a
+        *ngFor="
+          let action of quickActions;
+          trackBy: trackByAction
+        "
+        [routerLink]="action.route"
+        class="purchase-quick-action"
+      >
+
+        <div
+          class="purchase-quick-action__icon"
+          [attr.data-icon]="action.icon"
+        >
+
+          <ng-container [ngSwitch]="action.icon">
+
+            <svg
+              *ngSwitchCase="'request'"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                d="M7 3h8l4 4v14H5V3h2Zm7 1.5V8h3.5L14 4.5ZM8 12h8v2H8v-2Zm0 4h8v2H8v-2Z"
+              />
+            </svg>
+
+            <svg
+              *ngSwitchCase="'enquiry'"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                d="M4 4h16v12H7l-3 3V4Zm3 4v2h10V8H7Zm0 4v2h7v-2H7Z"
+              />
+            </svg>
+
+            <svg
+              *ngSwitchCase="'quotation'"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                d="M5 3h14v18H5V3Zm3 4v2h8V7H8Zm0 4v2h8v-2H8Zm0 4v2h5v-2H8Z"
+              />
+            </svg>
+
+            <svg
+              *ngSwitchCase="'order'"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                d="M7 3h10v3h3v15H4V6h3V3Zm2 3h6V5H9v1Zm-2 4v2h10v-2H7Zm0 4v2h7v-2H7Z"
+              />
+            </svg>
+
+            <svg
+              *ngSwitchCase="'receipt'"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                d="M4 5h5V3h6v2h5v16H4V5Zm7 0v2h2V5h-2ZM8 11v2h8v-2H8Zm0 4v2h6v-2H8Z"
+              />
+            </svg>
+
+            <svg
+              *ngSwitchCase="'vendor'"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                d="M12 3a4 4 0 1 1 0 8 4 4 0 0 1 0-8Zm-7 17c0-4 3.1-7 7-7s7 3 7 7v1H5v-1Z"
+              />
+            </svg>
+
+          </ng-container>
+
+        </div>
+
+
+        <strong>
+          {{ action.label }}
+        </strong>
+
+        <span>
+          {{ action.description }}
+        </span>
+
+      </a>
+
+    </div>
+
+  </section>
+
+
+  <!-- =====================================================
+       RECENT PURCHASE ACTIVITY
+  ====================================================== -->
+
+  <section class="purchase-activity-panel">
+
+    <header class="purchase-activity-panel__header">
+
+      <div>
+        <p>OPERATIONS</p>
+        <h2>Recent Purchase Activity</h2>
+      </div>
+
+      <a routerLink="/purchase/reports">
+        View Reports
+        <span>→</span>
+      </a>
+
+    </header>
+
+
+    <div
+      *ngIf="
+        recentActivity().length > 0;
+        else emptyPurchaseActivity
+      "
+      class="purchase-activity-table-wrap"
+    >
+
+      <table class="purchase-activity-table">
+
+        <thead>
+          <tr>
+            <th>Reference</th>
+            <th>Type</th>
+            <th>Vendor</th>
+            <th>Status</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          <tr
+            *ngFor="
+              let activity of recentActivity();
+              trackBy: trackByActivity
+            "
+          >
+
+            <td>
+              <strong>
+                {{ activity.reference }}
+              </strong>
+            </td>
+
+            <td>
+              {{ activity.type }}
+            </td>
+
+            <td>
+              {{ activity.vendor }}
+            </td>
+
+            <td>
+              <span class="purchase-status">
+                {{ activity.status }}
+              </span>
+            </td>
+
+            <td>
+              {{ activity.date }}
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+
+    <ng-template #emptyPurchaseActivity>
+
+      <div class="purchase-empty-state">
+
+        <div class="purchase-empty-state__icon">
+          <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              d="M5 3h14v18H5V3Zm3 4v2h8V7H8Zm0 4v2h8v-2H8Zm0 4v2h5v-2H8Z"
+            />
+          </svg>
+        </div>
+
+        <div>
+          <strong>
+            No purchase activity yet
+          </strong>
+
+          <p>
+            Purchase requests, vendor enquiries, quotations,
+            purchase orders and GRNs will appear here.
+          </p>
+        </div>
+
+        <a
+          routerLink="/purchase/purchase-requests/new"
+          class="purchase-empty-state__button"
+        >
+          + New Purchase Request
+        </a>
+
+      </div>
+
+    </ng-template>
+
+  </section>
+
+</section>

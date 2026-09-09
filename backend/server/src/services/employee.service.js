@@ -1200,6 +1200,15 @@ export const updateEmployeeService = async (currentUser, id, payload) => {
 
   ensureSameCompany(currentUser, employee);
 
+  /*
+   * IMPORTANT:
+   * createLoginAccount and password are helper fields.
+   * resolveEmployeeReferences() removes them before Employee update,
+   * so capture them before resolving the normal employee payload.
+   */
+  const shouldCreateLoginAccount = payload.createLoginAccount === true;
+  const loginPassword = payload.password;
+
   const resolvedPayload = await resolveEmployeeReferences(companyId, payload, {
     partial: true,
   });
@@ -1208,21 +1217,113 @@ export const updateEmployeeService = async (currentUser, id, payload) => {
     resolvedPayload.reportingManagerId &&
     resolvedPayload.reportingManagerId.toString() === employee._id.toString()
   ) {
-    throw new ApiError(400, "Employee cannot be their own reporting manager.");
+    throw new ApiError(
+      400,
+      "Employee cannot be their own reporting manager."
+    );
   }
 
-  await ensureNoDuplicates(companyId, resolvedPayload, employee._id);
+  await ensureNoDuplicates(
+    companyId,
+    resolvedPayload,
+    employee._id
+  );
 
-  const updated = await updateEmployeeById(id, {
+  /*
+   * Always update the existing Employee record first.
+   * This means an employee profile remains independent from
+   * whether a login account exists or not.
+   */
+  let updated = await updateEmployeeById(id, {
     ...resolvedPayload,
     updatedBy: currentUser._id,
   });
 
-  if (Object.prototype.hasOwnProperty.call(resolvedPayload, "reportingManagerId")) {
+  if (!updated) {
+    throw new ApiError(404, "Employee not found.");
+  }
+
+  /*
+   * Keep an already-linked login account's reporting manager
+   * synchronized when reporting manager changes.
+   */
+  if (
+    Object.prototype.hasOwnProperty.call(
+      resolvedPayload,
+      "reportingManagerId"
+    ) &&
+    updated.userId
+  ) {
     await syncUserReportingTo({
       employee: updated,
       reportingManagerId: resolvedPayload.reportingManagerId,
       updatedBy: currentUser._id,
+    });
+  }
+
+  /*
+   * HR may initially create only an Employee profile.
+   *
+   * Later, while editing the same employee, HR can tick
+   * "Create Login Account" and provide a password.
+   *
+   * We must create/link the login account to THIS employee,
+   * not create another Employee.
+   */
+  if (shouldCreateLoginAccount) {
+    /*
+     * If this employee already has a linked User account,
+     * don't create another login account.
+     */
+    if (updated.userId) {
+      return {
+        ...toPlainEmployee(updated),
+        loginAccountCreated: false,
+        loginAccountAlreadyExists: true,
+      };
+    }
+
+    const officialEmail =
+      updated.officialEmail ||
+      resolvedPayload.officialEmail ||
+      employee.officialEmail;
+
+    if (!officialEmail) {
+      throw new ApiError(
+        400,
+        "Official email is required to create employee login account."
+      );
+    }
+
+    if (!loginPassword) {
+      throw new ApiError(
+        400,
+        "Password is required to create employee login account."
+      );
+    }
+
+    /*
+     * Reuse the existing account creation/linking logic.
+     * It already:
+     * - checks existing User by email
+     * - enforces same company
+     * - prevents linking another role/company
+     * - hashes password
+     * - creates Employee-role User
+     * - links User -> Employee
+     * - links Employee -> User
+     * - sends welcome email for a newly-created User
+     */
+    updated = await createOrLinkEmployeeLoginAccount({
+      currentUser,
+      companyId,
+      employee: updated,
+      finalPayload: {
+        ...toPlainEmployee(updated),
+        officialEmail,
+      },
+      password: loginPassword,
+      rollbackEmployeeOnFailure: false,
     });
   }
 
