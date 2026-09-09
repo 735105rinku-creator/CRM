@@ -3,6 +3,7 @@ import {
 } from '@angular/common';
 
 import {
+  ChangeDetectorRef,
   Component,
   OnInit
 } from '@angular/core';
@@ -152,7 +153,10 @@ export class GoodsReceiptsComponent
       GoodsReceiptService,
 
     private readonly router:
-      Router
+      Router,
+
+    private readonly cdr:
+      ChangeDetectorRef
   ) {}
 
 
@@ -193,6 +197,9 @@ export class GoodsReceiptsComponent
 
             this.loading =
               false;
+
+            this.cdr
+              .markForCheck();
 
           }
         )
@@ -297,6 +304,9 @@ export class GoodsReceiptsComponent
 
             this.statusCountsLoading =
               false;
+
+            this.cdr
+              .markForCheck();
 
           }
         )

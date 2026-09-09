@@ -187,7 +187,29 @@ h2 {
 }
 
 .form-check-input {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 1px solid #9fb7d2 !important;
+  border-radius: 6px !important;
+  background: #ffffff !important;
+  box-shadow: inset 2px 2px 5px rgba(148, 163, 184, 0.16) !important;
+  cursor: pointer;
   margin: 0;
+}
+
+.form-check-input:checked {
+  border-color: #3157d5 !important;
+  background-color: #3157d5 !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.2' d='m3.5 8 3 3 6-6'/%3E%3C/svg%3E") !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-size: 14px 14px !important;
+}
+
+.form-check-input:focus-visible {
+  outline: 3px solid rgba(49, 87, 213, 0.2);
+  outline-offset: 2px;
 }
 
 .btn {

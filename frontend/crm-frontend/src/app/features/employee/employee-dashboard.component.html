@@ -831,7 +831,7 @@
               }
             </div>
           </div>
-          <button class="submit-btn span-2" type="submit" [disabled]="meetingForm.invalid || isMeetingSaving()">Create video meeting room</button>
+          <button class="submit-btn span-2 meeting-create-action" type="submit" [disabled]="meetingForm.invalid || isMeetingSaving()">Create video meeting room</button>
         </form>
         <div class="meeting-card-grid">
           @for (meeting of meetings(); track meeting._id || meeting.meetingTitle) {

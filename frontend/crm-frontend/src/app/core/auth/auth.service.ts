@@ -61,6 +61,9 @@ export class AuthService {
   private readonly accessTokenKey = 'accessToken';
   private readonly refreshTokenKey = 'refreshToken';
   private readonly userKey = 'user';
+  private readonly rememberSessionKey = 'rememberSession';
+  private memoryAccessToken: string | null = null;
+  private memoryRefreshToken: string | null = null;
   private readonly isBrowser: boolean;
 
   readonly currentUser = signal<User | JwtUserPayload | null>(null);
@@ -71,17 +74,25 @@ export class AuthService {
     @Inject(PLATFORM_ID) platformId: object
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
+
+    if (this.isBrowser) {
+      localStorage.removeItem(this.accessTokenKey);
+      localStorage.removeItem(this.refreshTokenKey);
+      sessionStorage.removeItem(this.accessTokenKey);
+      sessionStorage.removeItem(this.refreshTokenKey);
+    }
+
     this.currentUser.set(this.loadStoredUser());
   }
 
-  login(email: string, password: string, role = 'company_admin'): Observable<AuthResponse> {
+  login(email: string, password: string, role = 'company_admin', rememberMe = false): Observable<AuthResponse> {
     if (this.isDemoLogin(email, password)) {
-      return of(this.createDemoSession(role)).pipe(tap((response) => this.storeSession(response)));
+      return of(this.createDemoSession(role)).pipe(tap((response) => this.storeSession(response, rememberMe)));
     }
 
-    return this.http.post<ApiResponse<AuthResponse> | AuthResponse>(apiUrl('/auth/login'), { email, password, role }, { withCredentials: true }).pipe(
+    return this.http.post<ApiResponse<AuthResponse> | AuthResponse>(apiUrl('/auth/login'), { email, password, role, rememberMe }, { withCredentials: true }).pipe(
       map((response) => this.unwrapAuthResponse(response)),
-      tap((response) => this.storeSession(response))
+      tap((response) => this.storeSession(response, rememberMe))
     );
   }
 
@@ -92,7 +103,7 @@ export class AuthService {
       .post<ApiResponse<CompanyRegistrationResponse>>(apiUrl('/auth/register-company'), body, { withCredentials: true })
       .pipe(tap((response) => {
         if (response.data?.accessToken || response.data?.user) {
-          this.storeSession(this.unwrapAuthResponse(response.data));
+          this.storeSession(this.unwrapAuthResponse(response.data), false);
         }
       }));
   }
@@ -102,25 +113,38 @@ export class AuthService {
       localStorage.removeItem(this.accessTokenKey);
       localStorage.removeItem(this.refreshTokenKey);
       localStorage.removeItem(this.userKey);
+      localStorage.removeItem(this.rememberSessionKey);
+      sessionStorage.removeItem(this.accessTokenKey);
+      sessionStorage.removeItem(this.refreshTokenKey);
+      sessionStorage.removeItem(this.userKey);
     }
 
     this.currentUser.set(null);
+    this.memoryAccessToken = null;
+    this.memoryRefreshToken = null;
 
-    if (redirect) {
-      void this.router.navigate(['/login']);
-    }
+    this.http
+      .post(apiUrl('/auth/logout'), {}, { withCredentials: true })
+      .subscribe({
+        next: () => {
+          if (redirect) void this.router.navigate(['/login']);
+        },
+        error: () => {
+          if (redirect) void this.router.navigate(['/login']);
+        }
+      });
   }
 
   refreshToken(): Observable<AuthResponse> {
     return this.http
       .post<ApiResponse<AuthResponse> | AuthResponse>(
         apiUrl('/auth/refresh-token'),
-        { refreshToken: this.getRefreshToken() },
+        { rememberMe: this.shouldRememberSession() },
         { withCredentials: true }
       )
       .pipe(
         map((response) => this.unwrapAuthResponse(response)),
-        tap((response) => this.storeSession(response))
+        tap((response) => this.storeSession(response, this.shouldRememberSession()))
       );
   }
 
@@ -135,7 +159,7 @@ export class AuthService {
     this.currentUser.set(next);
 
     if (this.isBrowser) {
-      localStorage.setItem(this.userKey, JSON.stringify(next));
+      this.sessionStorage().setItem(this.userKey, JSON.stringify(next));
     }
   }
 
@@ -309,11 +333,11 @@ export class AuthService {
   }
 
   getAccessToken(): string | null {
-    return this.isBrowser ? localStorage.getItem(this.accessTokenKey) : null;
+    return this.memoryAccessToken;
   }
 
   getRefreshToken(): string | null {
-    return this.isBrowser ? localStorage.getItem(this.refreshTokenKey) : null;
+    return this.memoryRefreshToken;
   }
 
   private unwrapAuthResponse(response: ApiResponse<AuthResponse> | AuthResponse): AuthResponse {
@@ -412,25 +436,29 @@ export class AuthService {
     ];
   }
 
-  private storeSession(response: AuthResponse): void {
+  private storeSession(response: AuthResponse, rememberMe: boolean): void {
     if (!this.isBrowser) {
       return;
     }
 
-    if (response.accessToken) {
-      localStorage.setItem(this.accessTokenKey, response.accessToken);
-    } else {
-      localStorage.removeItem(this.accessTokenKey);
-    }
+    localStorage.removeItem(this.accessTokenKey);
+    localStorage.removeItem(this.refreshTokenKey);
+    sessionStorage.removeItem(this.accessTokenKey);
+    sessionStorage.removeItem(this.refreshTokenKey);
 
-    if (response.refreshToken) {
-      localStorage.setItem(this.refreshTokenKey, response.refreshToken);
+    this.memoryAccessToken = response.accessToken || null;
+    this.memoryRefreshToken = response.refreshToken || null;
+
+    if (rememberMe) {
+      localStorage.setItem(this.rememberSessionKey, 'true');
     } else {
-      localStorage.removeItem(this.refreshTokenKey);
+      localStorage.removeItem(this.rememberSessionKey);
     }
 
     if (response.user) {
-      localStorage.setItem(this.userKey, JSON.stringify(response.user));
+      localStorage.removeItem(this.userKey);
+      sessionStorage.removeItem(this.userKey);
+      this.sessionStorage(rememberMe).setItem(this.userKey, JSON.stringify(response.user));
       this.currentUser.set(response.user);
     }
   }
@@ -440,7 +468,8 @@ export class AuthService {
       return null;
     }
 
-    const storedUser = localStorage.getItem(this.userKey);
+    const storage = this.sessionStorage();
+    const storedUser = storage.getItem(this.userKey);
 
     if (!storedUser) {
       return null;
@@ -449,9 +478,17 @@ export class AuthService {
     try {
       return this.normalizeUser(JSON.parse(storedUser) as User & { _id?: string; companyId?: string | Company });
     } catch {
-      localStorage.removeItem(this.userKey);
+      storage.removeItem(this.userKey);
       return null;
     }
+  }
+
+  private shouldRememberSession(): boolean {
+    return this.isBrowser && localStorage.getItem(this.rememberSessionKey) === 'true';
+  }
+
+  private sessionStorage(rememberMe = this.shouldRememberSession()): Storage {
+    return rememberMe ? localStorage : window.sessionStorage;
   }
 
   private decodeAccessToken(): JwtUserPayload | null {

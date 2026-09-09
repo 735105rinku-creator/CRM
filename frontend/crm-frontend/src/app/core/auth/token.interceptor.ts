@@ -76,6 +76,7 @@ function handleUnauthorizedError(
 function isAuthEndpoint(url: string): boolean {
   return (
     url.includes(apiUrl('/auth/login')) ||
+    url.includes(apiUrl('/auth/logout')) ||
     url.includes(apiUrl('/auth/register-company')) ||
     url.includes(apiUrl('/auth/refresh-token')) ||
     url.includes(apiUrl('/auth/forgot-password')) ||

@@ -496,6 +496,8 @@
 ========================================================= */
 
 .purchase-notifications__item {
+  width: 100%;
+
   display: grid;
 
   grid-template-columns:
@@ -509,9 +511,21 @@
   margin: 0;
   padding: 13px 6px;
 
+  border: 0;
   border-bottom: 1px solid #dce4ec;
 
   background: transparent;
+
+  font: inherit;
+  text-align: left;
+
+  cursor: pointer;
+
+  transition: background 0.15s ease;
+}
+
+.purchase-notifications__item:hover {
+  background: rgba(255, 255, 255, 0.48);
 }
 
 .purchase-notifications__item:last-child {

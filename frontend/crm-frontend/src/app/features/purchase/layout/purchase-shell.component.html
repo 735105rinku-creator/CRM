@@ -178,14 +178,16 @@
             class="purchase-notifications__list"
           >
 
-            <article
+            <button
               *ngFor="
                 let notification of notifications()
               "
+              type="button"
               class="purchase-notifications__item"
               [class.purchase-notifications__item--read]="
                 notification.isRead
               "
+              (click)="openNotification(notification)"
             >
 
               <span
@@ -221,7 +223,7 @@
 
               </div>
 
-            </article>
+            </button>
 
           </div>
 

@@ -997,6 +997,21 @@
   grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
 }
 
+.meeting-create-panel .meeting-create-action {
+  align-self: start;
+  justify-self: end;
+  width: min(100%, 240px);
+  min-height: 44px;
+  max-height: 44px;
+  border-radius: 10px;
+  box-shadow: 0 8px 18px rgba(16, 185, 129, 0.18);
+}
+
+.meeting-create-panel .meeting-create-action:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(16, 185, 129, 0.24);
+}
+
 .meeting-create-panel .invite-picker {
   background: linear-gradient(135deg, #ffffff, #eef2ff 52%, #ecfdf5);
   border: 1px solid rgba(99, 102, 241, 0.22);
@@ -1093,6 +1108,11 @@
 }
 
 @media (max-width: 760px) {
+  .meeting-create-panel .meeting-create-action {
+    justify-self: stretch;
+    width: 100%;
+  }
+
   .employee-crm-panel .form-grid label,
   .employee-crm-panel .form-grid label.full,
   .employee-crm-panel .form-grid label.checkbox-row,

@@ -88,6 +88,7 @@ interface PurchaseNotification {
   message?: string;
   createdAt?: string;
   isRead?: boolean;
+  actionUrl?: string;
 }
 
 interface PurchaseSearchItem {
@@ -538,6 +539,45 @@ export class PurchaseShellComponent {
       ['/purchase/employee'],
       { queryParams: { feature: 'notifications' } }
     );
+  }
+
+
+  openNotification(notification: PurchaseNotification): void {
+    const navigate = () => {
+      this.notificationOpen.set(false);
+
+      if (notification.actionUrl?.startsWith('/')) {
+        void this.router.navigateByUrl(notification.actionUrl);
+      }
+    };
+
+    if (!notification._id || notification.isRead) {
+      navigate();
+      return;
+    }
+
+    this.api
+      .patch<PurchaseNotification>(
+        `/hr/communication/notifications/${encodeURIComponent(notification._id)}/read`,
+        {}
+      )
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.notifications.update(rows =>
+            rows.map(row =>
+              row._id === notification._id
+                ? { ...row, isRead: true }
+                : row
+            )
+          );
+          this.unreadNotificationCount.update(count =>
+            Math.max(0, count - 1)
+          );
+          navigate();
+        },
+        error: navigate
+      });
   }
 
 

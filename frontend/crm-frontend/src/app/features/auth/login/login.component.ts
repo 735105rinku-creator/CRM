@@ -26,7 +26,7 @@ export class LoginComponent {
     email: ['', [Validators.required]],
     password: ['', [Validators.required]],
     role: ['hr', [Validators.required]],
-    rememberMe: [true]
+    rememberMe: [false]
   });
 
   constructor() {
@@ -37,6 +37,8 @@ export class LoginComponent {
     if (email) {
       this.loginForm.controls.email.setValue(email);
     }
+
+    this.loginForm.controls.rememberMe.setValue(Boolean(rememberedEmail));
 
     if (this.route.snapshot.queryParamMap.get('registered') === '1') {
       this.successMessage.set('Company registered successfully. Login with the admin email and password you just created.');
@@ -71,7 +73,7 @@ export class LoginComponent {
     this.isLoading.set(true);
     this.errorMessage.set('');
 
-    this.authService.login(email, password, role).subscribe({
+    this.authService.login(email, password, role, rememberMe).subscribe({
       next: (response) => {
         if (!this.matchesSelectedRole(response, role)) {
           this.authService.logout(false);
