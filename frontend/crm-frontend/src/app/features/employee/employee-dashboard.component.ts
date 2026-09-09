@@ -661,7 +661,10 @@ export class EmployeeDashboardComponent implements OnDestroy {
 
   protected isLogisticsEmbedded(): boolean {
     const path = this.router.url.split('?')[0].split('#')[0];
-    return path === '/logistics/employee';
+    return (
+      path === '/logistics/employee' ||
+      path === '/accounts/employee'
+    );
   }
 
   protected refreshDashboard(): void {

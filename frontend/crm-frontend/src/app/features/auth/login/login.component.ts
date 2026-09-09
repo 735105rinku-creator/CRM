@@ -92,6 +92,7 @@ export class LoginComponent {
         const requestedReturnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
         const shouldIgnoreReturnUrl =
           role === 'hr' ||
+          role === 'company_admin' ||
           !requestedReturnUrl ||
           requestedReturnUrl === '/dashboard' ||
           requestedReturnUrl === '/login';
