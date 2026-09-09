@@ -215,7 +215,7 @@
   border-radius: 999px;
 
   color: #ffffff;
-  background: #d84c58;
+  background: #374151;
 
   font-size: 8px !important;
   font-weight: 900 !important;
@@ -223,7 +223,7 @@
 
   box-shadow:
     0 2px 5px
-    rgba(184, 52, 63, 0.24);
+    rgba(55, 65, 81, 0.18);
 }
 
 /* =========================================================
@@ -351,16 +351,11 @@
   border: 1px solid #d5dee8;
   border-radius: 18px;
 
-  background:
-    linear-gradient(
-      145deg,
-      #f8fafc,
-      #edf2f7
-    );
+  background: #ffffff;
 
   box-shadow:
     0 20px 45px
-    rgba(15, 23, 42, 0.17);
+    rgba(15, 23, 42, 0.12);
 }
 
 /* =========================================================
@@ -430,12 +425,7 @@
 
   color: #526174;
 
-  background:
-    linear-gradient(
-      145deg,
-      #ffffff,
-      #edf2f6
-    );
+  background: #ffffff !important;
 
   font-family: inherit;
   font-size: 16px;
@@ -454,7 +444,7 @@
   transform: scale(1.04);
 
   color: #1f2937;
-  background: #ffffff;
+  background: #f7f7f7 !important;
 }
 
 /* =========================================================
@@ -514,7 +504,9 @@
   border: 0;
   border-bottom: 1px solid #dce4ec;
 
-  background: transparent;
+  background: #ffffff !important;
+
+  box-shadow: none !important;
 
   font: inherit;
   text-align: left;
@@ -525,14 +517,14 @@
 }
 
 .purchase-notifications__item:hover {
-  background: rgba(255, 255, 255, 0.48);
+  background: #f7f7f7 !important;
 }
 
 .purchase-notifications__item:last-child {
   border-bottom: 0;
 }
 
-/* Green status dot */
+/* Neutral unread status dot */
 
 .purchase-notifications__status {
   width: 9px;
@@ -544,17 +536,17 @@
 
   border-radius: 50%;
 
-  background: #43a37d;
+  background: #4b5563;
 
   box-shadow:
     0 0 0 2px
-    rgba(67, 163, 125, 0.06);
+    rgba(75, 85, 99, 0.08);
 }
 
 /* Read notification */
 
 .purchase-notifications__status.read {
-  background: #b8c3cf;
+  background: #d1d5db;
 
   box-shadow: none;
 }
@@ -650,14 +642,14 @@
   border-radius: 50%;
 
   color: #ffffff;
-  background: #43a37d;
+  background: #4b5563;
 
   font-size: 13px;
   font-weight: 900;
 
   box-shadow:
     0 5px 12px
-    rgba(67, 163, 125, 0.16);
+    rgba(75, 85, 99, 0.14);
 }
 
 .purchase-notifications__empty > strong {
@@ -697,10 +689,11 @@
   border: 0;
   border-top: 1px solid #dce4ec;
 
-  color: #526174;
+  color: #374151 !important;
 
-  background:
-    rgba(255, 255, 255, 0.34);
+  background: #ffffff !important;
+
+  box-shadow: none !important;
 
   font-family: inherit;
   font-size: 10.5px;
@@ -714,10 +707,9 @@
 }
 
 .purchase-notifications__all:hover {
-  color: #3157d5;
+  color: #111827 !important;
 
-  background:
-    rgba(255, 255, 255, 0.72);
+  background: #f7f7f7 !important;
 }
 
 .purchase-notifications__all-arrow {

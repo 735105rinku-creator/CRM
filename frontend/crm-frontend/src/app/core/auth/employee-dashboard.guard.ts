@@ -126,6 +126,49 @@ function hasAccountsDepartment(
   });
 }
 
+function hasPurchaseDepartment(
+  values: Array<DepartmentRef | string | null | undefined>
+): boolean {
+  return values
+    .flatMap((value) => {
+      if (!value) return [];
+      if (typeof value === 'string') return [value];
+
+      const department = value as DepartmentRef & {
+        name?: string;
+        departmentName?: string;
+        code?: string;
+        slug?: string;
+        featureKey?: string;
+        dashboardKey?: string;
+        accessModules?: string[];
+      };
+
+      return [
+        department.featureKey,
+        department.dashboardKey,
+        department.code,
+        department.slug,
+        department.name,
+        department.departmentName,
+        ...(Array.isArray(department.accessModules)
+          ? department.accessModules
+          : [])
+      ];
+    })
+    .map((value) => String(value || '').trim().toLowerCase())
+    .filter(Boolean)
+    .some((value) =>
+      value === 'purchase' ||
+      value === 'purchases' ||
+      value === 'purchasing' ||
+      value === 'purchase-department' ||
+      value === 'purchase department' ||
+      value === 'purchase_department' ||
+      /\bpurchas(e|ing|es)?\b/i.test(value)
+    );
+}
+
 export const employeeDashboardGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const api = inject(ApiService);
@@ -194,6 +237,16 @@ export const employeeDashboardGuard: CanActivateFn = () => {
 
         /*
          * Priority 2:
+         * Purchase employees keep their dedicated Purchase workspace.
+         */
+        if (hasPurchaseDepartment(departmentValues)) {
+          return router.createUrlTree([
+            '/purchase/dashboard'
+          ]);
+        }
+
+        /*
+         * Priority 3:
          * Accounts employee / Accountant employee.
          */
         if (hasAccountsDepartment(departmentValues)) {
