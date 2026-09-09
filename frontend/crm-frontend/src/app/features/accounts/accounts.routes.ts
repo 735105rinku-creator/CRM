@@ -55,10 +55,10 @@ export const ACCOUNTS_ROUTES: Routes = [
 
         loadComponent: () =>
           import(
-            './pages/placeholder/accounts-placeholder.component'
+            './pages/customers/customers.component'
           ).then(
             (module) =>
-              module.AccountsPlaceholderComponent
+              module.CustomersComponent
           ),
 
         data: {
@@ -75,10 +75,10 @@ export const ACCOUNTS_ROUTES: Routes = [
 
         loadComponent: () =>
           import(
-            './pages/placeholder/accounts-placeholder.component'
+            './pages/vendors/vendors.component'
           ).then(
             (module) =>
-              module.AccountsPlaceholderComponent
+              module.VendorsComponent
           ),
 
         data: {
@@ -116,10 +116,10 @@ export const ACCOUNTS_ROUTES: Routes = [
 
         loadComponent: () =>
           import(
-            './pages/placeholder/accounts-placeholder.component'
+            './pages/sales-invoices/sales-invoices.component'
           ).then(
             (module) =>
-              module.AccountsPlaceholderComponent
+              module.SalesInvoicesComponent
           ),
 
         data: {
@@ -136,10 +136,10 @@ export const ACCOUNTS_ROUTES: Routes = [
 
         loadComponent: () =>
           import(
-            './pages/placeholder/accounts-placeholder.component'
+            './pages/voucher-entry/voucher-entry.component'
           ).then(
             (module) =>
-              module.AccountsPlaceholderComponent
+              module.VoucherEntryComponent
           ),
 
         data: {
@@ -147,7 +147,8 @@ export const ACCOUNTS_ROUTES: Routes = [
           section: 'Accounts',
           feature: 'receipts',
           description:
-            'Customer payments and money received.'
+            'Customer payments and money received.',
+          voucherType: 'receipt'
         }
       },
 
@@ -156,10 +157,10 @@ export const ACCOUNTS_ROUTES: Routes = [
 
         loadComponent: () =>
           import(
-            './pages/placeholder/accounts-placeholder.component'
+            './pages/voucher-entry/voucher-entry.component'
           ).then(
             (module) =>
-              module.AccountsPlaceholderComponent
+              module.VoucherEntryComponent
           ),
 
         data: {
@@ -167,7 +168,8 @@ export const ACCOUNTS_ROUTES: Routes = [
           section: 'Accounts',
           feature: 'credit-notes',
           description:
-            'Customer credit adjustments and returns.'
+            'Customer credit adjustments and returns.',
+          voucherType: 'credit_note'
         }
       },
 
@@ -180,10 +182,10 @@ export const ACCOUNTS_ROUTES: Routes = [
 
         loadComponent: () =>
           import(
-            './pages/placeholder/accounts-placeholder.component'
+            './pages/purchase-bills/purchase-bills.component'
           ).then(
             (module) =>
-              module.AccountsPlaceholderComponent
+              module.PurchaseBillsComponent
           ),
 
         data: {
@@ -200,10 +202,10 @@ export const ACCOUNTS_ROUTES: Routes = [
 
         loadComponent: () =>
           import(
-            './pages/placeholder/accounts-placeholder.component'
+            './pages/voucher-entry/voucher-entry.component'
           ).then(
             (module) =>
-              module.AccountsPlaceholderComponent
+              module.VoucherEntryComponent
           ),
 
         data: {
@@ -211,7 +213,8 @@ export const ACCOUNTS_ROUTES: Routes = [
           section: 'Accounts',
           feature: 'payments',
           description:
-            'Payments made to suppliers, vendors and other parties.'
+            'Payments made to suppliers, vendors and other parties.',
+          voucherType: 'payment'
         }
       },
 
@@ -220,10 +223,10 @@ export const ACCOUNTS_ROUTES: Routes = [
 
         loadComponent: () =>
           import(
-            './pages/placeholder/accounts-placeholder.component'
+            './pages/voucher-entry/voucher-entry.component'
           ).then(
             (module) =>
-              module.AccountsPlaceholderComponent
+              module.VoucherEntryComponent
           ),
 
         data: {
@@ -231,7 +234,8 @@ export const ACCOUNTS_ROUTES: Routes = [
           section: 'Accounts',
           feature: 'debit-notes',
           description:
-            'Vendor debit adjustments and purchase returns.'
+            'Vendor debit adjustments and purchase returns.',
+          voucherType: 'debit_note'
         }
       },
 
@@ -244,10 +248,10 @@ export const ACCOUNTS_ROUTES: Routes = [
 
         loadComponent: () =>
           import(
-            './pages/placeholder/accounts-placeholder.component'
+            './pages/expense-register/expense-register.component'
           ).then(
             (module) =>
-              module.AccountsPlaceholderComponent
+              module.ExpenseRegisterComponent
           ),
 
         data: {
@@ -255,7 +259,7 @@ export const ACCOUNTS_ROUTES: Routes = [
           section: 'Accounts',
           feature: 'expenses',
           description:
-            'Company expenses and expense approvals.'
+            'Read-only operational expense register and expense review.'
         }
       },
 
@@ -283,39 +287,91 @@ export const ACCOUNTS_ROUTES: Routes = [
 
       {
         path: 'journal',
-        pathMatch: 'full',
-        redirectTo: 'journal-entries'
+
+        loadComponent: () =>
+          import(
+            './pages/voucher-entry/voucher-entry.component'
+          ).then(
+            (module) =>
+              module.VoucherEntryComponent
+          ),
+
+        data: {
+          title: 'Journal Vouchers',
+          section: 'Accounts',
+          feature: 'journal-vouchers',
+          description:
+            'Tally-style journal vouchers and balanced accounting entries.',
+          voucherType: 'journal'
+        }
       },
 
+      {
+        path: 'contra',
+
+        loadComponent: () =>
+          import(
+            './pages/voucher-entry/voucher-entry.component'
+          ).then(
+            (module) =>
+              module.VoucherEntryComponent
+          ),
+
+        data: {
+          title: 'Contra',
+          section: 'Accounts',
+          feature: 'contra',
+          description:
+            'Cash and bank transfer vouchers.',
+          voucherType: 'contra'
+        }
+      },
+
+      {
+        path: 'day-book',
+
+        loadComponent: () =>
+          import(
+            './pages/day-book/day-book.component'
+          ).then(
+            (module) =>
+              module.DayBookComponent
+          ),
+
+        data: {
+          title: 'Day Book',
+          section: 'Accounts',
+          feature: 'day-book',
+          description:
+            'Read-only chronological accounting voucher and journal register.'
+        }
+      },
       {
         path: 'ledger',
 
         loadComponent: () =>
           import(
-            './pages/placeholder/accounts-placeholder.component'
+            './pages/general-ledger/general-ledger.component'
           ).then(
             (module) =>
-              module.AccountsPlaceholderComponent
+              module.GeneralLedgerComponent
           ),
 
         data: {
           title: 'General Ledger',
           section: 'Accounts',
-          feature: 'ledger',
-          description:
-            'Account-wise debit and credit history will be available after journal posting is enabled.'
+          feature: 'ledger'
         }
       },
-
       {
         path: 'ledger/customers',
 
         loadComponent: () =>
           import(
-            './pages/placeholder/accounts-placeholder.component'
+            './pages/party-ledger/party-ledger.component'
           ).then(
             (module) =>
-              module.AccountsPlaceholderComponent
+              module.PartyLedgerComponent
           ),
 
         data: {
@@ -323,7 +379,8 @@ export const ACCOUNTS_ROUTES: Routes = [
           section: 'Accounts',
           feature: 'customer-ledger',
           description:
-            'Customer outstanding balances and receivable history.'
+            'Customer outstanding balances and receivable history.',
+          partyType: 'customer'
         }
       },
 
@@ -332,10 +389,10 @@ export const ACCOUNTS_ROUTES: Routes = [
 
         loadComponent: () =>
           import(
-            './pages/placeholder/accounts-placeholder.component'
+            './pages/party-ledger/party-ledger.component'
           ).then(
             (module) =>
-              module.AccountsPlaceholderComponent
+              module.PartyLedgerComponent
           ),
 
         data: {
@@ -343,7 +400,8 @@ export const ACCOUNTS_ROUTES: Routes = [
           section: 'Accounts',
           feature: 'vendor-ledger',
           description:
-            'Vendor outstanding balances and payable history.'
+            'Vendor outstanding balances and payable history.',
+          partyType: 'vendor'
         }
       },
 
@@ -352,14 +410,34 @@ export const ACCOUNTS_ROUTES: Routes = [
       ====================================================== */
 
       {
+        path: 'outstanding',
+
+        loadComponent: () =>
+          import(
+            './pages/outstanding/outstanding.component'
+          ).then(
+            (module) =>
+              module.OutstandingComponent
+          ),
+
+        data: {
+          title: 'Outstanding',
+          section: 'Accounts',
+          feature: 'outstanding',
+          description:
+            'Customer receivables and vendor payables outstanding report.'
+        }
+      },
+
+      {
         path: 'cash-bank',
 
         loadComponent: () =>
           import(
-            './pages/placeholder/accounts-placeholder.component'
+            './pages/cash-bank-book/cash-bank-book.component'
           ).then(
             (module) =>
-              module.AccountsPlaceholderComponent
+              module.CashBankBookComponent
           ),
 
         data: {
@@ -368,6 +446,26 @@ export const ACCOUNTS_ROUTES: Routes = [
           feature: 'cash-bank',
           description:
             'Cash accounts, bank accounts, transfers and reconciliation.'
+        }
+      },
+
+      {
+        path: 'gst-report',
+
+        loadComponent: () =>
+          import(
+            './pages/gst-report/gst-report.component'
+          ).then(
+            (module) =>
+              module.GstReportComponent
+          ),
+
+        data: {
+          title: 'GST Report',
+          section: 'Accounts',
+          feature: 'gst-report',
+          description:
+            'Output GST, input GST and net GST report.'
         }
       },
 
@@ -380,10 +478,10 @@ export const ACCOUNTS_ROUTES: Routes = [
 
         loadComponent: () =>
           import(
-            './pages/placeholder/accounts-placeholder.component'
+            './pages/tax-hub/tax-hub.component'
           ).then(
             (module) =>
-              module.AccountsPlaceholderComponent
+              module.TaxHubComponent
           ),
 
         data: {
@@ -391,23 +489,73 @@ export const ACCOUNTS_ROUTES: Routes = [
           section: 'Accounts',
           feature: 'tax',
           description:
-            'GST, TDS and other statutory accounting.'
+            'GST reporting access and statutory accounting capability overview.'
         }
       },
-
       /* ======================================================
          REPORTS
       ====================================================== */
+      {
+        path: 'balance-sheet',
+
+        loadComponent: () =>
+          import(
+            './pages/balance-sheet/balance-sheet.component'
+          ).then(
+            (module) =>
+              module.BalanceSheetComponent
+          ),
+
+        data: {
+          title: 'Balance Sheet',
+          section: 'Accounts',
+          feature: 'balance-sheet'
+        }
+      },
+      {
+        path: 'profit-and-loss',
+
+        loadComponent: () =>
+          import(
+            './pages/profit-loss/profit-loss.component'
+          ).then(
+            (module) =>
+              module.ProfitLossComponent
+          ),
+
+        data: {
+          title: 'Profit & Loss',
+          section: 'Accounts',
+          feature: 'profit-and-loss'
+        }
+      },
+      {
+        path: 'trial-balance',
+
+        loadComponent: () =>
+          import(
+            './pages/trial-balance/trial-balance.component'
+          ).then(
+            (module) =>
+              module.TrialBalanceComponent
+          ),
+
+        data: {
+          title: 'Trial Balance',
+          section: 'Accounts',
+          feature: 'trial-balance'
+        }
+      },
 
       {
         path: 'reports',
 
         loadComponent: () =>
           import(
-            './pages/placeholder/accounts-placeholder.component'
+            './pages/financial-reports-hub/financial-reports-hub.component'
           ).then(
             (module) =>
-              module.AccountsPlaceholderComponent
+              module.FinancialReportsHubComponent
           ),
 
         data: {
@@ -415,10 +563,9 @@ export const ACCOUNTS_ROUTES: Routes = [
           section: 'Accounts',
           feature: 'reports',
           description:
-            'Profit & Loss, Balance Sheet, Trial Balance and Cash Flow.'
+            'Central access to existing accounting and statutory reports.'
         }
       },
-
       /* ======================================================
          SETTINGS
       ====================================================== */
@@ -428,10 +575,10 @@ export const ACCOUNTS_ROUTES: Routes = [
 
         loadComponent: () =>
           import(
-            './pages/placeholder/accounts-placeholder.component'
+            './pages/accounts-settings/accounts-settings.component'
           ).then(
             (module) =>
-              module.AccountsPlaceholderComponent
+              module.AccountsSettingsComponent
           ),
 
         data: {
@@ -439,7 +586,7 @@ export const ACCOUNTS_ROUTES: Routes = [
           section: 'Accounts',
           feature: 'settings',
           description:
-            'Financial year, payment terms and accounting configuration.'
+            'Read-only overview of the existing Accounts configuration.'
         }
       },
 

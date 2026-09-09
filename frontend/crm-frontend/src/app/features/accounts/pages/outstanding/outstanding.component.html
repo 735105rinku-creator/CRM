@@ -1,0 +1,395 @@
+<section class="outstanding-page">
+
+  <header class="page-header">
+
+    <div>
+      <p class="eyebrow">
+        Accounts / Reports
+      </p>
+
+      <h1>
+        Outstanding
+      </h1>
+
+      <p class="subtitle">
+        Review customer receivables and vendor payables as of a selected date.
+      </p>
+    </div>
+
+    <span class="report-date">
+      As Of:
+      {{ report()?.asOf || filterForm.controls.asOf.value }}
+    </span>
+
+  </header>
+
+
+  <form
+    class="filter-panel"
+    [formGroup]="filterForm"
+    (ngSubmit)="applyFilters()"
+  >
+
+    <label>
+      <span>As Of</span>
+
+      <input
+        type="date"
+        formControlName="asOf"
+      />
+    </label>
+
+
+    <label>
+      <span>Type</span>
+
+      <select formControlName="type">
+        <option value="">All</option>
+        <option value="receivable">Receivable</option>
+        <option value="payable">Payable</option>
+      </select>
+    </label>
+
+
+    <label>
+      <span>Account</span>
+
+      <select formControlName="accountId">
+
+        <option value="">
+          All Accounts
+        </option>
+
+        <option
+          *ngFor="
+            let account of accountOptions();
+            trackBy: trackAccount
+          "
+          [value]="account.accountId"
+        >
+          {{ account.accountCode }}
+          -
+          {{ account.accountName }}
+        </option>
+
+      </select>
+    </label>
+
+
+    <div class="filter-actions">
+
+      <button
+        type="submit"
+        class="primary-button"
+        [disabled]="loading()"
+      >
+        Apply
+      </button>
+
+      <button
+        type="button"
+        class="secondary-button"
+        [disabled]="loading()"
+        (click)="resetFilters()"
+      >
+        Reset
+      </button>
+
+    </div>
+
+  </form>
+
+
+  <div
+    *ngIf="loading()"
+    class="state-card"
+  >
+    Loading outstanding report...
+  </div>
+
+
+  <div
+    *ngIf="errorMessage()"
+    class="state-card error"
+  >
+    {{ errorMessage() }}
+  </div>
+
+
+  <ng-container *ngIf="report() as currentReport">
+
+    <div class="summary-grid">
+
+      <article class="summary-card">
+        <span>Total Receivable</span>
+
+        <strong>
+          {{
+            currentReport.receivables.total
+              | currency:'INR':'symbol':'1.2-2'
+          }}
+        </strong>
+      </article>
+
+
+      <article class="summary-card">
+        <span>Total Payable</span>
+
+        <strong>
+          {{
+            currentReport.payables.total
+              | currency:'INR':'symbol':'1.2-2'
+          }}
+        </strong>
+      </article>
+
+    </div>
+
+
+    <section class="report-section">
+
+      <div class="section-heading">
+        <h2>Receivables</h2>
+      </div>
+
+      <div
+        *ngIf="
+          !currentReport.receivables.accounts.length
+        "
+        class="empty-card"
+      >
+        No receivable accounts found.
+      </div>
+
+      <article
+        *ngFor="
+          let account of currentReport.receivables.accounts;
+          trackBy: trackAccount
+        "
+        class="account-card"
+      >
+
+        <div class="account-header">
+
+          <div>
+            <span class="account-code">
+              Account Code:
+              {{ account.accountCode }}
+            </span>
+
+            <h3>
+              Account Name:
+              {{ account.accountName }}
+            </h3>
+          </div>
+
+          <strong class="amount receivable">
+            {{
+              account.outstanding
+                | currency:'INR':'symbol':'1.2-2'
+            }}
+          </strong>
+
+        </div>
+
+        <ng-container
+          *ngTemplateOutlet="
+            accountDetails;
+            context: { account: account }
+          "
+        ></ng-container>
+
+      </article>
+
+    </section>
+
+
+    <section class="report-section">
+
+      <div class="section-heading">
+        <h2>Payables</h2>
+      </div>
+
+      <div
+        *ngIf="
+          !currentReport.payables.accounts.length
+        "
+        class="empty-card"
+      >
+        No payable accounts found.
+      </div>
+
+      <article
+        *ngFor="
+          let account of currentReport.payables.accounts;
+          trackBy: trackAccount
+        "
+        class="account-card"
+      >
+
+        <div class="account-header">
+
+          <div>
+            <span class="account-code">
+              Account Code:
+              {{ account.accountCode }}
+            </span>
+
+            <h3>
+              Account Name:
+              {{ account.accountName }}
+            </h3>
+          </div>
+
+          <strong class="amount payable">
+            {{
+              account.outstanding
+                | currency:'INR':'symbol':'1.2-2'
+            }}
+          </strong>
+
+        </div>
+
+        <ng-container
+          *ngTemplateOutlet="
+            accountDetails;
+            context: { account: account }
+          "
+        ></ng-container>
+
+      </article>
+
+    </section>
+
+  </ng-container>
+
+
+  <ng-template
+    #accountDetails
+    let-account="account"
+  >
+
+    <div class="balance-grid">
+
+      <div>
+        <span>Opening Balance</span>
+
+        <strong>
+          {{
+            (account.openingBalance?.amount || 0)
+              | currency:'INR':'symbol':'1.2-2'
+          }}
+          {{ account.openingBalance?.type }}
+        </strong>
+      </div>
+
+
+      <div>
+        <span>Debit Movement</span>
+
+        <strong>
+          {{
+            account.debitMovement
+              | currency:'INR':'symbol':'1.2-2'
+          }}
+        </strong>
+      </div>
+
+
+      <div>
+        <span>Credit Movement</span>
+
+        <strong>
+          {{
+            account.creditMovement
+              | currency:'INR':'symbol':'1.2-2'
+          }}
+        </strong>
+      </div>
+
+
+      <div>
+        <span>Closing Balance</span>
+
+        <strong>
+          {{
+            (account.closingBalance?.amount || 0)
+              | currency:'INR':'symbol':'1.2-2'
+          }}
+          {{ account.closingBalance?.type }}
+        </strong>
+      </div>
+
+    </div>
+
+
+    <div class="table-wrap">
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>Journal Date</th>
+            <th>Journal Number</th>
+            <th>Narration</th>
+            <th>Debit</th>
+            <th>Credit</th>
+            <th>Running Balance</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          <tr
+            *ngFor="
+              let entry of account.entries;
+              let index = index;
+              trackBy: trackEntry
+            "
+          >
+            <td>{{ entry.journalDate }}</td>
+            <td>{{ entry.journalNumber }}</td>
+            <td>{{ entry.narration || '—' }}</td>
+
+            <td>
+              {{
+                entry.debit
+                  | currency:'INR':'symbol':'1.2-2'
+              }}
+            </td>
+
+            <td>
+              {{
+                entry.credit
+                  | currency:'INR':'symbol':'1.2-2'
+              }}
+            </td>
+
+            <td>
+              {{
+                entry.runningBalance
+                  | currency:'INR':'symbol':'1.2-2'
+              }}
+              {{ entry.balanceType }}
+            </td>
+          </tr>
+
+
+          <tr *ngIf="!account.entries.length">
+            <td
+              colspan="6"
+              class="empty-row"
+            >
+              No posted transactions found.
+            </td>
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </ng-template>
+
+</section>

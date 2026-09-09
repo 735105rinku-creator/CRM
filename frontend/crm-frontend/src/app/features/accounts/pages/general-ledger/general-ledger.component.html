@@ -1,0 +1,900 @@
+<!-- =========================================================
+     GENERAL LEDGER PAGE
+========================================================= -->
+
+<section class="general-ledger-page">
+
+  <!-- =======================================================
+       PAGE HEADER
+  ======================================================== -->
+
+  <header class="page-header">
+
+    <div class="page-header__content">
+
+      <div class="page-header__icon"
+           aria-hidden="true">
+        <span>
+          GL
+        </span>
+      </div>
+
+
+      <div class="page-header__text">
+
+        <p class="page-header__eyebrow">
+          Accounts
+        </p>
+
+        <h1 class="page-header__title">
+          General Ledger
+        </h1>
+
+        <p class="page-header__description">
+          Review account-wise opening balances,
+          debit and credit movements, and closing balances.
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <div class="page-header__actions">
+
+      <button
+        type="button"
+        class="action-button action-button--secondary"
+        [disabled]="isLoading()"
+        (click)="refresh()">
+
+        <span
+          class="action-button__icon"
+          aria-hidden="true">
+          ↻
+        </span>
+
+        <span>
+          Refresh
+        </span>
+
+      </button>
+
+    </div>
+
+  </header>
+
+
+  <!-- =======================================================
+       SUMMARY CARDS
+  ======================================================== -->
+
+  <section
+    class="summary-grid"
+    aria-label="General Ledger summary">
+
+    <!-- TOTAL ACCOUNTS -->
+
+    <article class="summary-card">
+
+      <div class="summary-card__top">
+
+        <span class="summary-card__label">
+          Total Accounts
+        </span>
+
+        <span
+          class="summary-card__icon"
+          aria-hidden="true">
+          #
+        </span>
+
+      </div>
+
+
+      <strong class="summary-card__value">
+        {{ summary().totalAccounts }}
+      </strong>
+
+
+      <span class="summary-card__hint">
+        Accounts included in this ledger view
+      </span>
+
+    </article>
+
+
+    <!-- TOTAL DEBIT -->
+
+    <article class="summary-card">
+
+      <div class="summary-card__top">
+
+        <span class="summary-card__label">
+          Total Debit
+        </span>
+
+        <span
+          class="summary-card__icon"
+          aria-hidden="true">
+          Dr
+        </span>
+
+      </div>
+
+
+      <strong class="summary-card__value">
+        {{ formatMoney(summary().totalDebit) }}
+      </strong>
+
+
+      <span class="summary-card__hint">
+        Posted debit movement
+      </span>
+
+    </article>
+
+
+    <!-- TOTAL CREDIT -->
+
+    <article class="summary-card">
+
+      <div class="summary-card__top">
+
+        <span class="summary-card__label">
+          Total Credit
+        </span>
+
+        <span
+          class="summary-card__icon"
+          aria-hidden="true">
+          Cr
+        </span>
+
+      </div>
+
+
+      <strong class="summary-card__value">
+        {{ formatMoney(summary().totalCredit) }}
+      </strong>
+
+
+      <span class="summary-card__hint">
+        Posted credit movement
+      </span>
+
+    </article>
+
+
+    <!-- MOVEMENT DIFFERENCE -->
+
+    <article class="summary-card">
+
+      <div class="summary-card__top">
+
+        <span class="summary-card__label">
+          Movement Difference
+        </span>
+
+        <span
+          class="summary-card__icon"
+          aria-hidden="true">
+          Δ
+        </span>
+
+      </div>
+
+
+      <strong class="summary-card__value">
+        {{ formatMoney(movementDifference()) }}
+      </strong>
+
+
+      <span class="summary-card__hint">
+        Debit movement minus credit movement
+      </span>
+
+    </article>
+
+  </section>
+
+
+  <!-- =======================================================
+       FILTER PANEL
+  ======================================================== -->
+
+  <section
+    class="filter-panel"
+    aria-label="General Ledger filters">
+
+    <div class="filter-panel__header">
+
+      <div>
+
+        <h2 class="filter-panel__title">
+          Ledger Filters
+        </h2>
+
+        <p class="filter-panel__description">
+          Find accounts and narrow the ledger view.
+        </p>
+
+      </div>
+
+
+      <button
+        type="button"
+        class="text-button"
+        [disabled]="isLoading()"
+        (click)="resetFilters()">
+        Reset Filters
+      </button>
+
+    </div>
+
+
+    <div class="filter-grid">
+
+      <!-- SEARCH -->
+
+      <div class="form-field form-field--search">
+
+        <label
+          class="form-field__label"
+          for="general-ledger-search">
+          Search accounts
+        </label>
+
+
+        <div class="search-control">
+
+          <span
+            class="search-control__icon"
+            aria-hidden="true">
+            ⌕
+          </span>
+
+
+          <input
+            id="general-ledger-search"
+            type="search"
+            class="form-control search-control__input"
+            placeholder="Search accounts by code or name"
+            autocomplete="off"
+            [ngModel]="searchTerm()"
+            [disabled]="isLoading()"
+            (ngModelChange)="onSearchChange($event)"
+            (keyup.enter)="applyFilters()">
+
+        </div>
+
+      </div>
+
+
+      <!-- NATURE -->
+
+      <div class="form-field">
+
+        <label
+          class="form-field__label"
+          for="general-ledger-nature">
+          Nature
+        </label>
+
+
+        <select
+          id="general-ledger-nature"
+          class="form-control"
+          [ngModel]="natureFilter()"
+          [disabled]="isLoading()"
+          (ngModelChange)="onNatureChange($event)">
+
+          <option
+            *ngFor="let option of natureOptions"
+            [value]="option.value">
+            {{ option.label }}
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <!-- ACCOUNT TYPE -->
+
+      <div class="form-field">
+
+        <label
+          class="form-field__label"
+          for="general-ledger-account-type">
+          Account Type
+        </label>
+
+
+        <select
+          id="general-ledger-account-type"
+          class="form-control"
+          [ngModel]="accountTypeFilter()"
+          [disabled]="isLoading()"
+          (ngModelChange)="onAccountTypeChange($event)">
+
+          <option
+            *ngFor="let option of accountTypeOptions"
+            [value]="option.value">
+            {{ option.label }}
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <!-- STATUS -->
+
+      <div class="form-field">
+
+        <label
+          class="form-field__label"
+          for="general-ledger-status">
+          Status
+        </label>
+
+
+        <select
+          id="general-ledger-status"
+          class="form-control"
+          [ngModel]="statusFilter()"
+          [disabled]="isLoading()"
+          (ngModelChange)="onStatusChange($event)">
+
+          <option
+            *ngFor="let option of statusOptions"
+            [value]="option.value">
+            {{ option.label }}
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <!-- SORT BY -->
+
+      <div class="form-field">
+
+        <label
+          class="form-field__label"
+          for="general-ledger-sort">
+          Sort By
+        </label>
+
+
+        <select
+          id="general-ledger-sort"
+          class="form-control"
+          [ngModel]="sortBy()"
+          [disabled]="isLoading()"
+          (ngModelChange)="onSortByChange($event)">
+
+          <option
+            *ngFor="let option of sortOptions"
+            [value]="option.value">
+            {{ option.label }}
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <!-- SORT ORDER -->
+
+      <div class="form-field">
+
+        <span class="form-field__label">
+          Sort Order
+        </span>
+
+
+        <button
+          type="button"
+          class="sort-button"
+          [disabled]="isLoading()"
+          (click)="toggleSortOrder()">
+
+          <span
+            class="sort-button__icon"
+            aria-hidden="true">
+            {{ sortOrder() === 'asc' ? '↑' : '↓' }}
+          </span>
+
+          <span>
+            {{ sortOrder() === 'asc'
+              ? 'Ascending'
+              : 'Descending'
+            }}
+          </span>
+
+        </button>
+
+      </div>
+
+
+      <!-- APPLY SEARCH -->
+
+      <div class="form-field form-field--action">
+
+        <span
+          class="form-field__label form-field__label--hidden"
+          aria-hidden="true">
+          Apply
+        </span>
+
+
+        <button
+          type="button"
+          class="action-button action-button--primary action-button--full"
+          [disabled]="isLoading()"
+          (click)="applyFilters()">
+
+          <span
+            class="action-button__icon"
+            aria-hidden="true">
+            ⌕
+          </span>
+
+          <span>
+            Apply Search
+          </span>
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- =======================================================
+       LEDGER CONTENT
+  ======================================================== -->
+
+  <section class="ledger-panel">
+
+    <div class="ledger-panel__header">
+
+      <div>
+
+        <h2 class="ledger-panel__title">
+          Account Ledger Summary
+        </h2>
+
+        <p class="ledger-panel__description">
+          Balances are calculated from the account opening balance
+          and posted journal movements.
+        </p>
+
+      </div>
+
+
+      <div
+        class="ledger-panel__count"
+        *ngIf="!isLoading() && !errorMessage()">
+
+        {{ accounts().length }}
+        {{ accounts().length === 1 ? 'Account' : 'Accounts' }}
+
+      </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         LOADING STATE
+    ====================================================== -->
+
+    <div
+      class="state-panel state-panel--loading"
+      *ngIf="isLoading()"
+      role="status"
+      aria-live="polite">
+
+      <div
+        class="loading-spinner"
+        aria-hidden="true">
+      </div>
+
+
+      <div class="state-panel__content">
+
+        <h3 class="state-panel__title">
+          Loading General Ledger
+        </h3>
+
+        <p class="state-panel__message">
+          Fetching account balances and posted ledger movements.
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         ERROR STATE
+    ====================================================== -->
+
+    <div
+      class="state-panel state-panel--error"
+      *ngIf="!isLoading() && errorMessage()"
+      role="alert">
+
+      <div
+        class="state-panel__icon"
+        aria-hidden="true">
+        !
+      </div>
+
+
+      <div class="state-panel__content">
+
+        <h3 class="state-panel__title">
+          General Ledger could not be loaded
+        </h3>
+
+        <p class="state-panel__message">
+          {{ errorMessage() }}
+        </p>
+
+      </div>
+
+
+      <button
+        type="button"
+        class="action-button action-button--secondary"
+        (click)="retry()">
+        Retry
+      </button>
+
+    </div>
+
+
+    <!-- =====================================================
+         EMPTY STATE
+    ====================================================== -->
+
+    <div
+      class="state-panel state-panel--empty"
+      *ngIf="isEmpty()">
+
+      <div
+        class="state-panel__icon"
+        aria-hidden="true">
+        GL
+      </div>
+
+
+      <div class="state-panel__content">
+
+        <h3 class="state-panel__title">
+          No ledger accounts found
+        </h3>
+
+        <p class="state-panel__message">
+          No accounts match the current General Ledger filters.
+          If Chart of Accounts is empty, ledger rows will appear
+          after accounts exist and posted journal movements are available.
+        </p>
+
+      </div>
+
+
+      <button
+        type="button"
+        class="action-button action-button--secondary"
+        (click)="resetFilters()">
+        Clear Filters
+      </button>
+
+    </div>
+
+
+    <!-- =====================================================
+         DATA TABLE
+    ====================================================== -->
+
+    <div
+      class="table-wrapper"
+      *ngIf="
+        !isLoading() &&
+        !errorMessage() &&
+        hasAccounts()
+      ">
+
+      <table class="ledger-table">
+
+        <thead>
+
+          <tr>
+
+            <th scope="col">
+              Account Code
+            </th>
+
+            <th scope="col">
+              Account Name
+            </th>
+
+            <th scope="col">
+              Nature
+            </th>
+
+            <th
+              scope="col"
+              class="ledger-table__number">
+              Opening Balance
+            </th>
+
+            <th
+              scope="col"
+              class="ledger-table__number">
+              Debit
+            </th>
+
+            <th
+              scope="col"
+              class="ledger-table__number">
+              Credit
+            </th>
+
+            <th
+              scope="col"
+              class="ledger-table__number">
+              Closing Balance
+            </th>
+
+            <th scope="col">
+              Status
+            </th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          <tr
+            *ngFor="
+              let account of accounts();
+              let index = index;
+              trackBy: trackAccount
+            ">
+
+            <!-- ACCOUNT CODE -->
+
+            <td>
+
+              <span class="account-code">
+                {{ account.accountCode || '-' }}
+              </span>
+
+            </td>
+
+
+            <!-- ACCOUNT NAME -->
+
+            <td>
+
+              <div class="account-cell">
+
+                <strong class="account-cell__name">
+                  {{ account.accountName || '-' }}
+                </strong>
+
+                <span class="account-cell__type">
+                  {{ accountTypeLabel(account.accountType) }}
+                </span>
+
+              </div>
+
+            </td>
+
+
+            <!-- NATURE -->
+
+            <td>
+
+              <span
+                class="badge badge--nature"
+                [ngClass]="natureClass(account.nature)">
+                {{ natureLabel(account.nature) }}
+              </span>
+
+            </td>
+
+
+            <!-- OPENING BALANCE -->
+
+            <td class="ledger-table__number">
+
+              <span
+                class="balance-value"
+                [ngClass]="balanceClass(account.openingBalance)">
+                {{ formatBalance(account.openingBalance) }}
+              </span>
+
+            </td>
+
+
+            <!-- DEBIT -->
+
+            <td class="ledger-table__number">
+
+              <span class="movement-value movement-value--debit">
+                {{ formatMoney(account.totalDebit) }}
+              </span>
+
+            </td>
+
+
+            <!-- CREDIT -->
+
+            <td class="ledger-table__number">
+
+              <span class="movement-value movement-value--credit">
+                {{ formatMoney(account.totalCredit) }}
+              </span>
+
+            </td>
+
+
+            <!-- CLOSING BALANCE -->
+
+            <td class="ledger-table__number">
+
+              <span
+                class="balance-value balance-value--closing"
+                [ngClass]="balanceClass(account.closingBalance)">
+                {{ formatBalance(account.closingBalance) }}
+              </span>
+
+            </td>
+
+
+            <!-- STATUS -->
+
+            <td>
+
+              <span
+                class="badge badge--status"
+                [ngClass]="statusClass(account.status)">
+                {{ statusLabel(account.status) }}
+              </span>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+
+        <!-- =================================================
+             TABLE TOTALS
+        ================================================== -->
+
+        <tfoot>
+
+          <tr>
+
+            <td colspan="3">
+
+              <strong class="table-total-label">
+                Ledger Movement Totals
+              </strong>
+
+            </td>
+
+
+            <td class="ledger-table__number">
+
+              <div class="balance-total">
+
+                <span>
+                  {{ formatMoney(totalOpeningDebit()) }}
+                  Dr
+                </span>
+
+                <span>
+                  {{ formatMoney(totalOpeningCredit()) }}
+                  Cr
+                </span>
+
+              </div>
+
+            </td>
+
+
+            <td class="ledger-table__number">
+
+              <strong>
+                {{ formatMoney(summary().totalDebit) }}
+              </strong>
+
+            </td>
+
+
+            <td class="ledger-table__number">
+
+              <strong>
+                {{ formatMoney(summary().totalCredit) }}
+              </strong>
+
+            </td>
+
+
+            <td class="ledger-table__number">
+
+              <div class="balance-total">
+
+                <span>
+                  {{ formatMoney(totalClosingDebit()) }}
+                  Dr
+                </span>
+
+                <span>
+                  {{ formatMoney(totalClosingCredit()) }}
+                  Cr
+                </span>
+
+              </div>
+
+            </td>
+
+
+            <td>
+              —
+            </td>
+
+          </tr>
+
+        </tfoot>
+
+      </table>
+
+    </div>
+
+  </section>
+
+
+  <!-- =======================================================
+       INFORMATION NOTE
+  ======================================================== -->
+
+  <aside class="ledger-note">
+
+    <div
+      class="ledger-note__icon"
+      aria-hidden="true">
+      i
+    </div>
+
+
+    <div>
+
+      <strong class="ledger-note__title">
+        Read-only accounting view
+      </strong>
+
+      <p class="ledger-note__text">
+        General Ledger balances are derived from Chart of Accounts
+        opening balances and posted Journal Entries. Draft and void
+        journal entries are not intended to contribute to ledger movement.
+      </p>
+
+    </div>
+
+  </aside>
+
+</section>

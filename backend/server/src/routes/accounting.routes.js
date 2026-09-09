@@ -16,6 +16,33 @@ import journalEntryRoutes from "./journalEntry.routes.js";
 import generalLedgerRoutes
   from "./generalLedger.routes.js";
 
+import dayBookRoutes
+  from "./dayBook.routes.js";
+
+import trialBalanceRoutes
+  from "./trialBalance.routes.js";
+
+import voucherRoutes
+  from "./voucher.routes.js";
+
+import profitLossRoutes
+  from "./profitLoss.routes.js";
+
+import balanceSheetRoutes
+  from "./balanceSheet.routes.js";
+
+import cashBankBookRoutes
+  from "./cashBankBook.routes.js";
+
+import outstandingRoutes
+  from "./outstanding.routes.js";
+
+import gstReportRoutes
+  from "./gstReport.routes.js";
+
+import accountPartyRoutes
+  from "./accountParty.routes.js";
+
 const router = Router();
 router.use(requireAuth);
 router.use(requireTenant);
@@ -75,6 +102,50 @@ router.use(
 router.use(
   "/general-ledger",
   generalLedgerRoutes
+);
+
+router.use(
+  "/day-book",
+  dayBookRoutes
+);
+
+router.use(
+  "/trial-balance",
+  trialBalanceRoutes
+);
+
+router.use(
+  "/profit-and-loss",
+  profitLossRoutes
+);
+
+router.use(
+  "/balance-sheet",
+  balanceSheetRoutes
+);
+
+router.use(
+  "/cash-bank-book",
+  cashBankBookRoutes
+);
+
+router.use(
+  "/outstanding",
+  outstandingRoutes
+);
+
+router.use(
+  "/gst-report",
+  gstReportRoutes
+);
+
+router.use(
+  "/vouchers",
+  voucherRoutes
+);
+
+router.use(
+  accountPartyRoutes
 );
 
 const scopeFilter = (req) => ({ companyId: req.accountingAccess.companyId });
@@ -243,6 +314,3 @@ router.post("/expenses", createRecord("expenses", ["title", "category", "expense
 router.patch("/expenses/:id", updateRecord("expenses", ["title", "category", "expenseType", "businessCategory", "routeType", "amount", "expenseDate", "status", "notes", "assignedUserId", "assignedEmployeeCode"]));
 
 export default router;
-
-
-

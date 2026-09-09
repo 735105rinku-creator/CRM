@@ -135,9 +135,7 @@ const journalLineSchema =
 journalLineSchema.pre(
   "validate",
 
-  function validateJournalLine(
-    next
-  ) {
+  function validateJournalLine() {
 
     const debit =
       Number(
@@ -162,10 +160,8 @@ journalLineSchema.pre(
       credit <= 0
     ) {
 
-      return next(
-        new Error(
-          "Journal line must contain either a debit or credit amount."
-        )
+      throw new Error(
+        "Journal line must contain either a debit or credit amount."
       );
     }
 
@@ -179,15 +175,10 @@ journalLineSchema.pre(
       credit > 0
     ) {
 
-      return next(
-        new Error(
-          "Journal line cannot contain both debit and credit amounts."
-        )
+      throw new Error(
+        "Journal line cannot contain both debit and credit amounts."
       );
     }
-
-
-    next();
 
   }
 );
@@ -505,9 +496,7 @@ const journalEntrySchema =
 journalEntrySchema.pre(
   "validate",
 
-  function validateJournalEntry(
-    next
-  ) {
+  function validateJournalEntry() {
 
     if (
       !Array.isArray(
@@ -516,10 +505,8 @@ journalEntrySchema.pre(
       this.lines.length < 2
     ) {
 
-      return next(
-        new Error(
-          "Journal Entry must contain at least two lines."
-        )
+      throw new Error(
+        "Journal Entry must contain at least two lines."
       );
     }
 
@@ -579,10 +566,8 @@ journalEntrySchema.pre(
       roundedCredit <= 0
     ) {
 
-      return next(
-        new Error(
-          "Journal Entry must contain debit and credit amounts."
-        )
+      throw new Error(
+        "Journal Entry must contain debit and credit amounts."
       );
     }
 
@@ -592,10 +577,8 @@ journalEntrySchema.pre(
       roundedCredit
     ) {
 
-      return next(
-        new Error(
-          "Journal Entry total debit and total credit must be equal."
-        )
+      throw new Error(
+        "Journal Entry total debit and total credit must be equal."
       );
     }
 
@@ -611,9 +594,6 @@ journalEntrySchema.pre(
 
     this.totalCredit =
       roundedCredit;
-
-
-    next();
 
   }
 );

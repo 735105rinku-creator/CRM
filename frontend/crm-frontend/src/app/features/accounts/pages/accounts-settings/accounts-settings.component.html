@@ -1,0 +1,166 @@
+<section class="settings-page">
+
+  <header class="hero-card">
+
+    <div class="hero-copy">
+
+      <p class="eyebrow">
+        Accounts · Configuration
+      </p>
+
+      <h1>
+        Accounts Settings
+      </h1>
+
+      <p class="hero-description">
+        Review the configuration areas used by Accounts.
+        This workspace is read-only and does not change
+        company-wide configuration or accounting data.
+      </p>
+
+    </div>
+
+    <div class="mode-card">
+
+      <span class="mode-dot"></span>
+
+      <div>
+        <strong>
+          Read-only
+        </strong>
+
+        <small>
+          Safe configuration overview
+        </small>
+      </div>
+
+    </div>
+
+  </header>
+
+
+  <section class="section-heading">
+
+    <div>
+
+      <p class="section-label">
+        Configuration Overview
+      </p>
+
+      <h2>
+        Accounts Environment
+      </h2>
+
+    </div>
+
+    <p>
+      Existing accounting rules remain the source of truth.
+    </p>
+
+  </section>
+
+
+  <section class="settings-grid">
+
+    @for (
+      area of settingAreas;
+      track area.title
+    ) {
+
+      <article class="setting-card">
+
+        <div class="setting-card__top">
+
+          <div class="setting-code">
+            {{ area.code }}
+          </div>
+
+          <span class="value-badge">
+            {{ area.value }}
+          </span>
+
+        </div>
+
+
+        <div class="setting-card__body">
+
+          <h2>
+            {{ area.title }}
+          </h2>
+
+          <p>
+            {{ area.description }}
+          </p>
+
+        </div>
+
+
+        @if (area.route) {
+
+          <a
+            class="setting-action"
+            [routerLink]="area.route">
+
+            <span>
+              {{ area.action }}
+            </span>
+
+            <span
+              class="arrow"
+              aria-hidden="true">
+              →
+            </span>
+
+          </a>
+
+        } @else {
+
+          <div class="managed-note">
+
+            <span
+              class="managed-icon"
+              aria-hidden="true">
+              ✓
+            </span>
+
+            <span>
+              Existing configuration preserved
+            </span>
+
+          </div>
+
+        }
+
+      </article>
+
+    }
+
+  </section>
+
+
+  <section class="information-card">
+
+    <div
+      class="information-icon"
+      aria-hidden="true">
+      i
+    </div>
+
+    <div>
+
+      <strong>
+        No separate Accounts configuration is being written here
+      </strong>
+
+      <p>
+        Financial-year handling, voucher sequencing and company-level
+        configuration continue to use the existing application flows.
+        This page provides a safe overview and links to supported
+        Accounts workspaces only.
+      </p>
+
+    </div>
+
+  </section>
+
+</section>

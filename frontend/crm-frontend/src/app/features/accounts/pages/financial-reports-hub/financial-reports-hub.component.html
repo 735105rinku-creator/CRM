@@ -1,0 +1,140 @@
+<section class="reports-hub">
+
+  <header class="hero-card">
+
+    <div class="hero-copy">
+
+      <p class="eyebrow">
+        Accounts · Reporting
+      </p>
+
+      <h1>
+        Financial Reports
+      </h1>
+
+      <p class="hero-description">
+        Open the existing accounting reports from one workspace.
+        Actual figures and calculations remain inside the individual
+        report screens and their existing accounting services.
+      </p>
+
+    </div>
+
+    <div class="hero-summary">
+
+      <strong>
+        6
+      </strong>
+
+      <span>
+        Available Reports
+      </span>
+
+    </div>
+
+  </header>
+
+
+  <section class="section-heading">
+
+    <div>
+
+      <p class="section-label">
+        Report Centre
+      </p>
+
+      <h2>
+        Accounting & Statutory Reports
+      </h2>
+
+    </div>
+
+    <p>
+      Select a report to open its dedicated screen.
+    </p>
+
+  </section>
+
+
+  <section class="reports-grid">
+
+    @for (
+      report of reports;
+      track report.route
+    ) {
+
+      <article class="report-card">
+
+        <div class="report-top">
+
+          <div class="report-code">
+            {{ report.code }}
+          </div>
+
+          <span class="status-badge">
+            Available
+          </span>
+
+        </div>
+
+
+        <div class="report-content">
+
+          <h2>
+            {{ report.title }}
+          </h2>
+
+          <p>
+            {{ report.description }}
+          </p>
+
+        </div>
+
+
+        <a
+          class="report-action"
+          [routerLink]="report.route">
+
+          <span>
+            Open Report
+          </span>
+
+          <span
+            class="arrow"
+            aria-hidden="true">
+            →
+          </span>
+
+        </a>
+
+      </article>
+
+    }
+
+  </section>
+
+
+  <section class="information-card">
+
+    <div class="information-icon">
+      i
+    </div>
+
+    <div>
+
+      <strong>
+        Existing report logic is preserved
+      </strong>
+
+      <p>
+        This Financial Reports hub is navigation and information only.
+        It does not duplicate accounting calculations or generate
+        separate financial figures. Data continues to load inside the
+        individual report screens.
+      </p>
+
+    </div>
+
+  </section>
+
+</section>

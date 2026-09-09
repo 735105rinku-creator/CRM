@@ -1,23 +1,23 @@
-import * as chartOfAccountRepository
-  from "../repositories/chartOfAccount.repository.js";
+import chartOfAccountRepository
+    from "../repositories/chartOfAccount.repository.js";
 
-import * as journalEntryRepository
-  from "../repositories/journalEntry.repository.js";
+import journalEntryRepository
+    from "../repositories/journalEntry.repository.js";
 
 import {
-  GeneralLedgerService,
+    GeneralLedgerService,
 } from "../services/generalLedger.service.js";
 
 import {
-  ApiResponse,
+    ApiResponse,
 } from "../utils/apiResponse.js";
 
 import {
-  ApiError,
+    ApiError,
 } from "../utils/apiError.js";
 
 import {
-  asyncHandler,
+    asyncHandler,
 } from "../utils/asyncHandler.js";
 
 
@@ -26,10 +26,10 @@ import {
 ========================================================= */
 
 const generalLedgerService =
-  new GeneralLedgerService({
-    chartOfAccountRepository,
-    journalEntryRepository,
-  });
+    new GeneralLedgerService({
+        chartOfAccountRepository,
+        journalEntryRepository,
+    });
 
 
 /* =========================================================
@@ -37,37 +37,37 @@ const generalLedgerService =
 ========================================================= */
 
 const companyIdForRequest =
-  (
-    req
-  ) => {
+    (
+        req
+    ) => {
 
-    const companyId =
-      req.accountingAccess
-        ?.companyId ||
-      req.auth
-        ?.companyId ||
-      req.user
-        ?.companyId
-        ?._id ||
-      req.user
-        ?.companyId;
-
-
-    if (
-      !companyId
-    ) {
-
-      throw new ApiError(
-        403,
-        "Accounting company context missing."
-      );
-
-    }
+        const companyId =
+            req.accountingAccess
+                ?.companyId ||
+            req.auth
+                ?.companyId ||
+            req.user
+                ?.companyId
+                ?._id ||
+            req.user
+                ?.companyId;
 
 
-    return companyId;
+        if (
+            !companyId
+        ) {
 
-  };
+            throw new ApiError(
+                403,
+                "Accounting company context missing."
+            );
+
+        }
+
+
+        return companyId;
+
+    };
 
 
 /* =========================================================
@@ -78,40 +78,40 @@ const companyIdForRequest =
 ========================================================= */
 
 export const getGeneralLedger =
-  asyncHandler(
-    async (
-      req,
-      res
-    ) => {
+    asyncHandler(
+        async (
+            req,
+            res
+        ) => {
 
-      const result =
-        await generalLedgerService
-          .getGeneralLedger({
+            const result =
+                await generalLedgerService
+                    .getGeneralLedger({
 
-            companyId:
-              companyIdForRequest(
-                req
-              ),
+                        companyId:
+                            companyIdForRequest(
+                                req
+                            ),
 
-            query:
-              req.query ||
-              {},
+                        query:
+                            req.query ||
+                            {},
 
-          });
+                    });
 
 
-      res
-        .status(200)
-        .json(
-          new ApiResponse(
-            200,
-            result,
-            "General Ledger fetched successfully."
-          )
-        );
+            res
+                .status(200)
+                .json(
+                    new ApiResponse(
+                        200,
+                        result,
+                        "General Ledger fetched successfully."
+                    )
+                );
 
-    }
-  );
+        }
+    );
 
 
 /* =========================================================
@@ -122,60 +122,60 @@ export const getGeneralLedger =
 ========================================================= */
 
 export const getAccountLedger =
-  asyncHandler(
-    async (
-      req,
-      res
-    ) => {
+    asyncHandler(
+        async (
+            req,
+            res
+        ) => {
 
-      const accountId =
-        String(
-          req.params
-            ?.accountId ||
-          ""
-        )
-          .trim();
-
-
-      if (
-        !accountId
-      ) {
-
-        throw new ApiError(
-          400,
-          "Account ID is required."
-        );
-
-      }
+            const accountId =
+                String(
+                    req.params
+                        ?.accountId ||
+                    ""
+                )
+                    .trim();
 
 
-      const result =
-        await generalLedgerService
-          .getAccountLedger({
+            if (
+                !accountId
+            ) {
 
-            companyId:
-              companyIdForRequest(
-                req
-              ),
+                throw new ApiError(
+                    400,
+                    "Account ID is required."
+                );
 
-            accountId,
-
-            query:
-              req.query ||
-              {},
-
-          });
+            }
 
 
-      res
-        .status(200)
-        .json(
-          new ApiResponse(
-            200,
-            result,
-            "Account Ledger fetched successfully."
-          )
-        );
+            const result =
+                await generalLedgerService
+                    .getAccountLedger({
 
-    }
-  );
+                        companyId:
+                            companyIdForRequest(
+                                req
+                            ),
+
+                        accountId,
+
+                        query:
+                            req.query ||
+                            {},
+
+                    });
+
+
+            res
+                .status(200)
+                .json(
+                    new ApiResponse(
+                        200,
+                        result,
+                        "Account Ledger fetched successfully."
+                    )
+                );
+
+        }
+    );

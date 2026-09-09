@@ -47,6 +47,7 @@ describe(
             "expense",
             "opening_balance",
             "adjustment",
+            "voucher",
           ]
         );
 

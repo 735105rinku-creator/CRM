@@ -1,9 +1,5 @@
 <div class="journal-page">
 
-  <!-- =====================================================
-       PAGE HEADER
-  ====================================================== -->
-
   <section class="page-header">
 
     <div class="page-header__content">
@@ -28,17 +24,21 @@
 
       <button
         type="button"
+        class="nm-button nm-button--primary"
+        [disabled]="loading()"
+        (click)="openCreateForm()"
+      >
+        + New Journal Entry
+      </button>
+
+
+      <button
+        type="button"
         class="nm-button nm-button--secondary"
         [disabled]="loading()"
         (click)="refresh()"
       >
-        <span class="button-icon">
-          ↻
-        </span>
-
-        <span>
-          Refresh
-        </span>
+        Refresh
       </button>
 
     </div>
@@ -46,9 +46,421 @@
   </section>
 
 
-  <!-- =====================================================
-       SUMMARY
-  ====================================================== -->
+  @if (formSuccess()) {
+
+    <section
+      class="state-card"
+      aria-live="polite"
+    >
+      <div class="state-card__content">
+
+        <h3>
+          Success
+        </h3>
+
+        <p>
+          {{ formSuccess() }}
+        </p>
+
+      </div>
+    </section>
+
+  }
+
+
+  @if (createFormOpen()) {
+
+    <section class="filter-panel">
+
+      <div class="filter-panel__header">
+
+        <div>
+
+          <span class="section-eyebrow">
+            Manual Journal
+          </span>
+
+          <h2>
+            New Journal Entry
+          </h2>
+
+        </div>
+
+
+        <button
+          type="button"
+          class="nm-button nm-button--secondary"
+          [disabled]="saving()"
+          (click)="closeCreateForm()"
+        >
+          Close
+        </button>
+
+      </div>
+
+
+      @if (formError()) {
+
+        <section
+          class="state-card state-card--error"
+          role="alert"
+        >
+          <div class="state-card__content">
+
+            <h3>
+              Cannot save Journal Entry
+            </h3>
+
+            <p>
+              {{ formError() }}
+            </p>
+
+          </div>
+        </section>
+
+      }
+
+
+      <div class="filter-grid">
+
+        <div class="form-field">
+
+          <label for="new-journal-date">
+            Journal Date
+          </label>
+
+          <input
+            id="new-journal-date"
+            type="date"
+            [ngModel]="journalDate()"
+            (ngModelChange)="journalDate.set($event)"
+          />
+
+        </div>
+
+
+        <div class="form-field form-field--wide">
+
+          <label for="new-journal-reference">
+            Reference No.
+          </label>
+
+          <input
+            id="new-journal-reference"
+            type="text"
+            autocomplete="off"
+            placeholder="Example: TEST-JE-001"
+            [ngModel]="referenceNo()"
+            (ngModelChange)="referenceNo.set($event)"
+          />
+
+        </div>
+
+
+        <div class="form-field form-field--wide">
+
+          <label for="new-journal-narration">
+            Narration
+          </label>
+
+          <input
+            id="new-journal-narration"
+            type="text"
+            autocomplete="off"
+            placeholder="Enter journal narration"
+            [ngModel]="narration()"
+            (ngModelChange)="narration.set($event)"
+          />
+
+        </div>
+
+      </div>
+
+
+      <div
+        class="table-scroll"
+        style="margin-top: 20px;"
+      >
+
+        <table class="journal-table">
+
+          <thead>
+
+            <tr>
+
+              <th scope="col">
+                Account
+              </th>
+
+              <th scope="col">
+                Description
+              </th>
+
+              <th
+                scope="col"
+                class="amount-column"
+              >
+                Debit
+              </th>
+
+              <th
+                scope="col"
+                class="amount-column"
+              >
+                Credit
+              </th>
+
+              <th scope="col">
+                Action
+              </th>
+
+            </tr>
+
+          </thead>
+
+
+          <tbody>
+
+            @for (
+              line of journalLines();
+              track $index;
+              let index = $index
+            ) {
+
+              <tr>
+
+                <td>
+
+                  <div class="form-field">
+
+                    <select
+                      [ngModel]="line.accountId"
+                      (ngModelChange)="
+                        updateLine(
+                          index,
+                          'accountId',
+                          $event
+                        )
+                      "
+                    >
+
+                      <option value="">
+                        {{
+                          accountsLoading()
+                            ? 'Loading Accounts...'
+                            : 'Select Account'
+                        }}
+                      </option>
+
+                      @for (
+                        account of activeAccounts();
+                        track account._id
+                      ) {
+
+                        <option
+                          [value]="account._id"
+                        >
+                          {{ account.accountCode }}
+                          -
+                          {{ account.accountName }}
+                        </option>
+
+                      }
+
+                    </select>
+
+                  </div>
+
+                </td>
+
+
+                <td>
+
+                  <div class="form-field">
+
+                    <input
+                      type="text"
+                      autocomplete="off"
+                      placeholder="Line description"
+                      [ngModel]="line.description || ''"
+                      (ngModelChange)="
+                        updateLine(
+                          index,
+                          'description',
+                          $event
+                        )
+                      "
+                    />
+
+                  </div>
+
+                </td>
+
+
+                <td class="amount-column">
+
+                  <div class="form-field">
+
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      [ngModel]="line.debit"
+                      (ngModelChange)="
+                        updateLine(
+                          index,
+                          'debit',
+                          $event
+                        )
+                      "
+                    />
+
+                  </div>
+
+                </td>
+
+
+                <td class="amount-column">
+
+                  <div class="form-field">
+
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      [ngModel]="line.credit"
+                      (ngModelChange)="
+                        updateLine(
+                          index,
+                          'credit',
+                          $event
+                        )
+                      "
+                    />
+
+                  </div>
+
+                </td>
+
+
+                <td>
+
+                  <button
+                    type="button"
+                    class="nm-button nm-button--secondary"
+                    [disabled]="
+                      saving() ||
+                      journalLines().length <= 2
+                    "
+                    (click)="removeLine(index)"
+                  >
+                    Remove
+                  </button>
+
+                </td>
+
+              </tr>
+
+            }
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+
+      <div class="filter-actions">
+
+        <button
+          type="button"
+          class="nm-button nm-button--secondary"
+          [disabled]="saving()"
+          (click)="addLine()"
+        >
+          + Add Line
+        </button>
+
+      </div>
+
+
+      <section
+        class="summary-grid"
+        style="margin-top: 20px;"
+      >
+
+        <article class="summary-card">
+
+          <span class="summary-card__label">
+            Total Debit
+          </span>
+
+          <strong class="summary-card__value summary-card__value--money">
+            {{ formatCurrency(draftTotalDebit()) }}
+          </strong>
+
+        </article>
+
+
+        <article class="summary-card">
+
+          <span class="summary-card__label">
+            Total Credit
+          </span>
+
+          <strong class="summary-card__value summary-card__value--money">
+            {{ formatCurrency(draftTotalCredit()) }}
+          </strong>
+
+        </article>
+
+
+        <article class="summary-card">
+
+          <span class="summary-card__label">
+            Difference
+          </span>
+
+          <strong class="summary-card__value summary-card__value--money">
+            {{ formatCurrency(draftDifference()) }}
+          </strong>
+
+        </article>
+
+      </section>
+
+
+      <div class="filter-actions">
+
+        <button
+          type="button"
+          class="nm-button nm-button--secondary"
+          [disabled]="saving()"
+          (click)="closeCreateForm()"
+        >
+          Cancel
+        </button>
+
+
+        <button
+          type="button"
+          class="nm-button nm-button--primary"
+          [disabled]="saving()"
+          (click)="saveDraft()"
+        >
+          {{
+            saving()
+              ? 'Saving...'
+              : 'Save as Draft'
+          }}
+        </button>
+
+      </div>
+
+    </section>
+
+  }
+
 
   <section
     class="summary-grid"
@@ -159,10 +571,6 @@
   </section>
 
 
-  <!-- =====================================================
-       FILTERS
-  ====================================================== -->
-
   <section class="filter-panel">
 
     <div class="filter-panel__header">
@@ -184,8 +592,6 @@
 
     <div class="filter-grid">
 
-      <!-- SEARCH -->
-
       <div class="form-field form-field--wide">
 
         <label for="journal-search">
@@ -195,7 +601,7 @@
         <div class="input-shell">
 
           <span class="input-icon">
-            ⌕
+            âŒ•
           </span>
 
           <input
@@ -212,8 +618,6 @@
 
       </div>
 
-
-      <!-- STATUS -->
 
       <div class="form-field">
 
@@ -252,8 +656,6 @@
       </div>
 
 
-      <!-- FROM DATE -->
-
       <div class="form-field">
 
         <label for="journal-from-date">
@@ -269,8 +671,6 @@
 
       </div>
 
-
-      <!-- TO DATE -->
 
       <div class="form-field">
 
@@ -316,10 +716,6 @@
   </section>
 
 
-  <!-- =====================================================
-       LOADING
-  ====================================================== -->
-
   @if (loading()) {
 
     <section
@@ -328,7 +724,7 @@
     >
 
       <div class="state-card__icon state-card__icon--loading">
-        ↻
+        â†»
       </div>
 
       <div>
@@ -347,10 +743,6 @@
 
   }
 
-
-  <!-- =====================================================
-       ERROR
-  ====================================================== -->
 
   @else if (error()) {
 
@@ -389,16 +781,12 @@
   }
 
 
-  <!-- =====================================================
-       EMPTY STATE
-  ====================================================== -->
-
   @else if (journals().length === 0) {
 
     <section class="empty-state">
 
       <div class="empty-state__icon">
-        ≡
+        â‰¡
       </div>
 
       <h2>
@@ -415,10 +803,6 @@
 
   }
 
-
-  <!-- =====================================================
-       JOURNAL TABLE
-  ====================================================== -->
 
   @else {
 
@@ -499,8 +883,6 @@
 
               <tr>
 
-                <!-- JOURNAL NUMBER -->
-
                 <td>
 
                   <div class="journal-number">
@@ -522,8 +904,6 @@
                 </td>
 
 
-                <!-- DATE -->
-
                 <td>
 
                   <span class="date-text">
@@ -533,14 +913,12 @@
                 </td>
 
 
-                <!-- NARRATION -->
-
                 <td>
 
                   <div class="narration-cell">
 
                     <span>
-                      {{ journal.narration || '—' }}
+                      {{ journal.narration || 'â€”' }}
                     </span>
 
                     @if (journal.lines.length) {
@@ -557,8 +935,6 @@
                 </td>
 
 
-                <!-- REFERENCE -->
-
                 <td>
 
                   <span class="reference-text">
@@ -567,8 +943,6 @@
 
                 </td>
 
-
-                <!-- DEBIT -->
 
                 <td class="amount-column">
 
@@ -579,8 +953,6 @@
                 </td>
 
 
-                <!-- CREDIT -->
-
                 <td class="amount-column">
 
                   <strong class="amount amount--credit">
@@ -589,8 +961,6 @@
 
                 </td>
 
-
-                <!-- STATUS -->
 
                 <td>
 
@@ -603,6 +973,61 @@
                   >
                     {{ statusLabel(journal.status) }}
                   </span>
+
+
+                  @if (journal.status === 'draft') {
+
+                    <div
+                      class="filter-actions"
+                      style="margin-top: 8px;"
+                    >
+
+                      <button
+                        type="button"
+                        class="nm-button nm-button--primary"
+                        [disabled]="
+                          !journal._id ||
+                          postingJournalId() === journal._id
+                        "
+                        (click)="postJournal(journal)"
+                      >
+                        {{
+                          postingJournalId() === journal._id
+                            ? 'Posting...'
+                            : 'Post'
+                        }}
+                      </button>
+
+                    </div>
+
+                  }
+
+                  @if (journal.status === 'posted') {
+
+                    <div
+                      class="filter-actions"
+                      style="margin-top: 8px;"
+                    >
+
+                      <button
+                        type="button"
+                        class="nm-button nm-button--secondary"
+                        [disabled]="
+                          !journal._id ||
+                          voidingJournalId() === journal._id
+                        "
+                        (click)="voidJournal(journal)"
+                      >
+                        {{
+                          voidingJournalId() === journal._id
+                            ? 'Voiding...'
+                            : 'Void'
+                        }}
+                      </button>
+
+                    </div>
+
+                  }
 
                 </td>
 

@@ -1,0 +1,471 @@
+:host {
+  display: block;
+
+  --surface: #edf1f7;
+  --surface-soft: #f4f7fb;
+  --text: #243047;
+  --muted: #758197;
+  --accent: #d6a928;
+  --success: #238b57;
+  --danger: #c94d5d;
+  --shadow-dark: rgba(163, 177, 198, 0.55);
+  --shadow-light: rgba(255, 255, 255, 0.9);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.voucher-page {
+  min-height: 100%;
+  padding: 24px;
+  color: var(--text);
+  background: var(--surface);
+}
+
+.page-header,
+.form-header,
+.section-heading,
+.lines-heading,
+.form-actions,
+.filter-actions,
+.row-actions {
+  display: flex;
+  align-items: center;
+}
+
+.page-header,
+.form-header,
+.section-heading,
+.lines-heading {
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.page-header {
+  margin-bottom: 22px;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+h1 {
+  margin-top: 4px;
+  font-size: clamp(1.7rem, 3vw, 2.35rem);
+}
+
+h2 {
+  font-size: 1.2rem;
+}
+
+h3 {
+  font-size: 1rem;
+}
+
+.eyebrow {
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+}
+
+.subtitle,
+.section-heading p,
+.lines-heading p {
+  margin-top: 7px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.filter-card,
+.register-card,
+.voucher-form-card,
+.totals-card {
+  border-radius: 22px;
+  background: var(--surface);
+  box-shadow:
+    10px 10px 24px var(--shadow-dark),
+    -10px -10px 24px var(--shadow-light);
+}
+
+.filter-card,
+.register-card {
+  padding: 20px;
+  margin-bottom: 22px;
+}
+
+.filter-grid,
+.form-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.filter-grid {
+  grid-template-columns:
+    minmax(180px, 1.4fr)
+    repeat(3, minmax(140px, 0.8fr));
+}
+
+.form-grid {
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+label > span {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  border-radius: 13px;
+  padding: 11px 13px;
+  color: var(--text);
+  background: var(--surface);
+  box-shadow:
+    inset 4px 4px 9px rgba(163, 177, 198, 0.38),
+    inset -4px -4px 9px rgba(255, 255, 255, 0.82);
+}
+
+textarea {
+  resize: vertical;
+}
+
+.full-width {
+  grid-column: 1 / -1;
+}
+
+.primary-button,
+.secondary-button,
+.ghost-button,
+.close-button,
+.remove-line,
+.text-button {
+  border: 0;
+  cursor: pointer;
+}
+
+.primary-button,
+.secondary-button,
+.ghost-button {
+  min-height: 42px;
+  padding: 10px 17px;
+  border-radius: 13px;
+  font-weight: 800;
+}
+
+.primary-button {
+  color: #fff;
+  background: var(--accent);
+  box-shadow:
+    5px 5px 12px var(--shadow-dark),
+    -5px -5px 12px var(--shadow-light);
+}
+
+.secondary-button,
+.ghost-button {
+  color: var(--text);
+  background: var(--surface);
+  box-shadow:
+    5px 5px 12px var(--shadow-dark),
+    -5px -5px 12px var(--shadow-light);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.filter-actions {
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.message {
+  margin-bottom: 18px;
+  padding: 12px 15px;
+  border-radius: 12px;
+  font-weight: 700;
+}
+
+.message.success {
+  color: var(--success);
+  background: rgba(35, 139, 87, 0.1);
+}
+
+.message.error {
+  color: var(--danger);
+  background: rgba(201, 77, 93, 0.1);
+}
+
+.table-wrap {
+  overflow-x: auto;
+  margin-top: 17px;
+}
+
+table {
+  width: 100%;
+  min-width: 850px;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 13px 12px;
+  border-bottom: 1px solid rgba(117, 129, 151, 0.16);
+  text-align: left;
+}
+
+th {
+  color: var(--muted);
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.number {
+  text-align: right;
+}
+
+.empty-state {
+  padding: 38px 15px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.status-pill {
+  display: inline-flex;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+.status-draft {
+  color: #8a6811;
+  background: rgba(214, 169, 40, 0.14);
+}
+
+.status-posted {
+  color: var(--success);
+  background: rgba(35, 139, 87, 0.12);
+}
+
+.status-void {
+  color: var(--danger);
+  background: rgba(201, 77, 93, 0.12);
+}
+
+.row-actions {
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.text-button {
+  padding: 0;
+  color: var(--accent);
+  background: transparent;
+  font-weight: 800;
+}
+
+.success-text {
+  color: var(--success);
+}
+
+.danger-text {
+  color: var(--danger);
+}
+
+.form-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(36, 48, 71, 0.38);
+  overflow-y: auto;
+}
+
+.voucher-form-card {
+  width: min(1180px, 100%);
+  max-height: calc(100vh - 48px);
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.form-header {
+  margin-bottom: 22px;
+}
+
+.close-button,
+.remove-line {
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--text);
+  background: var(--surface);
+  box-shadow:
+    4px 4px 9px var(--shadow-dark),
+    -4px -4px 9px var(--shadow-light);
+}
+
+.close-button {
+  width: 38px;
+  height: 38px;
+  font-size: 1.45rem;
+}
+
+.lines-heading {
+  margin: 26px 0 15px;
+}
+
+.lines {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+.line-row {
+  display: grid;
+  grid-template-columns:
+    minmax(220px, 1.4fr)
+    minmax(180px, 1.2fr)
+    minmax(110px, 0.55fr)
+    minmax(110px, 0.55fr)
+    38px;
+  gap: 12px;
+  align-items: end;
+  padding: 15px;
+  border-radius: 16px;
+  background: var(--surface-soft);
+}
+
+.remove-line {
+  width: 36px;
+  height: 36px;
+  margin-bottom: 2px;
+  color: var(--danger);
+  font-size: 1.2rem;
+}
+
+.totals-card {
+  display: grid;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 22px;
+  padding: 17px;
+}
+
+.totals-card > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.totals-card span {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.totals-card strong {
+  font-size: 1.1rem;
+}
+
+.balance-state {
+  justify-content: center;
+  align-items: center;
+  color: var(--danger);
+  font-weight: 900;
+}
+
+.balance-state.balanced {
+  color: var(--success);
+}
+
+.form-actions {
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+@media (max-width: 980px) {
+  .filter-grid,
+  .form-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .line-row {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .remove-line {
+    align-self: end;
+  }
+}
+
+@media (max-width: 640px) {
+  .voucher-page {
+    padding: 16px;
+  }
+
+  .page-header,
+  .form-header,
+  .lines-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .filter-grid,
+  .form-grid,
+  .line-row,
+  .totals-card {
+    grid-template-columns: 1fr;
+  }
+
+  .full-width {
+    grid-column: auto;
+  }
+
+  .form-overlay {
+    padding: 10px;
+  }
+
+  .voucher-form-card {
+    max-height: calc(100vh - 20px);
+    padding: 17px;
+  }
+
+  .close-button {
+    position: absolute;
+    align-self: flex-end;
+  }
+}

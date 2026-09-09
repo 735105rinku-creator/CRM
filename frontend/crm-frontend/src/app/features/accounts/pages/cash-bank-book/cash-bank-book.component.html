@@ -1,0 +1,596 @@
+<section class="cash-bank-page">
+
+  <header class="page-header">
+
+    <div>
+
+      <p class="eyebrow">
+        Accounts · Cash & Bank
+      </p>
+
+      <h1>
+        Cash & Bank Book
+      </h1>
+
+      <p class="subtitle">
+        Review cash and bank balances, debit and credit movement,
+        and ledger transactions for the selected period.
+      </p>
+
+    </div>
+
+    <div class="fy-chip">
+      {{ financialYearRange.label }}
+    </div>
+
+  </header>
+
+
+  <form
+    class="filter-panel"
+    [formGroup]="filterForm"
+    (ngSubmit)="applyFilters()"
+  >
+
+    <label class="field">
+
+      <span>
+        From Date
+      </span>
+
+      <input
+        type="date"
+        formControlName="from"
+      />
+
+    </label>
+
+
+    <label class="field">
+
+      <span>
+        To Date
+      </span>
+
+      <input
+        type="date"
+        formControlName="to"
+      />
+
+    </label>
+
+
+    <label class="field account-field">
+
+      <span>
+        Account
+      </span>
+
+      <select
+        formControlName="accountId"
+      >
+
+        <option value="">
+          All Cash & Bank Accounts
+        </option>
+
+        @for (
+          account of accounts();
+          track account.accountId
+        ) {
+
+          <option
+            [value]="account.accountId"
+          >
+            {{ account.accountCode }}
+            ·
+            {{ account.accountName }}
+          </option>
+
+        }
+
+      </select>
+
+    </label>
+
+
+    <div class="filter-actions">
+
+      <button
+        class="primary-button"
+        type="submit"
+        [disabled]="loading()"
+      >
+        Apply Filters
+      </button>
+
+      <button
+        class="secondary-button"
+        type="button"
+        [disabled]="loading()"
+        (click)="resetFilters()"
+      >
+        Reset
+      </button>
+
+    </div>
+
+  </form>
+
+
+  @if (
+    errorMessage()
+  ) {
+
+    <div class="state-card error-state">
+      {{ errorMessage() }}
+    </div>
+
+  }
+
+
+  @if (
+    loading()
+  ) {
+
+    <div class="state-card">
+      Loading Cash & Bank Book...
+    </div>
+
+  }
+
+
+  @if (
+    report();
+    as currentReport
+  ) {
+
+    <section class="summary-grid">
+
+      <article class="summary-card">
+
+        <span>
+          Total Accounts
+        </span>
+
+        <strong>
+          {{ currentReport.summary.totalAccounts }}
+        </strong>
+
+      </article>
+
+
+      <article class="summary-card">
+
+        <span>
+          Opening Balance
+        </span>
+
+        <strong>
+          {{
+            currentReport.summary.totalOpening
+              | currency:'INR':'symbol':'1.2-2'
+          }}
+        </strong>
+
+      </article>
+
+
+      <article class="summary-card">
+
+        <span>
+          Total Debit
+        </span>
+
+        <strong>
+          {{
+            currentReport.summary.totalDebit
+              | currency:'INR':'symbol':'1.2-2'
+          }}
+        </strong>
+
+      </article>
+
+
+      <article class="summary-card">
+
+        <span>
+          Total Credit
+        </span>
+
+        <strong>
+          {{
+            currentReport.summary.totalCredit
+              | currency:'INR':'symbol':'1.2-2'
+          }}
+        </strong>
+
+      </article>
+
+
+      <article class="summary-card">
+
+        <span>
+          Closing Balance
+        </span>
+
+        <strong>
+          {{
+            currentReport.summary.totalClosing
+              | currency:'INR':'symbol':'1.2-2'
+          }}
+        </strong>
+
+      </article>
+
+    </section>
+
+
+    <section class="account-overview">
+
+      <div class="section-heading">
+
+        <div>
+
+          <p class="eyebrow">
+            Account Overview
+          </p>
+
+          <h2>
+            Cash & Bank Accounts
+          </h2>
+
+        </div>
+
+        @if (
+          selectedAccount()
+        ) {
+
+          <button
+            type="button"
+            class="secondary-button"
+            (click)="showAllAccounts()"
+          >
+            Show All
+          </button>
+
+        }
+
+      </div>
+
+
+      @if (
+        currentReport.accounts.length
+      ) {
+
+        <div class="table-shell">
+
+          <table>
+
+            <thead>
+
+              <tr>
+
+                <th>
+                  Account Code
+                </th>
+
+                <th>
+                  Account Name
+                </th>
+
+                <th>
+                  Type
+                </th>
+
+                <th>
+                  Status
+                </th>
+
+                <th class="number">
+                  Opening Balance
+                </th>
+
+                <th class="number">
+                  Total Debit
+                </th>
+
+                <th class="number">
+                  Total Credit
+                </th>
+
+                <th class="number">
+                  Closing Balance
+                </th>
+
+              </tr>
+
+            </thead>
+
+            <tbody>
+
+              @for (
+                account of currentReport.accounts;
+                track account.accountId
+              ) {
+
+                <tr
+                  class="account-row"
+                  (click)="selectAccount(
+                    account.accountId
+                  )"
+                >
+
+                  <td>
+                    {{ account.accountCode }}
+                  </td>
+
+                  <td>
+                    <strong>
+                      {{ account.accountName }}
+                    </strong>
+                  </td>
+
+                  <td>
+                    <span class="type-badge">
+                      {{
+                        account.accountType
+                          | titlecase
+                      }}
+                    </span>
+                  </td>
+
+                  <td>
+
+                    <span
+                      class="status-badge"
+                      [class.inactive]="
+                        account.status ===
+                        'inactive'
+                      "
+                    >
+                      {{ account.status | titlecase }}
+                    </span>
+
+                  </td>
+
+                  <td class="number">
+                    {{
+                      signedBalance(
+                        account.openingBalance
+                      )
+                        | currency:'INR':'symbol':'1.2-2'
+                    }}
+                  </td>
+
+                  <td class="number debit">
+                    {{
+                      account.totalDebit
+                        | currency:'INR':'symbol':'1.2-2'
+                    }}
+                  </td>
+
+                  <td class="number credit">
+                    {{
+                      account.totalCredit
+                        | currency:'INR':'symbol':'1.2-2'
+                    }}
+                  </td>
+
+                  <td class="number">
+                    <strong>
+                      {{
+                        signedBalance(
+                          account.closingBalance
+                        )
+                          | currency:'INR':'symbol':'1.2-2'
+                      }}
+                    </strong>
+                  </td>
+
+                </tr>
+
+              }
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      } @else {
+
+        <div class="empty-state">
+          No Cash or Bank accounts were found for this company.
+        </div>
+
+      }
+
+    </section>
+
+
+    <section class="ledger-section">
+
+      <div class="section-heading">
+
+        <div>
+
+          <p class="eyebrow">
+            Transaction Details
+          </p>
+
+          <h2>
+            Ledger Entries
+          </h2>
+
+        </div>
+
+      </div>
+
+
+      @for (
+        account of visibleAccounts();
+        track account.accountId
+      ) {
+
+        <article class="ledger-card">
+
+          <header class="ledger-header">
+
+            <div>
+
+              <span class="account-code">
+                {{ account.accountCode }}
+              </span>
+
+              <h3>
+                {{ account.accountName }}
+              </h3>
+
+              <p>
+                {{ account.accountType | titlecase }}
+                ·
+                {{ account.status | titlecase }}
+              </p>
+
+            </div>
+
+
+            <div class="closing-box">
+
+              <span>
+                Closing Balance
+              </span>
+
+              <strong>
+                {{
+                  signedBalance(
+                    account.closingBalance
+                  )
+                    | currency:'INR':'symbol':'1.2-2'
+                }}
+              </strong>
+
+            </div>
+
+          </header>
+
+
+          @if (
+            account.entries.length
+          ) {
+
+            <div class="table-shell ledger-table">
+
+              <table>
+
+                <thead>
+
+                  <tr>
+
+                    <th>
+                      Journal Date
+                    </th>
+
+                    <th>
+                      Journal Number
+                    </th>
+
+                    <th>
+                      Narration
+                    </th>
+
+                    <th class="number">
+                      Debit
+                    </th>
+
+                    <th class="number">
+                      Credit
+                    </th>
+
+                    <th class="number">
+                      Running Balance
+                    </th>
+
+                  </tr>
+
+                </thead>
+
+                <tbody>
+
+                  @for (
+                    entry of account.entries;
+                    track $index
+                  ) {
+
+                    <tr>
+
+                      <td>
+                        {{ entry.journalDate }}
+                      </td>
+
+                      <td>
+                        {{ entry.journalNumber }}
+                      </td>
+
+                      <td>
+                        {{ entry.narration || '—' }}
+                      </td>
+
+                      <td class="number debit">
+                        {{
+                          entry.debit
+                            | currency:'INR':'symbol':'1.2-2'
+                        }}
+                      </td>
+
+                      <td class="number credit">
+                        {{
+                          entry.credit
+                            | currency:'INR':'symbol':'1.2-2'
+                        }}
+                      </td>
+
+                      <td class="number">
+
+                        <strong>
+                          {{
+                            (
+                              entry.balanceType ===
+                              'credit'
+                                ? -entry.runningBalance
+                                : entry.runningBalance
+                            )
+                              | currency:'INR':'symbol':'1.2-2'
+                          }}
+                        </strong>
+
+                      </td>
+
+                    </tr>
+
+                  }
+
+                </tbody>
+
+              </table>
+
+            </div>
+
+          } @else {
+
+            <div class="empty-state compact">
+              No ledger entries found for this account in the selected period.
+            </div>
+
+          }
+
+        </article>
+
+      }
+
+    </section>
+
+  }
+
+</section>

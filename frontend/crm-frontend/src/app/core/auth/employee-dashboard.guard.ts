@@ -10,7 +10,6 @@ interface EmployeeDashboardResponse {
   employee?: {
     departmentId?: DepartmentRef | string | null;
   } | null;
-
   user?: {
     role?: string;
     department?: string;
@@ -18,32 +17,38 @@ interface EmployeeDashboardResponse {
   } | null;
 }
 
-
-/* ============================================================
-   ACCOUNTS DEPARTMENT
-============================================================ */
-
+/**
+ * Checks whether any supplied department reference belongs to Accounts.
+ *
+ * Supports:
+ * - Plain string department values
+ * - Populated department objects
+ * - featureKey
+ * - dashboardKey
+ * - code
+ * - name
+ * - slug
+ * - accessModules
+ */
 function hasAccountsDepartment(
-  values: Array<
-    DepartmentRef |
-    string |
-    null |
-    undefined
-  >
+  values: Array<DepartmentRef | string | null | undefined>
 ): boolean {
-
   return values.some((value) => {
-
     if (!value) {
       return false;
     }
 
+    /*
+     * Sometimes backend can return department directly as a string.
+     *
+     * Examples:
+     * "accounts"
+     * "Accounts"
+     * "ACCOUNT"
+     * "Accounting"
+     */
     if (typeof value === 'string') {
-
-      const normalized =
-        value
-          .trim()
-          .toLowerCase();
+      const normalized = value.trim().toLowerCase();
 
       return (
         normalized === 'accounts' ||
@@ -53,16 +58,23 @@ function hasAccountsDepartment(
       );
     }
 
-    const department =
-      value as DepartmentRef & {
-        name?: string;
-        departmentName?: string;
-        code?: string;
-        slug?: string;
-        featureKey?: string;
-        dashboardKey?: string;
-        accessModules?: string[];
-      };
+    /*
+     * DepartmentRef may contain additional properties depending
+     * on whether the department was populated by the backend.
+     *
+     * We intentionally read the common department-routing fields
+     * defensively so existing DepartmentRef typing does not need
+     * to be changed.
+     */
+    const department = value as DepartmentRef & {
+      name?: string;
+      departmentName?: string;
+      code?: string;
+      slug?: string;
+      featureKey?: string;
+      dashboardKey?: string;
+      accessModules?: string[];
+    };
 
     const directValues = [
       department.featureKey,
@@ -73,368 +85,135 @@ function hasAccountsDepartment(
       department.departmentName
     ];
 
-    const hasDirectMatch =
-      directValues.some((item) => {
+    const hasDirectAccountsMatch = directValues.some((item) => {
+      if (!item) {
+        return false;
+      }
 
-        if (!item) {
-          return false;
-        }
+      const normalized = String(item).trim().toLowerCase();
 
-        const normalized =
-          String(item)
-            .trim()
-            .toLowerCase();
+      return (
+        normalized === 'accounts' ||
+        normalized === 'account' ||
+        normalized === 'accounting' ||
+        normalized.includes('accounts')
+      );
+    });
+
+    if (hasDirectAccountsMatch) {
+      return true;
+    }
+
+    /*
+     * HR department configuration can also expose Accounts
+     * through accessModules.
+     */
+    if (Array.isArray(department.accessModules)) {
+      return department.accessModules.some((module) => {
+        const normalized = String(module || '')
+          .trim()
+          .toLowerCase();
 
         return (
           normalized === 'accounts' ||
           normalized === 'account' ||
-          normalized === 'accounting' ||
-          normalized.includes('accounts')
+          normalized === 'accounting'
         );
       });
-
-    if (hasDirectMatch) {
-      return true;
-    }
-
-    if (
-      Array.isArray(
-        department.accessModules
-      )
-    ) {
-
-      return department.accessModules
-        .some((module) => {
-
-          const normalized =
-            String(module || '')
-              .trim()
-              .toLowerCase();
-
-          return (
-            normalized === 'accounts' ||
-            normalized === 'account' ||
-            normalized === 'accounting'
-          );
-        });
     }
 
     return false;
   });
 }
 
+export const employeeDashboardGuard: CanActivateFn = () => {
+  const auth = inject(AuthService);
+  const api = inject(ApiService);
+  const router = inject(Router);
 
-/* ============================================================
-   PURCHASE DEPARTMENT
-============================================================ */
+  const currentUser = auth.getCurrentUser();
 
-function hasPurchaseDepartment(
-  values: Array<
-    DepartmentRef |
-    string |
-    null |
-    undefined
-  >
-): boolean {
+  /*
+   * No logged-in user:
+   * send back to login.
+   */
+  if (!currentUser) {
+    return router.createUrlTree(['/login']);
+  }
 
-  return values.some((value) => {
+  /*
+   * Preserve the existing Logistics flow exactly.
+   *
+   * If AuthService can already identify the current user
+   * as a Logistics user, redirect immediately.
+   */
+  if (auth.isLogisticsUser(currentUser)) {
+    return router.createUrlTree(['/logistics/dashboard']);
+  }
 
-    if (!value) {
-      return false;
-    }
+  const role = String(
+    'role' in currentUser ? currentUser.role || '' : ''
+  )
+    .trim()
+    .toLowerCase();
 
+  /*
+   * This guard is specifically resolving Employee dashboard routing.
+   *
+   * Existing non-employee behaviour remains unchanged.
+   */
+  if (role !== 'employee') {
+    return true;
+  }
 
-    /* --------------------------------------------------------
-       Plain department string
-    -------------------------------------------------------- */
+  /*
+   * For an Employee, fetch the employee dashboard/profile data
+   * so we can determine the actual assigned department.
+   */
+  return api
+    .get<EmployeeDashboardResponse>('/hr/employees/dashboard')
+    .pipe(
+      map((response) => {
+        const departmentValues: Array<
+          DepartmentRef | string | null | undefined
+        > = [
+          response?.employee?.departmentId,
+          response?.user?.department,
+          response?.user?.departmentRef
+        ];
 
-    if (typeof value === 'string') {
-
-      const normalized =
-        value
-          .trim()
-          .toLowerCase();
-
-      return (
-        normalized === 'purchase' ||
-        normalized === 'purchases' ||
-        normalized === 'purchasing' ||
-        normalized === 'purchase department' ||
-        normalized === 'purchase-department' ||
-        normalized === 'purchase_department'
-      );
-    }
-
-
-    /* --------------------------------------------------------
-       Populated department object
-    -------------------------------------------------------- */
-
-    const department =
-      value as DepartmentRef & {
-        name?: string;
-        departmentName?: string;
-        code?: string;
-        departmentCode?: string;
-        slug?: string;
-        featureKey?: string;
-        dashboardKey?: string;
-        accessModules?: string[];
-      };
-
-
-    const directValues = [
-      department.featureKey,
-      department.dashboardKey,
-      department.code,
-      department.departmentCode,
-      department.slug,
-      department.name,
-      department.departmentName
-    ];
-
-
-    const hasDirectMatch =
-      directValues.some((item) => {
-
-        if (!item) {
-          return false;
+        /*
+         * Priority 1:
+         * Preserve existing Logistics employee routing.
+         */
+        if (auth.hasLogisticsDepartment(departmentValues)) {
+          return router.createUrlTree([
+            '/logistics/dashboard'
+          ]);
         }
 
-        const normalized =
-          String(item)
-            .trim()
-            .toLowerCase();
-
-        return (
-          normalized === 'purchase' ||
-          normalized === 'purchases' ||
-          normalized === 'purchasing' ||
-          normalized === 'purchase department' ||
-          normalized === 'purchase-department' ||
-          normalized === 'purchase_department'
-        );
-      });
-
-
-    if (hasDirectMatch) {
-      return true;
-    }
-
-
-    /* --------------------------------------------------------
-       accessModules compatibility
-    -------------------------------------------------------- */
-
-    if (
-      Array.isArray(
-        department.accessModules
-      )
-    ) {
-
-      return department.accessModules
-        .some((module) => {
-
-          const normalized =
-            String(module || '')
-              .trim()
-              .toLowerCase();
-
-          return (
-            normalized === 'purchase' ||
-            normalized === 'purchases' ||
-            normalized === 'purchasing'
-          );
-        });
-    }
-
-
-    return false;
-  });
-}
-
-
-/* ============================================================
-   EMPLOYEE DASHBOARD ROUTING
-============================================================ */
-
-export const employeeDashboardGuard:
-  CanActivateFn = () => {
-
-    const auth =
-      inject(AuthService);
-
-    const api =
-      inject(ApiService);
-
-    const router =
-      inject(Router);
-
-
-    const currentUser =
-      auth.getCurrentUser();
-
-
-    /* ========================================================
-       NOT LOGGED IN
-    ======================================================== */
-
-    if (!currentUser) {
-
-      return router.createUrlTree([
-        '/login'
-      ]);
-    }
-
-
-    /* ========================================================
-       EXISTING LOGISTICS FAST PATH
-
-       Preserve existing working Logistics behavior.
-    ======================================================== */
-
-    if (
-      auth.isLogisticsUser(
-        currentUser
-      )
-    ) {
-
-      return router.createUrlTree([
-        '/logistics/dashboard'
-      ]);
-    }
-
-
-    const role =
-      String(
-        'role' in currentUser
-          ? currentUser.role || ''
-          : ''
-      )
-        .trim()
-        .toLowerCase();
-
-
-    /* ========================================================
-       ONLY EMPLOYEE ROLE NEEDS DEPARTMENT WORKSPACE ROUTING
-    ======================================================== */
-
-    if (role !== 'employee') {
-
-      return true;
-    }
-
-
-    /* ========================================================
-       RESOLVE ASSIGNED DEPARTMENT
-
-       Reuse existing HR employee dashboard/profile API.
-       No new auth flow or role is introduced.
-    ======================================================== */
-
-    return api
-      .get<EmployeeDashboardResponse>(
-        '/hr/employees/dashboard'
-      )
-      .pipe(
-
-        map((response) => {
-
-          const departmentValues:
-            Array<
-              DepartmentRef |
-              string |
-              null |
-              undefined
-            > = [
-
-              response
-                ?.employee
-                ?.departmentId,
-
-              response
-                ?.user
-                ?.department,
-
-              response
-                ?.user
-                ?.departmentRef
-            ];
-
-
-          /* ================================================
-             PRIORITY 1 — LOGISTICS
-
-             Existing behavior remains unchanged.
-          ================================================ */
-
-          if (
-            auth.hasLogisticsDepartment(
-              departmentValues
-            )
-          ) {
-
-            return router.createUrlTree([
-              '/logistics/dashboard'
-            ]);
-          }
-
-
-          /* ================================================
-             PRIORITY 2 — ACCOUNTS
-
-             Existing Accountant routing remains unchanged.
-          ================================================ */
-
-          if (
-            hasAccountsDepartment(
-              departmentValues
-            )
-          ) {
-
-            return router.createUrlTree([
-              '/accounts/dashboard'
-            ]);
-          }
-
-
-          /* ================================================
-             PRIORITY 3 — PURCHASE
-
-             role remains employee.
-             Department assignment controls workspace.
-          ================================================ */
-
-          if (
-            hasPurchaseDepartment(
-              departmentValues
-            )
-          ) {
-
-            return router.createUrlTree([
-              '/purchase/dashboard'
-            ]);
-          }
-
-
-          /* ================================================
-             OTHER EMPLOYEES
-
-             Keep existing generic employee dashboard.
-          ================================================ */
-
-          return true;
-        }),
-
-
-        /* ==================================================
-           PRESERVE EXISTING FAILURE BEHAVIOR
-
-           If department lookup fails, don't break login.
-        ================================================== */
-
-        catchError(() =>
-          of(true)
-        )
-      );
-  };
+        /*
+         * Priority 2:
+         * Accounts employee / Accountant employee.
+         */
+        if (hasAccountsDepartment(departmentValues)) {
+          return router.createUrlTree([
+            '/accounts/dashboard'
+          ]);
+        }
+
+        /*
+         * Any other Employee keeps using the existing
+         * generic employee dashboard.
+         */
+        return true;
+      }),
+
+      /*
+       * Existing behaviour is preserved:
+       * if employee dashboard/profile API fails,
+       * don't block the generic employee dashboard.
+       */
+      catchError(() => of(true))
+    );
+};

@@ -1,4 +1,4 @@
-﻿import {
+import {
   ChangeDetectionStrategy,
   Component
 } from '@angular/core';
@@ -199,11 +199,28 @@ export class AccountsSidebarComponent {
 
         items: [
           {
+            label: 'Journal Vouchers',
+            route: '/accounts/journal',
+            icon: 'journal'
+          },
+
+          {
+            label: 'Contra',
+            route: '/accounts/contra',
+            icon: 'bank'
+          },
+
+          {
             label: 'Journal Entries',
             route: '/accounts/journal-entries',
             icon: 'journal'
           },
 
+          {
+            label: 'Day Book',
+            route: '/accounts/day-book',
+            icon: 'reports'
+          },
           {
             label: 'General Ledger',
             route: '/accounts/ledger',
@@ -256,6 +273,12 @@ export class AccountsSidebarComponent {
             label: 'GST & Tax',
             route: '/accounts/tax',
             icon: 'tax'
+          },
+
+          {
+            label: 'GST Report',
+            route: '/accounts/gst-report',
+            icon: 'tax'
           }
         ]
       },
@@ -272,6 +295,26 @@ export class AccountsSidebarComponent {
           {
             label: 'Financial Reports',
             route: '/accounts/reports',
+            icon: 'reports'
+          },
+          {
+            label: 'Trial Balance',
+            route: '/accounts/trial-balance',
+            icon: 'reports'
+          },
+          {
+            label: 'Profit & Loss',
+            route: '/accounts/profit-and-loss',
+            icon: 'reports'
+          },
+          {
+            label: 'Balance Sheet',
+            route: '/accounts/balance-sheet',
+            icon: 'reports'
+          },
+          {
+            label: 'Outstanding',
+            route: '/accounts/outstanding',
             icon: 'reports'
           }
         ]

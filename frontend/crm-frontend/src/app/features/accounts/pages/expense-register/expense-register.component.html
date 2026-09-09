@@ -1,0 +1,347 @@
+<section class="expense-register">
+
+  <header class="page-header">
+
+    <div>
+      <p class="eyebrow">
+        Accounts · Expense Review
+      </p>
+
+      <h1>
+        Operational Expense Register
+      </h1>
+
+      <p class="page-description">
+        Review company operational expense records without changing
+        the existing employee, HR or company administration workflow.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="refresh-button"
+      [disabled]="loading()"
+      (click)="loadExpenses()">
+      Refresh
+    </button>
+
+  </header>
+
+
+  <div class="accounting-notice">
+    <strong>
+      Read-only operational register.
+    </strong>
+
+    <span>
+      Accounting posting is handled separately through vouchers/journals.
+    </span>
+  </div>
+
+
+  <section class="summary-grid">
+
+    <article class="summary-card">
+      <span>
+        Total Expenses
+      </span>
+
+      <strong>
+        {{ formatMoney(totalAmount()) }}
+      </strong>
+
+      <small>
+        {{ filteredExpenses().length }} records
+      </small>
+    </article>
+
+
+    <article class="summary-card">
+      <span>
+        Pending
+      </span>
+
+      <strong>
+        {{ pendingCount() }}
+      </strong>
+
+      <small>
+        Awaiting operational action
+      </small>
+    </article>
+
+
+    <article class="summary-card">
+      <span>
+        Approved
+      </span>
+
+      <strong>
+        {{ approvedCount() }}
+      </strong>
+
+      <small>
+        Operationally approved
+      </small>
+    </article>
+
+
+    <article class="summary-card">
+      <span>
+        Other Status
+      </span>
+
+      <strong>
+        {{ otherCount() }}
+      </strong>
+
+      <small>
+        Rejected or other workflow state
+      </small>
+    </article>
+
+  </section>
+
+
+  <section class="filters-card">
+
+    <div class="filter-field filter-search">
+
+      <label for="expense-search">
+        Search
+      </label>
+
+      <input
+        id="expense-search"
+        type="search"
+        placeholder="Title, employee, type, notes..."
+        [ngModel]="search()"
+        (ngModelChange)="onSearchChange($event)" />
+
+    </div>
+
+
+    <div class="filter-field">
+
+      <label for="expense-status">
+        Status
+      </label>
+
+      <select
+        id="expense-status"
+        [ngModel]="status()"
+        (ngModelChange)="onStatusChange($event)">
+
+        <option value="">
+          All statuses
+        </option>
+
+        <option
+          *ngFor="let item of statuses()"
+          [value]="item">
+          {{ item }}
+        </option>
+
+      </select>
+
+    </div>
+
+
+    <div class="filter-field">
+
+      <label for="expense-category">
+        Category
+      </label>
+
+      <select
+        id="expense-category"
+        [ngModel]="category()"
+        (ngModelChange)="onCategoryChange($event)">
+
+        <option value="">
+          All categories
+        </option>
+
+        <option
+          *ngFor="let item of categories()"
+          [value]="item">
+          {{ item }}
+        </option>
+
+      </select>
+
+    </div>
+
+
+    <div class="filter-field">
+
+      <label for="expense-from">
+        From
+      </label>
+
+      <input
+        id="expense-from"
+        type="date"
+        [ngModel]="fromDate()"
+        (ngModelChange)="onFromDateChange($event)" />
+
+    </div>
+
+
+    <div class="filter-field">
+
+      <label for="expense-to">
+        To
+      </label>
+
+      <input
+        id="expense-to"
+        type="date"
+        [ngModel]="toDate()"
+        (ngModelChange)="onToDateChange($event)" />
+
+    </div>
+
+
+    <button
+      type="button"
+      class="reset-button"
+      (click)="resetFilters()">
+      Reset Filters
+    </button>
+
+  </section>
+
+
+  <div
+    *ngIf="loading()"
+    class="state-card">
+    Loading operational expenses...
+  </div>
+
+
+  <div
+    *ngIf="!loading() && errorMessage()"
+    class="state-card error-state">
+    {{ errorMessage() }}
+  </div>
+
+
+  <section
+    *ngIf="!loading() && !errorMessage()"
+    class="table-card">
+
+    <div class="table-heading">
+
+      <div>
+        <h2>
+          Expense Records
+        </h2>
+
+        <p>
+          Read-only view of the existing operational expense workflow.
+        </p>
+      </div>
+
+      <span class="record-count">
+        {{ filteredExpenses().length }} records
+      </span>
+
+    </div>
+
+
+    <div
+      *ngIf="filteredExpenses().length; else emptyState"
+      class="table-scroll">
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>Expense Date</th>
+            <th>Title</th>
+            <th>Category</th>
+            <th>Expense Type</th>
+            <th>Business Category</th>
+            <th>Route Type</th>
+            <th>Assigned Employee</th>
+            <th class="amount-column">Amount</th>
+            <th>Status</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          <tr
+            *ngFor="
+              let expense of filteredExpenses();
+              trackBy: trackExpense
+            ">
+
+            <td>
+              {{ formatDate(expense.expenseDate) }}
+            </td>
+
+            <td class="title-cell">
+              {{ expense.title || '—' }}
+            </td>
+
+            <td>
+              {{ expense.category || '—' }}
+            </td>
+
+            <td>
+              {{ expense.expenseType || '—' }}
+            </td>
+
+            <td>
+              {{ expense.businessCategory || '—' }}
+            </td>
+
+            <td>
+              {{ expense.routeType || '—' }}
+            </td>
+
+            <td>
+              {{ expense.assignedEmployeeCode || '—' }}
+            </td>
+
+            <td class="amount-column">
+              {{ formatMoney(expense.amount) }}
+            </td>
+
+            <td>
+              <span
+                class="status-pill"
+                [attr.data-status]="
+                  (expense.status || '').toLowerCase()
+                ">
+                {{ expense.status || '—' }}
+              </span>
+            </td>
+
+            <td class="notes-cell">
+              {{ expense.notes || '—' }}
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+
+    <ng-template #emptyState>
+
+      <div class="empty-state">
+        No operational expenses match the selected filters.
+      </div>
+
+    </ng-template>
+
+  </section>
+
+</section>

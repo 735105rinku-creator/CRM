@@ -1,0 +1,449 @@
+<section class="profit-loss-page">
+
+  <header class="page-header">
+
+    <div>
+      <p class="eyebrow">
+        Financial Reports
+      </p>
+
+      <h1>
+        Profit & Loss
+      </h1>
+
+      <p class="subtitle">
+        Review income, expenses and the net financial result for the selected accounting period.
+      </p>
+    </div>
+
+    <div
+      *ngIf="report()"
+      class="result-badge"
+      [class.loss]="report()?.result === 'loss'"
+      [class.break-even]="report()?.result === 'break-even'"
+    >
+      {{ resultLabel() }}
+    </div>
+
+  </header>
+
+
+  <form
+    class="filter-card"
+    [formGroup]="periodForm"
+    (ngSubmit)="applyPeriod()"
+  >
+
+    <label>
+      <span>From Date</span>
+
+      <input
+        type="date"
+        formControlName="from"
+      />
+    </label>
+
+    <label>
+      <span>To Date</span>
+
+      <input
+        type="date"
+        formControlName="to"
+      />
+    </label>
+
+    <div class="filter-actions">
+
+      <button
+        type="submit"
+        class="primary-button"
+        [disabled]="loading()"
+      >
+        Apply Period
+      </button>
+
+      <button
+        type="button"
+        class="secondary-button"
+        [disabled]="loading()"
+        (click)="resetPeriod()"
+      >
+        Reset
+      </button>
+
+    </div>
+
+  </form>
+
+
+  <div
+    *ngIf="errorMessage()"
+    class="message error-message"
+  >
+    {{ errorMessage() }}
+  </div>
+
+
+  <div
+    *ngIf="loading()"
+    class="state-card"
+  >
+    Loading Profit & Loss...
+  </div>
+
+
+  <ng-container
+    *ngIf="!loading() && report() as currentReport"
+  >
+
+    <div class="summary-grid">
+
+      <article class="summary-card">
+        <span>Total Income</span>
+
+        <strong>
+          {{
+            currentReport.income.total
+              | currency:'INR':'symbol':'1.2-2'
+          }}
+        </strong>
+      </article>
+
+
+      <article class="summary-card">
+        <span>Total Expenses</span>
+
+        <strong>
+          {{
+            currentReport.expenses.total
+              | currency:'INR':'symbol':'1.2-2'
+          }}
+        </strong>
+      </article>
+
+
+      <article
+        class="summary-card result-card"
+        [class.loss]="currentReport.result === 'loss'"
+      >
+        <span>
+          {{ resultLabel() }}
+        </span>
+
+        <strong>
+          {{
+            resultAmount()
+              | currency:'INR':'symbol':'1.2-2'
+          }}
+        </strong>
+      </article>
+
+    </div>
+
+
+    <div class="period-card">
+
+      <span>Period</span>
+
+      <strong>
+        {{ currentReport.period.from }}
+        -
+        {{ currentReport.period.to }}
+      </strong>
+
+    </div>
+
+
+    <section class="report-section">
+
+      <div class="section-title">
+        <div>
+          <p>Revenue</p>
+          <h2>Income</h2>
+        </div>
+
+        <strong>
+          {{
+            currentReport.income.total
+              | currency:'INR':'symbol':'1.2-2'
+          }}
+        </strong>
+      </div>
+
+
+      <div class="table-wrap">
+
+        <table>
+
+          <thead>
+            <tr>
+              <th>Account Code</th>
+              <th>Account Name</th>
+
+              <th class="number">
+                Period Debit
+              </th>
+
+              <th class="number">
+                Period Credit
+              </th>
+
+              <th class="number">
+                Amount
+              </th>
+            </tr>
+          </thead>
+
+
+          <tbody>
+
+            <tr
+              *ngFor="
+                let account of currentReport.income.accounts;
+                trackBy: trackAccount
+              "
+            >
+              <td class="code">
+                {{ account.accountCode }}
+              </td>
+
+              <td>
+                <strong>
+                  {{ account.accountName }}
+                </strong>
+
+                <small
+                  *ngIf="account.status === 'inactive'"
+                >
+                  Inactive
+                </small>
+              </td>
+
+              <td class="number">
+                {{
+                  account.periodDebit
+                    | currency:'INR':'symbol':'1.2-2'
+                }}
+              </td>
+
+              <td class="number">
+                {{
+                  account.periodCredit
+                    | currency:'INR':'symbol':'1.2-2'
+                }}
+              </td>
+
+              <td class="number amount">
+                {{
+                  account.amount
+                    | currency:'INR':'symbol':'1.2-2'
+                }}
+              </td>
+            </tr>
+
+
+            <tr
+              *ngIf="currentReport.income.accounts.length === 0"
+            >
+              <td
+                colspan="5"
+                class="empty"
+              >
+                No income accounts found for this period.
+              </td>
+            </tr>
+
+          </tbody>
+
+
+          <tfoot>
+            <tr>
+              <th colspan="4">
+                Total Income
+              </th>
+
+              <th class="number">
+                {{
+                  currentReport.income.total
+                    | currency:'INR':'symbol':'1.2-2'
+                }}
+              </th>
+            </tr>
+          </tfoot>
+
+        </table>
+
+      </div>
+
+    </section>
+
+
+    <section class="report-section">
+
+      <div class="section-title">
+        <div>
+          <p>Costs</p>
+          <h2>Expenses</h2>
+        </div>
+
+        <strong>
+          {{
+            currentReport.expenses.total
+              | currency:'INR':'symbol':'1.2-2'
+          }}
+        </strong>
+      </div>
+
+
+      <div class="table-wrap">
+
+        <table>
+
+          <thead>
+            <tr>
+              <th>Account Code</th>
+              <th>Account Name</th>
+
+              <th class="number">
+                Period Debit
+              </th>
+
+              <th class="number">
+                Period Credit
+              </th>
+
+              <th class="number">
+                Amount
+              </th>
+            </tr>
+          </thead>
+
+
+          <tbody>
+
+            <tr
+              *ngFor="
+                let account of currentReport.expenses.accounts;
+                trackBy: trackAccount
+              "
+            >
+              <td class="code">
+                {{ account.accountCode }}
+              </td>
+
+              <td>
+                <strong>
+                  {{ account.accountName }}
+                </strong>
+
+                <small
+                  *ngIf="account.status === 'inactive'"
+                >
+                  Inactive
+                </small>
+              </td>
+
+              <td class="number">
+                {{
+                  account.periodDebit
+                    | currency:'INR':'symbol':'1.2-2'
+                }}
+              </td>
+
+              <td class="number">
+                {{
+                  account.periodCredit
+                    | currency:'INR':'symbol':'1.2-2'
+                }}
+              </td>
+
+              <td class="number amount">
+                {{
+                  account.amount
+                    | currency:'INR':'symbol':'1.2-2'
+                }}
+              </td>
+            </tr>
+
+
+            <tr
+              *ngIf="currentReport.expenses.accounts.length === 0"
+            >
+              <td
+                colspan="5"
+                class="empty"
+              >
+                No expense accounts found for this period.
+              </td>
+            </tr>
+
+          </tbody>
+
+
+          <tfoot>
+            <tr>
+              <th colspan="4">
+                Total Expenses
+              </th>
+
+              <th class="number">
+                {{
+                  currentReport.expenses.total
+                    | currency:'INR':'symbol':'1.2-2'
+                }}
+              </th>
+            </tr>
+          </tfoot>
+
+        </table>
+
+      </div>
+
+    </section>
+
+
+    <div
+      class="net-result"
+      [class.loss]="currentReport.result === 'loss'"
+      [class.break-even]="currentReport.result === 'break-even'"
+    >
+
+      <div>
+        <span>Net Profit</span>
+
+        <strong>
+          {{
+            currentReport.netProfit
+              | currency:'INR':'symbol':'1.2-2'
+          }}
+        </strong>
+      </div>
+
+      <div>
+        <span>Net Loss</span>
+
+        <strong>
+          {{
+            currentReport.netLoss
+              | currency:'INR':'symbol':'1.2-2'
+          }}
+        </strong>
+      </div>
+
+    </div>
+
+  </ng-container>
+
+
+  <div
+    *ngIf="
+      !loading() &&
+      !report() &&
+      !errorMessage()
+    "
+    class="state-card"
+  >
+    Profit & Loss report is not available.
+  </div>
+
+</section>

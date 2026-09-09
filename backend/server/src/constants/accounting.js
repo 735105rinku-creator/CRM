@@ -97,6 +97,7 @@ export const JOURNAL_REFERENCE_TYPES =
     "expense",
     "opening_balance",
     "adjustment",
+    "voucher",
   ]);
 
 
@@ -214,3 +215,31 @@ export const NORMAL_BALANCE_BY_NATURE =
       "debit",
 
   });
+export const VOUCHER_TYPES = [
+  "journal",
+  "payment",
+  "receipt",
+  "contra",
+  "sales",
+  "purchase",
+  "credit_note",
+  "debit_note",
+];
+
+export const VOUCHER_STATUSES = [
+  "draft",
+  "posted",
+  "void",
+];
+
+export const VOUCHER_PREFIXES = Object.freeze({
+  journal: "JV",
+  payment: "PV",
+  receipt: "RV",
+  contra: "CV",
+  sales: "SV",
+  purchase: "PUR",
+  credit_note: "CN",
+  debit_note: "DN",
+});
+

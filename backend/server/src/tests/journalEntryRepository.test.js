@@ -157,3 +157,377 @@ describe(
 
   }
 );
+test(
+  "create forwards Mongo session to JournalEntry model creation",
+  async () => {
+
+    const repositoryModule =
+      await import(
+        "../repositories/journalEntry.repository.js"
+      );
+
+    const repository =
+      repositoryModule.default;
+
+
+    const modelModule =
+      await import(
+        "../models/JournalEntry.js"
+      );
+
+    const JournalEntry =
+      modelModule.default;
+
+
+    const fakeSession = {
+      id: "journal-create-session",
+    };
+
+
+    let receivedOptions =
+      null;
+
+
+    const originalCreate =
+      JournalEntry.create;
+
+
+    JournalEntry.create =
+      async (
+        payload,
+        options
+      ) => {
+
+        receivedOptions =
+          options;
+
+        return {
+          _id:
+            "64f000000000000000000099",
+
+          ...payload,
+        };
+
+      };
+
+
+    try {
+
+      await repository.create(
+        {
+          companyId:
+            "64f000000000000000000001",
+
+          journalNumber:
+            "JV-TEST-001",
+
+          status:
+            "draft",
+        },
+        {
+          session:
+            fakeSession,
+        }
+      );
+
+
+      assert.equal(
+        receivedOptions?.session,
+        fakeSession
+      );
+
+    } finally {
+
+      JournalEntry.create =
+        originalCreate;
+
+    }
+
+  }
+);
+
+test(
+  "findById forwards Mongo session to the JournalEntry query",
+  async () => {
+
+    const repositoryModule =
+      await import(
+        "../repositories/journalEntry.repository.js"
+      );
+
+    const repository =
+      repositoryModule.default;
+
+
+    const modelModule =
+      await import(
+        "../models/JournalEntry.js"
+      );
+
+    const JournalEntry =
+      modelModule.default;
+
+
+    const fakeSession = {
+      id: "journal-find-session",
+    };
+
+
+    let receivedSession =
+      null;
+
+
+    const originalFindOne =
+      JournalEntry.findOne;
+
+
+    JournalEntry.findOne =
+      (filter) => {
+
+        const query = {
+
+          session(session) {
+            receivedSession =
+              session;
+
+            return query;
+          },
+
+          async lean() {
+            return {
+              _id:
+                filter._id,
+
+              companyId:
+                filter.companyId,
+            };
+          },
+
+        };
+
+
+        return query;
+
+      };
+
+
+    try {
+
+      await repository.findById({
+        companyId:
+          "64f000000000000000000001",
+
+        journalEntryId:
+          "64f000000000000000000099",
+
+        session:
+          fakeSession,
+      });
+
+
+      assert.equal(
+        receivedSession,
+        fakeSession
+      );
+
+    } finally {
+
+      JournalEntry.findOne =
+        originalFindOne;
+
+    }
+
+  }
+);
+
+test(
+  "postById forwards Mongo session to the atomic JournalEntry update",
+  async () => {
+
+    const repositoryModule =
+      await import(
+        "../repositories/journalEntry.repository.js"
+      );
+
+    const repository =
+      repositoryModule.default;
+
+
+    const modelModule =
+      await import(
+        "../models/JournalEntry.js"
+      );
+
+    const JournalEntry =
+      modelModule.default;
+
+
+    const fakeSession = {
+      id: "journal-post-session",
+    };
+
+
+    let receivedOptions =
+      null;
+
+
+    const originalFindOneAndUpdate =
+      JournalEntry.findOneAndUpdate;
+
+
+    JournalEntry.findOneAndUpdate =
+      (
+        filter,
+        update,
+        options
+      ) => {
+
+        receivedOptions =
+          options;
+
+
+        return {
+          async lean() {
+            return {
+              _id:
+                filter._id,
+
+              status:
+                update.$set.status,
+            };
+          },
+        };
+
+      };
+
+
+    try {
+
+      await repository.postById({
+        companyId:
+          "64f000000000000000000001",
+
+        journalEntryId:
+          "64f000000000000000000099",
+
+        userId:
+          "64f000000000000000000009",
+
+        session:
+          fakeSession,
+      });
+
+
+      assert.equal(
+        receivedOptions?.session,
+        fakeSession
+      );
+
+    } finally {
+
+      JournalEntry.findOneAndUpdate =
+        originalFindOneAndUpdate;
+
+    }
+
+  }
+);
+
+test(
+  "voidById forwards Mongo session to the atomic JournalEntry update",
+  async () => {
+
+    const repositoryModule =
+      await import(
+        "../repositories/journalEntry.repository.js"
+      );
+
+    const repository =
+      repositoryModule.default;
+
+
+    const modelModule =
+      await import(
+        "../models/JournalEntry.js"
+      );
+
+    const JournalEntry =
+      modelModule.default;
+
+
+    const fakeSession = {
+      id: "journal-void-session",
+    };
+
+
+    let receivedOptions =
+      null;
+
+
+    const originalFindOneAndUpdate =
+      JournalEntry.findOneAndUpdate;
+
+
+    JournalEntry.findOneAndUpdate =
+      (
+        filter,
+        update,
+        options
+      ) => {
+
+        receivedOptions =
+          options;
+
+
+        return {
+          async lean() {
+            return {
+              _id:
+                filter._id,
+
+              status:
+                update.$set.status,
+
+              voidReason:
+                update.$set.voidReason,
+            };
+          },
+        };
+
+      };
+
+
+    try {
+
+      await repository.voidById({
+        companyId:
+          "64f000000000000000000001",
+
+        journalEntryId:
+          "64f000000000000000000099",
+
+        userId:
+          "64f000000000000000000009",
+
+        reason:
+          "Voucher voided",
+
+        session:
+          fakeSession,
+      });
+
+
+      assert.equal(
+        receivedOptions?.session,
+        fakeSession
+      );
+
+    } finally {
+
+      JournalEntry.findOneAndUpdate =
+        originalFindOneAndUpdate;
+
+    }
+
+  }
+);
