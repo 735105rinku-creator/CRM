@@ -548,8 +548,8 @@ export interface TrialBalancePeriod {
 }
 
 export interface TrialBalanceAmount {
-  amount: number;
-  type: DebitCredit;
+  debit: number;
+  credit: number;
 }
 
 export interface TrialBalanceRow {
@@ -565,13 +565,14 @@ export interface TrialBalanceRow {
 }
 
 export interface TrialBalanceTotals {
-  openingDebit: number;
-  openingCredit: number;
-  periodDebit: number;
-  periodCredit: number;
-  closingDebit: number;
-  closingCredit: number;
-  difference?: number;
+  totalOpeningDebit: number;
+  totalOpeningCredit: number;
+  totalPeriodDebit: number;
+  totalPeriodCredit: number;
+  totalClosingDebit: number;
+  totalClosingCredit: number;
+  difference: number;
+  isBalanced: boolean;
 }
 
 export interface TrialBalance {

@@ -245,3 +245,117 @@ test(
     );
   }
 );
+test(
+  "trial balance frontend uses the exact backend debit-credit balance and totals contract",
+  () => {
+
+    assert.match(
+      models,
+      /interface\s+TrialBalanceAmount\s*\{[\s\S]*?debit:\s*number;[\s\S]*?credit:\s*number;[\s\S]*?\}/
+    );
+
+    const trialBalanceAmountBlock =
+      models.match(
+        /interface\s+TrialBalanceAmount\s*\{([^}]*)\}/
+      )?.[1] ?? "";
+
+    assert.doesNotMatch(
+      trialBalanceAmountBlock,
+      /\bamount\s*:/
+    );
+
+    assert.doesNotMatch(
+      trialBalanceAmountBlock,
+      /\btype\s*:/
+    );
+
+
+    assert.match(
+      models,
+      /totalOpeningDebit:\s*number/
+    );
+
+    assert.match(
+      models,
+      /totalOpeningCredit:\s*number/
+    );
+
+    assert.match(
+      models,
+      /totalPeriodDebit:\s*number/
+    );
+
+    assert.match(
+      models,
+      /totalPeriodCredit:\s*number/
+    );
+
+    assert.match(
+      models,
+      /totalClosingDebit:\s*number/
+    );
+
+    assert.match(
+      models,
+      /totalClosingCredit:\s*number/
+    );
+
+    assert.match(
+      models,
+      /isBalanced:\s*boolean/
+    );
+
+
+    assert.match(
+      component,
+      /balance\?\.debit/
+    );
+
+    assert.match(
+      component,
+      /balance\?\.credit/
+    );
+
+    assert.doesNotMatch(
+      component,
+      /balance\?\.type/
+    );
+
+    assert.doesNotMatch(
+      component,
+      /balance\.amount/
+    );
+
+
+    assert.match(
+      template,
+      /totals\.totalOpeningDebit/
+    );
+
+    assert.match(
+      template,
+      /totals\.totalOpeningCredit/
+    );
+
+    assert.match(
+      template,
+      /totals\.totalPeriodDebit/
+    );
+
+    assert.match(
+      template,
+      /totals\.totalPeriodCredit/
+    );
+
+    assert.match(
+      template,
+      /totals\.totalClosingDebit/
+    );
+
+    assert.match(
+      template,
+      /totals\.totalClosingCredit/
+    );
+
+  }
+);
