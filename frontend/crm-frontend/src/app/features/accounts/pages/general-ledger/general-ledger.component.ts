@@ -136,6 +136,11 @@ export class GeneralLedgerComponent
     );
 
 
+  readonly selectedAccountId =
+    signal(
+      ''
+    );
+
   readonly ledgerEntries =
     computed<
       AccountLedgerEntry[]
@@ -763,6 +768,12 @@ export class GeneralLedgerComponent
     }
 
 
+    this.selectedAccountId
+      .set(
+        accountId
+      );
+
+
     this.isAccountLedgerLoading
       .set(
         true
@@ -838,7 +849,35 @@ export class GeneralLedgerComponent
   }
 
 
+  isSelectedAccount(
+    account:
+      GeneralLedgerAccount
+  ): boolean {
+
+    const accountId =
+      String(
+        account?.accountId ||
+        account?._id ||
+        ''
+      )
+        .trim();
+
+
+    return (
+      !!accountId &&
+      accountId ===
+        this.selectedAccountId()
+    );
+
+  }
+
   closeAccountLedger(): void {
+
+    this.selectedAccountId
+      .set(
+        ''
+      );
+
 
     this.selectedAccount
       .set(

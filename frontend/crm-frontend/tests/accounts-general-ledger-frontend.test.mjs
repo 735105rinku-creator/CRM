@@ -232,3 +232,56 @@ test(
     );
   }
 );
+
+test(
+  'general ledger renders account ledger detail directly below the selected account row',
+  () => {
+    const accountLoopIndex =
+      template.indexOf('trackBy: trackAccount');
+
+    const mainTableBodyCloseIndex =
+      template.indexOf(
+        '</tbody>',
+        accountLoopIndex
+      );
+
+    const detailIndex =
+      template.indexOf(
+        'Account Ledger Detail'
+      );
+
+    assert.notEqual(
+      accountLoopIndex,
+      -1,
+      'account row loop must exist'
+    );
+
+    assert.notEqual(
+      mainTableBodyCloseIndex,
+      -1,
+      'main General Ledger tbody must exist'
+    );
+
+    assert.notEqual(
+      detailIndex,
+      -1,
+      'Account Ledger Detail must exist'
+    );
+
+    assert.ok(
+      detailIndex > accountLoopIndex &&
+      detailIndex < mainTableBodyCloseIndex,
+      'Account Ledger Detail must be rendered inside the account-row loop before the main tbody closes'
+    );
+
+    assert.match(
+      component,
+      /isSelectedAccount\s*\(/
+    );
+
+    assert.match(
+      template,
+      /isSelectedAccount\s*\(\s*account\s*\)/
+    );
+  }
+);

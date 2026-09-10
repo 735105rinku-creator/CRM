@@ -665,12 +665,14 @@
 
         <tbody>
 
-          <tr
+          <ng-container
             *ngFor="
               let account of accounts();
               let index = index;
               trackBy: trackAccount
             ">
+
+            <tr>
 
             <!-- ACCOUNT CODE -->
 
@@ -783,109 +785,18 @@
             </td>
 
           </tr>
+            <tr
+              class="ledger-detail-row"
+              *ngIf="isSelectedAccount(account)">
 
-        </tbody>
-
-
-        <!-- =================================================
-             TABLE TOTALS
-        ================================================== -->
-
-        <tfoot>
-
-          <tr>
-
-            <td colspan="3">
-
-              <strong class="table-total-label">
-                Ledger Movement Totals
-              </strong>
-
-            </td>
-
-
-            <td class="ledger-table__number">
-
-              <div class="balance-total">
-
-                <span>
-                  {{ formatMoney(totalOpeningDebit()) }}
-                  Dr
-                </span>
-
-                <span>
-                  {{ formatMoney(totalOpeningCredit()) }}
-                  Cr
-                </span>
-
-              </div>
-
-            </td>
-
-
-            <td class="ledger-table__number">
-
-              <strong>
-                {{ formatMoney(summary().totalDebit) }}
-              </strong>
-
-            </td>
-
-
-            <td class="ledger-table__number">
-
-              <strong>
-                {{ formatMoney(summary().totalCredit) }}
-              </strong>
-
-            </td>
-
-
-            <td class="ledger-table__number">
-
-              <div class="balance-total">
-
-                <span>
-                  {{ formatMoney(totalClosingDebit()) }}
-                  Dr
-                </span>
-
-                <span>
-                  {{ formatMoney(totalClosingCredit()) }}
-                  Cr
-                </span>
-
-              </div>
-
-            </td>
-
-
-            <td>
-              —
-            </td>
-
-          </tr>
-
-        </tfoot>
-
-      </table>
-
-    </div>
-
-  </section>
-
-
-    <!-- =======================================================
+              <td
+                colspan="8"
+                class="ledger-detail-cell">
+<!-- =======================================================
        ACCOUNT LEDGER DRILL-DOWN
   ======================================================== -->
 
-  <section
-    class="ledger-panel"
-    *ngIf="
-      isAccountLedgerLoading() ||
-      accountLedgerError() ||
-      selectedAccount()
-    ">
+  <section class="ledger-panel ledger-panel--inline">
 
     <div class="ledger-panel__header">
 
@@ -1093,7 +1004,105 @@
 
   </section>
 
-<!-- =======================================================
+
+              </td>
+
+            </tr>
+
+          </ng-container>
+
+        </tbody>
+
+
+        <!-- =================================================
+             TABLE TOTALS
+        ================================================== -->
+
+        <tfoot>
+
+          <tr>
+
+            <td colspan="3">
+
+              <strong class="table-total-label">
+                Ledger Movement Totals
+              </strong>
+
+            </td>
+
+
+            <td class="ledger-table__number">
+
+              <div class="balance-total">
+
+                <span>
+                  {{ formatMoney(totalOpeningDebit()) }}
+                  Dr
+                </span>
+
+                <span>
+                  {{ formatMoney(totalOpeningCredit()) }}
+                  Cr
+                </span>
+
+              </div>
+
+            </td>
+
+
+            <td class="ledger-table__number">
+
+              <strong>
+                {{ formatMoney(summary().totalDebit) }}
+              </strong>
+
+            </td>
+
+
+            <td class="ledger-table__number">
+
+              <strong>
+                {{ formatMoney(summary().totalCredit) }}
+              </strong>
+
+            </td>
+
+
+            <td class="ledger-table__number">
+
+              <div class="balance-total">
+
+                <span>
+                  {{ formatMoney(totalClosingDebit()) }}
+                  Dr
+                </span>
+
+                <span>
+                  {{ formatMoney(totalClosingCredit()) }}
+                  Cr
+                </span>
+
+              </div>
+
+            </td>
+
+
+            <td>
+              —
+            </td>
+
+          </tr>
+
+        </tfoot>
+
+      </table>
+
+    </div>
+
+  </section>
+
+
+    <!-- =======================================================
        INFORMATION NOTE
   ======================================================== -->
 
