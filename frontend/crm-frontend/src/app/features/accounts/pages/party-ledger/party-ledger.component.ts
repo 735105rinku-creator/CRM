@@ -5,6 +5,7 @@ import {
 import {
   ChangeDetectionStrategy,
   Component,
+  Input,
   OnInit,
   inject,
   signal
@@ -65,6 +66,9 @@ type PartyLedgerType =
 })
 export class PartyLedgerComponent
   implements OnInit {
+
+  @Input()
+  embeddedPartyType?: PartyLedgerType;
 
   private readonly route =
     inject(
@@ -155,15 +159,7 @@ export class PartyLedgerComponent
 
   private readRouteMode(): void {
 
-    const configuredType =
-      String(
-        this.route.snapshot.data[
-          'partyType'
-        ] ||
-        ''
-      )
-        .trim()
-        .toLowerCase();
+        const configuredType =       String(         this.embeddedPartyType ??         this.route.snapshot.data['partyType'] ??         ''       )         .trim()         .toLowerCase();
 
 
     const type:

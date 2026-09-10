@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  Input,
   DestroyRef,
   inject,
   signal
@@ -77,7 +78,12 @@ type SupportedVoucherType =
 })
 export class VoucherEntryComponent {
 
-  private readonly fb =
+  @Input()
+  embeddedVoucherType?: SupportedVoucherType;
+
+  @Input()
+  embeddedTitle?: string;
+private readonly fb =
     inject(FormBuilder);
 
   private readonly route =
@@ -157,14 +163,7 @@ export class VoucherEntryComponent {
     });
 
 
-  constructor() {
-
-    this.readRouteConfiguration();
-
-    this.loadReferenceData();
-
-    this.loadVouchers();
-  }
+  constructor() {}    ngOnInit(): void {     this.readRouteConfiguration();     this.loadReferenceData();     this.loadVouchers();   }
 
 
   get lines(): FormArray {
@@ -795,8 +794,7 @@ export class VoucherEntryComponent {
     const data =
       this.route.snapshot.data;
 
-    const routeType =
-      data['voucherType'];
+        const routeType =       this.embeddedVoucherType ??       data['voucherType'];
 
     if (
       this.isSupportedVoucherType(
@@ -808,8 +806,7 @@ export class VoucherEntryComponent {
       );
     }
 
-    const routeTitle =
-      data['title'];
+        const routeTitle =       this.embeddedTitle ??       data['title'];
 
     if (
       typeof routeTitle === 'string' &&

@@ -1775,83 +1775,93 @@
 
 
       <!-- =====================================================
-           ACCOUNTS MODULES - READY FOR IMPLEMENTATION
+           ACCOUNTS MODULES - EMBEDDED WORKSPACE
       ====================================================== -->
 
-      } @else if (
-        activeSection() === 'accounts-customers' ||
-        activeSection() === 'accounts-vendors' ||
-        activeSection() === 'accounts-sales-invoices' ||
-        activeSection() === 'accounts-receipts' ||
-        activeSection() === 'accounts-credit-notes' ||
-        activeSection() === 'accounts-purchase-bills' ||
-        activeSection() === 'accounts-payments' ||
-        activeSection() === 'accounts-debit-notes' ||
-        activeSection() === 'accounts-expenses' ||
-        activeSection() === 'accounts-journal' ||
-        activeSection() === 'accounts-general-ledger' ||
-        activeSection() === 'accounts-customer-ledger' ||
-        activeSection() === 'accounts-vendor-ledger' ||
-        activeSection() === 'accounts-cash-bank' ||
-        activeSection() === 'accounts-tax' ||
-        activeSection() === 'accounts-financial-reports' ||
-        activeSection() === 'accounts-settings'
-      ) {
+      } @else if (activeSection() === 'accounts-customers') {
+        <section class="accounts-company-workspace span-2">
+          <app-customers></app-customers>
+        </section>
 
-        <article class="panel span-2">
+      } @else if (activeSection() === 'accounts-vendors') {
+        <section class="accounts-company-workspace span-2">
+          <app-vendors></app-vendors>
+        </section>
 
-          <div class="panel-heading">
+      } @else if (activeSection() === 'accounts-sales-invoices') {
+        <section class="accounts-company-workspace span-2">
+          <app-sales-invoices></app-sales-invoices>
+        </section>
 
-            <div>
+      } @else if (activeSection() === 'accounts-receipts') {
+        <section class="accounts-company-workspace span-2">
+          <app-voucher-entry embeddedVoucherType="receipt"></app-voucher-entry>
+        </section>
 
-              <p class="eyebrow">
-                Accounts & Finance
-              </p>
+      } @else if (activeSection() === 'accounts-credit-notes') {
+        <section class="accounts-company-workspace span-2">
+          <app-voucher-entry embeddedVoucherType="credit_note"></app-voucher-entry>
+        </section>
 
-              <h2>
-                {{ sectionTitle() }}
-              </h2>
+      } @else if (activeSection() === 'accounts-purchase-bills') {
+        <section class="accounts-company-workspace span-2">
+          <app-purchase-bills></app-purchase-bills>
+        </section>
 
-              <p>
-                Company-scoped accounting workspace.
-                All records will remain isolated to the current company.
-              </p>
+      } @else if (activeSection() === 'accounts-payments') {
+        <section class="accounts-company-workspace span-2">
+          <app-voucher-entry embeddedVoucherType="payment"></app-voucher-entry>
+        </section>
 
-            </div>
+      } @else if (activeSection() === 'accounts-debit-notes') {
+        <section class="accounts-company-workspace span-2">
+          <app-voucher-entry embeddedVoucherType="debit_note"></app-voucher-entry>
+        </section>
 
-            <span class="phase-pill">
-              Accounts
-            </span>
+      } @else if (activeSection() === 'accounts-expenses') {
+        <section class="accounts-company-workspace span-2">
+          <app-expense-register></app-expense-register>
+        </section>
 
-          </div>
+      } @else if (activeSection() === 'accounts-journal') {
+        <section class="accounts-company-workspace span-2">
+          <app-journal-entries></app-journal-entries>
+        </section>
 
+      } @else if (activeSection() === 'accounts-general-ledger') {
+        <section class="accounts-company-workspace span-2">
+          <app-general-ledger></app-general-ledger>
+        </section>
 
-          <div class="module-grid">
+      } @else if (activeSection() === 'accounts-customer-ledger') {
+        <section class="accounts-company-workspace span-2">
+          <app-party-ledger embeddedPartyType="customer"></app-party-ledger>
+        </section>
 
-            @for (
-              row of placeholderRows();
-              track row
-            ) {
+      } @else if (activeSection() === 'accounts-vendor-ledger') {
+        <section class="accounts-company-workspace span-2">
+          <app-party-ledger embeddedPartyType="vendor"></app-party-ledger>
+        </section>
 
-              <span>
+      } @else if (activeSection() === 'accounts-cash-bank') {
+        <section class="accounts-company-workspace span-2">
+          <app-cash-bank-book></app-cash-bank-book>
+        </section>
 
-                <strong>
-                  {{ row }}
-                </strong>
+      } @else if (activeSection() === 'accounts-tax') {
+        <section class="accounts-company-workspace span-2">
+          <app-tax-hub></app-tax-hub>
+        </section>
 
-                <em>
-                  Managed inside Accounts
-                </em>
+      } @else if (activeSection() === 'accounts-financial-reports') {
+        <section class="accounts-company-workspace span-2">
+          <app-financial-reports-hub></app-financial-reports-hub>
+        </section>
 
-              </span>
-
-            }
-
-          </div>
-
-        </article>
-
-
+      } @else if (activeSection() === 'accounts-settings') {
+        <section class="accounts-company-workspace span-2">
+          <app-accounts-settings></app-accounts-settings>
+        </section>
       <!-- =====================================================
            EMPLOYEES
       ====================================================== -->
