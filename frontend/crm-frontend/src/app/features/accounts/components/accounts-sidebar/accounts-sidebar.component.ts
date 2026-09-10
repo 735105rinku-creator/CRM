@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
-  Component
+  Component,
+  inject
 } from '@angular/core';
 
 import {
@@ -11,6 +12,10 @@ import {
   RouterLink,
   RouterLinkActive
 } from '@angular/router';
+
+import {
+  AuthService
+} from '../../../../core/auth/auth.service';
 
 
 interface AccountsSidebarItem {
@@ -51,6 +56,10 @@ interface AccountsSidebarGroup {
     ChangeDetectionStrategy.OnPush
 })
 export class AccountsSidebarComponent {
+
+  private readonly auth =
+    inject(AuthService);
+
 
   /* =========================================================
      WORKSPACE INFO
@@ -458,6 +467,17 @@ export class AccountsSidebarComponent {
   ): string {
 
     return item.route;
+
+  }
+
+
+  /* =========================================================
+     LOGOUT
+  ========================================================= */
+
+  logout(): void {
+
+    this.auth.logout();
 
   }
 

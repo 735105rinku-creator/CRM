@@ -422,3 +422,99 @@
     height: 26px;
   }
 }
+
+/* =========================================================
+   SIDEBAR LOGOUT
+========================================================= */
+
+.sidebar-footer {
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
+}
+
+
+.sidebar-logout {
+  width: 100%;
+  min-height: 42px;
+
+  padding:
+    9px 12px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  border:
+    1px solid #fee2e2;
+
+  border-radius:
+    11px;
+
+  background:
+    #fff7f7;
+
+  color:
+    #b42318;
+
+  cursor:
+    pointer;
+
+  font-size:
+    12px;
+
+  font-weight:
+    700;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+
+.sidebar-logout:hover {
+  border-color:
+    #fecaca;
+
+  background:
+    #fef2f2;
+
+  color:
+    #991b1b;
+
+  transform:
+    translateY(-1px);
+}
+
+
+.sidebar-logout-icon {
+  width: 30px;
+  height: 30px;
+
+  flex-shrink: 0;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius:
+    8px;
+
+  background:
+    #fee2e2;
+
+  font-size:
+    16px;
+}
+
+
+.sidebar-logout-label {
+  flex: 1;
+
+  text-align:
+    left;
+}
