@@ -1,4 +1,4 @@
-﻿import {
+import {
   inject
 } from '@angular/core';
 
@@ -128,7 +128,6 @@ export const logisticsGuard:
 
     const managementRoles = [
       'hr',
-      'company_admin',
       'super_admin',
       'manager',
       'department_head',

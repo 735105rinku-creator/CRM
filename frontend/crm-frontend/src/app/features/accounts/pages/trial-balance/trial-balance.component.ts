@@ -98,8 +98,8 @@ export class TrialBalanceComponent {
       const difference =
         totals.difference ??
         (
-          totals.closingDebit -
-          totals.closingCredit
+          totals.totalClosingDebit -
+          totals.totalClosingCredit
         );
 
       return Math.abs(difference) < 0.01;
@@ -188,9 +188,7 @@ export class TrialBalanceComponent {
     balance: TrialBalanceAmount
   ): number {
 
-    return balance?.type === 'debit'
-      ? balance.amount
-      : 0;
+    return balance?.debit ?? 0;
 
   }
 
@@ -199,9 +197,7 @@ export class TrialBalanceComponent {
     balance: TrialBalanceAmount
   ): number {
 
-    return balance?.type === 'credit'
-      ? balance.amount
-      : 0;
+    return balance?.credit ?? 0;
 
   }
 

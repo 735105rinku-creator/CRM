@@ -553,3 +553,430 @@
       none;
   }
 }
+
+/* =========================================================
+   CURRENT USER MENU
+========================================================= */
+
+.account-user-menu-host {
+  position: relative;
+
+  flex-shrink: 0;
+}
+
+
+.account-user-button {
+  min-width: 195px;
+  min-height: 48px;
+
+  padding:
+    6px 10px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  border:
+    1px solid #e5e7eb;
+
+  border-radius:
+    14px;
+
+  background:
+    #ffffff;
+
+  box-shadow:
+    0 5px 16px
+    rgba(15, 23, 42, 0.06);
+
+  color:
+    #111827;
+
+  cursor:
+    pointer;
+
+  text-align:
+    left;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+
+.account-user-button:hover {
+  border-color:
+    #d1d5db;
+
+  box-shadow:
+    0 8px 22px
+    rgba(15, 23, 42, 0.09);
+
+  transform:
+    translateY(-1px);
+}
+
+
+.account-user-avatar,
+.dropdown-avatar {
+  width: 36px;
+  height: 36px;
+
+  flex-shrink: 0;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius:
+    11px;
+
+  background:
+    #111827;
+
+  color:
+    #ffffff;
+
+  font-size:
+    14px;
+
+  font-weight:
+    800;
+
+  text-transform:
+    uppercase;
+}
+
+
+.account-user-copy {
+  min-width: 0;
+
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 2px;
+}
+
+
+.account-user-copy strong {
+  max-width: 125px;
+
+  overflow: hidden;
+
+  text-overflow:
+    ellipsis;
+
+  white-space:
+    nowrap;
+
+  font-size:
+    13px;
+
+  line-height:
+    1.2;
+
+  color:
+    #111827;
+}
+
+
+.account-user-copy small {
+  max-width: 125px;
+
+  overflow: hidden;
+
+  text-overflow:
+    ellipsis;
+
+  white-space:
+    nowrap;
+
+  font-size:
+    10px;
+
+  color:
+    #6b7280;
+}
+
+
+.account-user-chevron {
+  flex-shrink: 0;
+
+  color:
+    #6b7280;
+
+  font-size:
+    16px;
+
+  line-height:
+    1;
+}
+
+
+.account-user-dropdown {
+  position: absolute;
+
+  top:
+    calc(100% + 10px);
+
+  right: 0;
+
+  z-index:
+    1300;
+
+  width:
+    235px;
+
+  padding:
+    8px;
+
+  border:
+    1px solid #e5e7eb;
+
+  border-radius:
+    15px;
+
+  background:
+    #ffffff;
+
+  box-shadow:
+    0 20px 45px
+    rgba(15, 23, 42, 0.16);
+}
+
+
+.account-user-dropdown-heading {
+  padding:
+    8px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+}
+
+
+.account-user-dropdown-heading > div:last-child {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 2px;
+}
+
+
+.account-user-dropdown-heading strong {
+  max-width: 155px;
+
+  overflow: hidden;
+
+  text-overflow:
+    ellipsis;
+
+  white-space:
+    nowrap;
+
+  font-size:
+    13px;
+
+  color:
+    #111827;
+}
+
+
+.account-user-dropdown-heading small {
+  max-width: 155px;
+
+  overflow: hidden;
+
+  text-overflow:
+    ellipsis;
+
+  white-space:
+    nowrap;
+
+  font-size:
+    10px;
+
+  color:
+    #6b7280;
+}
+
+
+.account-user-menu-divider {
+  height: 1px;
+
+  margin:
+    5px 4px;
+
+  background:
+    #e5e7eb;
+}
+
+
+.account-user-menu-item {
+  width: 100%;
+  min-height: 40px;
+
+  padding:
+    8px 10px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  border:
+    0;
+
+  border-radius:
+    9px;
+
+  background:
+    transparent;
+
+  color:
+    #374151;
+
+  cursor:
+    pointer;
+
+  font-size:
+    12px;
+
+  font-weight:
+    600;
+
+  text-align:
+    left;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+
+.account-user-menu-item:hover {
+  background:
+    #f3f4f6;
+
+  color:
+    #111827;
+}
+
+
+.account-user-menu-item > span {
+  width:
+    24px;
+
+  display:
+    inline-flex;
+
+  justify-content:
+    center;
+
+  font-size:
+    15px;
+}
+
+
+.account-user-menu-item.logout {
+  color:
+    #b42318;
+}
+
+
+.account-user-menu-item.logout:hover {
+  background:
+    #fef2f2;
+
+  color:
+    #991b1b;
+}
+
+
+/* =========================================================
+   USER MENU RESPONSIVE
+========================================================= */
+
+@media (
+  max-width: 1180px
+) {
+
+  .account-user-button {
+    min-width:
+      160px;
+  }
+
+  .account-user-copy strong,
+  .account-user-copy small {
+    max-width:
+      95px;
+  }
+
+  .account-user-copy small {
+    display:
+      none;
+  }
+}
+
+
+@media (
+  max-width: 767px
+) {
+
+  .header-right {
+    gap:
+      8px;
+  }
+
+  .account-user-button {
+    min-width:
+      142px;
+
+    padding:
+      5px 8px;
+  }
+
+  .account-user-avatar {
+    width:
+      34px;
+
+    height:
+      34px;
+  }
+
+  .account-user-copy strong {
+    max-width:
+      78px;
+
+    font-size:
+      12px;
+  }
+}
+
+
+@media (
+  max-width: 480px
+) {
+
+  .account-user-button {
+    min-width:
+      130px;
+  }
+
+  .account-user-copy strong {
+    max-width:
+      68px;
+  }
+
+  .account-user-dropdown {
+    width:
+      220px;
+  }
+}

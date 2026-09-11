@@ -567,6 +567,28 @@ export const ACCOUNTS_ROUTES: Routes = [
         }
       },
       /* ======================================================
+         MY EMPLOYEE
+      ====================================================== */
+
+      {
+        path: 'employee',
+
+        loadComponent: () =>
+          import(
+            '../employee/employee-dashboard.component'
+          ).then(
+            (module) =>
+              module.EmployeeDashboardComponent
+          ),
+
+        data: {
+          title: 'My Employee',
+          section: 'Accounts',
+          feature: 'employee'
+        }
+      },
+
+      /* ======================================================
          SETTINGS
       ====================================================== */
 

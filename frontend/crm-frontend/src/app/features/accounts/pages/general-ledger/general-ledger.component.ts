@@ -29,6 +29,8 @@ import {
 } from '../../models/accounts.models';
 
 import {
+  AccountLedgerEntry,
+  AccountLedgerResponse,
   GeneralLedgerQuery,
   GeneralLedgerService
 } from '../../services/general-ledger.service';
@@ -120,6 +122,46 @@ export class GeneralLedgerComponent
       totalCredit:
         0
     });
+
+  /* =======================================================
+     ACCOUNT LEDGER DRILL-DOWN
+  ======================================================= */
+
+  readonly selectedAccount =
+    signal<
+      AccountLedgerResponse |
+      null
+    >(
+      null
+    );
+
+
+  readonly selectedAccountId =
+    signal(
+      ''
+    );
+
+  readonly ledgerEntries =
+    computed<
+      AccountLedgerEntry[]
+    >(
+      () =>
+        this.selectedAccount()
+          ?.entries ??
+        []
+    );
+
+
+  readonly isAccountLedgerLoading =
+    signal(
+      false
+    );
+
+
+  readonly accountLedgerError =
+    signal(
+      ''
+    );
 
 
   /* =======================================================
@@ -701,6 +743,173 @@ export class GeneralLedgerComponent
   /* =======================================================
      APPLY FILTERS
   ======================================================= */
+
+  openAccountLedger(
+    account:
+      GeneralLedgerAccount
+  ): void {
+
+    const accountId =
+      String(
+        account?.accountId ||
+        account?._id ||
+        ''
+      )
+        .trim();
+
+
+    if (
+      !accountId ||
+      this.isAccountLedgerLoading()
+    ) {
+
+      return;
+
+    }
+
+
+    this.selectedAccountId
+      .set(
+        accountId
+      );
+
+
+    this.isAccountLedgerLoading
+      .set(
+        true
+      );
+
+
+    this.accountLedgerError
+      .set(
+        ''
+      );
+
+
+    this.selectedAccount
+      .set(
+        null
+      );
+
+
+    this.generalLedgerService
+      .getAccountLedger(
+        accountId,
+        this.buildQuery()
+      )
+      .pipe(
+        finalize(
+          () => {
+
+            this.isAccountLedgerLoading
+              .set(
+                false
+              );
+
+          }
+        )
+      )
+      .subscribe({
+
+        next:
+          (
+            response
+          ) => {
+
+            this.selectedAccount
+              .set(
+                response
+              );
+
+          },
+
+
+        error:
+          (
+            error
+          ) => {
+
+            console.error(
+              'Failed to load Account Ledger:',
+              error
+            );
+
+
+            this.accountLedgerError
+              .set(
+                this.resolveErrorMessage(
+                  error
+                )
+              );
+
+          }
+
+      });
+
+  }
+
+
+  isSelectedAccount(
+    account:
+      GeneralLedgerAccount
+  ): boolean {
+
+    const accountId =
+      String(
+        account?.accountId ||
+        account?._id ||
+        ''
+      )
+        .trim();
+
+
+    return (
+      !!accountId &&
+      accountId ===
+        this.selectedAccountId()
+    );
+
+  }
+
+  closeAccountLedger(): void {
+
+    this.selectedAccountId
+      .set(
+        ''
+      );
+
+
+    this.selectedAccount
+      .set(
+        null
+      );
+
+
+    this.accountLedgerError
+      .set(
+        ''
+      );
+
+  }
+
+
+  formatRunningBalance(
+    entry:
+      AccountLedgerEntry
+  ): string {
+
+    return (
+      `${this.formatMoney(
+        entry.runningBalance
+      )} ${
+        entry.balanceType ===
+          'credit'
+          ? 'Cr'
+          : 'Dr'
+      }`
+    );
+
+  }
 
   applyFilters(): void {
 

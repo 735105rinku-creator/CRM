@@ -665,12 +665,14 @@
 
         <tbody>
 
-          <tr
+          <ng-container
             *ngFor="
               let account of accounts();
               let index = index;
               trackBy: trackAccount
             ">
+
+            <tr>
 
             <!-- ACCOUNT CODE -->
 
@@ -696,6 +698,13 @@
                 <span class="account-cell__type">
                   {{ accountTypeLabel(account.accountType) }}
                 </span>
+                <button
+                  type="button"
+                  class="action-button action-button--secondary"
+                  [disabled]="isAccountLedgerLoading()"
+                  (click)="openAccountLedger(account)">
+                  View Ledger
+                </button>
 
               </div>
 
@@ -776,6 +785,231 @@
             </td>
 
           </tr>
+            <tr
+              class="ledger-detail-row"
+              *ngIf="isSelectedAccount(account)">
+
+              <td
+                colspan="8"
+                class="ledger-detail-cell">
+<!-- =======================================================
+       ACCOUNT LEDGER DRILL-DOWN
+  ======================================================== -->
+
+  <section class="ledger-panel ledger-panel--inline">
+
+    <div class="ledger-panel__header">
+
+      <div>
+
+        <h2 class="ledger-panel__title">
+          Account Ledger Detail
+        </h2>
+
+        <p
+          class="ledger-panel__description"
+          *ngIf="selectedAccount() as ledger">
+          {{ ledger.account.accountCode || '-' }}
+          -
+          {{ ledger.account.accountName || '-' }}
+        </p>
+
+      </div>
+
+      <button
+        type="button"
+        class="text-button"
+        *ngIf="!isAccountLedgerLoading()"
+        (click)="closeAccountLedger()">
+        Close
+      </button>
+
+    </div>
+
+
+    <div
+      class="state-panel state-panel--loading"
+      *ngIf="isAccountLedgerLoading()">
+
+      <p class="state-panel__message">
+        Loading account ledger...
+      </p>
+
+    </div>
+
+
+    <div
+      class="state-panel"
+      *ngIf="
+        !isAccountLedgerLoading() &&
+        accountLedgerError()
+      ">
+
+      <p class="state-panel__message">
+        {{ accountLedgerError() }}
+      </p>
+
+    </div>
+
+
+    <ng-container *ngIf="selectedAccount() as ledger">
+
+      <div
+        class="table-shell"
+        *ngIf="
+          !isAccountLedgerLoading() &&
+          !accountLedgerError()
+        ">
+
+        <table class="ledger-table">
+
+          <thead>
+            <tr>
+              <th scope="col">Date</th>
+              <th scope="col">Journal / Voucher</th>
+              <th scope="col">Narration</th>
+              <th scope="col">Reference</th>
+              <th scope="col" class="ledger-table__number">Debit</th>
+              <th scope="col" class="ledger-table__number">Credit</th>
+              <th scope="col" class="ledger-table__number">Running Balance</th>
+            </tr>
+          </thead>
+
+
+          <tbody>
+
+            <tr
+              *ngFor="
+                let entry of ledgerEntries();
+                let index = index
+              ">
+
+              <td>
+                {{
+                  entry.journalDate ||
+                  entry.transactionDate ||
+                  '-'
+                }}
+              </td>
+
+              <td>
+                {{ entry.journalNumber || '-' }}
+              </td>
+
+              <td>
+                {{
+                  entry.narration ||
+                  entry.description ||
+                  '-'
+                }}
+              </td>
+
+              <td>
+                {{ entry.referenceNo || '-' }}
+              </td>
+
+              <td class="ledger-table__number">
+                {{ formatMoney(entry.debit) }}
+              </td>
+
+              <td class="ledger-table__number">
+                {{ formatMoney(entry.credit) }}
+              </td>
+
+              <td class="ledger-table__number">
+                <strong>
+                  {{ formatRunningBalance(entry) }}
+                </strong>
+              </td>
+
+            </tr>
+
+
+            <tr *ngIf="ledgerEntries().length === 0">
+
+              <td colspan="7">
+
+                <p class="state-panel__message">
+                  No posted transactions found for this account.
+                </p>
+
+              </td>
+
+            </tr>
+
+          </tbody>
+
+
+          <tfoot>
+
+            <tr>
+
+              <td colspan="4">
+                <strong>Period Totals</strong>
+              </td>
+
+              <td class="ledger-table__number">
+                <strong>
+                  {{ formatMoney(ledger.totals.debit) }}
+                </strong>
+              </td>
+
+              <td class="ledger-table__number">
+                <strong>
+                  {{ formatMoney(ledger.totals.credit) }}
+                </strong>
+              </td>
+
+              <td></td>
+
+            </tr>
+
+
+            <tr>
+
+              <td colspan="6">
+                Opening Balance
+              </td>
+
+              <td class="ledger-table__number">
+                <strong>
+                  {{ formatBalance(ledger.openingBalance) }}
+                </strong>
+              </td>
+
+            </tr>
+
+
+            <tr>
+
+              <td colspan="6">
+                Closing Balance
+              </td>
+
+              <td class="ledger-table__number">
+                <strong>
+                  {{ formatBalance(ledger.closingBalance) }}
+                </strong>
+              </td>
+
+            </tr>
+
+          </tfoot>
+
+        </table>
+
+      </div>
+
+    </ng-container>
+
+  </section>
+
+
+              </td>
+
+            </tr>
+
+          </ng-container>
 
         </tbody>
 
@@ -868,7 +1102,7 @@
   </section>
 
 
-  <!-- =======================================================
+    <!-- =======================================================
        INFORMATION NOTE
   ======================================================== -->
 

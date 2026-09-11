@@ -17,6 +17,58 @@ import {
   ChartOfAccountsComponent
 } from '../accounts/pages/chart-of-accounts/chart-of-accounts.component';
 
+import {
+  CustomersComponent
+} from '../accounts/pages/customers/customers.component';
+
+import {
+  VendorsComponent
+} from '../accounts/pages/vendors/vendors.component';
+
+import {
+  SalesInvoicesComponent
+} from '../accounts/pages/sales-invoices/sales-invoices.component';
+
+import {
+  VoucherEntryComponent
+} from '../accounts/pages/voucher-entry/voucher-entry.component';
+
+import {
+  PurchaseBillsComponent
+} from '../accounts/pages/purchase-bills/purchase-bills.component';
+
+import {
+  ExpenseRegisterComponent
+} from '../accounts/pages/expense-register/expense-register.component';
+
+import {
+  JournalEntriesComponent
+} from '../accounts/pages/journal-entries/journal-entries.component';
+
+import {
+  GeneralLedgerComponent
+} from '../accounts/pages/general-ledger/general-ledger.component';
+
+import {
+  PartyLedgerComponent
+} from '../accounts/pages/party-ledger/party-ledger.component';
+
+import {
+  CashBankBookComponent
+} from '../accounts/pages/cash-bank-book/cash-bank-book.component';
+
+import {
+  TaxHubComponent
+} from '../accounts/pages/tax-hub/tax-hub.component';
+
+import {
+  FinancialReportsHubComponent
+} from '../accounts/pages/financial-reports-hub/financial-reports-hub.component';
+
+import {
+  AccountsSettingsComponent
+} from '../accounts/pages/accounts-settings/accounts-settings.component';
+
 interface UserRow {
   _id?: string;
   name?: string;
@@ -261,6 +313,8 @@ declare global {
   }
 }
 
+
+
 @Component({
   selector: 'app-company-admin-dashboard',
 
@@ -268,7 +322,20 @@ declare global {
     CommonModule,
     ReactiveFormsModule,
     AccountsDashboardComponent,
-    ChartOfAccountsComponent
+    ChartOfAccountsComponent,
+    CustomersComponent,
+    VendorsComponent,
+    SalesInvoicesComponent,
+    VoucherEntryComponent,
+    PurchaseBillsComponent,
+    ExpenseRegisterComponent,
+    JournalEntriesComponent,
+    GeneralLedgerComponent,
+    PartyLedgerComponent,
+    CashBankBookComponent,
+    TaxHubComponent,
+    FinancialReportsHubComponent,
+    AccountsSettingsComponent
   ],
 
   templateUrl:
@@ -9201,7 +9268,7 @@ export class CompanyAdminDashboardComponent {
     );
 
 
-    if (
+if (
       this.isLogisticsSection(
         section
       )
@@ -9277,8 +9344,6 @@ export class CompanyAdminDashboardComponent {
       case 'accounts-payments':
 
       case 'accounts-expenses':
-
-        this.loadAccounting();
 
         break;
 

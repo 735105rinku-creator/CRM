@@ -94,6 +94,122 @@
           </strong>
         </div>
 
+
+        <!-- ===============================================
+             CURRENT USER
+        ================================================ -->
+
+        <div class="account-user-menu-host">
+
+          <button
+            type="button"
+            class="account-user-button"
+            aria-label="Open account user menu"
+            [attr.aria-expanded]="userMenuOpen()"
+            (click)="toggleUserMenu()"
+          >
+
+            <span class="account-user-avatar">
+              {{ userInitial() }}
+            </span>
+
+
+            <span class="account-user-copy">
+
+              <strong>
+                {{ userName() }}
+              </strong>
+
+              <small>
+                {{ userDesignation() }}
+              </small>
+
+            </span>
+
+
+            <span
+              class="account-user-chevron"
+              aria-hidden="true"
+            >
+              &#8964;
+            </span>
+
+          </button>
+
+
+          @if (userMenuOpen()) {
+
+            <div
+              class="account-user-dropdown"
+              role="menu"
+            >
+
+              <div class="account-user-dropdown-heading">
+
+                <span class="dropdown-avatar">
+                  {{ userInitial() }}
+                </span>
+
+                <div>
+                  <strong>
+                    {{ userName() }}
+                  </strong>
+
+                  <small>
+                    {{ userDesignation() }}
+                  </small>
+                </div>
+
+              </div>
+
+
+              <div class="account-user-menu-divider"></div>
+
+
+              <button
+                type="button"
+                class="account-user-menu-item"
+                (click)="openProfile()"
+              >
+                <span aria-hidden="true">
+                  &#9817;
+                </span>
+                My Profile
+              </button>
+
+
+              <button
+                type="button"
+                class="account-user-menu-item"
+                (click)="openSettings()"
+              >
+                <span aria-hidden="true">
+                  &#9881;
+                </span>
+                Settings
+              </button>
+
+
+              <div class="account-user-menu-divider"></div>
+
+
+              <button
+                type="button"
+                class="account-user-menu-item logout"
+                (click)="logout()"
+              >
+                <span aria-hidden="true">
+                  &#8618;
+                </span>
+                Logout
+              </button>
+
+            </div>
+
+          }
+
+        </div>
+
       </div>
 
     </header>

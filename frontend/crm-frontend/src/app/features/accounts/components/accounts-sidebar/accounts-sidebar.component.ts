@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
-  Component
+  Component,
+  inject
 } from '@angular/core';
 
 import {
@@ -12,12 +13,19 @@ import {
   RouterLinkActive
 } from '@angular/router';
 
+import {
+  AuthService
+} from '../../../../core/auth/auth.service';
+
 
 interface AccountsSidebarItem {
   label: string;
   route: string;
   icon: string;
   exact?: boolean;
+  queryParams?: {
+    feature: string;
+  };
 }
 
 
@@ -48,6 +56,10 @@ interface AccountsSidebarGroup {
     ChangeDetectionStrategy.OnPush
 })
 export class AccountsSidebarComponent {
+
+  private readonly auth =
+    inject(AuthService);
+
 
   /* =========================================================
      WORKSPACE INFO
@@ -322,6 +334,101 @@ export class AccountsSidebarComponent {
 
 
       /* =======================================================
+         MY EMPLOYEE
+      ======================================================= */
+
+      {
+        title: 'MY EMPLOYEE',
+
+        items: [
+          {
+            label: 'Personal Details',
+            route: '/accounts/employee',
+            queryParams: { feature: 'profile' },
+            icon: 'profile'
+          },
+          {
+            label: 'Attendance',
+            route: '/accounts/employee',
+            queryParams: { feature: 'attendance' },
+            icon: 'attendance'
+          },
+          {
+            label: 'Attendance History',
+            route: '/accounts/employee',
+            queryParams: { feature: 'attendance-history' },
+            icon: 'attendance'
+          },
+          {
+            label: 'Leave',
+            route: '/accounts/employee',
+            queryParams: { feature: 'apply-leave' },
+            icon: 'leave'
+          },
+          {
+            label: 'Leave History',
+            route: '/accounts/employee',
+            queryParams: { feature: 'leave-history' },
+            icon: 'leave'
+          },
+          {
+            label: 'Leave Balance',
+            route: '/accounts/employee',
+            queryParams: { feature: 'leave-balance' },
+            icon: 'leave'
+          },
+          {
+            label: 'Payslips',
+            route: '/accounts/employee',
+            queryParams: { feature: 'payslip' },
+            icon: 'payslip'
+          },
+          {
+            label: 'Documents',
+            route: '/accounts/employee',
+            queryParams: { feature: 'documents' },
+            icon: 'documents'
+          },
+          {
+            label: 'Bank Details',
+            route: '/accounts/employee',
+            queryParams: { feature: 'bank' },
+            icon: 'bank'
+          },
+          {
+            label: 'Company Events',
+            route: '/accounts/employee',
+            queryParams: { feature: 'events' },
+            icon: 'events'
+          },
+          {
+            label: 'Holidays',
+            route: '/accounts/employee',
+            queryParams: { feature: 'holidays' },
+            icon: 'calendar'
+          },
+          {
+            label: 'Meetings',
+            route: '/accounts/employee',
+            queryParams: { feature: 'meetings' },
+            icon: 'meetings'
+          },
+          {
+            label: 'Messages',
+            route: '/accounts/employee',
+            queryParams: { feature: 'messages' },
+            icon: 'messages'
+          },
+          {
+            label: 'Change Password',
+            route: '/accounts/employee',
+            queryParams: { feature: 'settings' },
+            icon: 'settings'
+          }
+        ]
+      },
+
+      /* =======================================================
          SETTINGS
       ======================================================= */
 
@@ -360,6 +467,17 @@ export class AccountsSidebarComponent {
   ): string {
 
     return item.route;
+
+  }
+
+
+  /* =========================================================
+     LOGOUT
+  ========================================================= */
+
+  logout(): void {
+
+    this.auth.logout();
 
   }
 
