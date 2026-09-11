@@ -121,6 +121,136 @@ const voucherLineSchema =
 
 
 /* ============================================================
+   VOUCHER ATTACHMENT SCHEMA
+============================================================ */
+
+const voucherAttachmentSchema =
+  new mongoose.Schema(
+    {
+
+      originalName: {
+        type:
+          String,
+
+        required:
+          true,
+
+        trim:
+          true,
+
+        maxlength:
+          255,
+      },
+
+
+      storedName: {
+        type:
+          String,
+
+        required:
+          true,
+
+        trim:
+          true,
+
+        maxlength:
+          255,
+      },
+
+
+      fileUrl: {
+        type:
+          String,
+
+        required:
+          true,
+
+        trim:
+          true,
+
+        maxlength:
+          2000,
+      },
+
+
+      storageKey: {
+        type:
+          String,
+
+        trim:
+          true,
+
+        maxlength:
+          1000,
+
+        default:
+          "",
+      },
+
+
+      mimeType: {
+        type:
+          String,
+
+        required:
+          true,
+
+        trim:
+          true,
+
+        maxlength:
+          150,
+      },
+
+
+      fileSize: {
+        type:
+          Number,
+
+        min:
+          0,
+
+        default:
+          0,
+      },
+
+
+      uploadedBy: {
+        type:
+          mongoose.Schema.Types.ObjectId,
+
+        ref:
+          "User",
+
+        required:
+          true,
+      },
+
+
+      uploadedAt: {
+        type:
+          Date,
+
+        default:
+          Date.now,
+      },
+
+    },
+
+    {
+      _id:
+        true,
+
+      id:
+        false,
+
+      versionKey:
+        false,
+    }
+  );
+
+
+/* ============================================================
    VOUCHER SCHEMA
 ============================================================ */
 
@@ -303,6 +433,20 @@ const voucherSchema =
 
         default:
           0,
+      },
+
+
+      /* ======================================================
+         ATTACHMENTS
+      ====================================================== */
+
+      attachments: {
+        type: [
+          voucherAttachmentSchema
+        ],
+
+        default:
+          [],
       },
 
 
