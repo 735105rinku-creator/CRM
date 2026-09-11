@@ -267,6 +267,7 @@
             <th>Assigned Employee</th>
             <th class="amount-column">Amount</th>
             <th>Status</th>
+            <th>Supporting Proof</th>
             <th>Notes</th>
           </tr>
         </thead>
@@ -319,6 +320,47 @@
                 ">
                 {{ expense.status || '—' }}
               </span>
+            </td>
+            <td class="expense-proof-cell">
+
+              <div *ngIf="expense.attachments?.length">
+                <div
+                  *ngFor="let attachment of expense.attachments"
+                  class="proof-item">
+
+                  <a
+                    [href]="attachmentUrl(attachment)"
+                    target="_blank"
+                    rel="noopener noreferrer">
+                    {{ attachment.originalName }}
+                  </a>
+
+                  <button
+                    type="button"
+                    class="reset-button"
+                    [disabled]="uploadingExpenseId() === expense._id"
+                    (click)="removeExpenseProof(expense, attachment)">
+                    Remove
+                  </button>
+
+                </div>
+              </div>
+
+              <span *ngIf="!expense.attachments?.length">
+                No proof
+              </span>
+
+              <label class="proof-upload">
+                + Add Proof
+                <input
+                  hidden
+                  type="file"
+                  multiple
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  [disabled]="uploadingExpenseId() === expense._id"
+                  (change)="onExpenseProofSelected(expense, $event)">
+              </label>
+
             </td>
 
             <td class="notes-cell">

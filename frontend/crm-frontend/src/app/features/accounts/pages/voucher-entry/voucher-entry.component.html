@@ -161,6 +161,7 @@
                 Amount
               </th>
               <th>Status</th>
+              <th>Supporting Proof</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -206,9 +207,52 @@
                     {{ voucher.status | titlecase }}
                   </span>
                 </td>
+                <td class="voucher-proof-cell">
+
+                  @if (voucher.attachments?.length) {
+                    @for (
+                      attachment of voucher.attachments;
+                      track attachment._id || attachment.fileUrl
+                    ) {
+                      <div class="proof-item">
+                        <a
+                          [href]="attachmentUrl(attachment)"
+                          target="_blank"
+                          rel="noopener noreferrer">
+                          {{ attachment.originalName }}
+                        </a>
+
+                        @if (voucher.status === 'draft') {
+                          <button
+                            type="button"
+                            class="text-button danger-text"
+                            [disabled]="uploadingVoucherId() === voucher._id"
+                            (click)="removeVoucherProof(voucher, attachment)">
+                            Remove
+                          </button>
+                        }
+                      </div>
+                    }
+                  } @else {
+                    <span>No proof</span>
+                  }
+
+                  @if (voucher.status === 'draft') {
+                    <label class="proof-upload">
+                      + Add Proof
+                      <input
+                        hidden
+                        type="file"
+                        multiple
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        [disabled]="uploadingVoucherId() === voucher._id"
+                        (change)="onVoucherProofSelected(voucher, $event)">
+                    </label>
+                  }
+
+                </td>
 
                 <td>
-
                   <div class="row-actions">
 
                     @if (voucher.status === 'draft') {

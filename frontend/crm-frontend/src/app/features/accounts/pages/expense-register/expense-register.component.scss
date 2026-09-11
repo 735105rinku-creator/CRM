@@ -322,3 +322,22 @@ td:last-child {
     width: 100%;
   }
 }
+.proof-upload {
+  display: inline-flex;
+  margin-top: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.proof-item {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.voucher-proof-cell,
+.expense-proof-cell {
+  min-width: 190px;
+}
