@@ -10,10 +10,15 @@ import { FormsModule } from '@angular/forms';
 import { forkJoin, Observable } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 
+import { apiUrl } from '../../../../core/config/api.config';
+
 import {
   GoodsReceipt,
   PurchaseInvoice,
-  PurchaseOrder
+  PurchaseInvoiceAttachment,
+  PurchaseInvoiceDocumentType,
+  PurchaseOrder,
+  PURCHASE_INVOICE_DOCUMENT_TYPE_OPTIONS
 } from '../../models/purchase.models';
 
 import { PurchaseInvoiceService } from '../../services/purchase-invoice.service';
@@ -82,6 +87,33 @@ export class PurchaseInvoicesComponent implements OnInit {
 
   readonly canApprove =
     signal(false);
+
+
+  /* ============================================================
+     ATTACHMENT STATE
+  ============================================================ */
+
+  readonly uploadingAttachment =
+    signal(false);
+
+  readonly deletingAttachmentId =
+    signal('');
+
+  readonly purchaseInvoiceDocumentTypeOptions =
+    PURCHASE_INVOICE_DOCUMENT_TYPE_OPTIONS;
+
+
+  attachmentDocumentType:
+    PurchaseInvoiceDocumentType =
+      'vendor_invoice';
+
+  attachmentOtherDocumentType =
+    '';
+
+  selectedAttachmentFile:
+    File |
+    null =
+      null;
 
 
   search = '';
@@ -223,13 +255,24 @@ export class PurchaseInvoicesComponent implements OnInit {
 
         next: result => {
 
-          const rows =
-            result.rows.rows ||
-            [];
+          const rows: PurchaseInvoice[] =
+  (
+    result.rows.rows ||
+    []
+  ).map(
+    row => ({
+      ...row,
+      attachments:
+        Array.isArray(
+          row.attachments
+        )
+          ? row.attachments
+          : []
+    })
+  );
 
 
-          this.invoices.set(
-
+          const visibleRows =
             this.paymentStatus
 
               ? rows.filter(
@@ -238,9 +281,47 @@ export class PurchaseInvoicesComponent implements OnInit {
                     this.paymentStatus
                 )
 
-              : rows
+              : rows;
 
+
+          this.invoices.set(
+            visibleRows
           );
+
+
+          /*
+           * Keep an already-open invoice detail synchronized
+           * whenever the register is refreshed after upload,
+           * delete, verify or handoff.
+           */
+
+          const currentSelected =
+            this.selectedInvoice();
+
+
+          if (
+            currentSelected
+          ) {
+
+            const refreshed =
+              rows.find(
+                row =>
+                  row._id ===
+                  currentSelected._id
+              );
+
+
+            if (
+              refreshed
+            ) {
+
+              this.selectedInvoice.set(
+                refreshed
+              );
+
+            }
+
+          }
 
 
           /*
@@ -585,6 +666,12 @@ export class PurchaseInvoicesComponent implements OnInit {
     row: PurchaseInvoice
   ): void {
 
+    this.resetAttachmentForm();
+
+    this.error.set('');
+
+    this.message.set('');
+
     this.selectedInvoice.set(
       row
     );
@@ -597,6 +684,8 @@ export class PurchaseInvoicesComponent implements OnInit {
     this.selectedInvoice.set(
       null
     );
+
+    this.resetAttachmentForm();
 
   }
 
@@ -712,9 +801,6 @@ export class PurchaseInvoicesComponent implements OnInit {
 
   /* ============================================================
      HANDOFF DETAIL MESSAGE
-
-     Technical backend detail is intentionally kept inside the
-     invoice detail view rather than expanding the table row.
   ============================================================ */
 
   handoffFailureMessage(
@@ -758,6 +844,729 @@ export class PurchaseInvoicesComponent implements OnInit {
 
 
     return backendMessage;
+
+  }
+
+
+  /* ============================================================
+     ATTACHMENT MODIFY PERMISSION
+
+     Verified invoices remain allowed until Accounts handoff
+     actually begins.
+
+     handing_off / handed_off / accountsVoucherId are locked.
+  ============================================================ */
+
+  canModifyAttachments(
+    row: PurchaseInvoice
+  ): boolean {
+
+    return (
+      row.handoffStatus !==
+        'handing_off' &&
+      row.handoffStatus !==
+        'handed_off' &&
+      !row.accountsVoucherId
+    );
+
+  }
+
+
+  /* ============================================================
+     CAN UPLOAD ATTACHMENT
+  ============================================================ */
+
+  canUploadAttachment(
+    row: PurchaseInvoice
+  ): boolean {
+
+    return (
+      this.canModifyAttachments(
+        row
+      ) &&
+      (
+        row.attachments?.length ||
+        0
+      ) < 5
+    );
+
+  }
+
+
+  /* ============================================================
+     ATTACHMENT FILE SELECTION
+  ============================================================ */
+
+  onAttachmentFileSelected(
+    event: Event
+  ): void {
+
+    this.error.set('');
+
+    this.message.set('');
+
+
+    const input =
+      event.target as
+        HTMLInputElement;
+
+
+    const file =
+      input.files?.[0] ||
+      null;
+
+
+    if (
+      !file
+    ) {
+
+      this.selectedAttachmentFile =
+        null;
+
+      return;
+
+    }
+
+
+    const maxFileSize =
+      1 *
+      1024 *
+      1024;
+
+
+    if (
+      file.size >
+      maxFileSize
+    ) {
+
+      this.selectedAttachmentFile =
+        null;
+
+      input.value =
+        '';
+
+      this.error.set(
+        'Attachment size must not exceed 1 MB.'
+      );
+
+      return;
+
+    }
+
+
+    const allowedMimeTypes =
+      [
+        'application/pdf',
+        'image/jpeg',
+        'image/jpg',
+        'image/png'
+      ];
+
+
+    const allowedExtensions =
+      [
+        '.pdf',
+        '.jpg',
+        '.jpeg',
+        '.png'
+      ];
+
+
+    const lowerName =
+      file.name
+        .toLowerCase();
+
+
+    const hasAllowedExtension =
+      allowedExtensions.some(
+        extension =>
+          lowerName.endsWith(
+            extension
+          )
+      );
+
+
+    if (
+      !allowedMimeTypes.includes(
+        file.type
+      ) ||
+      !hasAllowedExtension
+    ) {
+
+      this.selectedAttachmentFile =
+        null;
+
+      input.value =
+        '';
+
+      this.error.set(
+        'Only PDF, JPG, JPEG and PNG files are allowed.'
+      );
+
+      return;
+
+    }
+
+
+    this.selectedAttachmentFile =
+      file;
+
+  }
+
+
+  /* ============================================================
+     DOCUMENT TYPE CHANGE
+  ============================================================ */
+
+  onAttachmentDocumentTypeChange(): void {
+
+    if (
+      this.attachmentDocumentType !==
+      'other'
+    ) {
+
+      this.attachmentOtherDocumentType =
+        '';
+
+    }
+
+  }
+
+
+  /* ============================================================
+     UPLOAD ATTACHMENT
+  ============================================================ */
+
+  uploadAttachment(
+    row: PurchaseInvoice
+  ): void {
+
+    this.error.set('');
+
+    this.message.set('');
+
+
+    if (
+      !this.canModifyAttachments(
+        row
+      )
+    ) {
+
+      this.error.set(
+        'Attachments cannot be changed after Accounts handoff has started.'
+      );
+
+      return;
+
+    }
+
+
+    if (
+      (
+        row.attachments?.length ||
+        0
+      ) >= 5
+    ) {
+
+      this.error.set(
+        'A maximum of 5 attachments is allowed for each Purchase Invoice.'
+      );
+
+      return;
+
+    }
+
+
+    if (
+      !this.attachmentDocumentType
+    ) {
+
+      this.error.set(
+        'Please select a document type.'
+      );
+
+      return;
+
+    }
+
+
+    if (
+      this.attachmentDocumentType ===
+        'other' &&
+      !this.attachmentOtherDocumentType
+        .trim()
+    ) {
+
+      this.error.set(
+        'Please enter the custom document type.'
+      );
+
+      return;
+
+    }
+
+
+    if (
+      !this.selectedAttachmentFile
+    ) {
+
+      this.error.set(
+        'Please select a document to upload.'
+      );
+
+      return;
+
+    }
+
+
+    if (
+      this.selectedAttachmentFile.size >
+      (
+        1 *
+        1024 *
+        1024
+      )
+    ) {
+
+      this.error.set(
+        'Attachment size must not exceed 1 MB.'
+      );
+
+      return;
+
+    }
+
+
+    this.uploadingAttachment.set(
+      true
+    );
+
+
+    this.service
+      .uploadAttachment(
+        row._id,
+        this.selectedAttachmentFile,
+        this.attachmentDocumentType,
+        this.attachmentOtherDocumentType
+          .trim()
+      )
+      .pipe(
+        finalize(
+          () =>
+            this.uploadingAttachment.set(
+              false
+            )
+        )
+      )
+      .subscribe({
+
+        next: updated => {
+
+          this.message.set(
+            'Invoice document uploaded successfully.'
+          );
+
+
+          this.resetAttachmentForm();
+
+
+          if (
+            updated &&
+            updated._id
+          ) {
+
+            this.selectedInvoice.set(
+              updated
+            );
+
+          }
+
+
+          this.load();
+
+        },
+
+        error: error => {
+
+          this.error.set(
+            error?.error?.message ||
+            'Unable to upload invoice document.'
+          );
+
+        }
+
+      });
+
+  }
+
+
+  /* ============================================================
+     DELETE ATTACHMENT
+  ============================================================ */
+
+  deleteAttachment(
+    row: PurchaseInvoice,
+    attachment: PurchaseInvoiceAttachment
+  ): void {
+
+    this.error.set('');
+
+    this.message.set('');
+
+
+    if (
+      !this.canModifyAttachments(
+        row
+      )
+    ) {
+
+      this.error.set(
+        'Attachments cannot be deleted after Accounts handoff has started.'
+      );
+
+      return;
+
+    }
+
+
+    if (
+      !attachment._id
+    ) {
+
+      this.error.set(
+        'Attachment reference is missing.'
+      );
+
+      return;
+
+    }
+
+
+    const confirmed =
+      window.confirm(
+        `Delete "${attachment.originalName || attachment.fileName}"?`
+      );
+
+
+    if (
+      !confirmed
+    ) {
+
+      return;
+
+    }
+
+
+    this.deletingAttachmentId.set(
+      attachment._id
+    );
+
+
+    this.service
+      .deleteAttachment(
+        row._id,
+        attachment._id
+      )
+      .pipe(
+        finalize(
+          () =>
+            this.deletingAttachmentId.set(
+              ''
+            )
+        )
+      )
+      .subscribe({
+
+        next: () => {
+
+          this.message.set(
+            'Invoice document deleted successfully.'
+          );
+
+
+          this.load();
+
+        },
+
+        error: error => {
+
+          this.error.set(
+            error?.error?.message ||
+            'Unable to delete invoice document.'
+          );
+
+        }
+
+      });
+
+  }
+
+
+  /* ============================================================
+     ATTACHMENT DOCUMENT LABEL
+  ============================================================ */
+
+  attachmentDocumentLabel(
+    attachment:
+      PurchaseInvoiceAttachment
+  ): string {
+
+    if (
+      attachment.documentType ===
+      'other'
+    ) {
+
+      return (
+        attachment.otherDocumentType ||
+        'Other'
+      );
+
+    }
+
+
+    const option =
+      PURCHASE_INVOICE_DOCUMENT_TYPE_OPTIONS
+        .find(
+          row =>
+            row.value ===
+            attachment.documentType
+        );
+
+
+    return (
+      option?.label ||
+      attachment.documentType
+    );
+
+  }
+
+
+  /* ============================================================
+     ATTACHMENT SIZE LABEL
+  ============================================================ */
+
+  attachmentSizeLabel(
+    bytes:
+      number
+  ): string {
+
+    const size =
+      Number(
+        bytes ||
+        0
+      );
+
+
+    if (
+      size <= 0
+    ) {
+
+      return '0 KB';
+
+    }
+
+
+    if (
+      size <
+      1024
+    ) {
+
+      return `${size} B`;
+
+    }
+
+
+    const kilobytes =
+      size /
+      1024;
+
+
+    if (
+      kilobytes <
+      1024
+    ) {
+
+      return `${kilobytes.toFixed(1)} KB`;
+
+    }
+
+
+    return `${(
+      kilobytes /
+      1024
+    ).toFixed(2)} MB`;
+
+  }
+
+
+  /* ============================================================
+     RESOLVE ATTACHMENT URL
+
+     MongoDB stores only the relative reference such as:
+     /uploads/purchase-invoices/file.pdf
+
+     The actual file remains on the backend filesystem.
+  ============================================================ */
+
+  attachmentUrl(
+    attachment:
+      PurchaseInvoiceAttachment
+  ): string {
+
+    const fileUrl =
+      String(
+        attachment.fileUrl ||
+        ''
+      )
+        .trim();
+
+
+    if (
+      !fileUrl
+    ) {
+
+      return '';
+
+    }
+
+
+    if (
+      /^https?:\/\//i.test(
+        fileUrl
+      )
+    ) {
+
+      return fileUrl;
+
+    }
+
+
+    try {
+
+      const backendUrl =
+        apiUrl(
+          '/'
+        );
+
+
+      const backendOrigin =
+        new URL(
+          backendUrl,
+          window.location.origin
+        ).origin;
+
+
+      return new URL(
+        fileUrl,
+        `${backendOrigin}/`
+      ).toString();
+
+    } catch {
+
+      return fileUrl;
+
+    }
+
+  }
+
+
+  /* ============================================================
+     VIEW ATTACHMENT
+  ============================================================ */
+
+  viewAttachment(
+    attachment:
+      PurchaseInvoiceAttachment
+  ): void {
+
+    const url =
+      this.attachmentUrl(
+        attachment
+      );
+
+
+    if (
+      !url
+    ) {
+
+      this.error.set(
+        'Document URL is unavailable.'
+      );
+
+      return;
+
+    }
+
+
+    window.open(
+      url,
+      '_blank',
+      'noopener,noreferrer'
+    );
+
+  }
+
+
+  /* ============================================================
+     DOWNLOAD ATTACHMENT
+  ============================================================ */
+
+  downloadAttachment(
+    attachment:
+      PurchaseInvoiceAttachment
+  ): void {
+
+    const url =
+      this.attachmentUrl(
+        attachment
+      );
+
+
+    if (
+      !url
+    ) {
+
+      this.error.set(
+        'Document URL is unavailable.'
+      );
+
+      return;
+
+    }
+
+
+    const link =
+      document.createElement(
+        'a'
+      );
+
+
+    link.href =
+      url;
+
+    link.download =
+      attachment.originalName ||
+      attachment.fileName ||
+      'purchase-invoice-document';
+
+    link.target =
+      '_blank';
+
+    link.rel =
+      'noopener noreferrer';
+
+
+    document.body.appendChild(
+      link
+    );
+
+
+    link.click();
+
+
+    document.body.removeChild(
+      link
+    );
 
   }
 
@@ -1312,11 +2121,6 @@ export class PurchaseInvoicesComponent implements OnInit {
           }
 
 
-          /*
-           * Reload so a failed handoff is immediately reflected
-           * as "Accounts Setup Required" in the invoice register.
-           */
-
           if (
             action === 'handoff'
           ) {
@@ -1415,8 +2219,6 @@ export class PurchaseInvoicesComponent implements OnInit {
 
   /* ============================================================
      REFERENCE ID
-
-     Supports either a raw Mongo id or populated object.
   ============================================================ */
 
   private referenceId(
@@ -1436,7 +2238,7 @@ export class PurchaseInvoicesComponent implements OnInit {
     if (
       value &&
       typeof value ===
-      'object' &&
+        'object' &&
       '_id' in value
     ) {
 
@@ -1499,6 +2301,24 @@ export class PurchaseInvoicesComponent implements OnInit {
         0,
         10
       );
+
+  }
+
+
+  /* ============================================================
+     RESET ATTACHMENT FORM
+  ============================================================ */
+
+  private resetAttachmentForm(): void {
+
+    this.attachmentDocumentType =
+      'vendor_invoice';
+
+    this.attachmentOtherDocumentType =
+      '';
+
+    this.selectedAttachmentFile =
+      null;
 
   }
 

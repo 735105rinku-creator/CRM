@@ -15,8 +15,14 @@ import {
   getPurchaseInvoiceReferences,
   handoffPurchaseInvoice,
   listPurchaseInvoices,
-  verifyPurchaseInvoice
+  verifyPurchaseInvoice,
+  uploadPurchaseInvoiceAttachment,
+  deletePurchaseInvoiceAttachment
 } from "../controllers/purchaseInvoice.controller.js";
+
+import {
+  uploadPurchaseInvoice
+} from "../middleware/upload.middleware.js";
 
 
 /* ============================================================
@@ -119,6 +125,52 @@ router.post(
 router.put(
   "/:id",
   updatePurchaseInvoice
+);
+
+
+/* ============================================================
+   UPLOAD PURCHASE INVOICE ATTACHMENT
+
+   Multipart field:
+   invoiceFile
+
+   File rules are enforced by uploadPurchaseInvoice:
+   - PDF
+   - JPG / JPEG
+   - PNG
+   - Maximum 1 MB
+
+   Business rules are enforced by the service:
+   - Maximum 5 attachments per invoice.
+   - Verified invoice may still receive attachments before
+     Accounts handoff begins.
+   - handing_off / handed_off invoices are locked.
+   - accountsVoucherId locks further attachment changes.
+============================================================ */
+
+router.post(
+  "/:id/attachments",
+  uploadPurchaseInvoice.single(
+    "invoiceFile"
+  ),
+  uploadPurchaseInvoiceAttachment
+);
+
+
+/* ============================================================
+   DELETE PURCHASE INVOICE ATTACHMENT
+
+   Important:
+   - Attachment must belong to the selected Purchase Invoice.
+   - Database metadata is removed first.
+   - Controller removes the physical file only after successful
+     metadata removal.
+   - Attachments cannot be deleted once Accounts handoff starts.
+============================================================ */
+
+router.delete(
+  "/:id/attachments/:attachmentId",
+  deletePurchaseInvoiceAttachment
 );
 
 

@@ -224,8 +224,6 @@
   <section class="table-card">
 
 
-    <!-- Loading -->
-
     <div
       *ngIf="loading()"
       class="state loading-state"
@@ -249,8 +247,6 @@
 
     </div>
 
-
-    <!-- Empty -->
 
     <div
       *ngIf="!loading() && !invoices().length"
@@ -281,8 +277,6 @@
     </div>
 
 
-    <!-- Table -->
-
     <div
       class="table-wrap"
       *ngIf="!loading() && invoices().length"
@@ -294,21 +288,13 @@
 
           <tr>
 
-            <th>
-              Invoice
-            </th>
+            <th>Invoice</th>
 
-            <th>
-              Date
-            </th>
+            <th>Date</th>
 
-            <th>
-              Vendor
-            </th>
+            <th>Vendor</th>
 
-            <th>
-              PO / GRN
-            </th>
+            <th>PO / GRN</th>
 
             <th class="amount-column">
               Invoice Total
@@ -322,21 +308,13 @@
               Outstanding
             </th>
 
-            <th>
-              Payment
-            </th>
+            <th>Payment</th>
 
-            <th>
-              Match
-            </th>
+            <th>Match</th>
 
-            <th>
-              Verification
-            </th>
+            <th>Verification</th>
 
-            <th>
-              Accounts
-            </th>
+            <th>Accounts</th>
 
             <th class="action-column">
               Actions
@@ -352,8 +330,6 @@
           <tr
             *ngFor="let row of invoices()"
           >
-
-            <!-- INVOICE -->
 
             <td>
 
@@ -372,16 +348,10 @@
             </td>
 
 
-            <!-- DATE -->
-
             <td>
-
               {{ row.invoiceDate | date:'dd MMM yyyy' }}
-
             </td>
 
-
-            <!-- VENDOR -->
 
             <td>
 
@@ -395,8 +365,6 @@
 
             </td>
 
-
-            <!-- PO / GRN -->
 
             <td>
 
@@ -413,8 +381,6 @@
             </td>
 
 
-            <!-- INVOICE TOTAL -->
-
             <td class="amount-column">
 
               <strong>
@@ -424,16 +390,10 @@
             </td>
 
 
-            <!-- PAID -->
-
             <td class="amount-column">
-
               &#8377;{{ row.paidAmount | number:'1.2-2' }}
-
             </td>
 
-
-            <!-- OUTSTANDING -->
 
             <td class="amount-column">
 
@@ -443,8 +403,6 @@
 
             </td>
 
-
-            <!-- PAYMENT -->
 
             <td>
 
@@ -459,8 +417,6 @@
 
             </td>
 
-
-            <!-- MATCH -->
 
             <td>
 
@@ -482,8 +438,6 @@
             </td>
 
 
-            <!-- VERIFICATION -->
-
             <td>
 
               <span class="status-text">
@@ -492,8 +446,6 @@
 
             </td>
 
-
-            <!-- ACCOUNTS HANDOFF -->
 
             <td>
 
@@ -538,13 +490,9 @@
             </td>
 
 
-            <!-- ACTIONS -->
-
             <td>
 
               <div class="row-actions">
-
-                <!-- VIEW -->
 
                 <button
                   type="button"
@@ -554,8 +502,6 @@
                   View
                 </button>
 
-
-                <!-- EDIT -->
 
                 <button
                   type="button"
@@ -567,8 +513,6 @@
                   Edit
                 </button>
 
-
-                <!-- VERIFY -->
 
                 <button
                   type="button"
@@ -583,8 +527,6 @@
                   Verify
                 </button>
 
-
-                <!-- SEND / RETRY TO ACCOUNTS -->
 
                 <button
                   type="button"
@@ -867,9 +809,6 @@
 
       <!-- =====================================================
            ACCOUNTS HANDOFF FAILURE
-
-           Full handoff reason is intentionally shown here
-           instead of expanding the invoice register table.
       ====================================================== -->
 
       <div
@@ -941,6 +880,347 @@
         </div>
 
       </div>
+
+
+      <!-- =====================================================
+           INVOICE DOCUMENTS
+      ====================================================== -->
+
+      <section class="invoice-documents-section">
+
+        <div class="documents-section-header">
+
+          <div>
+
+            <span class="documents-eyebrow">
+              DOCUMENT MANAGEMENT
+            </span>
+
+            <h3>
+              Invoice Documents
+            </h3>
+
+            <p>
+              Upload and manage vendor invoice documents linked to this
+              Purchase Invoice.
+            </p>
+
+          </div>
+
+
+          <span class="document-count">
+            {{ row.attachments.length || 0 }} / 5
+          </span>
+
+        </div>
+
+
+        <!-- ===================================================
+             UPLOAD FORM
+        ==================================================== -->
+
+        <div
+          class="document-upload-card"
+          *ngIf="canUploadAttachment(row)"
+        >
+
+          <div class="document-upload-grid">
+
+            <label class="document-field">
+
+              <span>
+                Document Type
+              </span>
+
+              <select
+                [(ngModel)]="attachmentDocumentType"
+                (change)="onAttachmentDocumentTypeChange()"
+                [disabled]="uploadingAttachment()"
+              >
+
+                <option
+                  *ngFor="let option of purchaseInvoiceDocumentTypeOptions"
+                  [value]="option.value"
+                >
+                  {{ option.label }}
+                </option>
+
+              </select>
+
+            </label>
+
+
+            <label
+              class="document-field"
+              *ngIf="attachmentDocumentType === 'other'"
+            >
+
+              <span>
+                Other Document Type
+              </span>
+
+              <input
+                type="text"
+                [(ngModel)]="attachmentOtherDocumentType"
+                placeholder="Enter document type"
+                [disabled]="uploadingAttachment()"
+              >
+
+            </label>
+
+
+            <label class="document-field document-file-field">
+
+              <span>
+                Select File
+              </span>
+
+              <input
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
+                [disabled]="uploadingAttachment()"
+                (change)="onAttachmentFileSelected($event)"
+              >
+
+              <small class="field-hint">
+                PDF, JPG, JPEG or PNG only. Maximum file size: 1 MB.
+              </small>
+
+            </label>
+
+          </div>
+
+
+          <div
+            class="selected-document"
+            *ngIf="selectedAttachmentFile"
+          >
+
+            <div class="selected-document-icon">
+              &#128196;
+            </div>
+
+            <div class="selected-document-info">
+
+              <strong>
+                {{ selectedAttachmentFile.name }}
+              </strong>
+
+              <small>
+                {{ attachmentSizeLabel(selectedAttachmentFile.size) }}
+              </small>
+
+            </div>
+
+          </div>
+
+
+          <div class="document-upload-actions">
+
+            <button
+              type="button"
+              class="document-upload-button"
+              [disabled]="
+                uploadingAttachment() ||
+                !selectedAttachmentFile
+              "
+              (click)="uploadAttachment(row)"
+            >
+              {{
+                uploadingAttachment()
+                  ? 'Uploading...'
+                  : 'Upload Document'
+              }}
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <!-- ===================================================
+             UPLOAD LOCK MESSAGE
+        ==================================================== -->
+
+        <div
+          class="document-lock-notice"
+          *ngIf="!canModifyAttachments(row)"
+        >
+
+          <span class="document-lock-icon">
+            &#128274;
+          </span>
+
+          <div>
+
+            <strong>
+              Documents locked
+            </strong>
+
+            <p>
+              Invoice documents cannot be changed because the Accounts
+              handoff has already started or completed.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <!-- ===================================================
+             MAX DOCUMENT MESSAGE
+        ==================================================== -->
+
+        <div
+          class="document-limit-notice"
+          *ngIf="
+            canModifyAttachments(row) &&
+            row.attachments.length >= 5
+          "
+        >
+
+          <strong>
+            Maximum document limit reached.
+          </strong>
+
+          <span>
+            Up to 5 documents can be attached to one Purchase Invoice.
+          </span>
+
+        </div>
+
+
+        <!-- ===================================================
+             EMPTY DOCUMENT STATE
+        ==================================================== -->
+
+        <div
+          class="documents-empty-state"
+          *ngIf="!row.attachments.length"
+        >
+
+          <div class="documents-empty-icon">
+            &#128206;
+          </div>
+
+          <strong>
+            No documents attached
+          </strong>
+
+          <p>
+            Upload the vendor invoice, E-Way Bill, delivery challan
+            or other supporting documents.
+          </p>
+
+        </div>
+
+
+        <!-- ===================================================
+             DOCUMENT LIST
+        ==================================================== -->
+
+        <div
+          class="document-list"
+          *ngIf="row.attachments.length"
+        >
+
+          <article
+            class="document-card"
+            *ngFor="let attachment of row.attachments"
+          >
+
+            <div class="document-card-main">
+
+              <div class="document-card-icon">
+                &#128196;
+              </div>
+
+
+              <div class="document-card-content">
+
+                <div class="document-card-title">
+
+                  <strong>
+                    {{
+                      attachment.originalName ||
+                      attachment.fileName
+                    }}
+                  </strong>
+
+                  <span class="document-type-pill">
+                    {{ attachmentDocumentLabel(attachment) }}
+                  </span>
+
+                </div>
+
+
+                <div class="document-meta">
+
+                  <span>
+                    {{ attachmentSizeLabel(attachment.fileSize) }}
+                  </span>
+
+                  <span class="document-meta-divider">
+                    •
+                  </span>
+
+                  <span>
+                    {{
+                      attachment.uploadedAt
+                        | date:'dd MMM yyyy, hh:mm a'
+                    }}
+                  </span>
+
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <div class="document-card-actions">
+
+              <button
+                type="button"
+                class="document-action document-view-action"
+                (click)="viewAttachment(attachment)"
+              >
+                View
+              </button>
+
+
+              <button
+                type="button"
+                class="document-action document-download-action"
+                (click)="downloadAttachment(attachment)"
+              >
+                Download
+              </button>
+
+
+              <button
+                type="button"
+                class="document-action document-delete-action"
+                *ngIf="canModifyAttachments(row)"
+                [disabled]="
+                  deletingAttachmentId() === attachment._id
+                "
+                (click)="deleteAttachment(row, attachment)"
+              >
+                {{
+                  deletingAttachmentId() === attachment._id
+                    ? 'Deleting...'
+                    : 'Delete'
+                }}
+              </button>
+
+            </div>
+
+          </article>
+
+        </div>
+
+      </section>
 
 
       <!-- =====================================================

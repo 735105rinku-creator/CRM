@@ -192,6 +192,140 @@ class PurchaseInvoiceRepository {
 
 
   /* ==========================================================
+     ADD ATTACHMENT METADATA
+
+     Important:
+     - Actual file is NOT stored in MongoDB.
+     - Only metadata / URL is appended.
+     - Maximum 5 attachments.
+     - Allowed before Accounts handoff begins.
+     - Verification does not lock document upload.
+     - Failed Accounts handoff may be retried and attachments
+       may still be corrected before the next handoff attempt.
+  ========================================================== */
+
+  addAttachment(
+    companyId,
+    id,
+    attachment,
+    userId
+  ) {
+
+    return PurchaseInvoice
+      .findOneAndUpdate(
+        {
+          _id:
+            id,
+
+          companyId,
+
+          handoffStatus: {
+            $in: [
+              "not_handed_off",
+              "failed"
+            ]
+          },
+
+          accountsVoucherId:
+            null,
+
+          "attachments.4": {
+            $exists:
+              false
+          }
+        },
+
+        {
+          $push: {
+            attachments:
+              attachment
+          },
+
+          $set: {
+            updatedBy:
+              userId
+          }
+        },
+
+        {
+          new:
+            true,
+
+          runValidators:
+            true
+        }
+      )
+      .lean();
+  }
+
+
+  /* ==========================================================
+     REMOVE ATTACHMENT METADATA
+
+     Important:
+     - Company scoped.
+     - Attachment must belong to this invoice.
+     - Cannot remove after Accounts handoff starts.
+     - Physical server file is removed by controller only after
+       this DB operation succeeds.
+  ========================================================== */
+
+  removeAttachment(
+    companyId,
+    id,
+    attachmentId,
+    userId
+  ) {
+
+    return PurchaseInvoice
+      .findOneAndUpdate(
+        {
+          _id:
+            id,
+
+          companyId,
+
+          handoffStatus: {
+            $in: [
+              "not_handed_off",
+              "failed"
+            ]
+          },
+
+          accountsVoucherId:
+            null,
+
+          "attachments._id":
+            attachmentId
+        },
+
+        {
+          $pull: {
+            attachments: {
+              _id:
+                attachmentId
+            }
+          },
+
+          $set: {
+            updatedBy:
+              userId
+          }
+        },
+
+        {
+          new:
+            true,
+
+          runValidators:
+            true
+        }
+      )
+      .lean();
+  }
+
+
+  /* ==========================================================
      LIST
   ========================================================== */
 

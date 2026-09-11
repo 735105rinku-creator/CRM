@@ -136,6 +136,77 @@ const vendorPaymentProofFilter = (
 
 
 /* ============================================================
+   PURCHASE INVOICE FILTER
+
+   Allowed:
+   - JPG
+   - JPEG
+   - PNG
+   - PDF
+
+   Maximum file size is enforced separately by Multer:
+   1 MB per file.
+============================================================ */
+
+const purchaseInvoiceFileFilter = (
+  req,
+  file,
+  callback
+) => {
+
+  const allowedMimeTypes =
+    new Set([
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "application/pdf",
+    ]);
+
+
+  const extension =
+    path
+      .extname(
+        file.originalname ||
+        ""
+      )
+      .toLowerCase();
+
+
+  const allowedExtensions =
+    new Set([
+      ".jpg",
+      ".jpeg",
+      ".png",
+      ".pdf",
+    ]);
+
+
+  if (
+    !allowedMimeTypes.has(
+      file.mimetype
+    ) ||
+    !allowedExtensions.has(
+      extension
+    )
+  ) {
+
+    return callback(
+      new ApiError(
+        400,
+        "Invoice attachment must be JPG, JPEG, PNG or PDF."
+      )
+    );
+  }
+
+
+  callback(
+    null,
+    true
+  );
+};
+
+
+/* ============================================================
    STORAGE FACTORY
 ============================================================ */
 
@@ -232,6 +303,12 @@ const employeeDocumentStorage =
 const vendorPaymentProofStorage =
   makeStorage(
     "vendor-payment-proofs"
+  );
+
+
+const purchaseInvoiceStorage =
+  makeStorage(
+    "purchase-invoices"
   );
 
 
@@ -363,6 +440,46 @@ export const uploadVendorPaymentProof =
 
 
 /* ============================================================
+   PURCHASE INVOICE ATTACHMENT
+
+   Actual file is stored on server disk:
+
+   public/uploads/purchase-invoices/
+
+   MongoDB must store only file metadata / URL.
+
+   Allowed:
+   - JPG
+   - JPEG
+   - PNG
+   - PDF
+
+   Maximum:
+   - 1 MB per file
+============================================================ */
+
+export const uploadPurchaseInvoice =
+  multer({
+
+    storage:
+      purchaseInvoiceStorage,
+
+    fileFilter:
+      purchaseInvoiceFileFilter,
+
+    limits: {
+
+      fileSize:
+        1 *
+        1024 *
+        1024,
+
+    },
+
+  });
+
+
+/* ============================================================
    PUBLIC URL HELPERS
 ============================================================ */
 
@@ -456,5 +573,27 @@ export const toPublicVendorPaymentProofUrl = (
 
   return (
     `/uploads/vendor-payment-proofs/${file.filename}`
+  );
+};
+
+
+/* ============================================================
+   PURCHASE INVOICE PUBLIC URL
+============================================================ */
+
+export const toPublicPurchaseInvoiceUrl = (
+  file
+) => {
+
+  if (
+    !file?.filename
+  ) {
+
+    return "";
+  }
+
+
+  return (
+    `/uploads/purchase-invoices/${file.filename}`
   );
 };

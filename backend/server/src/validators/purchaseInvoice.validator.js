@@ -26,6 +26,19 @@ const money =
 
 
 /* ============================================================
+   PURCHASE INVOICE DOCUMENT TYPES
+============================================================ */
+
+export const PURCHASE_INVOICE_DOCUMENT_TYPES = [
+  "vendor_invoice",
+  "e_way_bill",
+  "delivery_challan",
+  "supporting_document",
+  "other",
+];
+
+
+/* ============================================================
    ITEM
 ============================================================ */
 
@@ -247,6 +260,97 @@ export const updatePurchaseInvoiceSchema =
         .default(
           ""
         )
+
+  })
+    .unknown(
+      false
+    );
+
+
+/* ============================================================
+   UPLOAD PURCHASE INVOICE ATTACHMENT
+
+   Actual file validation such as:
+   - maximum 1 MB
+   - PDF / JPG / JPEG / PNG only
+
+   must be enforced by the upload middleware because the binary
+   file is received through req.file, not through Joi body data.
+============================================================ */
+
+export const uploadPurchaseInvoiceAttachmentSchema =
+  Joi.object({
+
+    documentType:
+      Joi
+        .string()
+        .valid(
+          ...PURCHASE_INVOICE_DOCUMENT_TYPES
+        )
+        .default(
+          "vendor_invoice"
+        ),
+
+    otherDocumentType:
+      Joi
+        .when(
+          "documentType",
+          {
+            is:
+              "other",
+
+            then:
+              Joi
+                .string()
+                .trim()
+                .min(
+                  1
+                )
+                .max(
+                  120
+                )
+                .required()
+                .messages({
+                  "any.required":
+                    "Other document type details are required.",
+                  "string.empty":
+                    "Other document type details are required.",
+                }),
+
+            otherwise:
+              Joi
+                .string()
+                .trim()
+                .allow(
+                  ""
+                )
+                .default(
+                  ""
+                )
+                .strip()
+          }
+        )
+
+  })
+    .unknown(
+      false
+    );
+
+
+/* ============================================================
+   ATTACHMENT ID PARAM
+============================================================ */
+
+export const purchaseInvoiceAttachmentIdSchema =
+  Joi.object({
+
+    id:
+      objectId
+        .required(),
+
+    attachmentId:
+      objectId
+        .required()
 
   })
     .unknown(

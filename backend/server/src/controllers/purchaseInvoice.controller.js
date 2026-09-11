@@ -1,11 +1,20 @@
+import fs from "fs";
+import path from "path";
+
 import purchaseInvoiceService from "../services/purchaseInvoice.service.js";
 
 import {
   createPurchaseInvoiceSchema,
   updatePurchaseInvoiceSchema,
   purchaseInvoiceIdSchema,
-  purchaseInvoiceQuerySchema
+  purchaseInvoiceAttachmentIdSchema,
+  purchaseInvoiceQuerySchema,
+  uploadPurchaseInvoiceAttachmentSchema
 } from "../validators/purchaseInvoice.validator.js";
+
+import {
+  toPublicPurchaseInvoiceUrl
+} from "../middleware/upload.middleware.js";
 
 import {
   ApiResponse
@@ -80,6 +89,102 @@ const companyId =
 const userId =
   req =>
     req.user?._id;
+
+
+/* ============================================================
+   FILE CLEANUP HELPERS
+============================================================ */
+
+const safeDeleteFile = (
+  filePath
+) => {
+
+  if (
+    !filePath
+  ) {
+
+    return;
+
+  }
+
+
+  try {
+
+    if (
+      fs.existsSync(
+        filePath
+      )
+    ) {
+
+      fs.unlinkSync(
+        filePath
+      );
+
+    }
+
+  }
+  catch (
+    error
+  ) {
+
+    console.error(
+      "Failed to remove Purchase Invoice attachment:",
+      error?.message ||
+      error
+    );
+
+  }
+
+};
+
+
+const purchaseInvoiceUploadRoot =
+  path.join(
+    process.cwd(),
+    "public",
+    "uploads",
+    "purchase-invoices"
+  );
+
+
+const attachmentDiskPath = (
+  attachment
+) => {
+
+  const storedFileName =
+    String(
+      attachment?.storageKey ||
+      attachment?.fileName ||
+      ""
+    )
+      .trim();
+
+
+  if (
+    !storedFileName
+  ) {
+
+    return "";
+
+  }
+
+
+  /*
+   * storageKey is expected to contain only the generated
+   * filename for locally stored Purchase Invoice documents.
+   *
+   * basename prevents directory traversal if old/bad data
+   * ever reaches this helper.
+   */
+
+  return path.join(
+    purchaseInvoiceUploadRoot,
+    path.basename(
+      storedFileName
+    )
+  );
+
+};
 
 
 /* ============================================================
@@ -175,6 +280,235 @@ export const updatePurchaseInvoice =
           200,
           row,
           "Purchase Invoice updated and re-matched."
+        )
+      );
+
+    }
+  );
+
+
+/* ============================================================
+   UPLOAD PURCHASE INVOICE ATTACHMENT
+
+   Important:
+   - Actual binary file is NOT stored in MongoDB.
+   - Multer stores the file on server disk.
+   - MongoDB receives metadata and URL only.
+============================================================ */
+
+export const uploadPurchaseInvoiceAttachment =
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
+
+      let uploadedFilePath =
+        req.file?.path ||
+        "";
+
+
+      try {
+
+        const {
+          id
+        } =
+          validate(
+            purchaseInvoiceIdSchema,
+            req.params
+          );
+
+
+        if (
+          !req.file
+        ) {
+
+          throw new ApiError(
+            400,
+            "Please select an invoice attachment to upload."
+          );
+
+        }
+
+
+        const payload =
+          validate(
+            uploadPurchaseInvoiceAttachmentSchema,
+            req.body
+          );
+
+
+        const attachment = {
+
+          documentType:
+            payload.documentType,
+
+          otherDocumentType:
+            payload.otherDocumentType ||
+            "",
+
+          fileName:
+            req.file.filename,
+
+          originalName:
+            req.file.originalname ||
+            "",
+
+          fileUrl:
+            toPublicPurchaseInvoiceUrl(
+              req.file
+            ),
+
+          /*
+           * For local server storage we keep only generated
+           * filename as storageKey. This can later be replaced
+           * with an object-storage key without changing the
+           * Purchase Invoice schema.
+           */
+          storageKey:
+            req.file.filename,
+
+          mimeType:
+            req.file.mimetype,
+
+          fileSize:
+            req.file.size,
+
+          uploadedBy:
+            userId(
+              req
+            ),
+
+          uploadedAt:
+            new Date()
+
+        };
+
+
+        const row =
+          await purchaseInvoiceService
+            .addAttachment(
+              companyId(
+                req
+              ),
+              id,
+              userId(
+                req
+              ),
+              attachment
+            );
+
+
+        /*
+         * Once DB metadata has been saved successfully,
+         * controller no longer owns cleanup for this file.
+         */
+        uploadedFilePath =
+          "";
+
+
+        res
+          .status(
+            201
+          )
+          .json(
+            new ApiResponse(
+              201,
+              row,
+              "Invoice attachment uploaded successfully."
+            )
+          );
+
+      }
+      catch (
+        error
+      ) {
+
+        /*
+         * Multer saves the physical file before the controller
+         * runs. If validation/business logic fails afterwards,
+         * remove that newly-created file so orphan files do not
+         * accumulate on the server.
+         */
+        safeDeleteFile(
+          uploadedFilePath
+        );
+
+
+        throw error;
+
+      }
+
+    }
+  );
+
+
+/* ============================================================
+   DELETE PURCHASE INVOICE ATTACHMENT
+============================================================ */
+
+export const deletePurchaseInvoiceAttachment =
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
+
+      const {
+        id,
+        attachmentId
+      } =
+        validate(
+          purchaseInvoiceAttachmentIdSchema,
+          req.params
+        );
+
+
+      /*
+       * Service removes the metadata from the invoice and
+       * returns both:
+       *
+       * {
+       *   invoice,
+       *   attachment
+       * }
+       *
+       * Physical file cleanup happens only after DB update
+       * succeeds.
+       */
+      const result =
+        await purchaseInvoiceService
+          .removeAttachment(
+            companyId(
+              req
+            ),
+            id,
+            attachmentId,
+            userId(
+              req
+            )
+          );
+
+
+      if (
+        result?.attachment
+      ) {
+
+        safeDeleteFile(
+          attachmentDiskPath(
+            result.attachment
+          )
+        );
+
+      }
+
+
+      res.json(
+        new ApiResponse(
+          200,
+          result?.invoice ||
+          result,
+          "Invoice attachment removed successfully."
         )
       );
 

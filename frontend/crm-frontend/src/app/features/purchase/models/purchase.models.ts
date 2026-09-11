@@ -1235,6 +1235,42 @@ export interface PurchaseReportFilters {
 export type PurchaseInvoiceStatus = 'received' | 'matched' | 'exception' | 'verified';
 export type PurchaseInvoiceHandoffStatus = 'not_handed_off' | 'handing_off' | 'handed_off' | 'failed';
 
+export type PurchaseInvoiceDocumentType =
+  | 'vendor_invoice'
+  | 'e_way_bill'
+  | 'delivery_challan'
+  | 'supporting_document'
+  | 'other';
+
+
+export interface PurchaseInvoiceAttachment {
+  _id?: string;
+
+  documentType: PurchaseInvoiceDocumentType;
+
+  otherDocumentType?: string;
+
+  fileName: string;
+
+  originalName: string;
+
+  fileUrl: string;
+
+  storageKey: string;
+
+  mimeType: string;
+
+  fileSize: number;
+
+  uploadedBy?:
+    | PurchaseUserReference
+    | string
+    | null;
+
+  uploadedAt: string;
+}
+
+
 export interface PurchaseInvoiceItem {
   _id?: string;
   purchaseOrderItemId: string;
@@ -1286,6 +1322,8 @@ export interface PurchaseInvoice {
   accountsVoucherNumber?: string;
   handedOffAt?: string | null;
   handoffError?: string;
+
+  attachments: PurchaseInvoiceAttachment[];
 }
 
 export interface PurchaseInvoiceMetrics {
@@ -1315,6 +1353,31 @@ export interface PurchaseStatusOption<
   value: T;
   label: string;
 }
+
+
+export const PURCHASE_INVOICE_DOCUMENT_TYPE_OPTIONS:
+  PurchaseStatusOption<PurchaseInvoiceDocumentType>[] = [
+    {
+      value: 'vendor_invoice',
+      label: 'Vendor Invoice'
+    },
+    {
+      value: 'e_way_bill',
+      label: 'E-Way Bill'
+    },
+    {
+      value: 'delivery_challan',
+      label: 'Delivery Challan'
+    },
+    {
+      value: 'supporting_document',
+      label: 'Supporting Document'
+    },
+    {
+      value: 'other',
+      label: 'Other'
+    }
+  ];
 
 
 export const PURCHASE_PRIORITY_OPTIONS:

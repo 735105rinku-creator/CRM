@@ -1103,6 +1103,377 @@ class PurchaseInvoiceService {
 
 
   /* ==========================================================
+     ADD PURCHASE INVOICE ATTACHMENT
+
+     Rules:
+     - Invoice must belong to current company.
+     - Maximum 5 attachments.
+     - Verified invoices may still receive attachments before
+       Accounts handoff begins.
+     - No modification is allowed while Accounts handoff is
+       running or after handoff completes.
+     - accountsVoucherId also permanently locks modification.
+     - Repository performs the final atomic guarded update so
+       concurrent uploads cannot safely exceed the limit.
+  ========================================================== */
+
+  async addAttachment(
+    companyId,
+    invoiceId,
+    userId,
+    attachment
+  ) {
+
+    const invoice =
+      await purchaseInvoiceRepository
+        .findById(
+          companyId,
+          invoiceId
+        );
+
+
+    if (
+      !invoice
+    ) {
+
+      throw new ApiError(
+        404,
+        "Purchase Invoice not found."
+      );
+    }
+
+
+    if (
+      invoice.handoffStatus ===
+        "handing_off" ||
+      invoice.handoffStatus ===
+        "handed_off" ||
+      invoice.accountsVoucherId
+    ) {
+
+      throw new ApiError(
+        409,
+        "Purchase Invoice attachments cannot be modified after Accounts handoff has started."
+      );
+    }
+
+
+    const attachments =
+      Array.isArray(
+        invoice.attachments
+      )
+        ? invoice.attachments
+        : [];
+
+
+    if (
+      attachments.length >=
+      5
+    ) {
+
+      throw new ApiError(
+        409,
+        "A maximum of 5 attachments is allowed for each Purchase Invoice."
+      );
+    }
+
+
+    const attachmentData = {
+
+      ...attachment,
+
+      uploadedBy:
+        attachment?.uploadedBy ||
+        userId,
+
+      uploadedAt:
+        attachment?.uploadedAt ||
+        new Date()
+
+    };
+
+
+    const updated =
+      await purchaseInvoiceRepository
+        .addAttachment(
+          companyId,
+          invoiceId,
+          attachmentData,
+          userId
+        );
+
+
+    if (
+      updated
+    ) {
+
+      return updated;
+    }
+
+
+    /*
+     * The atomic repository update may fail because another
+     * request changed the invoice after our initial read.
+     *
+     * Re-read the invoice so the caller receives the correct
+     * business reason instead of a misleading generic failure.
+     */
+
+    const latest =
+      await purchaseInvoiceRepository
+        .findById(
+          companyId,
+          invoiceId
+        );
+
+
+    if (
+      !latest
+    ) {
+
+      throw new ApiError(
+        404,
+        "Purchase Invoice not found."
+      );
+    }
+
+
+    if (
+      latest.handoffStatus ===
+        "handing_off" ||
+      latest.handoffStatus ===
+        "handed_off" ||
+      latest.accountsVoucherId
+    ) {
+
+      throw new ApiError(
+        409,
+        "Purchase Invoice attachments cannot be modified after Accounts handoff has started."
+      );
+    }
+
+
+    if (
+      (
+        Array.isArray(
+          latest.attachments
+        )
+          ? latest.attachments.length
+          : 0
+      ) >=
+      5
+    ) {
+
+      throw new ApiError(
+        409,
+        "A maximum of 5 attachments is allowed for each Purchase Invoice."
+      );
+    }
+
+
+    throw new ApiError(
+      409,
+      "Purchase Invoice attachment could not be added because the invoice changed. Please refresh and try again."
+    );
+  }
+
+
+  /* ==========================================================
+     REMOVE PURCHASE INVOICE ATTACHMENT
+
+     Rules:
+     - Invoice must belong to current company.
+     - Attachment must belong to the selected invoice.
+     - No deletion while Accounts handoff is running.
+     - No deletion after Accounts handoff completes.
+     - accountsVoucherId permanently locks attachment changes.
+     - Physical file deletion is intentionally NOT performed
+       here. Controller removes the filesystem file only after
+       MongoDB metadata removal succeeds.
+  ========================================================== */
+
+  async removeAttachment(
+    companyId,
+    invoiceId,
+    attachmentId,
+    userId
+  ) {
+
+    const invoice =
+      await purchaseInvoiceRepository
+        .findById(
+          companyId,
+          invoiceId
+        );
+
+
+    if (
+      !invoice
+    ) {
+
+      throw new ApiError(
+        404,
+        "Purchase Invoice not found."
+      );
+    }
+
+
+    if (
+      invoice.handoffStatus ===
+        "handing_off" ||
+      invoice.handoffStatus ===
+        "handed_off" ||
+      invoice.accountsVoucherId
+    ) {
+
+      throw new ApiError(
+        409,
+        "Purchase Invoice attachments cannot be modified after Accounts handoff has started."
+      );
+    }
+
+
+    const attachment =
+      (
+        Array.isArray(
+          invoice.attachments
+        )
+          ? invoice.attachments
+          : []
+      )
+        .find(
+          row =>
+            id(
+              row
+            ) ===
+            id(
+              attachmentId
+            )
+        );
+
+
+    if (
+      !attachment
+    ) {
+
+      throw new ApiError(
+        404,
+        "Purchase Invoice attachment not found."
+      );
+    }
+
+
+    const updated =
+      await purchaseInvoiceRepository
+        .removeAttachment(
+          companyId,
+          invoiceId,
+          attachmentId,
+          userId
+        );
+
+
+    if (
+      updated
+    ) {
+
+      /*
+       * Keep the removed metadata available to the controller.
+       * The controller needs storageKey/file information to
+       * delete the physical file only after DB removal succeeds.
+       */
+
+      return {
+
+        invoice:
+          updated,
+
+        attachment,
+
+        removedAttachment:
+          attachment
+
+      };
+    }
+
+
+    /*
+     * A concurrent handoff/delete may have happened after our
+     * first read. Re-read before returning an error.
+     */
+
+    const latest =
+      await purchaseInvoiceRepository
+        .findById(
+          companyId,
+          invoiceId
+        );
+
+
+    if (
+      !latest
+    ) {
+
+      throw new ApiError(
+        404,
+        "Purchase Invoice not found."
+      );
+    }
+
+
+    if (
+      latest.handoffStatus ===
+        "handing_off" ||
+      latest.handoffStatus ===
+        "handed_off" ||
+      latest.accountsVoucherId
+    ) {
+
+      throw new ApiError(
+        409,
+        "Purchase Invoice attachments cannot be modified after Accounts handoff has started."
+      );
+    }
+
+
+    const stillExists =
+      (
+        Array.isArray(
+          latest.attachments
+        )
+          ? latest.attachments
+          : []
+      )
+        .some(
+          row =>
+            id(
+              row
+            ) ===
+            id(
+              attachmentId
+            )
+        );
+
+
+    if (
+      !stillExists
+    ) {
+
+      throw new ApiError(
+        404,
+        "Purchase Invoice attachment not found."
+      );
+    }
+
+
+    throw new ApiError(
+      409,
+      "Purchase Invoice attachment could not be removed because the invoice changed. Please refresh and try again."
+    );
+  }
+
+
+  /* ==========================================================
      METRICS
   ========================================================== */
 

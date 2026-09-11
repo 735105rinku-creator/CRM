@@ -12,6 +12,14 @@ import {
 } from '../models/purchase.models';
 
 
+export type PurchaseInvoiceDocumentType =
+  | 'vendor_invoice'
+  | 'e_way_bill'
+  | 'delivery_challan'
+  | 'supporting_document'
+  | 'other';
+
+
 @Injectable({
   providedIn: 'root'
 })
@@ -123,6 +131,96 @@ export class PurchaseInvoiceService {
     >(
       `${this.baseUrl}/${id}`,
       payload
+    );
+  }
+
+
+  /* ============================================================
+     UPLOAD ATTACHMENT
+
+     Multipart field name expected by backend:
+     invoiceFile
+
+     Backend Multer rules:
+     - PDF
+     - JPG / JPEG
+     - PNG
+     - Maximum 1 MB
+
+     The UI component will also reject files larger than 1 MB
+     before this request is sent.
+  ============================================================ */
+
+  uploadAttachment(
+    id:
+      string,
+
+    file:
+      File,
+
+    documentType:
+      PurchaseInvoiceDocumentType,
+
+    otherDocumentType?:
+      string
+  ):
+    Observable<PurchaseInvoice> {
+
+    const formData =
+      new FormData();
+
+
+    formData.append(
+      'invoiceFile',
+      file
+    );
+
+
+    formData.append(
+      'documentType',
+      documentType
+    );
+
+
+    if (
+      documentType ===
+        'other' &&
+      otherDocumentType?.trim()
+    ) {
+
+      formData.append(
+        'otherDocumentType',
+        otherDocumentType.trim()
+      );
+    }
+
+
+    return this.api.post<
+      PurchaseInvoice
+    >(
+      `${this.baseUrl}/${id}/attachments`,
+      formData
+    );
+  }
+
+
+  /* ============================================================
+     DELETE ATTACHMENT
+  ============================================================ */
+
+  deleteAttachment(
+    id:
+      string,
+
+    attachmentId:
+      string
+  ):
+    Observable<PurchaseInvoice> {
+
+    return this.api.delete<
+      PurchaseInvoice
+    >(
+      `${this.baseUrl}/${id}/attachments/${attachmentId}`
     );
   }
 
