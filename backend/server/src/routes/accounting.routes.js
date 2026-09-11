@@ -8,6 +8,10 @@ import { AccountExpense } from "../models/AccountExpense.js";
 import { Employee } from "../models/Employee.js";
 import { withVisibleEmployeeFilter } from "../repositories/employee.repository.js";
 import { ApiResponse } from "../utils/apiResponse.js";
+import {
+  uploadAccountsProof,
+  toPublicAccountsProofUrl,
+} from "../middleware/upload.middleware.js";
 import { ApiError } from "../utils/apiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ROLES } from "../constants/roles.js";
@@ -309,8 +313,171 @@ router.get("/payments", listRecords("payments"));
 router.post("/payments", createRecord("payments", ["invoiceId", "payerName", "amount", "mode", "transactionType", "routeType", "status", "paymentDate", "reference", "assignedUserId", "assignedEmployeeCode"]));
 router.patch("/payments/:id", updateRecord("payments", ["invoiceId", "payerName", "amount", "mode", "transactionType", "routeType", "status", "paymentDate", "reference", "assignedUserId", "assignedEmployeeCode"]));
 
+
+const uploadExpenseAttachments = asyncHandler(
+  async (req, res) => {
+
+    const files =
+      Array.isArray(req.files)
+        ? req.files
+        : [];
+
+    if (!files.length) {
+      throw new ApiError(
+        400,
+        "At least one proof file is required."
+      );
+    }
+
+    const companyId =
+      req.accountingAccess.companyId;
+
+    const expense =
+      await AccountExpense.findOne({
+        _id: req.params.id,
+        companyId,
+      });
+
+    if (!expense) {
+      throw new ApiError(
+        404,
+        "expense not found."
+      );
+    }
+
+    const existingCount =
+      Array.isArray(expense.attachments)
+        ? expense.attachments.length
+        : 0;
+
+    if (
+      existingCount +
+        files.length >
+      5
+    ) {
+      throw new ApiError(
+        400,
+        "A maximum of 5 attachments is allowed per expense."
+      );
+    }
+
+    const uploadedAt =
+      new Date();
+
+    const attachments =
+      files.map((file) => ({
+        originalName:
+          file.originalname,
+
+        storedName:
+          file.filename,
+
+        fileUrl:
+          toPublicAccountsProofUrl(
+            file
+          ),
+
+        storageKey:
+          `accounts-proofs/${file.filename}`,
+
+        mimeType:
+          file.mimetype,
+
+        fileSize:
+          Number(file.size || 0),
+
+        uploadedBy:
+          req.user?._id || null,
+
+        uploadedAt,
+      }));
+
+    expense.attachments.push(
+      ...attachments
+    );
+
+    expense.updatedBy =
+      req.user?._id || null;
+
+    await expense.save();
+
+    res.json(
+      new ApiResponse(
+        200,
+        expense,
+        "Expense proof uploaded successfully."
+      )
+    );
+  }
+);
+
+
+const removeExpenseAttachment = asyncHandler(
+  async (req, res) => {
+
+    const companyId =
+      req.accountingAccess.companyId;
+
+    const expense =
+      await AccountExpense.findOne({
+        _id: req.params.id,
+        companyId,
+      });
+
+    if (!expense) {
+      throw new ApiError(
+        404,
+        "expense not found."
+      );
+    }
+
+    const attachment =
+      expense.attachments.id(
+        req.params.attachmentId
+      );
+
+    if (!attachment) {
+      throw new ApiError(
+        404,
+        "Expense attachment not found."
+      );
+    }
+
+    expense.attachments.pull(
+      req.params.attachmentId
+    );
+
+    expense.updatedBy =
+      req.user?._id || null;
+
+    await expense.save();
+
+    res.json(
+      new ApiResponse(
+        200,
+        expense,
+        "Expense proof removed successfully."
+      )
+    );
+  }
+);
+
 router.get("/expenses", listRecords("expenses"));
 router.post("/expenses", createRecord("expenses", ["title", "category", "expenseType", "businessCategory", "routeType", "amount", "expenseDate", "status", "notes", "assignedUserId", "assignedEmployeeCode"]));
 router.patch("/expenses/:id", updateRecord("expenses", ["title", "category", "expenseType", "businessCategory", "routeType", "amount", "expenseDate", "status", "notes", "assignedUserId", "assignedEmployeeCode"]));
+
+router.post(
+  "/expenses/:id/attachments",
+  uploadAccountsProof.array(
+    "proofFiles",
+    5
+  ),
+  uploadExpenseAttachments
+);
+
+router.delete(
+  "/expenses/:id/attachments/:attachmentId",
+  removeExpenseAttachment
+);
 
 export default router;
