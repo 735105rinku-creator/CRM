@@ -435,3 +435,106 @@ export const voidVoucher =
 
     }
   );
+
+/* ============================================================
+   ADD VOUCHER ATTACHMENTS
+
+   POST /accounting/vouchers/:voucherId/attachments
+============================================================ */
+
+export const addVoucherAttachments =
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
+
+      const voucher =
+        await voucherService
+          .addAttachments({
+
+            companyId:
+              companyIdForRequest(
+                req
+              ),
+
+            voucherId:
+              req.params.voucherId,
+
+            userId:
+              userIdForRequest(
+                req
+              ),
+
+            files:
+              req.files || [],
+
+          });
+
+
+      return res
+        .status(
+          200
+        )
+        .json(
+          new ApiResponse(
+            200,
+            voucher,
+            "Voucher proof uploaded successfully."
+          )
+        );
+
+    }
+  );
+
+
+/* ============================================================
+   REMOVE VOUCHER ATTACHMENT
+
+   DELETE /accounting/vouchers/:voucherId/attachments/:attachmentId
+============================================================ */
+
+export const removeVoucherAttachment =
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
+
+      const voucher =
+        await voucherService
+          .removeAttachment({
+
+            companyId:
+              companyIdForRequest(
+                req
+              ),
+
+            voucherId:
+              req.params.voucherId,
+
+            attachmentId:
+              req.params.attachmentId,
+
+            userId:
+              userIdForRequest(
+                req
+              ),
+
+          });
+
+
+      return res
+        .status(
+          200
+        )
+        .json(
+          new ApiResponse(
+            200,
+            voucher,
+            "Voucher proof removed successfully."
+          )
+        );
+
+    }
+  );

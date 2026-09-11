@@ -103,10 +103,19 @@ describe(
         );
 
 
+        const hasPhysicalVoucherDelete =
+          (router.stack || []).some(
+            (layer) =>
+              layer.route?.path ===
+                "/:voucherId" &&
+              Boolean(
+                layer.route?.methods?.delete
+              )
+          );
+
+
         assert.equal(
-          methods.includes(
-            "delete"
-          ),
+          hasPhysicalVoucherDelete,
           false
         );
 
@@ -183,9 +192,11 @@ test(
     );
 
 
-    const hasDeleteRoute =
+    const hasPhysicalVoucherDelete =
       routes.some(
         (route) =>
+          route.path ===
+            "/:voucherId" &&
           route.methods.includes(
             "delete"
           )
@@ -193,7 +204,7 @@ test(
 
 
     assert.equal(
-      hasDeleteRoute,
+      hasPhysicalVoucherDelete,
       false
     );
 

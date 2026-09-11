@@ -139,3 +139,213 @@ test("Accounts proof uploader accepts approved file types and rejects others", a
 
   assert.ok(rejectedError);
 });
+
+test("Voucher router exposes draft attachment upload and attachment delete routes", async () => {
+  const { default: router } = await import("../routes/voucher.routes.js");
+
+  const routes = (router.stack || [])
+    .filter((layer) => layer.route)
+    .map((layer) => ({
+      path: layer.route.path,
+      methods: Object.keys(layer.route.methods || {}),
+    }));
+
+  const uploadRoute = routes.find(
+    (route) =>
+      route.path === "/:voucherId/attachments" &&
+      route.methods.includes("post")
+  );
+
+  const deleteRoute = routes.find(
+    (route) =>
+      route.path === "/:voucherId/attachments/:attachmentId" &&
+      route.methods.includes("delete")
+  );
+
+  assert.ok(
+    uploadRoute,
+    "POST /:voucherId/attachments must exist"
+  );
+
+  assert.ok(
+    deleteRoute,
+    "DELETE /:voucherId/attachments/:attachmentId must exist"
+  );
+});
+
+test("Voucher router still does not expose physical Voucher DELETE", async () => {
+  const { default: router } = await import("../routes/voucher.routes.js");
+
+  const hasPhysicalVoucherDelete = (router.stack || []).some(
+    (layer) =>
+      layer.route?.path === "/:voucherId" &&
+      Boolean(layer.route?.methods?.delete)
+  );
+
+  assert.equal(hasPhysicalVoucherDelete, false);
+});
+
+test("Voucher repository exposes draft attachment mutation methods", async () => {
+  const { default: repository } = await import("../repositories/voucher.repository.js");
+
+  assert.equal(typeof repository.appendAttachments, "function");
+  assert.equal(typeof repository.removeAttachment, "function");
+});
+
+test("Voucher service exposes attachment lifecycle methods", async () => {
+  const { VoucherService } = await import("../services/voucher.service.js");
+
+  const service = new VoucherService({
+    voucherRepository: {},
+    journalService: {},
+    chartRepository: {},
+    sessionProvider: {},
+  });
+
+  assert.equal(typeof service.addAttachments, "function");
+  assert.equal(typeof service.removeAttachment, "function");
+});
+
+test("Voucher attachment upload rejects more than five total attachments", async () => {
+  const { VoucherService } = await import("../services/voucher.service.js");
+
+  let appendCalled = false;
+
+  const service = new VoucherService({
+    voucherRepository: {
+      findById: async () => ({
+        _id: "voucher-1",
+        status: "draft",
+        attachments: [
+          { _id: "a1" },
+          { _id: "a2" },
+          { _id: "a3" },
+          { _id: "a4" },
+        ],
+      }),
+      appendAttachments: async () => {
+        appendCalled = true;
+        return {};
+      },
+    },
+    journalService: {},
+    chartRepository: {},
+    sessionProvider: {},
+  });
+
+  await assert.rejects(
+    () =>
+      service.addAttachments({
+        companyId: "company-1",
+        voucherId: "voucher-1",
+        userId: "user-1",
+        files: [
+          {
+            originalname: "one.pdf",
+            filename: "one-generated.pdf",
+            mimetype: "application/pdf",
+            size: 100,
+          },
+          {
+            originalname: "two.pdf",
+            filename: "two-generated.pdf",
+            mimetype: "application/pdf",
+            size: 100,
+          },
+        ],
+      }),
+    /maximum of 5|maximum 5|max 5/i
+  );
+
+  assert.equal(appendCalled, false);
+});
+
+test("Voucher attachment upload is draft-only and company-scoped through findById", async () => {
+  const { VoucherService } = await import("../services/voucher.service.js");
+
+  let receivedFindArgs = null;
+  let appendCalled = false;
+
+  const service = new VoucherService({
+    voucherRepository: {
+      findById: async (args) => {
+        receivedFindArgs = args;
+        return {
+          _id: "voucher-1",
+          status: "posted",
+          attachments: [],
+        };
+      },
+      appendAttachments: async () => {
+        appendCalled = true;
+        return {};
+      },
+    },
+    journalService: {},
+    chartRepository: {},
+    sessionProvider: {},
+  });
+
+  await assert.rejects(
+    () =>
+      service.addAttachments({
+        companyId: "company-1",
+        voucherId: "voucher-1",
+        userId: "user-1",
+        files: [
+          {
+            originalname: "proof.pdf",
+            filename: "generated.pdf",
+            mimetype: "application/pdf",
+            size: 100,
+          },
+        ],
+      }),
+    /draft/i
+  );
+
+  assert.deepEqual(receivedFindArgs, {
+    companyId: "company-1",
+    voucherId: "voucher-1",
+  });
+
+  assert.equal(appendCalled, false);
+});
+
+test("Voucher attachment removal rejects posted vouchers", async () => {
+  const { VoucherService } = await import("../services/voucher.service.js");
+
+  let removeCalled = false;
+
+  const service = new VoucherService({
+    voucherRepository: {
+      findById: async () => ({
+        _id: "voucher-1",
+        status: "posted",
+        attachments: [
+          { _id: "attachment-1" },
+        ],
+      }),
+      removeAttachment: async () => {
+        removeCalled = true;
+        return {};
+      },
+    },
+    journalService: {},
+    chartRepository: {},
+    sessionProvider: {},
+  });
+
+  await assert.rejects(
+    () =>
+      service.removeAttachment({
+        companyId: "company-1",
+        voucherId: "voucher-1",
+        attachmentId: "attachment-1",
+        userId: "user-1",
+      }),
+    /draft/i
+  );
+
+  assert.equal(removeCalled, false);
+});

@@ -510,6 +510,114 @@ class VoucherRepository {
 
 
   /* ==========================================================
+     APPEND ATTACHMENTS
+
+     Draft-only and company-scoped.
+  ========================================================== */
+
+  async appendAttachments({
+    companyId,
+    voucherId,
+    attachments,
+    userId = null,
+  }) {
+
+    return Voucher
+      .findOneAndUpdate(
+
+        {
+          _id:
+            voucherId,
+
+          companyId,
+
+          status:
+            "draft",
+        },
+
+        {
+          $push: {
+            attachments: {
+              $each:
+                attachments,
+            },
+          },
+
+          $set: {
+            updatedBy:
+              userId,
+          },
+        },
+
+        {
+          returnDocument:
+            "after",
+
+          runValidators:
+            true,
+        }
+
+      )
+      .lean();
+
+  }
+
+
+  /* ==========================================================
+     REMOVE ATTACHMENT
+
+     Draft-only and company-scoped.
+  ========================================================== */
+
+  async removeAttachment({
+    companyId,
+    voucherId,
+    attachmentId,
+    userId = null,
+  }) {
+
+    return Voucher
+      .findOneAndUpdate(
+
+        {
+          _id:
+            voucherId,
+
+          companyId,
+
+          status:
+            "draft",
+        },
+
+        {
+          $pull: {
+            attachments: {
+              _id:
+                attachmentId,
+            },
+          },
+
+          $set: {
+            updatedBy:
+              userId,
+          },
+        },
+
+        {
+          returnDocument:
+            "after",
+
+          runValidators:
+            true,
+        }
+
+      )
+      .lean();
+
+  }
+
+
+  /* ==========================================================
      LAST VOUCHER NUMBER
 
      Used to determine the next sequence for a specific:

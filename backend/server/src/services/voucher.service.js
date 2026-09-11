@@ -2251,6 +2251,227 @@ export class VoucherService {
 
   }
 
+
+
+  /* ==========================================================
+     ADD VOUCHER ATTACHMENTS
+  ========================================================== */
+
+  async addAttachments({
+    companyId,
+    voucherId,
+    userId = null,
+    files = [],
+  }) {
+
+    if (!companyId) {
+      throw new Error(
+        "Company ID is required."
+      );
+    }
+
+
+    if (!voucherId) {
+      throw new Error(
+        "Voucher ID is required."
+      );
+    }
+
+
+    if (
+      !Array.isArray(files) ||
+      files.length === 0
+    ) {
+      throw new Error(
+        "At least one proof file is required."
+      );
+    }
+
+
+    const voucher =
+      await this.voucherRepository
+        .findById({
+          companyId,
+          voucherId,
+        });
+
+
+    if (!voucher) {
+      throw new Error(
+        "Voucher not found."
+      );
+    }
+
+
+    if (voucher.status !== "draft") {
+      throw new Error(
+        "Attachments can only be changed on a draft Voucher."
+      );
+    }
+
+
+    const existingCount =
+      Array.isArray(voucher.attachments)
+        ? voucher.attachments.length
+        : 0;
+
+
+    if (
+      existingCount + files.length > 5
+    ) {
+      throw new Error(
+        "A maximum of 5 attachments is allowed per Voucher."
+      );
+    }
+
+
+    const uploadedAt =
+      new Date();
+
+
+    const attachments =
+      files.map(
+        (file) => ({
+
+          originalName:
+            String(file.originalname || ""),
+
+          storedName:
+            String(file.filename || ""),
+
+          fileUrl:
+            `/uploads/accounts-proofs/${file.filename}`,
+
+          storageKey:
+            `accounts-proofs/${file.filename}`,
+
+          mimeType:
+            String(file.mimetype || ""),
+
+          fileSize:
+            Number(file.size || 0),
+
+          uploadedBy:
+            userId,
+
+          uploadedAt,
+
+        })
+      );
+
+
+    const updatedVoucher =
+      await this.voucherRepository
+        .appendAttachments({
+          companyId,
+          voucherId,
+          attachments,
+          userId,
+        });
+
+
+    if (!updatedVoucher) {
+      throw new Error(
+        "Draft Voucher could not be updated."
+      );
+    }
+
+
+    return updatedVoucher;
+
+  }
+
+
+  /* ==========================================================
+     REMOVE VOUCHER ATTACHMENT
+  ========================================================== */
+
+  async removeAttachment({
+    companyId,
+    voucherId,
+    attachmentId,
+    userId = null,
+  }) {
+
+    if (!companyId) {
+      throw new Error(
+        "Company ID is required."
+      );
+    }
+
+
+    if (!voucherId) {
+      throw new Error(
+        "Voucher ID is required."
+      );
+    }
+
+
+    if (!attachmentId) {
+      throw new Error(
+        "Attachment ID is required."
+      );
+    }
+
+
+    const voucher =
+      await this.voucherRepository
+        .findById({
+          companyId,
+          voucherId,
+        });
+
+
+    if (!voucher) {
+      throw new Error(
+        "Voucher not found."
+      );
+    }
+
+
+    if (voucher.status !== "draft") {
+      throw new Error(
+        "Attachments can only be changed on a draft Voucher."
+      );
+    }
+
+
+    const attachmentExists =
+      (voucher.attachments || [])
+        .some(
+          (attachment) =>
+            String(attachment._id) ===
+            String(attachmentId)
+        );
+
+
+    if (!attachmentExists) {
+      throw new Error(
+        "Voucher attachment not found."
+      );
+    }
+
+
+    const updatedVoucher =
+      await this.voucherRepository
+        .removeAttachment({
+          companyId,
+          voucherId,
+          attachmentId,
+          userId,
+        });
+
+
+    if (!updatedVoucher) {
+      throw new Error(
+        "Draft Voucher could not be updated."
+      );
+    }
+
+
+    return updatedVoucher;
+
+  }
 }
 
 /* ============================================================

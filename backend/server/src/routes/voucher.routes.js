@@ -7,12 +7,18 @@ import {
   updateVoucher,
   postVoucher,
   voidVoucher,
+  addVoucherAttachments,
+  removeVoucherAttachment,
 } from "../controllers/voucher.controller.js";
 
 import {
   createPaymentAllocations,
   getPaymentAllocationOptions,
 } from "../controllers/paymentAllocation.controller.js";
+
+import {
+  uploadAccountsProof,
+} from "../middleware/upload.middleware.js";
 
 
 /* ============================================================
@@ -50,6 +56,26 @@ router.get(
 router.post(
   "/",
   createVoucher
+);
+
+
+/* ============================================================
+   VOUCHER ATTACHMENTS
+============================================================ */
+
+router.post(
+  "/:voucherId/attachments",
+  uploadAccountsProof.array(
+    "proofFiles",
+    5
+  ),
+  addVoucherAttachments
+);
+
+
+router.delete(
+  "/:voucherId/attachments/:attachmentId",
+  removeVoucherAttachment
 );
 
 
