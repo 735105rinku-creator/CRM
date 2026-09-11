@@ -1,6 +1,7 @@
 import Joi from "joi";
 
 import {
+  PURCHASE_ORDER_DELIVERY_TYPES,
   PURCHASE_ORDER_STATUSES
 } from "../models/PurchaseOrder.js";
 
@@ -27,6 +28,14 @@ const optionalText =
     .trim()
     .allow("")
     .max(1500);
+
+const deliveryFields = {
+  deliveryType: Joi.string().valid(...PURCHASE_ORDER_DELIVERY_TYPES).default("company_warehouse"),
+  deliveryLocationName: Joi.string().trim().allow("").max(250).optional(),
+  deliveryContactPerson: Joi.string().trim().allow("").max(250).optional(),
+  deliveryContactNumber: Joi.string().trim().allow("").max(50).optional(),
+  otherDeliveryType: Joi.string().trim().allow("").max(250).optional()
+};
 
 
 const moneySchema =
@@ -119,6 +128,8 @@ const purchaseOrderItemSchema =
 export const createPurchaseOrderSchema =
   Joi.object({
 
+    ...deliveryFields,
+
     purchaseRequestId:
       objectIdSchema
         .required(),
@@ -158,7 +169,7 @@ export const createPurchaseOrderSchema =
     warehouseId:
       objectIdSchema
         .allow(null)
-        .optional(),
+        .when("deliveryType", { is: "company_warehouse", then: Joi.required(), otherwise: Joi.optional() }),
 
     expectedDeliveryDate:
       Joi.date()
@@ -258,6 +269,14 @@ export const createPurchaseOrderSchema =
       helpers
     ) => {
 
+      if (value.deliveryType !== "company_warehouse" && !String(value.deliveryLocationName || "").trim()) {
+        return helpers.error("any.custom", { message: "Delivery location name is required for this delivery type." });
+      }
+
+      if (value.deliveryType === "other" && !String(value.otherDeliveryType || "").trim()) {
+        return helpers.error("any.custom", { message: "Specify Delivery Type is required when Other is selected." });
+      }
+
       if (
         value.poDate &&
         value.expectedDeliveryDate
@@ -308,6 +327,12 @@ export const createPurchaseOrderSchema =
 
 export const updatePurchaseOrderSchema =
   Joi.object({
+
+    deliveryType: Joi.string().valid(...PURCHASE_ORDER_DELIVERY_TYPES).optional(),
+    deliveryLocationName: deliveryFields.deliveryLocationName,
+    deliveryContactPerson: deliveryFields.deliveryContactPerson,
+    deliveryContactNumber: deliveryFields.deliveryContactNumber,
+    otherDeliveryType: deliveryFields.otherDeliveryType,
 
     poDate:
       Joi.date()

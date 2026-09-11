@@ -595,6 +595,32 @@ export const PURCHASE_ROUTES:
 
       {
         path:
+          'invoices',
+
+        loadComponent:
+          () =>
+            import(
+              './pages/purchase-invoices/purchase-invoices.component'
+            )
+              .then(
+                module =>
+                  module.PurchaseInvoicesComponent
+              ),
+
+        data: {
+          title:
+            'Vendor Invoices',
+
+          section:
+            'Purchase',
+
+          feature:
+            'invoices'
+        }
+      },
+
+      {
+        path:
           'vendors',
 
         loadComponent:

@@ -1,10 +1,27 @@
 import mongoose from "mongoose";
 import logisticsVendorRepository from "../repositories/logisticsVendor.repository.js";
 import { ApiError } from "../utils/apiError.js";
+import { Employee } from "../models/Employee.js";
 
 class LogisticsVendorService {
   async createVendor({ companyId, userId = null, employeeId = null, payload }) {
     this.assertCompanyId(companyId);
+
+    const duplicate = await logisticsVendorRepository.findDuplicate({
+      companyId,
+      vendorName: payload.vendorName,
+      gstNumber: payload.gstNumber,
+      panNumber: payload.panNumber,
+    });
+
+    if (duplicate) {
+      throw new ApiError(409, `Vendor already exists as ${duplicate.vendorCode || duplicate.vendorName}.`);
+    }
+
+    const employee = employeeId
+      ? await Employee.findOne({ _id: employeeId, companyId }).select("departmentId").lean()
+      : null;
+
     const vendorCode = await this.generateVendorCode({ companyId });
 
     return logisticsVendorRepository.create({
@@ -42,6 +59,7 @@ class LogisticsVendorService {
       remarks: payload.remarks,
       createdBy: userId,
       createdByEmployeeId: employeeId,
+      sourceDepartmentId: employee?.departmentId || null,
       updatedBy: userId,
     });
   }

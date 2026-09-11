@@ -16,7 +16,8 @@ import {
   UpdateVoucherPayload,
   VoidVoucherPayload,
   Voucher,
-  VoucherQuery
+  VoucherQuery,
+  PurchasePaymentAllocationOption
 } from '../models/accounts.models';
 
 
@@ -163,6 +164,26 @@ export class VoucherService {
     return this.api.post<Voucher>(
       `${this.basePath}/${this.encodeId(voucherId)}/void`,
       payload
+    );
+  }
+
+
+  getPurchaseAllocationOptions(
+    voucherId: string
+  ): Observable<PurchasePaymentAllocationOption[]> {
+    return this.api.get<PurchasePaymentAllocationOption[]>(
+      `${this.basePath}/${this.encodeId(voucherId)}/purchase-allocation-options`
+    );
+  }
+
+
+  createPurchaseAllocations(
+    voucherId: string,
+    allocations: Array<{ purchaseInvoiceId: string; allocatedAmount: number }>
+  ): Observable<unknown[]> {
+    return this.api.post<unknown[]>(
+      `${this.basePath}/${this.encodeId(voucherId)}/purchase-allocations`,
+      { allocations }
     );
   }
 

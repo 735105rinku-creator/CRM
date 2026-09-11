@@ -33,6 +33,8 @@ import {
 
 import {
   PurchaseOrder,
+  PurchaseOrderDeliveryType,
+  PurchaseAccess,
   PurchaseOrderPayload,
   PurchaseQuotation,
   PurchaseQuotationItem,
@@ -52,6 +54,8 @@ import {
 import {
   PurchaseReferenceService
 } from '../../services/purchase-reference.service';
+
+import { PurchaseRequestService } from '../../services/purchase-request.service';
 
 
 @Component({
@@ -111,6 +115,18 @@ export class PurchaseOrderFormComponent
     PurchaseWarehouseOption[] =
     [];
 
+  readonly deliveryTypeOptions: Array<{ value: PurchaseOrderDeliveryType; label: string }> = [
+    { value: 'company_warehouse', label: 'Company Warehouse' },
+    { value: 'airport', label: 'Airport' },
+    { value: 'port', label: 'Port' },
+    { value: 'customer_location', label: 'Customer Location' },
+    { value: 'project_site', label: 'Project / Site' },
+    { value: 'factory_processing_unit', label: 'Factory / Processing Unit' },
+    { value: 'third_party_warehouse', label: 'Third-Party Warehouse' },
+    { value: 'direct_delivery', label: 'Direct Delivery' },
+    { value: 'other', label: 'Other' }
+  ];
+
 
   /* ============================================================
      ROUTE STATE
@@ -159,6 +175,9 @@ export class PurchaseOrderFormComponent
   successMessage =
     '';
 
+  purchaseAccess: PurchaseAccess | null = null;
+  isProcessingAction = false;
+
 
   /* ============================================================
      DESTROY
@@ -174,6 +193,8 @@ export class PurchaseOrderFormComponent
 
     private readonly purchaseOrderService:
       PurchaseOrderService,
+
+    private readonly purchaseRequestService: PurchaseRequestService,
 
     private readonly quotationService:
       PurchaseQuotationService,
@@ -220,11 +241,15 @@ export class PurchaseOrderFormComponent
           ]
         ],
 
+        deliveryType: ['company_warehouse', [Validators.required]],
+        deliveryLocationName: ['', [Validators.maxLength(250)]],
+        deliveryContactPerson: ['', [Validators.maxLength(250)]],
+        deliveryContactNumber: ['', [Validators.maxLength(50)]],
+        otherDeliveryType: ['', [Validators.maxLength(250)]],
+
         warehouseId: [
           '',
-          [
-            Validators.required
-          ]
+          [Validators.required]
         ],
 
         deliveryAddress: [
@@ -286,6 +311,8 @@ export class PurchaseOrderFormComponent
           )
 
       });
+
+    this.onDeliveryTypeChange();
   }
 
 
@@ -316,6 +343,7 @@ export class PurchaseOrderFormComponent
           ? `Edit ${this.purchaseOrder.poNumber}`
           : 'Edit Purchase Order'
       );
+
     }
 
 
@@ -347,6 +375,43 @@ export class PurchaseOrderFormComponent
         ?.status !==
         'draft'
     );
+  }
+
+  get canApprovePurchaseOrder(): boolean {
+    return this.purchaseAccess?.canApprove === true && this.purchaseOrder?.status === 'draft';
+  }
+
+  approvePurchaseOrder(): void {
+    if (!this.purchaseOrder || !this.canApprovePurchaseOrder || this.isProcessingAction) return;
+    if (!window.confirm(`Approve Purchase Order ${this.purchaseOrder.poNumber}?`)) return;
+    this.isProcessingAction = true;
+    this.errorMessage = '';
+    this.purchaseOrderService.approvePurchaseOrder(this.purchaseOrder._id)
+      .pipe(takeUntil(this.destroy$), finalize(() => { this.isProcessingAction = false; this.cdr.markForCheck(); }))
+      .subscribe({
+        next: updated => {
+          this.purchaseOrder = { ...this.purchaseOrder!, ...updated };
+          this.successMessage = `Purchase Order ${this.purchaseOrder.poNumber} approved successfully.`;
+          this.cdr.detectChanges();
+        },
+        error: error => { this.errorMessage = error?.error?.message || 'Purchase Order could not be approved.'; }
+      });
+  }
+
+  sendPurchaseOrder(): void {
+    if (!this.purchaseOrder || this.purchaseOrder.status !== 'approved' || this.isProcessingAction) return;
+    this.isProcessingAction = true;
+    this.errorMessage = '';
+    this.purchaseOrderService.sendPurchaseOrder(this.purchaseOrder._id)
+      .pipe(takeUntil(this.destroy$), finalize(() => { this.isProcessingAction = false; this.cdr.markForCheck(); }))
+      .subscribe({
+        next: updated => {
+          this.purchaseOrder = { ...this.purchaseOrder!, ...updated };
+          this.successMessage = `Purchase Order ${this.purchaseOrder.poNumber} marked as sent.`;
+          this.cdr.detectChanges();
+        },
+        error: error => { this.errorMessage = error?.error?.message || 'Purchase Order could not be marked as sent.'; }
+      });
   }
 
 
@@ -406,6 +471,15 @@ export class PurchaseOrderFormComponent
 
 
     this.setupCalculationWatchers();
+
+    this.purchaseRequestService.getPurchaseAccess()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: access => {
+          this.purchaseAccess = access;
+          this.cdr.markForCheck();
+        }
+      });
 
 
     this.loadInitialData();
@@ -1268,6 +1342,12 @@ export class PurchaseOrderFormComponent
 
           warehouseId,
 
+          deliveryType: purchaseOrder.deliveryType || 'company_warehouse',
+          deliveryLocationName: purchaseOrder.deliveryLocationName || '',
+          deliveryContactPerson: purchaseOrder.deliveryContactPerson || '',
+          deliveryContactNumber: purchaseOrder.deliveryContactNumber || '',
+          otherDeliveryType: purchaseOrder.otherDeliveryType || '',
+
           deliveryAddress:
             purchaseOrder
               .deliveryAddress ||
@@ -1309,6 +1389,8 @@ export class PurchaseOrderFormComponent
             false
         }
       );
+
+    this.onDeliveryTypeChange();
 
 
     this.items
@@ -1851,6 +1933,37 @@ export class PurchaseOrderFormComponent
     }
   }
 
+  get deliveryType(): PurchaseOrderDeliveryType {
+    return (this.form.get('deliveryType')?.value || 'company_warehouse') as PurchaseOrderDeliveryType;
+  }
+
+  onDeliveryTypeChange(): void {
+    const warehouse = this.form.get('warehouseId');
+    const location = this.form.get('deliveryLocationName');
+    const other = this.form.get('otherDeliveryType');
+
+    if (this.deliveryType === 'company_warehouse') {
+      warehouse?.setValidators([Validators.required]);
+      location?.clearValidators();
+    } else {
+      warehouse?.clearValidators();
+      warehouse?.setValue('', { emitEvent: false });
+      location?.setValidators([Validators.required, Validators.maxLength(250)]);
+    }
+
+    if (this.deliveryType === 'other') {
+      other?.setValidators([Validators.required, Validators.maxLength(250)]);
+    } else {
+      other?.clearValidators();
+      other?.setValue('', { emitEvent: false });
+    }
+
+    warehouse?.updateValueAndValidity({ emitEvent: false });
+    location?.updateValueAndValidity({ emitEvent: false });
+    other?.updateValueAndValidity({ emitEvent: false });
+    this.cdr.markForCheck();
+  }
+
 
   getWarehouseAddress(
     warehouse:
@@ -2263,6 +2376,12 @@ export class PurchaseOrderFormComponent
           ''
         )
           .trim(),
+
+      deliveryType: value.deliveryType as PurchaseOrderDeliveryType,
+      deliveryLocationName: String(value.deliveryLocationName || '').trim(),
+      deliveryContactPerson: String(value.deliveryContactPerson || '').trim(),
+      deliveryContactNumber: String(value.deliveryContactNumber || '').trim(),
+      otherDeliveryType: String(value.otherDeliveryType || '').trim(),
 
       warehouseId:
         value.warehouseId

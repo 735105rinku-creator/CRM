@@ -36,7 +36,8 @@ import {
   VoucherLinePayload,
   VoucherQuery,
   VoucherStatus,
-  VoucherType
+  VoucherType,
+  PurchasePaymentAllocationOption
 } from '../../models/accounts.models';
 
 import {
@@ -134,6 +135,11 @@ export class VoucherEntryComponent {
 
   readonly toDate =
     signal('');
+
+  readonly allocationOpen = signal(false);
+  readonly allocationVoucher = signal<Voucher | null>(null);
+  readonly allocationOptions = signal<PurchasePaymentAllocationOption[]>([]);
+  allocationAmounts: Record<string, number> = {};
 
 
   readonly voucherForm =
@@ -728,6 +734,54 @@ export class VoucherEntryComponent {
             )
           );
         }
+      });
+  }
+
+
+  openAllocations(voucher: Voucher): void {
+    if (this.voucherType() !== 'payment' || voucher.status !== 'draft' || !voucher._id) return;
+    this.allocationVoucher.set(voucher);
+    this.allocationOptions.set([]);
+    this.allocationAmounts = {};
+    this.allocationOpen.set(true);
+    this.saving.set(true);
+    this.voucherService.getPurchaseAllocationOptions(voucher._id)
+      .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.saving.set(false)))
+      .subscribe({
+        next: rows => this.allocationOptions.set(rows || []),
+        error: error => { this.errorMessage.set(this.extractError(error, 'Unable to load outstanding Purchase Invoices.')); this.allocationOpen.set(false); }
+      });
+  }
+
+
+  closeAllocations(): void {
+    if (!this.saving()) this.allocationOpen.set(false);
+  }
+
+
+  setAllocation(invoiceId: string, value: string): void {
+    this.allocationAmounts = { ...this.allocationAmounts, [invoiceId]: this.roundMoney(Number(value || 0)) };
+  }
+
+
+  allocationTotal(): number {
+    return this.roundMoney(Object.values(this.allocationAmounts).reduce((sum, value) => sum + Number(value || 0), 0));
+  }
+
+
+  saveAllocations(): void {
+    const voucher = this.allocationVoucher();
+    if (!voucher?._id) return;
+    const allocations = Object.entries(this.allocationAmounts)
+      .filter(([, amount]) => amount > 0)
+      .map(([purchaseInvoiceId, allocatedAmount]) => ({ purchaseInvoiceId, allocatedAmount }));
+    if (!allocations.length) { this.errorMessage.set('Enter at least one Purchase Invoice allocation.'); return; }
+    this.saving.set(true);
+    this.voucherService.createPurchaseAllocations(voucher._id, allocations)
+      .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.saving.set(false)))
+      .subscribe({
+        next: () => { this.allocationOpen.set(false); this.message.set('Payment allocations recorded. Post the voucher for them to count as paid.'); },
+        error: error => this.errorMessage.set(this.extractError(error, 'Unable to record payment allocations.'))
       });
   }
 

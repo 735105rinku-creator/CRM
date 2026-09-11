@@ -146,7 +146,52 @@
       (ngSubmit)="submit()"
       novalidate
     >
-  
+
+      <section
+        *ngIf="isEditMode && existingRequest"
+        class="info-panel"
+      >
+
+        <div class="info-panel__icon">
+          i
+        </div>
+
+        <div>
+
+          <strong>
+            Approval information
+          </strong>
+
+          <p>
+            Raised By: {{ getRaisedByName() }}
+          </p>
+
+          <p *ngIf="existingRequest.submittedAt">
+            Submitted At:
+            {{ existingRequest.submittedAt | date:'dd MMM yyyy, hh:mm a' }}
+          </p>
+
+          <p *ngIf="existingRequest.status === 'pending_approval'">
+            Actioned By: Awaiting Senior
+          </p>
+
+          <ng-container *ngIf="existingRequest.status === 'approved'">
+            <p>Approved By: {{ getActionedByName() }}</p>
+            <p>Approved At: {{ getActionedAt() }}</p>
+          </ng-container>
+
+          <ng-container *ngIf="existingRequest.status === 'rejected'">
+            <p>Rejected By: {{ getActionedByName() }}</p>
+            <p>Rejected At: {{ getActionedAt() }}</p>
+            <p *ngIf="existingRequest.rejectionReason">
+              Reason: {{ existingRequest.rejectionReason }}
+            </p>
+          </ng-container>
+
+        </div>
+
+      </section>
+
       <!-- ===================================================
            GENERAL INFORMATION
       ==================================================== -->

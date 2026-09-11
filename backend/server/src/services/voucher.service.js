@@ -1328,6 +1328,14 @@ export class VoucherService {
       status:
         "draft",
 
+      sourceModule:
+        payload.sourceModule ||
+        "accounts",
+
+      sourceReferenceId:
+        payload.sourceReferenceId ||
+        null,
+
       createdBy:
         userId ||
         null,
@@ -1392,6 +1400,70 @@ export class VoucherService {
       }
 
     }
+  }
+
+
+  async createPurchasePayableFromSource({
+    companyId,
+    userId,
+    sourceReferenceId,
+    vendorName,
+    invoiceNumber,
+    invoiceDate,
+    amount,
+  }) {
+
+    const existing =
+      await this.voucherRepository
+        .findBySource({
+          companyId,
+          sourceModule: "purchase_invoice",
+          sourceReferenceId,
+        });
+
+    if (existing) {
+      return existing;
+    }
+
+    const [payableAccounts, purchaseAccounts] =
+      await Promise.all([
+        this.chartRepository.list({ companyId, accountType: "accounts_payable", status: "active", search: vendorName }),
+        this.chartRepository.list({ companyId, accountType: "purchase", status: "active" }),
+      ]);
+
+    const payableAccount =
+      payableAccounts.find(account =>
+        String(account.accountName || "").trim().toLowerCase() ===
+        String(vendorName || "").trim().toLowerCase()
+      );
+
+    const purchaseAccount =
+      purchaseAccounts[0];
+
+    if (!payableAccount || !purchaseAccount) {
+      throw new Error(
+        "Accounts requires an active vendor Accounts Payable account and Purchase account before handoff."
+      );
+    }
+
+    return this.createVoucher({
+      companyId,
+      userId,
+      payload: {
+        voucherType: "purchase",
+        voucherDate: invoiceDate,
+        narration: `Purchase invoice ${invoiceNumber}`,
+        referenceNo: invoiceNumber,
+        referenceDate: invoiceDate,
+        partyAccountId: payableAccount._id,
+        sourceModule: "purchase_invoice",
+        sourceReferenceId,
+        lines: [
+          { accountId: purchaseAccount._id, description: invoiceNumber, debit: amount, credit: 0 },
+          { accountId: payableAccount._id, description: vendorName, debit: 0, credit: amount },
+        ],
+      },
+    });
   }
 
 

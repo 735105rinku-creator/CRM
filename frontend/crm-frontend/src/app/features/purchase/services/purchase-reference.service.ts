@@ -78,6 +78,17 @@ import {
         params
       );
     }
+
+
+    createVendor(
+      payload: unknown
+    ): Observable<PurchaseVendorOption> {
+
+      return this.api.post<PurchaseVendorOption>(
+        this.vendorEndpoint,
+        payload
+      );
+    }
   
   
     /* ============================================================

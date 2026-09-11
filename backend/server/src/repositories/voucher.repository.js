@@ -75,6 +75,23 @@ class VoucherRepository {
   }
 
 
+  async findBySource({
+    companyId,
+    sourceModule,
+    sourceReferenceId,
+  }) {
+
+    return Voucher
+      .findOne({
+        companyId,
+        sourceModule,
+        sourceReferenceId,
+        voucherType: "purchase",
+      })
+      .lean();
+  }
+
+
   /* ==========================================================
      LIST VOUCHERS
   ========================================================== */

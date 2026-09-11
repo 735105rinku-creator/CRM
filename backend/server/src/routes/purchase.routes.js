@@ -15,6 +15,9 @@ import purchaseOrderRoutes
 import goodsReceiptRoutes
   from "./goodsReceipt.routes.js";
 
+import purchaseInvoiceRoutes
+  from "./purchaseInvoice.routes.js";
+
 import {
   requireAuth
 } from "../middleware/auth.middleware.js";
@@ -44,6 +47,12 @@ import LogisticsWarehouse
 
 import LogisticsVendor
   from "../models/LogisticsVendor.js";
+
+import logisticsVendorService
+  from "../services/logisticsVendor.service.js";
+
+import { createLogisticsVendorSchema }
+  from "../validators/logisticsVendor.validator.js";
 
 
 const router =
@@ -675,12 +684,11 @@ router.get(
 
 
 /* ============================================================
-   READ-ONLY VENDOR REFERENCE
+   SHARED VENDOR REFERENCE / PURCHASE ONBOARDING
 
    IMPORTANT:
    - Reuses LogisticsVendor.
    - No duplicate Purchase Vendor collection.
-   - No create route.
    - No update route.
    - No delete route.
    - Company scoped.
@@ -735,8 +743,9 @@ router.get(
 
         companyId,
 
-        isActive:
-          true
+        isActive: {
+          $ne: false
+        }
 
       };
 
@@ -813,11 +822,22 @@ router.get(
               "paymentTerms",
               "currency",
               "status",
-              "isActive"
+              "isActive",
+              "createdByEmployeeId",
+              "sourceDepartmentId",
+              "createdAt"
             ]
               .join(
                 " "
               )
+          )
+          .populate(
+            "createdByEmployeeId",
+            "displayName firstName lastName employeeCode"
+          )
+          .populate(
+            "sourceDepartmentId",
+            "departmentName departmentCode name code"
           )
           .sort({
             vendorName:
@@ -885,7 +905,22 @@ router.get(
 
               isActive:
                 vendor.isActive !==
-                false
+                false,
+
+              addedBy:
+                vendor.createdByEmployeeId?.displayName ||
+                [vendor.createdByEmployeeId?.firstName, vendor.createdByEmployeeId?.lastName].filter(Boolean).join(" ") ||
+                vendor.createdByEmployeeId?.employeeCode ||
+                "",
+
+              sourceDepartment:
+                vendor.sourceDepartmentId?.departmentName ||
+                vendor.sourceDepartmentId?.name ||
+                "",
+
+              addedOn:
+                vendor.createdAt ||
+                null
 
             })
           );
@@ -954,6 +989,37 @@ router.use(
 router.use(
   "/goods-receipts",
   goodsReceiptRoutes
+);
+
+
+router.post(
+  "/vendors",
+  asyncHandler(async (req, res) => {
+    const { value, error } = createLogisticsVendorSchema.validate(req.body, {
+      abortEarly: false,
+      stripUnknown: true,
+      convert: true,
+    });
+
+    if (error) {
+      throw new ApiError(400, error.details?.[0]?.message || "Invalid vendor details.", error.details);
+    }
+
+    const vendor = await logisticsVendorService.createVendor({
+      companyId: req.purchaseAccess.companyId,
+      userId: req.user?._id || req.auth?.userId || null,
+      employeeId: req.purchaseAccess.employeeId,
+      payload: { ...value, status: "active" },
+    });
+
+    res.status(201).json(new ApiResponse(201, vendor, "Vendor added to the shared Vendor Master."));
+  })
+);
+
+
+router.use(
+  "/invoices",
+  purchaseInvoiceRoutes
 );
 
 

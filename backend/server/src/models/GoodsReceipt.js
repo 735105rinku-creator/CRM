@@ -408,16 +408,16 @@ const goodsReceiptSchema =
         ref:
           "LogisticsWarehouse",
 
-        required:
-          true
+        default:
+          null
       },
 
       warehouseName: {
         type:
           String,
 
-        required:
-          true,
+        default:
+          "",
 
         trim:
           true
@@ -433,6 +433,13 @@ const goodsReceiptSchema =
         trim:
           true
       },
+
+      deliveryType: { type: String, default: "company_warehouse", trim: true },
+      deliveryLocationName: { type: String, default: "", trim: true },
+      deliveryAddress: { type: String, default: "", trim: true },
+      deliveryContactPerson: { type: String, default: "", trim: true },
+      deliveryContactNumber: { type: String, default: "", trim: true },
+      otherDeliveryType: { type: String, default: "", trim: true },
 
       deliveryChallanNumber: {
         type:
@@ -518,6 +525,26 @@ const goodsReceiptSchema =
         default:
           "received"
       },
+
+      approvalStatus: {
+        type: String,
+        enum: ["pending_approval", "approved", "rejected"],
+        default: undefined,
+        index: false
+      },
+
+      createdByEmployeeId: { type: mongoose.Schema.Types.ObjectId, ref: "Employee", default: null },
+      createdByEmployeeName: { type: String, trim: true, default: "" },
+      createdByEmployeeCode: { type: String, trim: true, default: "" },
+      submittedAt: { type: Date, default: null },
+      submittedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+      approvedAt: { type: Date, default: null },
+      approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+      approvedByName: { type: String, trim: true, default: "" },
+      rejectedAt: { type: Date, default: null },
+      rejectedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+      rejectedByName: { type: String, trim: true, default: "" },
+      approvalRejectionReason: { type: String, trim: true, default: "" },
 
       createdBy: {
         type:

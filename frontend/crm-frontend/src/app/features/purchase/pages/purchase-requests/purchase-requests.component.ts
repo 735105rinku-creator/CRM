@@ -999,6 +999,45 @@ import {
         '—'
       );
     }
+
+
+    getActionedByName(
+      request: PurchaseRequest
+    ): string {
+
+      if (
+        request.status ===
+          'pending_approval'
+      ) {
+
+        return 'Awaiting Senior';
+      }
+
+
+      const actionedBy =
+        request.status === 'approved'
+          ? request.approvedBy
+          : request.status === 'rejected'
+            ? request.rejectedBy
+            : null;
+
+
+      if (
+        !actionedBy ||
+        typeof actionedBy === 'string'
+      ) {
+
+        return '—';
+      }
+
+
+      return (
+        actionedBy.name ||
+        actionedBy.fullName ||
+        actionedBy.employeeName ||
+        '—'
+      );
+    }
   
   
     /* ============================================================

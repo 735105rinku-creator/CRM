@@ -255,6 +255,19 @@
           <!-- FOOTER -->
 
           <button
+            *ngIf="unreadNotificationCount() > 0"
+            type="button"
+            class="purchase-notifications__all"
+            (click)="markAllNotificationsRead()"
+          >
+
+            <span>
+              Mark all as read
+            </span>
+
+          </button>
+
+          <button
             type="button"
             class="purchase-notifications__all"
             (click)="openAllNotifications()"

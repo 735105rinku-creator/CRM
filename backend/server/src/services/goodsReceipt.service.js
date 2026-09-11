@@ -9,6 +9,11 @@ import purchaseOrderRepository from "../repositories/purchaseOrder.repository.js
 
 import { ApiError } from "../utils/apiError.js";
 
+import {
+  findPurchaseSeniorUserId,
+  sendPurchaseWorkflowNotification
+} from "./purchaseWorkflowNotification.service.js";
+
 
 /* ============================================================
    HELPERS
@@ -149,6 +154,49 @@ class GoodsReceiptService {
 
 
   /* ==========================================================
+     CREATOR SCOPE
+
+     Junior:
+     - own GRNs only.
+
+     Senior:
+     - team/all by default.
+     - own GRNs when scope === "my".
+  ========================================================== */
+
+  creatorScope(
+    purchaseAccess,
+    user
+  ) {
+
+    return {
+      creatorEmployeeId:
+        purchaseAccess?.employeeId ||
+        null,
+
+      creatorUserId:
+        this.userIdOf(
+          user
+        )
+    };
+  }
+
+
+  shouldApplyCreatorScope(
+    purchaseAccess,
+    scope = ""
+  ) {
+
+    return (
+      purchaseAccess?.canApprove !==
+        true ||
+      scope ===
+        "my"
+    );
+  }
+
+
+  /* ==========================================================
      GRN NUMBER
   ========================================================== */
 
@@ -164,8 +212,7 @@ class GoodsReceiptService {
 
 
     const year =
-      now
-        .getFullYear();
+      now.getFullYear();
 
 
     const month =
@@ -434,13 +481,28 @@ class GoodsReceiptService {
 
   /* ==========================================================
      EXISTING RECEIPT QUANTITIES
+
+     includePending = true:
+     - approved
+     - legacy
+     - pending
+     - rejected excluded
+
+     Used for quantity reservation.
+
+     includePending = false:
+     - approved
+     - legacy only
+
+     Used for actual PO posted receipt state.
   ========================================================== */
 
   async existingReceiptMap(
     companyId,
     purchaseOrderId,
     {
-      session = null
+      session = null,
+      includePending = false
     } = {}
   ) {
 
@@ -451,7 +513,8 @@ class GoodsReceiptService {
           companyId,
           purchaseOrderId,
           {
-            session
+            session,
+            includePending
           }
         );
 
@@ -642,7 +705,7 @@ class GoodsReceiptService {
 
           throw new ApiError(
             409,
-            `${clean(poItem.itemName) || "Item"} is already fully received.`
+            `${clean(poItem.itemName) || "Item"} is already fully received or reserved by another pending GRN.`
           );
         }
 
@@ -684,7 +747,7 @@ class GoodsReceiptService {
 
           throw new ApiError(
             409,
-            `Received quantity for ${clean(poItem.itemName) || `item ${index + 1}`} cannot exceed remaining quantity ${availableQuantity}.`
+            `Received quantity for ${clean(poItem.itemName) || `item ${index + 1}`} cannot exceed available quantity ${availableQuantity}. Pending GRNs also reserve quantity.`
           );
         }
 
@@ -895,6 +958,10 @@ class GoodsReceiptService {
   }
 
 
+  /* ==========================================================
+     PURCHASE ORDER RECEIPT STATUS
+  ========================================================== */
+
   determinePurchaseOrderStatus(
     updatedItems
   ) {
@@ -942,6 +1009,10 @@ class GoodsReceiptService {
     return null;
   }
 
+
+  /* ==========================================================
+     GRN PHYSICAL STATUS
+  ========================================================== */
 
   determineGrnStatus(
     grnItems,
@@ -1032,16 +1103,44 @@ class GoodsReceiptService {
 
   /* ==========================================================
      CREATE GRN
+
+     JUNIOR:
+     - Creates pending GRN.
+     - Pending quantity reserves stock against the PO.
+     - PO receipt quantities are NOT changed.
+     - Senior receives approval notification.
+
+     SENIOR:
+     - Can perform operational GRN creation.
+     - Own GRN is approved immediately.
+     - PO receipt quantities/status are updated immediately.
+     - GRN creation + PO update happen in same transaction.
+     - No approval notification is generated.
   ========================================================== */
 
   async create(
     companyId,
     payload,
-    user
+    user,
+    purchaseAccess
   ) {
 
     const userId =
       this.userIdOf(
+        user
+      );
+
+
+    const isSenior =
+      purchaseAccess?.canApprove ===
+      true;
+
+
+    const creatorName =
+      clean(
+        purchaseAccess?.employeeName
+      ) ||
+      this.userDisplayName(
         user
       );
 
@@ -1071,22 +1170,32 @@ class GoodsReceiptService {
               );
 
 
+          const deliveryType =
+            purchaseOrder.deliveryType ||
+            "company_warehouse";
+
+
           const warehouse =
-            await this
-              .resolveWarehouse(
-                companyId,
-                payload.warehouseId,
-                {
-                  session
-                }
-              );
+            deliveryType ===
+              "company_warehouse"
+              ? await this
+                  .resolveWarehouse(
+                    companyId,
+                    payload.warehouseId ||
+                      purchaseOrder.warehouseId,
+                    {
+                      session
+                    }
+                  )
+              : null;
 
 
           /*
-           * If PO already has a warehouse,
-           * GRN must use the same warehouse.
+           * Company Warehouse delivery:
+           * GRN must use the same warehouse as PO.
            */
           if (
+            warehouse &&
             purchaseOrder.warehouseId &&
             !sameId(
               purchaseOrder.warehouseId,
@@ -1125,13 +1234,28 @@ class GoodsReceiptService {
           }
 
 
-          const existingReceiptMap =
+          /*
+           * Reservation Map:
+           *
+           * Includes:
+           * - Approved GRNs
+           * - Legacy GRNs
+           * - Pending GRNs
+           *
+           * Excludes:
+           * - Rejected GRNs
+           *
+           * Both Junior and Senior must respect pending reservations.
+           */
+          const reservedReceiptMap =
             await this
               .existingReceiptMap(
                 companyId,
                 purchaseOrder._id,
                 {
-                  session
+                  session,
+                  includePending:
+                    true
                 }
               );
 
@@ -1141,8 +1265,41 @@ class GoodsReceiptService {
               .buildReceiptItems(
                 purchaseOrder,
                 payload.items,
-                existingReceiptMap
+                reservedReceiptMap
               );
+
+
+          /*
+           * For Junior:
+           * this is only used to calculate the GRN's physical
+           * completion snapshot. It is NOT persisted to PO.
+           *
+           * For Senior:
+           * PO must contain only approved/legacy receipts +
+           * the Senior's current immediately-approved GRN.
+           *
+           * Pending Junior GRNs must NOT be posted into PO.
+           */
+          let receiptStateForPo =
+            reservedReceiptMap;
+
+
+          if (
+            isSenior
+          ) {
+
+            receiptStateForPo =
+              await this
+                .existingReceiptMap(
+                  companyId,
+                  purchaseOrder._id,
+                  {
+                    session,
+                    includePending:
+                      false
+                  }
+                );
+          }
 
 
           const updatedPurchaseOrderItems =
@@ -1150,7 +1307,7 @@ class GoodsReceiptService {
               .buildUpdatedPurchaseOrderItems(
                 purchaseOrder,
                 grnItems,
-                existingReceiptMap
+                receiptStateForPo
               );
 
 
@@ -1190,6 +1347,31 @@ class GoodsReceiptService {
               );
 
 
+          const now =
+            new Date();
+
+
+          const approvalFields =
+            isSenior
+              ? {
+                  approvalStatus:
+                    "approved",
+
+                  approvedAt:
+                    now,
+
+                  approvedBy:
+                    userId,
+
+                  approvedByName:
+                    creatorName
+                }
+              : {
+                  approvalStatus:
+                    "pending_approval"
+                };
+
+
           createdGrn =
             await this
               .goodsReceiptRepo
@@ -1213,7 +1395,7 @@ class GoodsReceiptService {
                       ? new Date(
                           payload.receiptDate
                         )
-                      : new Date(),
+                      : now,
 
                   vendorId:
                     purchaseOrder.vendorId,
@@ -1229,19 +1411,49 @@ class GoodsReceiptService {
                     ),
 
                   warehouseId:
-                    warehouse._id,
+                    warehouse?._id ||
+                    null,
 
                   warehouseName:
-                    this
-                      .warehouseDisplayName(
-                        warehouse
-                      ),
+                    warehouse
+                      ? this.warehouseDisplayName(
+                          warehouse
+                        )
+                      : "",
 
                   warehouseCode:
-                    this
-                      .warehouseCode(
-                        warehouse
-                      ),
+                    warehouse
+                      ? this.warehouseCode(
+                          warehouse
+                        )
+                      : "",
+
+                  deliveryType,
+
+                  deliveryLocationName:
+                    clean(
+                      purchaseOrder.deliveryLocationName
+                    ),
+
+                  deliveryAddress:
+                    clean(
+                      purchaseOrder.deliveryAddress
+                    ),
+
+                  deliveryContactPerson:
+                    clean(
+                      purchaseOrder.deliveryContactPerson
+                    ),
+
+                  deliveryContactNumber:
+                    clean(
+                      purchaseOrder.deliveryContactNumber
+                    ),
+
+                  otherDeliveryType:
+                    clean(
+                      purchaseOrder.otherDeliveryType
+                    ),
 
                   deliveryChallanNumber:
                     clean(
@@ -1255,10 +1467,9 @@ class GoodsReceiptService {
                     userId,
 
                   receivedByName:
-                    this
-                      .userDisplayName(
-                        user
-                      ),
+                    this.userDisplayName(
+                      user
+                    ),
 
                   remarks:
                     clean(
@@ -1267,6 +1478,26 @@ class GoodsReceiptService {
 
                   status:
                     grnStatus,
+
+                  ...approvalFields,
+
+                  createdByEmployeeId:
+                    purchaseAccess?.employeeId ||
+                    null,
+
+                  createdByEmployeeName:
+                    creatorName,
+
+                  createdByEmployeeCode:
+                    clean(
+                      purchaseAccess?.employeeCode
+                    ),
+
+                  submittedAt:
+                    now,
+
+                  submittedBy:
+                    userId,
 
                   createdBy:
                     userId,
@@ -1281,36 +1512,49 @@ class GoodsReceiptService {
               );
 
 
-          const updatedPurchaseOrder =
-            await this
-              .purchaseOrderRepo
-              .updateReceiptStateById(
-                companyId,
-                purchaseOrder._id,
-                {
-                  items:
-                    updatedPurchaseOrderItems,
-
-                  status:
-                    purchaseOrderStatus,
-
-                  updatedBy:
-                    userId
-                },
-                {
-                  session
-                }
-              );
-
-
+          /*
+           * Senior-created GRN:
+           *
+           * PO receipt state must be changed immediately because
+           * the GRN is already approved.
+           *
+           * Junior-created GRN intentionally does not reach here.
+           */
           if (
-            !updatedPurchaseOrder
+            isSenior
           ) {
 
-            throw new ApiError(
-              409,
-              "Purchase Order receipt quantities changed. Please refresh and try again."
-            );
+            const updatedPurchaseOrder =
+              await this
+                .purchaseOrderRepo
+                .updateReceiptStateById(
+                  companyId,
+                  purchaseOrder._id,
+                  {
+                    items:
+                      updatedPurchaseOrderItems,
+
+                    status:
+                      purchaseOrderStatus,
+
+                    updatedBy:
+                      userId
+                  },
+                  {
+                    session
+                  }
+                );
+
+
+            if (
+              !updatedPurchaseOrder
+            ) {
+
+              throw new ApiError(
+                409,
+                "Purchase Order receipt quantities changed. Please retry."
+              );
+            }
           }
 
         }
@@ -1328,11 +1572,61 @@ class GoodsReceiptService {
       }
 
 
-      return this
-        .getById(
+      const result =
+        await this
+          .getById(
+            companyId,
+            createdGrn._id
+          );
+
+
+      /*
+       * Junior GRN only:
+       * notify Purchase Senior for approval.
+       *
+       * Senior-created GRN is already approved and therefore
+       * must not generate an awaiting-approval notification.
+       */
+      if (
+        !isSenior
+      ) {
+
+        const approverUserId =
+          await findPurchaseSeniorUserId({
+            companyId,
+            requesterUserId:
+              userId
+          });
+
+
+        await sendPurchaseWorkflowNotification({
           companyId,
-          createdGrn._id
-        );
+
+          recipientUserId:
+            approverUserId,
+
+          senderUserId:
+            userId,
+
+          title:
+            "GRN awaiting approval",
+
+          message:
+            `${result.grnNumber || "Goods Receipt"} requires your review.`,
+
+          entityType:
+            "GoodsReceipt",
+
+          entityId:
+            result._id,
+
+          actionUrl:
+            `/purchase/goods-receipts/${result._id}`
+        });
+      }
+
+
+      return result;
 
     } finally {
 
@@ -1344,38 +1638,452 @@ class GoodsReceiptService {
 
 
   /* ==========================================================
+     APPROVE JUNIOR PENDING GRN
+  ========================================================== */
+
+  async approve(
+    companyId,
+    goodsReceiptId,
+    user,
+    purchaseAccess
+  ) {
+
+    if (
+      purchaseAccess?.canApprove !==
+      true
+    ) {
+
+      throw new ApiError(
+        403,
+        "Only an authorized Purchase Senior can approve a GRN."
+      );
+    }
+
+
+    const userId =
+      this.userIdOf(
+        user
+      );
+
+
+    const session =
+      await mongoose
+        .startSession();
+
+
+    let approved =
+      null;
+
+
+    try {
+
+      await session.withTransaction(
+        async () => {
+
+          const grn =
+            await this
+              .goodsReceiptRepo
+              .findById(
+                companyId,
+                goodsReceiptId,
+                {
+                  session
+                }
+              );
+
+
+          if (
+            !grn
+          ) {
+
+            throw new ApiError(
+              404,
+              "Goods Receipt was not found."
+            );
+          }
+
+
+          if (
+            grn.approvalStatus !==
+            "pending_approval"
+          ) {
+
+            throw new ApiError(
+              409,
+              "Only a pending GRN can be approved."
+            );
+          }
+
+
+          const purchaseOrder =
+            await this
+              .resolvePurchaseOrder(
+                companyId,
+                grn.purchaseOrderId,
+                {
+                  session
+                }
+              );
+
+
+          /*
+           * Only already-approved / legacy GRNs are posted
+           * into the current PO state.
+           *
+           * This pending GRN is then added exactly once.
+           */
+          const approvedReceiptMap =
+            await this
+              .existingReceiptMap(
+                companyId,
+                purchaseOrder._id,
+                {
+                  session,
+                  includePending:
+                    false
+                }
+              );
+
+
+          const updatedItems =
+            this
+              .buildUpdatedPurchaseOrderItems(
+                purchaseOrder,
+                grn.items,
+                approvedReceiptMap
+              );
+
+
+          const status =
+            this
+              .determinePurchaseOrderStatus(
+                updatedItems
+              );
+
+
+          if (
+            !status
+          ) {
+
+            throw new ApiError(
+              409,
+              "Unable to determine Purchase Order receipt status."
+            );
+          }
+
+
+          const updatedPurchaseOrder =
+            await this
+              .purchaseOrderRepo
+              .updateReceiptStateById(
+                companyId,
+                purchaseOrder._id,
+                {
+                  items:
+                    updatedItems,
+
+                  status,
+
+                  updatedBy:
+                    userId
+                },
+                {
+                  session
+                }
+              );
+
+
+          if (
+            !updatedPurchaseOrder
+          ) {
+
+            throw new ApiError(
+              409,
+              "Purchase Order receipt quantities changed. Please retry."
+            );
+          }
+
+
+          approved =
+            await this
+              .goodsReceiptRepo
+              .approvePendingById(
+                companyId,
+                goodsReceiptId,
+                {
+                  approvalStatus:
+                    "approved",
+
+                  approvedAt:
+                    new Date(),
+
+                  approvedBy:
+                    userId,
+
+                  approvedByName:
+                    clean(
+                      purchaseAccess?.employeeName
+                    ) ||
+                    this.userDisplayName(
+                      user
+                    ),
+
+                  updatedBy:
+                    userId
+                },
+                {
+                  session
+                }
+              );
+
+
+          if (
+            !approved
+          ) {
+
+            throw new ApiError(
+              409,
+              "Goods Receipt approval state changed. Please refresh and retry."
+            );
+          }
+
+        }
+      );
+
+    } finally {
+
+      await session
+        .endSession();
+
+    }
+
+
+    await sendPurchaseWorkflowNotification({
+      companyId,
+
+      recipientUserId:
+        approved.createdBy,
+
+      senderUserId:
+        userId,
+
+      title:
+        "GRN approved",
+
+      message:
+        `${approved.grnNumber || "Goods Receipt"} has been approved.`,
+
+      entityType:
+        "GoodsReceipt",
+
+      entityId:
+        approved._id,
+
+      actionUrl:
+        `/purchase/goods-receipts/${approved._id}`
+    });
+
+
+    return approved;
+  }
+
+
+  /* ==========================================================
+     REJECT JUNIOR PENDING GRN
+  ========================================================== */
+
+  async reject(
+    companyId,
+    goodsReceiptId,
+    reason,
+    user,
+    purchaseAccess
+  ) {
+
+    if (
+      purchaseAccess?.canApprove !==
+      true
+    ) {
+
+      throw new ApiError(
+        403,
+        "Only an authorized Purchase Senior can reject a GRN."
+      );
+    }
+
+
+    const userId =
+      this.userIdOf(
+        user
+      );
+
+
+    const rejected =
+      await this
+        .goodsReceiptRepo
+        .rejectPendingById(
+          companyId,
+          goodsReceiptId,
+          {
+            approvalStatus:
+              "rejected",
+
+            rejectedAt:
+              new Date(),
+
+            rejectedBy:
+              userId,
+
+            rejectedByName:
+              clean(
+                purchaseAccess?.employeeName
+              ) ||
+              this.userDisplayName(
+                user
+              ),
+
+            approvalRejectionReason:
+              clean(
+                reason
+              ),
+
+            updatedBy:
+              userId
+          }
+        );
+
+
+    if (
+      !rejected
+    ) {
+
+      throw new ApiError(
+        409,
+        "Only a pending GRN can be rejected."
+      );
+    }
+
+
+    await sendPurchaseWorkflowNotification({
+      companyId,
+
+      recipientUserId:
+        rejected.createdBy,
+
+      senderUserId:
+        userId,
+
+      title:
+        "GRN rejected",
+
+      message:
+        `${rejected.grnNumber || "Goods Receipt"} was rejected: ${clean(reason)}`,
+
+      entityType:
+        "GoodsReceipt",
+
+      entityId:
+        rejected._id,
+
+      actionUrl:
+        `/purchase/goods-receipts/${rejected._id}`
+    });
+
+
+    return rejected;
+  }
+
+
+  /* ==========================================================
      LIST
+
+     Junior:
+     - always own work.
+
+     Senior:
+     - default/team = all Purchase GRNs.
+     - scope=my = own work.
   ========================================================== */
 
   async list(
     companyId,
-    filters
+    filters = {},
+    purchaseAccess,
+    user
   ) {
+
+    const scopedFilters = {
+      ...filters
+    };
+
+
+    if (
+      this.shouldApplyCreatorScope(
+        purchaseAccess,
+        filters.scope
+      )
+    ) {
+
+      Object.assign(
+        scopedFilters,
+        this.creatorScope(
+          purchaseAccess,
+          user
+        )
+      );
+    }
+
 
     return this
       .goodsReceiptRepo
       .list(
         companyId,
-        filters
+        scopedFilters
       );
   }
 
 
   /* ==========================================================
      GET BY ID
+
+     Junior cannot open another employee's GRN directly.
+     Senior may open team GRNs.
   ========================================================== */
 
   async getById(
     companyId,
-    id
+    id,
+    purchaseAccess = null,
+    user = null
   ) {
+
+    const options = {};
+
+
+    if (
+      purchaseAccess &&
+      user &&
+      purchaseAccess?.canApprove !==
+        true
+    ) {
+
+      Object.assign(
+        options,
+        this.creatorScope(
+          purchaseAccess,
+          user
+        )
+      );
+    }
+
 
     const goodsReceipt =
       await this
         .goodsReceiptRepo
         .findById(
           companyId,
-          id
+          id,
+          options
         );
 
 
@@ -1396,11 +2104,19 @@ class GoodsReceiptService {
 
   /* ==========================================================
      GET BY PURCHASE ORDER
+
+     Junior:
+     - own GRN history for the PO.
+
+     Senior:
+     - complete Purchase team GRN history for the PO.
   ========================================================== */
 
   async getByPurchaseOrder(
     companyId,
-    purchaseOrderId
+    purchaseOrderId,
+    purchaseAccess = null,
+    user = null
   ) {
 
     const purchaseOrder =
@@ -1428,33 +2144,92 @@ class GoodsReceiptService {
     }
 
 
+    const options = {};
+
+
+    if (
+      purchaseAccess &&
+      user &&
+      purchaseAccess?.canApprove !==
+        true
+    ) {
+
+      Object.assign(
+        options,
+        this.creatorScope(
+          purchaseAccess,
+          user
+        )
+      );
+    }
+
+
     return this
       .goodsReceiptRepo
       .findByPurchaseOrder(
         companyId,
-        purchaseOrderId
+        purchaseOrderId,
+        options
       );
   }
 
 
   /* ==========================================================
      STATUS COUNTS
+
+     Junior:
+     - own counts.
+
+     Senior:
+     - team counts by default.
+     - own counts when scope=my.
   ========================================================== */
 
   async statusCounts(
-    companyId
+    companyId,
+    purchaseAccess = null,
+    user = null,
+    filters = {}
   ) {
+
+    const options = {};
+
+
+    if (
+      purchaseAccess &&
+      user &&
+      this.shouldApplyCreatorScope(
+        purchaseAccess,
+        filters?.scope
+      )
+    ) {
+
+      Object.assign(
+        options,
+        this.creatorScope(
+          purchaseAccess,
+          user
+        )
+      );
+    }
+
 
     return this
       .goodsReceiptRepo
       .countByStatus(
-        companyId
+        companyId,
+        options
       );
   }
 
 
   /* ==========================================================
      RECEIPT SUMMARY FOR PO
+
+     Intentionally NOT employee scoped.
+
+     This is the operational PO state and therefore must reflect
+     all approved/legacy GRNs for the company/PO.
   ========================================================== */
 
   async purchaseOrderReceiptSummary(

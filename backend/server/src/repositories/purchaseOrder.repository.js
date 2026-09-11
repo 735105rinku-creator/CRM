@@ -154,21 +154,41 @@ class PurchaseOrderRepository {
 
   /* ==========================================================
      FIND BY ID
+
+     Session-aware because GRN create/approval may resolve
+     and update the PO inside the same MongoDB transaction.
   ========================================================== */
 
   async findById(
     companyId,
-    purchaseOrderId
+    purchaseOrderId,
+    {
+      session = null
+    } = {}
   ) {
 
-    return PurchaseOrder
-      .findOne({
-        _id:
-          purchaseOrderId,
+    const query =
+      PurchaseOrder
+        .findOne({
+          _id:
+            purchaseOrderId,
 
-        companyId
-      })
-      .lean();
+          companyId
+        })
+        .lean();
+
+
+    if (
+      session
+    ) {
+
+      query.session(
+        session
+      );
+    }
+
+
+    return query;
   }
 
 
@@ -391,6 +411,11 @@ class PurchaseOrderRepository {
 
         {
           warehouseName:
+            regex
+        },
+
+        {
+          deliveryLocationName:
             regex
         },
 
@@ -696,6 +721,12 @@ class PurchaseOrderRepository {
   /* ==========================================================
      UPDATE RECEIPT QUANTITIES
      Used by GRN service only.
+
+     Session-aware so:
+     - Senior-created auto-approved GRN + PO update
+     - Junior GRN approval + PO update
+
+     can commit or rollback together.
   ========================================================== */
 
   async updateReceiptStateById(
@@ -705,46 +736,61 @@ class PurchaseOrderRepository {
       items,
       status,
       updatedBy
-    }
+    },
+    {
+      session = null
+    } = {}
   ) {
 
-    return PurchaseOrder
-      .findOneAndUpdate(
-        {
-          _id:
-            purchaseOrderId,
+    const query =
+      PurchaseOrder
+        .findOneAndUpdate(
+          {
+            _id:
+              purchaseOrderId,
 
-          companyId,
+            companyId,
 
-          status: {
-            $in: [
-              "approved",
-              "sent",
-              "partially_received",
-              "received"
-            ]
+            status: {
+              $in: [
+                "approved",
+                "sent",
+                "partially_received",
+                "received"
+              ]
+            }
+          },
+
+          {
+            $set: {
+              items,
+
+              status,
+
+              updatedBy
+            }
+          },
+
+          {
+            returnDocument:
+              "after",
+
+            runValidators:
+              true,
+
+            ...(
+              session
+                ? {
+                    session
+                  }
+                : {}
+            )
           }
-        },
+        )
+        .lean();
 
-        {
-          $set: {
-            items,
 
-            status,
-
-            updatedBy
-          }
-        },
-
-        {
-          returnDocument:
-            "after",
-
-          runValidators:
-            true
-        }
-      )
-      .lean();
+    return query;
   }
 
 

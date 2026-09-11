@@ -30,6 +30,15 @@
   
   
       <div class="header-actions">
+
+        <button
+          type="button"
+          class="action-button primary"
+          [disabled]="loading"
+          (click)="openVendorForm()"
+        >
+          + Add Vendor
+        </button>
   
         <button
           type="button"
@@ -49,6 +58,10 @@
       </div>
   
     </header>
+
+    <div *ngIf="successMessage" class="alert">
+      <div class="alert-content">{{ successMessage }}</div>
+    </div>
   
   
     <!-- =========================================================
@@ -423,6 +436,12 @@
               <th>
                 Currency
               </th>
+
+              <th>Added By</th>
+
+              <th>Source Department</th>
+
+              <th>Added On</th>
   
               <th class="status-column">
                 Status
@@ -577,12 +596,18 @@
               <!-- Currency -->
   
               <td>
-  
+
                 <span class="currency-badge">
                   {{ currency(vendor) }}
                 </span>
-  
+
               </td>
+
+              <td>{{ addedBy(vendor) }}</td>
+
+              <td>{{ sourceDepartment(vendor) }}</td>
+
+              <td>{{ vendor.addedOn ? (vendor.addedOn | date:'dd MMM yyyy') : 'Not Available' }}</td>
   
   
               <!-- Status -->
@@ -640,4 +665,36 @@
   
     </section>
   
+    <div class="vendor-modal" *ngIf="formOpen">
+      <form #vendorFormRef="ngForm" class="vendor-form" (ngSubmit)="createVendor()">
+        <header><h2>Add Vendor</h2><button type="button" (click)="closeVendorForm()">&times;</button></header>
+        <p class="form-note">Added By and Source Department are taken from your authenticated employee profile.</p>
+        <div class="vendor-form-grid">
+          <label><span>Vendor Name *</span><input name="vendorName" [(ngModel)]="vendorForm.vendorName" required></label>
+          <label><span>Company Name</span><input name="companyName" [(ngModel)]="vendorForm.companyName"></label>
+          <label><span>Contact Person *</span><input name="contactPerson" [(ngModel)]="vendorForm.contactPerson" required></label>
+          <label><span>Mobile *</span><input name="mobile" [(ngModel)]="vendorForm.mobile" required></label>
+          <label><span>Email</span><input type="email" name="email" [(ngModel)]="vendorForm.email"></label>
+          <label><span>GST Type</span><select name="gstType" [(ngModel)]="vendorForm.gstType"><option value="registered">Registered</option><option value="unregistered">Unregistered</option><option value="composition">Composition</option><option value="overseas">Overseas</option></select></label>
+          <label><span>GSTIN</span><input name="gstNumber" [(ngModel)]="vendorForm.gstNumber"></label>
+          <label><span>PAN</span><input name="panNumber" [(ngModel)]="vendorForm.panNumber"></label>
+          <label class="wide"><span>Address</span><input name="addressLine1" [(ngModel)]="vendorForm.addressLine1"></label>
+          <label><span>City</span><input name="city" [(ngModel)]="vendorForm.city"></label>
+          <label><span>State</span><input name="state" [(ngModel)]="vendorForm.state"></label>
+          <label><span>Pincode</span><input name="pincode" [(ngModel)]="vendorForm.pincode"></label>
+          <label><span>Payment Terms *</span><input name="paymentTerms" [(ngModel)]="vendorForm.paymentTerms" required></label>
+          <label><span>Credit Days *</span><input type="number" min="0" name="creditDays" [(ngModel)]="vendorForm.creditDays" required></label>
+          <label><span>Opening Payable *</span><input type="number" min="0" name="openingPayable" [(ngModel)]="vendorForm.openingPayable" required></label>
+          <label><span>Preferred Payment Mode *</span><select name="preferredPaymentMode" [(ngModel)]="vendorForm.preferredPaymentMode" required><option value="bank_transfer">Bank Transfer</option><option value="upi">UPI</option><option value="cheque">Cheque</option><option value="cash">Cash</option><option value="card">Card</option><option value="other">Other</option></select></label>
+          <label *ngIf="vendorForm.preferredPaymentMode === 'other'"><span>Payment Mode Details *</span><input name="preferredPaymentModeOther" [(ngModel)]="vendorForm.preferredPaymentModeOther" required></label>
+          <label><span>Account Holder</span><input name="accountHolderName" [(ngModel)]="vendorForm.accountHolderName"></label>
+          <label><span>Bank Name</span><input name="bankName" [(ngModel)]="vendorForm.bankName"></label>
+          <label><span>Account Number</span><input name="accountNumber" [(ngModel)]="vendorForm.accountNumber"></label>
+          <label><span>IFSC</span><input name="ifscCode" [(ngModel)]="vendorForm.ifscCode"></label>
+          <label class="wide"><span>Remarks *</span><textarea name="remarks" [(ngModel)]="vendorForm.remarks" required></textarea></label>
+        </div>
+        <footer><button type="button" class="action-button secondary" (click)="closeVendorForm()">Cancel</button><button type="submit" class="action-button primary" [disabled]="saving || vendorFormRef.invalid">{{ saving ? 'Saving...' : 'Add Vendor' }}</button></footer>
+      </form>
+    </div>
+
   </section>

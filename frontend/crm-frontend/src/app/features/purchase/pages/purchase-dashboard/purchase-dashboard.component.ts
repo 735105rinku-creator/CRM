@@ -59,9 +59,14 @@ import {
   PurchaseReferenceService
 } from '../../services/purchase-reference.service';
 
+import {
+  PurchaseInvoiceService
+} from '../../services/purchase-invoice.service';
+
 
 import {
   PurchaseApiListData,
+  PurchaseInvoiceMetrics,
   PurchaseRequest
 } from '../../models/purchase.models';
 
@@ -264,6 +269,12 @@ export class PurchaseDashboardComponent {
     );
 
 
+  private readonly purchaseInvoiceService =
+    inject(
+      PurchaseInvoiceService
+    );
+
+
   private readonly destroyRef =
     inject(
       DestroyRef
@@ -359,6 +370,24 @@ export class PurchaseDashboardComponent {
     signal(
       0
     );
+
+
+  readonly purchaseInvoiceMetrics =
+    signal<PurchaseInvoiceMetrics>({
+      total: 0,
+      matched: 0,
+      exceptions: 0,
+      pendingVerification: 0,
+      verified: 0,
+      pendingHandoff: 0,
+      handedOff: 0,
+      invoiceTotal: 0,
+      paidAmount: 0,
+      outstandingAmount: 0,
+      unpaid: 0,
+      partiallyPaid: 0,
+      paid: 0
+    });
 
 
   readonly purchaseDataLoading =
@@ -874,6 +903,50 @@ export class PurchaseDashboardComponent {
           {
 
             label:
+              'Vendor Invoices',
+
+            value:
+              this.purchaseInvoiceMetrics().total,
+
+            caption:
+              `${this.purchaseInvoiceMetrics().pendingVerification} pending verification • ${this.purchaseInvoiceMetrics().exceptions} exception${
+                this.purchaseInvoiceMetrics().exceptions === 1
+                  ? ''
+                  : 's'
+              }`,
+
+            route:
+              '/purchase/invoices',
+
+            icon:
+              'order'
+
+          },
+
+
+          {
+
+            label:
+              'Outstanding Payables',
+
+            value:
+              this.purchaseInvoiceMetrics().outstandingAmount,
+
+            caption:
+              `${this.purchaseInvoiceMetrics().unpaid} unpaid • ${this.purchaseInvoiceMetrics().partiallyPaid} partially paid`,
+
+            route:
+              '/purchase/invoices',
+
+            icon:
+              'order'
+
+          },
+
+
+          {
+
+            label:
               'Active Vendors',
 
             value:
@@ -1249,6 +1322,19 @@ export class PurchaseDashboardComponent {
               () =>
                 of(
                   []
+              )
+            )
+          ),
+
+
+      invoiceMetrics:
+        this.purchaseInvoiceService
+          .metrics()
+          .pipe(
+            catchError(
+              () =>
+                of(
+                  null
                 )
             )
           )
@@ -1453,6 +1539,18 @@ export class PurchaseDashboardComponent {
               );
 
 
+            if (
+              response.invoiceMetrics
+            ) {
+
+              this.purchaseInvoiceMetrics
+                .set(
+                  response.invoiceMetrics
+                );
+
+            }
+
+
             /* ==================================================
                RECENT ACTIVITY
             ================================================== */
@@ -1484,6 +1582,9 @@ export class PurchaseDashboardComponent {
                 null ||
 
               response.goodsReceipts ===
+                null ||
+
+              response.invoiceMetrics ===
                 null;
 
 

@@ -1332,16 +1332,19 @@ export class QuotationFormComponent
     this.form.patchValue({
 
       purchaseRequestId:
+        quotation.purchaseRequestId ||
         this.extractReferenceId(
           quotation.purchaseRequest
         ),
-
+    
       vendorEnquiryId:
+        quotation.vendorEnquiryId ||
         this.extractReferenceId(
           quotation.vendorEnquiry
         ),
-
+    
       vendorId:
+        quotation.vendorId ||
         this.extractReferenceId(
           quotation.vendor
         ),

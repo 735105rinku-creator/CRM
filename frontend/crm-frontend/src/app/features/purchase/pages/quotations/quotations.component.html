@@ -1,725 +1,735 @@
 <section class="quotations-page">
 
-    <!-- =========================================================
-         PAGE HEADER
-    ========================================================== -->
-  
-    <div class="page-header">
-  
-      <div>
-  
-        <div class="eyebrow">
-          Purchase Department
-        </div>
-  
-        <h1>
-          Quotations
-        </h1>
-  
-        <p>
-          Review vendor quotations, compare prices and select the best offer.
-        </p>
-  
+  <!-- =========================================================
+       PAGE HEADER
+  ========================================================== -->
+
+  <div class="page-header">
+
+    <div>
+
+      <div class="eyebrow">
+        Purchase Department
       </div>
-  
-  
-      <div class="page-header-actions">
-  
+
+      <h1>
+        Quotations
+      </h1>
+
+      <p>
+        Review vendor quotations, compare prices and select the best offer.
+      </p>
+
+    </div>
+
+
+    <div class="page-header-actions">
+
+      <button
+        type="button"
+        class="btn btn-secondary"
+        (click)="refresh()"
+        [disabled]="isLoading">
+
+        Refresh
+
+      </button>
+
+
+      <a
+        class="btn btn-primary"
+        routerLink="/purchase/quotations/new">
+
+        New Quotation
+
+      </a>
+
+    </div>
+
+  </div>
+
+
+  <!-- =========================================================
+       SUCCESS MESSAGE
+  ========================================================== -->
+
+  <div
+    *ngIf="successMessage"
+    class="message-box message-box--success">
+
+    <div class="message-content">
+
+      <span class="message-icon">
+        ✓
+      </span>
+
+      <span>
+        {{ successMessage }}
+      </span>
+
+    </div>
+
+
+    <button
+      type="button"
+      class="message-close"
+      (click)="clearMessages()">
+
+      ×
+
+    </button>
+
+  </div>
+
+
+  <!-- =========================================================
+       ERROR MESSAGE
+  ========================================================== -->
+
+  <div
+    *ngIf="errorMessage"
+    class="message-box message-box--error">
+
+    <div class="message-content">
+
+      <span class="message-icon">
+        !
+      </span>
+
+      <span>
+        {{ errorMessage }}
+      </span>
+
+    </div>
+
+
+    <button
+      type="button"
+      class="message-close"
+      (click)="clearMessages()">
+
+      ×
+
+    </button>
+
+  </div>
+
+
+  <!-- =========================================================
+       FILTERS
+  ========================================================== -->
+
+  <form
+    class="filter-card"
+    [formGroup]="filterForm">
+
+    <div class="filter-grid">
+
+
+      <div class="filter-field filter-field--search">
+
+        <label for="quotationSearch">
+          Search
+        </label>
+
+        <input
+          id="quotationSearch"
+          type="text"
+          formControlName="search"
+          placeholder="Quotation no, vendor, item...">
+
+      </div>
+
+
+      <div class="filter-field">
+
+        <label for="quotationStatus">
+          Status
+        </label>
+
+        <select
+          id="quotationStatus"
+          formControlName="status">
+
+          <option value="">
+            All Statuses
+          </option>
+
+          <option
+            *ngFor="let option of statusOptions"
+            [value]="option.value">
+
+            {{ option.label }}
+
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <div class="filter-field">
+
+        <label for="quotationFromDate">
+          From Date
+        </label>
+
+        <input
+          id="quotationFromDate"
+          type="date"
+          formControlName="fromDate">
+
+      </div>
+
+
+      <div class="filter-field">
+
+        <label for="quotationToDate">
+          To Date
+        </label>
+
+        <input
+          id="quotationToDate"
+          type="date"
+          formControlName="toDate">
+
+      </div>
+
+
+      <div class="filter-field">
+
+        <label for="quotationLimit">
+          Rows
+        </label>
+
+        <select
+          id="quotationLimit"
+          formControlName="limit">
+
+          <option [ngValue]="10">
+            10
+          </option>
+
+          <option [ngValue]="25">
+            25
+          </option>
+
+          <option [ngValue]="50">
+            50
+          </option>
+
+          <option [ngValue]="100">
+            100
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <div class="filter-actions">
+
         <button
           type="button"
-          class="btn btn-secondary"
-          (click)="refresh()"
-          [disabled]="isLoading">
-  
-          Refresh
-  
+          class="btn btn-secondary btn-clear"
+          (click)="clearFilters()">
+
+          Clear Filters
+
         </button>
-  
-  
-        <a
-          class="btn btn-primary"
-          routerLink="/purchase/quotations/new">
-  
-          New Quotation
-  
-        </a>
-  
+
       </div>
-  
+
     </div>
-  
-  
-    <!-- =========================================================
-         SUCCESS MESSAGE
-    ========================================================== -->
-  
+
+  </form>
+
+
+  <!-- =========================================================
+       LIST CARD
+  ========================================================== -->
+
+  <div class="table-card">
+
+    <div class="table-card-header">
+
+      <div>
+
+        <h2>
+          Vendor Quotations
+        </h2>
+
+        <p>
+          {{ pagination.total }}
+          quotation{{ pagination.total === 1 ? '' : 's' }}
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <!-- =======================================================
+         LOADING
+    ======================================================== -->
+
     <div
-      *ngIf="successMessage"
-      class="message-box message-box--success">
-  
-      <div class="message-content">
-  
-        <span class="message-icon">
-          ✓
-        </span>
-  
-        <span>
-          {{ successMessage }}
-        </span>
-  
+      *ngIf="isLoading"
+      class="state-box">
+
+      <div class="spinner">
       </div>
-  
-  
-      <button
-        type="button"
-        class="message-close"
-        (click)="clearMessages()">
-  
-        ×
-  
-      </button>
-  
+
+      <strong>
+        Loading quotations...
+      </strong>
+
+      <span>
+        Please wait while quotation records are loaded.
+      </span>
+
     </div>
-  
-  
-    <!-- =========================================================
-         ERROR MESSAGE
-    ========================================================== -->
-  
+
+
+    <!-- =======================================================
+         EMPTY
+    ======================================================== -->
+
     <div
-      *ngIf="errorMessage"
-      class="message-box message-box--error">
-  
-      <div class="message-content">
-  
-        <span class="message-icon">
-          !
-        </span>
-  
-        <span>
-          {{ errorMessage }}
-        </span>
-  
+      *ngIf="
+        !isLoading &&
+        quotations.length === 0
+      "
+      class="state-box">
+
+      <div class="empty-icon">
+        Q
       </div>
-  
-  
-      <button
-        type="button"
-        class="message-close"
-        (click)="clearMessages()">
-  
-        ×
-  
-      </button>
-  
+
+      <strong>
+        No quotations found
+      </strong>
+
+      <span>
+        Create a new quotation or change the current filters.
+      </span>
+
+      <a
+        class="btn btn-primary"
+        routerLink="/purchase/quotations/new">
+
+        Create Quotation
+
+      </a>
+
     </div>
-  
-  
-    <!-- =========================================================
-         FILTERS
-    ========================================================== -->
-  
-    <form
-      class="filter-card"
-      [formGroup]="filterForm">
-  
-      <div class="filter-grid">
-  
-  
-        <div class="filter-field filter-field--search">
-  
-          <label for="quotationSearch">
-            Search
-          </label>
-  
-          <input
-            id="quotationSearch"
-            type="text"
-            formControlName="search"
-            placeholder="Quotation no, vendor, item...">
-  
-        </div>
-  
-  
-        <div class="filter-field">
-  
-          <label for="quotationStatus">
-            Status
-          </label>
-  
-          <select
-            id="quotationStatus"
-            formControlName="status">
-  
-            <option value="">
-              All Statuses
-            </option>
-  
-            <option
-              *ngFor="let option of statusOptions"
-              [value]="option.value">
-  
-              {{ option.label }}
-  
-            </option>
-  
-          </select>
-  
-        </div>
-  
-  
-        <div class="filter-field">
-  
-          <label for="quotationFromDate">
-            From Date
-          </label>
-  
-          <input
-            id="quotationFromDate"
-            type="date"
-            formControlName="fromDate">
-  
-        </div>
-  
-  
-        <div class="filter-field">
-  
-          <label for="quotationToDate">
-            To Date
-          </label>
-  
-          <input
-            id="quotationToDate"
-            type="date"
-            formControlName="toDate">
-  
-        </div>
-  
-  
-        <div class="filter-field">
-  
-          <label for="quotationLimit">
-            Rows
-          </label>
-  
-          <select
-            id="quotationLimit"
-            formControlName="limit">
-  
-            <option [ngValue]="10">
-              10
-            </option>
-  
-            <option [ngValue]="25">
-              25
-            </option>
-  
-            <option [ngValue]="50">
-              50
-            </option>
-  
-            <option [ngValue]="100">
-              100
-            </option>
-  
-          </select>
-  
-        </div>
-  
-  
-        <div class="filter-actions">
-  
-          <button
-            type="button"
-            class="btn btn-secondary btn-clear"
-            (click)="clearFilters()">
-  
-            Clear Filters
-  
-          </button>
-  
-        </div>
-  
-      </div>
-  
-    </form>
-  
-  
-    <!-- =========================================================
-         LIST CARD
-    ========================================================== -->
-  
-    <div class="table-card">
-  
-      <div class="table-card-header">
-  
-        <div>
-  
-          <h2>
-            Vendor Quotations
-          </h2>
-  
-          <p>
-            {{ pagination.total }}
-            quotation{{ pagination.total === 1 ? '' : 's' }}
-          </p>
-  
-        </div>
-  
-      </div>
-  
-  
-      <!-- =======================================================
-           LOADING
-      ======================================================== -->
-  
-      <div
-        *ngIf="isLoading"
-        class="state-box">
-  
-        <div class="spinner">
-        </div>
-  
-        <strong>
-          Loading quotations...
-        </strong>
-  
-        <span>
-          Please wait while quotation records are loaded.
-        </span>
-  
-      </div>
-  
-  
-      <!-- =======================================================
-           EMPTY
-      ======================================================== -->
-  
-      <div
-        *ngIf="
-          !isLoading &&
-          quotations.length === 0
-        "
-        class="state-box">
-  
-        <div class="empty-icon">
-          Q
-        </div>
-  
-        <strong>
-          No quotations found
-        </strong>
-  
-        <span>
-          Create a new quotation or change the current filters.
-        </span>
-  
-        <a
-          class="btn btn-primary"
-          routerLink="/purchase/quotations/new">
-  
-          Create Quotation
-  
-        </a>
-  
-      </div>
-  
-  
-      <!-- =======================================================
-           TABLE
-      ======================================================== -->
-  
-      <div
-        *ngIf="
-          !isLoading &&
-          quotations.length > 0
-        "
-        class="table-scroll">
-  
-        <table>
-  
-          <thead>
-  
-            <tr>
-  
-              <th>
-                Quotation
-              </th>
-  
-              <th>
-                Vendor
-              </th>
-  
-              <th>
-                PR Reference
-              </th>
-  
-              <th>
-                Item
-              </th>
-  
-              <th>
-                Amount
-              </th>
-  
-              <th>
-                Delivery
-              </th>
-  
-              <th>
-                Valid Until
-              </th>
-  
-              <th>
-                Status
-              </th>
-  
-              <th class="action-column">
-                Actions
-              </th>
-  
-            </tr>
-  
-          </thead>
-  
-  
-          <tbody>
-  
-            <tr
-              *ngFor="
-                let quotation of quotations;
-                trackBy: trackByQuotationId
-              ">
-  
-  
-              <!-- ===============================================
-                   QUOTATION
-              ================================================ -->
-  
-              <td>
-  
-                <div class="quotation-cell">
-  
-                  <strong>
-                    {{ quotation.quotationNumber }}
-                  </strong>
-  
-                  <span>
-                    {{ formatDate(quotation.quotationDate) }}
-                  </span>
-  
-                  <small *ngIf="quotation.rfqNumber">
-                    RFQ: {{ quotation.rfqNumber }}
-                  </small>
-  
-                </div>
-  
-              </td>
-  
-  
-              <!-- ===============================================
-                   VENDOR
-              ================================================ -->
-  
-              <td>
-  
-                <div class="vendor-cell">
-  
-                  <div class="vendor-avatar">
-  
-                    {{
-                      getVendorName(quotation)
-                        .charAt(0)
-                        .toUpperCase()
-                    }}
-  
-                  </div>
-  
-  
-                  <div>
-  
-                    <strong>
-                      {{ getVendorName(quotation) }}
-                    </strong>
-  
-                    <span *ngIf="getVendorCode(quotation)">
-                      {{ getVendorCode(quotation) }}
-                    </span>
-  
-                  </div>
-  
-                </div>
-  
-              </td>
-  
-  
-              <!-- ===============================================
-                   PR REFERENCE
-              ================================================ -->
-  
-              <td>
-  
-                <span class="reference-chip">
-  
-                  {{ getPurchaseRequestNumber(quotation) }}
-  
+
+
+    <!-- =======================================================
+         TABLE
+    ======================================================== -->
+
+    <div
+      *ngIf="
+        !isLoading &&
+        quotations.length > 0
+      "
+      class="table-scroll">
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>
+              Quotation
+            </th>
+
+            <th>
+              Vendor
+            </th>
+
+            <th>
+              PR Reference
+            </th>
+
+            <th>
+              Item
+            </th>
+
+            <th>
+              Amount
+            </th>
+
+            <th>
+              Delivery
+            </th>
+
+            <th>
+              Valid Until
+            </th>
+
+            <th>
+              Status
+            </th>
+
+            <th class="action-column">
+              Actions
+            </th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          <tr
+            *ngFor="
+              let quotation of quotations;
+              trackBy: trackByQuotationId
+            ">
+
+
+            <!-- ===============================================
+                 QUOTATION
+            ================================================ -->
+
+            <td>
+
+              <div class="quotation-cell">
+
+                <strong>
+                  {{ quotation.quotationNumber }}
+                </strong>
+
+                <span>
+                  {{ formatDate(quotation.quotationDate) }}
                 </span>
-  
-              </td>
-  
-  
-              <!-- ===============================================
-                   ITEM
-              ================================================ -->
-  
-              <td>
-  
-                <div class="item-cell">
-  
+
+                <small *ngIf="quotation.rfqNumber">
+                  RFQ: {{ quotation.rfqNumber }}
+                </small>
+
+              </div>
+
+            </td>
+
+
+            <!-- ===============================================
+                 VENDOR
+            ================================================ -->
+
+            <td>
+
+              <div class="vendor-cell">
+
+                <div class="vendor-avatar">
+
+                  {{
+                    getVendorName(quotation)
+                      .charAt(0)
+                      .toUpperCase()
+                  }}
+
+                </div>
+
+
+                <div>
+
                   <strong>
-                    {{ getPrimaryItemName(quotation) }}
+                    {{ getVendorName(quotation) }}
                   </strong>
-  
-                  <span>
-                    {{ getItemSummary(quotation) }}
+
+                  <span *ngIf="getVendorCode(quotation)">
+                    {{ getVendorCode(quotation) }}
                   </span>
-  
+
                 </div>
-  
-              </td>
-  
-  
-              <!-- ===============================================
-                   TOTAL
-              ================================================ -->
-  
-              <td>
-  
-                <div class="amount-cell">
-  
-                  <strong>
-                    {{ formatMoney(quotation.grandTotal) }}
-                  </strong>
-  
-                  <span *ngIf="quotation.taxTotal">
-  
-                    Tax:
-                    {{ formatMoney(quotation.taxTotal) }}
-  
-                  </span>
-  
-                </div>
-  
-              </td>
-  
-  
-              <!-- ===============================================
-                   DELIVERY
-              ================================================ -->
-  
-              <td>
-  
-                <span class="normal-text">
-  
-                  {{ quotation.deliveryTime || '—' }}
-  
+
+              </div>
+
+            </td>
+
+
+            <!-- ===============================================
+                 PR REFERENCE
+            ================================================ -->
+
+            <td>
+
+              <span class="reference-chip">
+
+                {{ getPurchaseRequestNumber(quotation) }}
+
+              </span>
+
+            </td>
+
+
+            <!-- ===============================================
+                 ITEM
+            ================================================ -->
+
+            <td>
+
+              <div class="item-cell">
+
+                <strong>
+                  {{ getPrimaryItemName(quotation) }}
+                </strong>
+
+                <span>
+                  {{ getItemSummary(quotation) }}
                 </span>
-  
-              </td>
-  
-  
-              <!-- ===============================================
-                   VALIDITY
-              ================================================ -->
-  
-              <td>
-  
-                <div
-                  class="validity-cell"
-                  [class.validity-cell--expired]="
-                    isExpired(quotation)
-                  ">
-  
-                  <span>
-                    {{ formatDate(quotation.validUntil) }}
-                  </span>
-  
-                  <small
-                    *ngIf="isExpired(quotation)">
-  
-                    Expired
-  
-                  </small>
-  
-                </div>
-  
-              </td>
-  
-  
-              <!-- ===============================================
-                   STATUS
-              ================================================ -->
-  
-              <td>
-  
-                <span
-                  class="status-badge"
-                  [ngClass]="getStatusClass(quotation.status)">
-  
-                  {{ getStatusLabel(quotation.status) }}
-  
+
+              </div>
+
+            </td>
+
+
+            <!-- ===============================================
+                 TOTAL
+            ================================================ -->
+
+            <td>
+
+              <div class="amount-cell">
+
+                <strong>
+                  {{ formatMoney(quotation.grandTotal) }}
+                </strong>
+
+                <span *ngIf="quotation.taxTotal">
+
+                  Tax:
+                  {{ formatMoney(quotation.taxTotal) }}
+
                 </span>
-  
-              </td>
-  
-  
-              <!-- ===============================================
-                   ACTIONS
-              ================================================ -->
-  
-              <td class="action-column">
-  
-                <div class="row-actions">
-  
-  
-                  <a
-                    class="action-btn action-btn--view"
-                    [routerLink]="[
-                      '/purchase/quotations',
-                      quotation._id,
-                      'edit'
-                    ]">
-  
-                    Open
-  
-                  </a>
-  
-  
-                  <button
-                    type="button"
-                    class="action-btn action-btn--compare"
-                    (click)="compareQuotation(quotation)">
-  
-                    Compare
-  
-                  </button>
-  
-  
-                  <button
-                    *ngIf="canApprove && quotation.status === 'received'"
-                    type="button"
-                    class="action-btn action-btn--select"
-                    [disabled]="isActionLoading(quotation)"
-                    (click)="selectQuotation(quotation)">
-  
-                    {{
-                      isSelecting(quotation)
-                        ? 'Selecting...'
-                        : 'Select'
-                    }}
-  
-                  </button>
-  
-  
-                  <button
-                    *ngIf="
-                      canApprove &&
-                      (quotation.status === 'requested' ||
-                      quotation.status === 'received')
-                    "
-                    type="button"
-                    class="action-btn action-btn--reject"
-                    [disabled]="isActionLoading(quotation)"
-                    (click)="rejectQuotation(quotation)">
-  
-                    {{
-                      isRejecting(quotation)
-                        ? 'Rejecting...'
-                        : 'Reject'
-                    }}
-  
-                  </button>
-  
-                </div>
-  
-              </td>
-  
-            </tr>
-  
-          </tbody>
-  
-        </table>
-  
-      </div>
-  
-  
-      <!-- =======================================================
-           PAGINATION
-      ======================================================== -->
-  
-      <div
-        *ngIf="
-          !isLoading &&
-          quotations.length > 0
-        "
-        class="pagination">
-  
-        <div class="pagination-info">
-  
-          Page
-          <strong>
-            {{ pagination.page }}
-          </strong>
-          of
-          <strong>
-            {{ pagination.pages }}
-          </strong>
-  
-        </div>
-  
-  
-        <div class="pagination-controls">
-  
-          <button
-            type="button"
-            class="page-btn"
-            [disabled]="pagination.page <= 1"
-            (click)="previousPage()">
-  
-            ‹
-          </button>
-  
-  
-          <button
-            *ngFor="let page of getPageNumbers()"
-            type="button"
-            class="page-btn"
-            [class.page-btn--active]="
-              page === pagination.page
-            "
-            (click)="goToPage(page)">
-  
-            {{ page }}
-  
-          </button>
-  
-  
-          <button
-            type="button"
-            class="page-btn"
-            [disabled]="
-              pagination.page >=
-              pagination.pages
-            "
-            (click)="nextPage()">
-  
-            ›
-          </button>
-  
-        </div>
-  
-      </div>
-  
+
+              </div>
+
+            </td>
+
+
+            <!-- ===============================================
+                 DELIVERY
+            ================================================ -->
+
+            <td>
+
+              <span class="normal-text">
+
+                {{ quotation.deliveryTime || '—' }}
+
+              </span>
+
+            </td>
+
+
+            <!-- ===============================================
+                 VALIDITY
+            ================================================ -->
+
+            <td>
+
+              <div
+                class="validity-cell"
+                [class.validity-cell--expired]="
+                  isExpired(quotation)
+                ">
+
+                <span>
+                  {{ formatDate(quotation.validUntil) }}
+                </span>
+
+                <small
+                  *ngIf="isExpired(quotation)">
+
+                  Expired
+
+                </small>
+
+              </div>
+
+            </td>
+
+
+            <!-- ===============================================
+                 STATUS
+            ================================================ -->
+
+            <td>
+
+              <span
+                class="status-badge"
+                [ngClass]="getStatusClass(quotation.status)">
+
+                {{ getStatusLabel(quotation.status) }}
+
+              </span>
+
+            </td>
+
+
+            <!-- ===============================================
+                 ACTIONS
+            ================================================ -->
+
+            <td class="action-column">
+
+              <div class="row-actions">
+
+
+                <!--
+                  FIX:
+                  Existing Angular route is:
+                  /purchase/quotations/:id
+
+                  /edit must not be appended.
+                -->
+                <a
+                  class="action-btn action-btn--view"
+                  [routerLink]="[
+                    '/purchase/quotations',
+                    quotation._id
+                  ]">
+
+                  Open
+
+                </a>
+
+
+                <button
+                  type="button"
+                  class="action-btn action-btn--compare"
+                  (click)="compareQuotation(quotation)">
+
+                  Compare
+
+                </button>
+
+
+                <button
+                  *ngIf="canApprove && quotation.status === 'received'"
+                  type="button"
+                  class="action-btn action-btn--select"
+                  [disabled]="isActionLoading(quotation)"
+                  (click)="selectQuotation(quotation)">
+
+                  {{
+                    isSelecting(quotation)
+                      ? 'Selecting...'
+                      : 'Select'
+                  }}
+
+                </button>
+
+
+                <button
+                  *ngIf="
+                    canApprove &&
+                    (
+                      quotation.status === 'requested' ||
+                      quotation.status === 'received'
+                    )
+                  "
+                  type="button"
+                  class="action-btn action-btn--reject"
+                  [disabled]="isActionLoading(quotation)"
+                  (click)="rejectQuotation(quotation)">
+
+                  {{
+                    isRejecting(quotation)
+                      ? 'Rejecting...'
+                      : 'Reject'
+                  }}
+
+                </button>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
     </div>
-  
-  </section>
+
+
+    <!-- =======================================================
+         PAGINATION
+    ======================================================== -->
+
+    <div
+      *ngIf="
+        !isLoading &&
+        quotations.length > 0
+      "
+      class="pagination">
+
+      <div class="pagination-info">
+
+        Page
+        <strong>
+          {{ pagination.page }}
+        </strong>
+        of
+        <strong>
+          {{ pagination.pages }}
+        </strong>
+
+      </div>
+
+
+      <div class="pagination-controls">
+
+        <button
+          type="button"
+          class="page-btn"
+          [disabled]="pagination.page <= 1"
+          (click)="previousPage()">
+
+          ‹
+
+        </button>
+
+
+        <button
+          *ngFor="let page of getPageNumbers()"
+          type="button"
+          class="page-btn"
+          [class.page-btn--active]="
+            page === pagination.page
+          "
+          (click)="goToPage(page)">
+
+          {{ page }}
+
+        </button>
+
+
+        <button
+          type="button"
+          class="page-btn"
+          [disabled]="
+            pagination.page >=
+            pagination.pages
+          "
+          (click)="nextPage()">
+
+          ›
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>

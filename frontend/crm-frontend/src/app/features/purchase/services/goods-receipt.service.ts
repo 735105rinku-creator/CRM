@@ -36,13 +36,13 @@ export class GoodsReceiptService {
   getAll(
     filters: GoodsReceiptFilters = {}
   ): Observable<PurchaseApiListData<GoodsReceipt>> {
-  
+
     const params =
       this.buildQueryParams(
         filters
       );
-  
-  
+
+
     return this.api.get<
       PurchaseApiListData<GoodsReceipt>
     >(
@@ -70,6 +70,12 @@ export class GoodsReceiptService {
 
   /* ============================================================
      CREATE GOODS RECEIPT
+
+     Junior:
+     - backend creates pending_approval GRN.
+
+     Senior:
+     - backend creates immediately approved GRN.
   ============================================================ */
 
   create(
@@ -86,22 +92,76 @@ export class GoodsReceiptService {
 
 
   /* ============================================================
-     STATUS COUNTS
+     APPROVE PENDING GRN
   ============================================================ */
 
-  getStatusCounts():
-    Observable<GoodsReceiptStatusCounts> {
+  approve(
+    id: string
+  ): Observable<GoodsReceipt> {
+
+    return this.api.patch<
+      GoodsReceipt
+    >(
+      `${this.baseUrl}/${id}/approve`,
+      {}
+    );
+  }
+
+
+  /* ============================================================
+     REJECT PENDING GRN
+  ============================================================ */
+
+  reject(
+    id: string,
+    reason: string
+  ): Observable<GoodsReceipt> {
+
+    return this.api.patch<
+      GoodsReceipt
+    >(
+      `${this.baseUrl}/${id}/reject`,
+      {
+        reason
+      }
+    );
+  }
+
+
+  /* ============================================================
+     STATUS COUNTS
+
+     Supports:
+     - Junior own counts automatically.
+     - Senior scope=my.
+     - Senior scope=team.
+  ============================================================ */
+
+  getStatusCounts(
+    filters: GoodsReceiptFilters = {}
+  ): Observable<GoodsReceiptStatusCounts> {
+
+    const params =
+      this.buildQueryParams(
+        filters
+      );
+
 
     return this.api.get<
       GoodsReceiptStatusCounts
     >(
-      `${this.baseUrl}/status-counts`
+      `${this.baseUrl}/status-counts`,
+      params
     );
   }
 
 
   /* ============================================================
      PURCHASE ORDER GRN HISTORY
+
+     Backend automatically applies:
+     - Junior own history only.
+     - Senior complete team history.
   ============================================================ */
 
   getByPurchaseOrder(
@@ -118,6 +178,9 @@ export class GoodsReceiptService {
 
   /* ============================================================
      PURCHASE ORDER RECEIPT SUMMARY
+
+     Operational PO-level summary.
+     Backend intentionally does not employee-scope this endpoint.
   ============================================================ */
 
   getPurchaseOrderReceiptSummary(
@@ -173,6 +236,24 @@ export class GoodsReceiptService {
 
       params['status'] =
         filters.status;
+    }
+
+
+    if (
+      filters.approvalStatus
+    ) {
+
+      params['approvalStatus'] =
+        filters.approvalStatus;
+    }
+
+
+    if (
+      filters.scope
+    ) {
+
+      params['scope'] =
+        filters.scope;
     }
 
 

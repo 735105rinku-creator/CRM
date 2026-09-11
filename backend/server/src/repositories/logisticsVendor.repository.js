@@ -19,6 +19,24 @@ class LogisticsVendorRepository {
   }
 
 
+  async findDuplicate({ companyId, vendorName, gstNumber, panNumber }) {
+
+    const matches = [];
+
+    if (String(gstNumber || "").trim()) matches.push({ gstNumber: String(gstNumber).trim().toUpperCase() });
+    if (String(panNumber || "").trim()) matches.push({ panNumber: String(panNumber).trim().toUpperCase() });
+    if (String(vendorName || "").trim()) matches.push({ vendorName: new RegExp(`^${escapeRegex(String(vendorName).trim())}$`, "i") });
+
+    if (!matches.length) return null;
+
+    return LogisticsVendor.findOne({
+      companyId,
+      isActive: { $ne: false },
+      $or: matches,
+    }).select("_id vendorCode vendorName gstNumber panNumber").lean();
+  }
+
+
   /* ============================================================
      FIND BY ID
 

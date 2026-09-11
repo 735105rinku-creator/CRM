@@ -6,7 +6,9 @@ import {
   getGoodsReceiptById,
   getGoodsReceiptsByPurchaseOrder,
   getPurchaseOrderReceiptSummary,
-  getGoodsReceiptStatusCounts
+  getGoodsReceiptStatusCounts,
+  approveGoodsReceipt,
+  rejectGoodsReceipt
 } from "../controllers/goodsReceipt.controller.js";
 
 
@@ -62,6 +64,9 @@ router.post(
   "/",
   createGoodsReceipt
 );
+
+router.patch("/:id/approve", approveGoodsReceipt);
+router.patch("/:id/reject", rejectGoodsReceipt);
 
 router.get(
   "/:id",

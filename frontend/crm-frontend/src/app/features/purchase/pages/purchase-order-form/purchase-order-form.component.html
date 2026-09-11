@@ -399,6 +399,21 @@
         <div class="form-grid form-grid--3">
   
           <label class="form-field">
+            <span>Delivery Type <em>*</em></span>
+            <select formControlName="deliveryType" (change)="onDeliveryTypeChange()">
+              <option *ngFor="let option of deliveryTypeOptions" [value]="option.value">
+                {{ option.label }}
+              </option>
+            </select>
+          </label>
+
+          <label *ngIf="deliveryType === 'other'" class="form-field">
+            <span>Specify Delivery Type <em>*</em></span>
+            <input type="text" formControlName="otherDeliveryType" [class.field-invalid]="fieldInvalid('otherDeliveryType')" />
+            <small *ngIf="fieldInvalid('otherDeliveryType')" class="field-error">Specify Delivery Type is required.</small>
+          </label>
+
+          <label class="form-field">
   
             <span>
               PO Date
@@ -423,7 +438,7 @@
           </label>
   
   
-          <label class="form-field">
+          <label *ngIf="deliveryType === 'company_warehouse'" class="form-field">
   
             <span>
               Warehouse / Delivery Location
@@ -492,6 +507,24 @@
           </label>
   
   
+          <ng-container *ngIf="deliveryType !== 'company_warehouse'">
+            <label class="form-field">
+              <span>Location Name <em>*</em></span>
+              <input type="text" formControlName="deliveryLocationName" [class.field-invalid]="fieldInvalid('deliveryLocationName')" />
+              <small *ngIf="fieldInvalid('deliveryLocationName')" class="field-error">Location name is required.</small>
+            </label>
+
+            <label class="form-field">
+              <span>Contact Person</span>
+              <input type="text" formControlName="deliveryContactPerson" />
+            </label>
+
+            <label class="form-field">
+              <span>Contact Number</span>
+              <input type="text" formControlName="deliveryContactNumber" />
+            </label>
+          </ng-container>
+
           <label class="form-field form-field--full">
   
             <span>
@@ -967,6 +1000,26 @@
                 ? 'Update Purchase Order'
                 : 'Create Purchase Order'
           }}
+        </button>
+
+        <button
+          *ngIf="canApprovePurchaseOrder"
+          type="button"
+          class="nm-button nm-button--primary"
+          [disabled]="isProcessingAction"
+          (click)="approvePurchaseOrder()"
+        >
+          {{ isProcessingAction ? 'Approving...' : 'Approve' }}
+        </button>
+
+        <button
+          *ngIf="purchaseOrder?.status === 'approved'"
+          type="button"
+          class="nm-button nm-button--primary"
+          [disabled]="isProcessingAction"
+          (click)="sendPurchaseOrder()"
+        >
+          {{ isProcessingAction ? 'Sending...' : 'Send' }}
         </button>
   
       </footer>

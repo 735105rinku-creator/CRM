@@ -11,6 +11,11 @@ import {
   ApiError
 } from "../utils/apiError.js";
 
+import {
+  findPurchaseSeniorUserId,
+  sendPurchaseWorkflowNotification,
+} from "./purchaseWorkflowNotification.service.js";
+
 
 /* ============================================================
    HELPERS
@@ -736,29 +741,36 @@ class PurchaseQuotationService {
     }
 
 
-    const [
-      vendorResult,
-      purchaseRequest,
-      vendorEnquiry
-    ] =
-      await Promise.all([
+    const vendorEnquiry =
+  await this.resolveVendorEnquiry(
+    companyId,
+    payload.vendorEnquiryId
+  );
 
-        this.resolveVendor(
-          companyId,
-          payload.vendorId
-        ),
 
-        this.resolvePurchaseRequest(
-          companyId,
-          payload.purchaseRequestId
-        ),
+const effectivePurchaseRequestId =
+  payload.purchaseRequestId ||
+  vendorEnquiry?.purchaseRequestId ||
+  null;
 
-        this.resolveVendorEnquiry(
-          companyId,
-          payload.vendorEnquiryId
-        )
 
-      ]);
+const [
+  vendorResult,
+  purchaseRequest
+] =
+  await Promise.all([
+
+    this.resolveVendor(
+      companyId,
+      payload.vendorId
+    ),
+
+    this.resolvePurchaseRequest(
+      companyId,
+      effectivePurchaseRequestId
+    )
+
+  ]);
 
 
     this.validateReferences({
@@ -899,6 +911,25 @@ class PurchaseQuotationService {
           updatedBy:
             userId
         });
+
+
+    const approverUserId =
+      await findPurchaseSeniorUserId({
+        companyId,
+        requesterUserId: userId,
+      });
+
+
+    await sendPurchaseWorkflowNotification({
+      companyId,
+      recipientUserId: approverUserId,
+      senderUserId: userId,
+      title: "Quotation awaiting selection",
+      message: `${created.quotationNumber || "Purchase quotation"} requires your review and selection.`,
+      entityType: "PurchaseQuotation",
+      entityId: created._id,
+      actionUrl: `/purchase/quotations/${created._id}`,
+    });
 
 
     return created;
@@ -1459,6 +1490,18 @@ class PurchaseQuotationService {
       );
 
 
+    await sendPurchaseWorkflowNotification({
+      companyId,
+      recipientUserId: quotation.createdBy,
+      senderUserId: userId,
+      title: "Purchase quotation selected",
+      message: `${quotation.quotationNumber || "Purchase quotation"} has been selected.`,
+      entityType: "PurchaseQuotation",
+      entityId: quotation._id,
+      actionUrl: `/purchase/quotations/${quotation._id}`,
+    });
+
+
     return this.getById(
       companyId,
       quotationId
@@ -1529,6 +1572,18 @@ class PurchaseQuotationService {
         "Quotation could not be rejected because its workflow state changed."
       );
     }
+
+
+    await sendPurchaseWorkflowNotification({
+      companyId,
+      recipientUserId: quotation.createdBy,
+      senderUserId: this.userIdOf(user),
+      title: "Purchase quotation rejected",
+      message: `${quotation.quotationNumber || "Purchase quotation"} has been rejected.`,
+      entityType: "PurchaseQuotation",
+      entityId: quotation._id,
+      actionUrl: `/purchase/quotations/${quotation._id}`,
+    });
 
 
     return rejected;

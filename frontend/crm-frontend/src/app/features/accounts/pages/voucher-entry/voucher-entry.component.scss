@@ -469,3 +469,11 @@ th {
     align-self: flex-end;
   }
 }
+
+.allocation-card {
+  width: min(980px, calc(100vw - 32px));
+}
+
+.allocation-card td input {
+  width: 130px;
+}

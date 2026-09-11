@@ -655,6 +655,127 @@ import {
         ''
       );
     }
+
+
+    getRaisedByName(): string {
+
+      const request =
+        this.existingRequest;
+
+
+      if (!request) {
+
+        return '—';
+      }
+
+
+      if (request.requestedByName?.trim()) {
+
+        return request.requestedByName;
+      }
+
+
+      const requestedBy =
+        request.requestedBy;
+
+
+      if (
+        !requestedBy ||
+        typeof requestedBy === 'string'
+      ) {
+
+        return (
+          request.requestedEmployeeCode ||
+          '—'
+        );
+      }
+
+
+      return (
+        requestedBy.name ||
+        requestedBy.fullName ||
+        requestedBy.employeeName ||
+        requestedBy.employeeCode ||
+        request.requestedEmployeeCode ||
+        '—'
+      );
+    }
+
+
+    getActionedByName(): string {
+
+      const request =
+        this.existingRequest;
+
+
+      const actionedBy =
+        request?.status === 'approved'
+          ? request.approvedBy
+          : request?.status === 'rejected'
+            ? request.rejectedBy
+            : null;
+
+
+      if (
+        !actionedBy ||
+        typeof actionedBy === 'string'
+      ) {
+
+        return '—';
+      }
+
+
+      return (
+        actionedBy.name ||
+        actionedBy.fullName ||
+        actionedBy.employeeName ||
+        '—'
+      );
+    }
+
+
+    getActionedAt(): string {
+
+      const request =
+        this.existingRequest;
+
+
+      const value =
+        request?.status === 'approved'
+          ? request.approvedAt
+          : request?.status === 'rejected'
+            ? request.rejectedAt
+            : null;
+
+
+      if (!value) {
+
+        return '—';
+      }
+
+
+      const date =
+        new Date(value);
+
+
+      if (Number.isNaN(date.getTime())) {
+
+        return '—';
+      }
+
+
+      return new Intl.DateTimeFormat(
+        'en-IN',
+        {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true
+        }
+      ).format(date);
+    }
   
   
     /* ============================================================

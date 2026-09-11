@@ -1,0 +1,1282 @@
+<section class="invoice-page">
+
+  <!-- =========================================================
+       PAGE HEADER
+  ========================================================== -->
+
+  <header class="page-header">
+
+    <div class="page-title-block">
+
+      <div class="page-eyebrow">
+        <span class="eyebrow-dot"></span>
+        PURCHASE OPERATIONS
+      </div>
+
+      <h1>
+        Vendor Invoices
+      </h1>
+
+      <p>
+        Capture supplier invoices, review 3-way matching and hand
+        verified payables to Accounts.
+      </p>
+
+    </div>
+
+
+    <div class="page-header-actions">
+
+      <button
+        type="button"
+        class="primary-action"
+        (click)="openForm()"
+      >
+        <span class="action-icon">+</span>
+
+        <span>
+          New Invoice
+        </span>
+      </button>
+
+    </div>
+
+  </header>
+
+
+  <!-- =========================================================
+       ALERTS
+  ========================================================== -->
+
+  <div
+    *ngIf="message()"
+    class="notice success"
+  >
+    <span class="notice-icon">
+      ✓
+    </span>
+
+    <span>
+      {{ message() }}
+    </span>
+  </div>
+
+
+  <div
+    *ngIf="error()"
+    class="notice error"
+  >
+    <span class="notice-icon">
+      !
+    </span>
+
+    <span>
+      {{ error() }}
+    </span>
+  </div>
+
+
+  <!-- =========================================================
+       FILTERS
+  ========================================================== -->
+
+  <section class="filters-card">
+
+    <div class="filter-heading">
+
+      <div>
+        <h3>
+          Invoice Register
+        </h3>
+
+        <p>
+          Search and filter vendor invoice records
+        </p>
+      </div>
+
+    </div>
+
+
+    <div class="filters">
+
+      <div class="search-field">
+
+        <input
+          type="search"
+          [(ngModel)]="search"
+          placeholder="Search invoice, vendor, PO or GRN"
+          (keyup.enter)="load()"
+        >
+
+      </div>
+
+
+      <div class="filter-field">
+
+        <label>
+          Verification
+        </label>
+
+        <select
+          [(ngModel)]="status"
+        >
+          <option value="">
+            All verification states
+          </option>
+
+          <option value="matched">
+            Matched
+          </option>
+
+          <option value="exception">
+            Exception
+          </option>
+
+          <option value="verified">
+            Verified
+          </option>
+        </select>
+
+      </div>
+
+
+      <div class="filter-field">
+
+        <label>
+          Accounts Handoff
+        </label>
+
+        <select
+          [(ngModel)]="handoffStatus"
+        >
+          <option value="">
+            All AP states
+          </option>
+
+          <option value="not_handed_off">
+            Not handed off
+          </option>
+
+          <option value="handed_off">
+            Handed off
+          </option>
+
+          <option value="failed">
+            Failed
+          </option>
+        </select>
+
+      </div>
+
+
+      <div class="filter-field">
+
+        <label>
+          Payment
+        </label>
+
+        <select
+          [(ngModel)]="paymentStatus"
+        >
+          <option value="">
+            All payment states
+          </option>
+
+          <option value="unpaid">
+            Unpaid
+          </option>
+
+          <option value="partially_paid">
+            Partially Paid
+          </option>
+
+          <option value="paid">
+            Paid
+          </option>
+        </select>
+
+      </div>
+
+
+      <button
+        type="button"
+        class="apply-button"
+        (click)="load()"
+      >
+        Apply Filters
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <!-- =========================================================
+       INVOICE TABLE
+  ========================================================== -->
+
+  <section class="table-card">
+
+
+    <!-- Loading -->
+
+    <div
+      *ngIf="loading()"
+      class="state loading-state"
+    >
+
+      <div class="state-icon">
+        ↻
+      </div>
+
+      <div>
+        <strong>
+          Loading invoices
+        </strong>
+
+        <p>
+          Fetching vendor invoice records...
+        </p>
+      </div>
+
+    </div>
+
+
+    <!-- Empty -->
+
+    <div
+      *ngIf="!loading() && !invoices().length"
+      class="state empty-state"
+    >
+
+      <div class="empty-icon">
+        &#128196;
+      </div>
+
+      <h3>
+        No vendor invoices yet
+      </h3>
+
+      <p>
+        Vendor invoices will appear here once they are created
+        against received Purchase Orders and GRNs.
+      </p>
+
+      <button
+        type="button"
+        class="secondary-action"
+        (click)="openForm()"
+      >
+        + Create First Invoice
+      </button>
+
+    </div>
+
+
+    <!-- Table -->
+
+    <div
+      class="table-wrap"
+      *ngIf="!loading() && invoices().length"
+    >
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>Invoice</th>
+
+            <th>Date</th>
+
+            <th>Vendor</th>
+
+            <th>PO / GRN</th>
+
+            <th class="amount-column">
+              Invoice Total
+            </th>
+
+            <th class="amount-column">
+              Paid
+            </th>
+
+            <th class="amount-column">
+              Outstanding
+            </th>
+
+            <th>Payment</th>
+
+            <th>Match</th>
+
+            <th>Verification</th>
+
+            <th>Accounts</th>
+
+            <th class="action-column">
+              Actions
+            </th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          <tr
+            *ngFor="let row of invoices()"
+          >
+
+            <td>
+
+              <div class="invoice-number">
+
+                <span class="invoice-icon">
+                  I
+                </span>
+
+                <strong>
+                  {{ row.vendorInvoiceNumber }}
+                </strong>
+
+              </div>
+
+            </td>
+
+
+            <td>
+              {{ row.invoiceDate | date:'dd MMM yyyy' }}
+            </td>
+
+
+            <td>
+
+              <div class="vendor-cell">
+
+                <strong>
+                  {{ row.vendorName }}
+                </strong>
+
+              </div>
+
+            </td>
+
+
+            <td>
+
+              <strong>
+                {{ row.poNumber }}
+              </strong>
+
+              <small
+                *ngIf="row.grnNumbers.length"
+              >
+                {{ row.grnNumbers.join(', ') }}
+              </small>
+
+            </td>
+
+
+            <td class="amount-column">
+
+              <strong>
+                &#8377;{{ row.invoiceTotal | number:'1.2-2' }}
+              </strong>
+
+            </td>
+
+
+            <td class="amount-column">
+              &#8377;{{ row.paidAmount | number:'1.2-2' }}
+            </td>
+
+
+            <td class="amount-column">
+
+              <strong>
+                &#8377;{{ row.outstandingAmount | number:'1.2-2' }}
+              </strong>
+
+            </td>
+
+
+            <td>
+
+              <span
+                class="pill payment-pill"
+                [class.payment-paid]="row.paymentStatus === 'paid'"
+                [class.payment-partial]="row.paymentStatus === 'partially_paid'"
+                [class.payment-unpaid]="row.paymentStatus === 'unpaid'"
+              >
+                {{ paymentStatusLabel(row.paymentStatus) }}
+              </span>
+
+            </td>
+
+
+            <td>
+
+              <span
+                class="pill"
+                [class.success-pill]="row.matchStatus === 'matched'"
+                [class.bad]="row.matchStatus === 'exception'"
+              >
+                {{ row.matchStatus | titlecase }}
+              </span>
+
+              <small
+                class="issue-text"
+                *ngIf="row.mismatchReasons.length"
+              >
+                {{ row.mismatchReasons.length }} issue(s)
+              </small>
+
+            </td>
+
+
+            <td>
+
+              <span class="status-text">
+                {{ row.status | titlecase }}
+              </span>
+
+            </td>
+
+
+            <td>
+
+              <span class="handoff-status">
+                {{ row.handoffStatus | titlecase }}
+              </span>
+
+              <small
+                *ngIf="row.accountsVoucherNumber"
+              >
+                {{ row.accountsVoucherNumber }}
+              </small>
+
+              <small
+                class="issue-text"
+                *ngIf="row.handoffError"
+              >
+                {{ row.handoffError }}
+              </small>
+
+            </td>
+
+
+            <td>
+
+              <div class="row-actions">
+
+                <!-- VIEW -->
+
+                <button
+                  type="button"
+                  class="table-action view-action"
+                  (click)="openDetail(row)"
+                >
+                  View
+                </button>
+
+
+                <!-- EDIT -->
+
+                <button
+                  type="button"
+                  class="table-action edit-action"
+                  *ngIf="canEditInvoice(row)"
+                  [disabled]="saving()"
+                  (click)="editInvoice(row)"
+                >
+                  Edit
+                </button>
+
+
+                <!-- VERIFY -->
+
+                <button
+                  type="button"
+                  class="table-action verify-action"
+                  *ngIf="
+                    canApprove() &&
+                    row.status === 'matched'
+                  "
+                  [disabled]="saving()"
+                  (click)="verify(row)"
+                >
+                  Verify
+                </button>
+
+
+                <!-- SEND TO ACCOUNTS -->
+
+                <button
+                  type="button"
+                  class="table-action accounts-action"
+                  *ngIf="
+                    canApprove() &&
+                    row.status === 'verified' &&
+                    row.handoffStatus !== 'handed_off'
+                  "
+                  [disabled]="
+                    saving() ||
+                    row.handoffStatus === 'handing_off'
+                  "
+                  (click)="handoff(row)"
+                >
+                  Send to Accounts
+                </button>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </section>
+
+
+  <!-- =========================================================
+       INVOICE DETAIL MODAL
+  ========================================================== -->
+
+  <div
+    class="modal"
+    *ngIf="selectedInvoice() as row"
+  >
+
+    <section class="form-card detail-card">
+
+      <header class="modal-header">
+
+        <div>
+
+          <span class="modal-eyebrow">
+            VENDOR INVOICE
+          </span>
+
+          <h2>
+            {{ row.vendorInvoiceNumber }}
+          </h2>
+
+        </div>
+
+
+        <button
+          type="button"
+          class="modal-close"
+          (click)="closeDetail()"
+          aria-label="Close"
+        >
+          &times;
+        </button>
+
+      </header>
+
+
+      <div class="detail-summary">
+
+        <div class="detail-item">
+
+          <span>
+            Vendor
+          </span>
+
+          <strong>
+            {{ row.vendorName }}
+          </strong>
+
+        </div>
+
+
+        <div class="detail-item">
+
+          <span>
+            Purchase Order
+          </span>
+
+          <strong>
+            {{ row.poNumber }}
+          </strong>
+
+        </div>
+
+
+        <div class="detail-item">
+
+          <span>
+            GRNs
+          </span>
+
+          <strong>
+            {{ row.grnNumbers.join(', ') || '-' }}
+          </strong>
+
+        </div>
+
+
+        <div class="detail-item">
+
+          <span>
+            Invoice Date
+          </span>
+
+          <strong>
+            {{ row.invoiceDate | date:'dd MMM yyyy' }}
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      <div class="financial-summary">
+
+        <div class="financial-card">
+
+          <span>
+            Invoice Total
+          </span>
+
+          <strong>
+            &#8377;{{ row.invoiceTotal | number:'1.2-2' }}
+          </strong>
+
+        </div>
+
+
+        <div class="financial-card">
+
+          <span>
+            Paid
+          </span>
+
+          <strong>
+            &#8377;{{ row.paidAmount | number:'1.2-2' }}
+          </strong>
+
+        </div>
+
+
+        <div class="financial-card">
+
+          <span>
+            Outstanding
+          </span>
+
+          <strong>
+            &#8377;{{ row.outstandingAmount | number:'1.2-2' }}
+          </strong>
+
+        </div>
+
+
+        <div class="financial-card">
+
+          <span>
+            Payment Status
+          </span>
+
+          <strong>
+            {{ paymentStatusLabel(row.paymentStatus) }}
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      <div class="detail-summary">
+
+        <div class="detail-item">
+
+          <span>
+            Matching
+          </span>
+
+          <strong>
+            {{ row.matchStatus | titlecase }}
+          </strong>
+
+        </div>
+
+
+        <div class="detail-item">
+
+          <span>
+            Accounts Handoff
+          </span>
+
+          <strong>
+            {{ row.handoffStatus | titlecase }}
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      <div
+        *ngIf="row.mismatchReasons.length"
+        class="notice error matching-errors"
+      >
+
+        <strong>
+          Matching exceptions
+        </strong>
+
+        <ul>
+
+          <li
+            *ngFor="let reason of row.mismatchReasons"
+          >
+            {{ reason }}
+          </li>
+
+        </ul>
+
+      </div>
+
+
+      <div
+        class="detail-actions"
+        *ngIf="canEditInvoice(row)"
+      >
+
+        <button
+          type="button"
+          class="edit-action"
+          [disabled]="saving()"
+          (click)="editInvoice(row)"
+        >
+          Edit Invoice
+        </button>
+
+      </div>
+
+    </section>
+
+  </div>
+
+
+  <!-- =========================================================
+       CREATE / EDIT INVOICE MODAL
+  ========================================================== -->
+
+  <div
+    class="modal"
+    *ngIf="formOpen()"
+  >
+
+    <section class="form-card">
+
+      <header class="modal-header">
+
+        <div>
+
+          <span class="modal-eyebrow">
+            PURCHASE OPERATIONS
+          </span>
+
+          <h2>
+            {{ formTitle() }}
+          </h2>
+
+          <p *ngIf="!isEditMode()">
+            Select received PO and GRN details to create and match
+            the supplier invoice.
+          </p>
+
+          <p *ngIf="isEditMode()">
+            Correct the supplier invoice information and run
+            3-way matching again before verification.
+          </p>
+
+        </div>
+
+
+        <button
+          type="button"
+          class="modal-close"
+          (click)="closeForm()"
+          aria-label="Close"
+        >
+          &times;
+        </button>
+
+      </header>
+
+
+      <!-- =====================================================
+           01 INVOICE REFERENCE
+      ====================================================== -->
+
+      <div class="form-section">
+
+        <div class="section-title">
+
+          <span class="section-number">
+            01
+          </span>
+
+          <div>
+
+            <h3>
+              Invoice Reference
+            </h3>
+
+            <p>
+              Select the related Purchase Order and invoice information
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div class="grid">
+
+          <label>
+
+            <span>
+              Purchase Order
+            </span>
+
+            <select
+              [(ngModel)]="purchaseOrderId"
+              (change)="selectPurchaseOrder()"
+              [disabled]="isEditMode()"
+            >
+
+              <option value="">
+                Select received PO
+              </option>
+
+              <option
+                *ngFor="let po of purchaseOrders()"
+                [value]="po._id"
+              >
+                {{ po.poNumber }} — {{ po.vendorName }}
+              </option>
+
+            </select>
+
+            <small
+              class="field-hint"
+              *ngIf="isEditMode()"
+            >
+              Purchase Order cannot be changed while correcting an invoice.
+            </small>
+
+          </label>
+
+
+          <label>
+
+            <span>
+              Vendor Invoice Number
+            </span>
+
+            <input
+              type="text"
+              [(ngModel)]="vendorInvoiceNumber"
+              placeholder="Enter supplier invoice number"
+            >
+
+          </label>
+
+
+          <label>
+
+            <span>
+              Invoice Date
+            </span>
+
+            <input
+              type="date"
+              [(ngModel)]="invoiceDate"
+            >
+
+          </label>
+
+
+          <label>
+
+            <span>
+              Received Date
+            </span>
+
+            <input
+              type="date"
+              [(ngModel)]="receivedDate"
+            >
+
+          </label>
+
+        </div>
+
+      </div>
+
+
+      <!-- =====================================================
+           02 GRN
+      ====================================================== -->
+
+      <div
+        class="form-section"
+        *ngIf="receipts().length"
+      >
+
+        <div class="section-title">
+
+          <span class="section-number">
+            02
+          </span>
+
+          <div>
+
+            <h3>
+              Eligible GRNs
+            </h3>
+
+            <p>
+              Select the Goods Receipt records covered by this invoice
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div class="grns">
+
+          <label
+            class="grn-option"
+            *ngFor="let grn of receipts()"
+          >
+
+            <input
+              type="checkbox"
+              [checked]="isReceiptSelected(grn._id)"
+              (change)="
+                toggleReceipt(
+                  grn._id,
+                  $any($event.target).checked
+                )
+              "
+            >
+
+            <span class="grn-check"></span>
+
+
+            <span class="grn-info">
+
+              <strong>
+                {{ grn.grnNumber }}
+              </strong>
+
+              <small>
+                {{ grn.receiptDate | date:'dd MMM yyyy' }}
+              </small>
+
+            </span>
+
+          </label>
+
+        </div>
+
+      </div>
+
+
+      <!-- =====================================================
+           03 ITEMS
+      ====================================================== -->
+
+      <div
+        class="form-section"
+        *ngIf="items.length"
+      >
+
+        <div class="section-title">
+
+          <span class="section-number">
+            03
+          </span>
+
+          <div>
+
+            <h3>
+              Invoice Items
+            </h3>
+
+            <p>
+              Enter supplier billed quantity, price and tax
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div class="table-wrap item-table">
+
+          <table>
+
+            <thead>
+
+              <tr>
+
+                <th>
+                  Item
+                </th>
+
+                <th>
+                  Quantity
+                </th>
+
+                <th>
+                  Unit Price
+                </th>
+
+                <th>
+                  Tax %
+                </th>
+
+                <th>
+                  Total
+                </th>
+
+              </tr>
+
+            </thead>
+
+
+            <tbody>
+
+              <tr
+                *ngFor="let item of items"
+              >
+
+                <td>
+
+                  <strong>
+                    {{ item.itemName }}
+                  </strong>
+
+                  <small>
+                    {{ item.unit }}
+                  </small>
+
+                </td>
+
+
+                <td>
+
+                  <input
+                    type="number"
+                    min="0.000001"
+                    step="any"
+                    [(ngModel)]="item.invoicedQuantity"
+                  >
+
+                </td>
+
+
+                <td>
+
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    [(ngModel)]="item.unitPrice"
+                  >
+
+                </td>
+
+
+                <td>
+
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    [(ngModel)]="item.taxPercent"
+                  >
+
+                </td>
+
+
+                <td>
+
+                  <strong>
+                    &#8377;{{ amount(item) | number:'1.2-2' }}
+                  </strong>
+
+                </td>
+
+              </tr>
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+
+      <!-- =====================================================
+           04 CHARGES
+      ====================================================== -->
+
+      <div class="form-section">
+
+        <div class="section-title">
+
+          <span class="section-number">
+            04
+          </span>
+
+          <div>
+
+            <h3>
+              Charges & Total
+            </h3>
+
+            <p>
+              Enter invoice charges and supplier declared total
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div class="grid">
+
+          <label>
+
+            <span>
+              Freight Charges
+            </span>
+
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              [(ngModel)]="freightCharges"
+            >
+
+          </label>
+
+
+          <label>
+
+            <span>
+              Other Charges
+            </span>
+
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              [(ngModel)]="otherCharges"
+            >
+
+          </label>
+
+
+          <label>
+
+            <span>
+              Supplier Invoice Total
+            </span>
+
+            <input
+              type="number"
+              min="0.01"
+              step="0.01"
+              [(ngModel)]="declaredInvoiceTotal"
+            >
+
+          </label>
+
+
+          <label class="wide">
+
+            <span>
+              Remarks
+            </span>
+
+            <textarea
+              [(ngModel)]="remarks"
+              placeholder="Enter invoice remarks"
+              rows="3"
+            ></textarea>
+
+          </label>
+
+        </div>
+
+      </div>
+
+
+      <!-- =====================================================
+           FOOTER
+      ====================================================== -->
+
+      <footer class="modal-footer">
+
+        <div class="calculated-total">
+
+          <span>
+            Calculated Total
+          </span>
+
+          <strong>
+            &#8377;{{ draftTotal() | number:'1.2-2' }}
+          </strong>
+
+        </div>
+
+
+        <div class="footer-actions">
+
+          <button
+            type="button"
+            class="cancel-button"
+            [disabled]="saving()"
+            (click)="closeForm()"
+          >
+            Cancel
+          </button>
+
+
+          <button
+            type="button"
+            class="save-button"
+            [disabled]="saving()"
+            (click)="save()"
+          >
+            {{ saveButtonLabel() }}
+          </button>
+
+        </div>
+
+      </footer>
+
+    </section>
+
+  </div>
+
+</section>

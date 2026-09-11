@@ -1,1181 +1,1189 @@
 <section class="vendor-enquiries-page">
 
-    <!-- =========================================================
-         PAGE HEADER
-    ========================================================== -->
-  
-    <div class="page-header">
-  
-      <div class="page-title-wrap">
-  
-        <div class="eyebrow">
-          Purchase Department
-        </div>
-  
-        <h1>
-          Vendor Enquiries / RFQ
-        </h1>
-  
-        <p>
-          Create vendor enquiries, send RFQs, record received quotations,
-          and track enquiry status.
-        </p>
-  
+  <!-- =========================================================
+       PAGE HEADER
+  ========================================================== -->
+
+  <div class="page-header">
+
+    <div class="page-title-wrap">
+
+      <div class="eyebrow">
+        Purchase Department
       </div>
-  
-  
-      <div class="page-header-actions">
-  
-        <button
-          type="button"
-          class="btn btn-secondary"
-          (click)="refresh()"
-          [disabled]="isLoading">
-  
-          <span class="btn-icon">
-            ↻
-          </span>
-  
-          <span>
-            Refresh
-          </span>
-  
-        </button>
-  
-  
-        <a
-          class="btn btn-primary"
-          routerLink="/purchase/vendor-enquiries/new">
-  
-          <span class="btn-icon">
-            +
-          </span>
-  
-          <span>
-            New Vendor Enquiry
-          </span>
-  
-        </a>
-  
-      </div>
-  
+
+      <h1>
+        Vendor Enquiries / RFQ
+      </h1>
+
+      <p>
+        Create vendor enquiries, send RFQs, record received quotations,
+        and track enquiry status.
+      </p>
+
     </div>
-  
-  
-    <!-- =========================================================
-         SUCCESS / ERROR MESSAGES
-    ========================================================== -->
-  
-    <div
-      *ngIf="successMessage"
-      class="message-box message-box--success">
-  
-      <div class="message-content">
-  
-        <span class="message-icon">
-          ✓
+
+
+    <div class="page-header-actions">
+
+      <button
+        type="button"
+        class="btn btn-secondary"
+        (click)="refresh()"
+        [disabled]="isLoading">
+
+        <span class="btn-icon">
+          ↻
         </span>
-  
+
         <span>
-          {{ successMessage }}
+          Refresh
         </span>
-  
-      </div>
-  
-  
-      <button
-        type="button"
-        class="message-close"
-        (click)="clearMessages()"
-        aria-label="Close success message">
-  
-        ×
-  
+
       </button>
-  
-    </div>
-  
-  
-    <div
-      *ngIf="errorMessage"
-      class="message-box message-box--error">
-  
-      <div class="message-content">
-  
-        <span class="message-icon">
-          !
+
+
+      <a
+        class="btn btn-primary"
+        routerLink="/purchase/vendor-enquiries/new">
+
+        <span class="btn-icon">
+          +
         </span>
-  
+
         <span>
-          {{ errorMessage }}
+          New Vendor Enquiry
         </span>
-  
-      </div>
-  
-  
-      <button
-        type="button"
-        class="message-close"
-        (click)="clearMessages()"
-        aria-label="Close error message">
-  
-        ×
-  
-      </button>
-  
+
+      </a>
+
     </div>
-  
-  
-    <!-- =========================================================
-         SUMMARY CARDS
-    ========================================================== -->
-  
-    <div class="summary-grid">
-  
-      <button
-        type="button"
-        class="summary-card"
-        (click)="filterForm.patchValue({ status: '' })">
-  
-        <span class="summary-label">
-          Total Enquiries
-        </span>
-  
-        <strong class="summary-value">
-          {{ isCountsLoading ? '...' : statusCounts.total }}
-        </strong>
-  
-        <span class="summary-note">
-          All vendor enquiries
-        </span>
-  
-      </button>
-  
-  
-      <button
-        type="button"
-        class="summary-card"
-        (click)="filterForm.patchValue({ status: 'draft' })">
-  
-        <span class="summary-label">
-          Draft
-        </span>
-  
-        <strong class="summary-value">
-          {{ isCountsLoading ? '...' : statusCounts.draft }}
-        </strong>
-  
-        <span class="summary-note">
-          Not yet sent
-        </span>
-  
-      </button>
-  
-  
-      <button
-        type="button"
-        class="summary-card"
-        (click)="filterForm.patchValue({ status: 'requested' })">
-  
-        <span class="summary-label">
-          Requested
-        </span>
-  
-        <strong class="summary-value">
-          {{ isCountsLoading ? '...' : statusCounts.requested }}
-        </strong>
-  
-        <span class="summary-note">
-          RFQ sent
-        </span>
-  
-      </button>
-  
-  
-      <button
-        type="button"
-        class="summary-card"
-        (click)="filterForm.patchValue({ status: 'received' })">
-  
-        <span class="summary-label">
-          Received
-        </span>
-  
-        <strong class="summary-value">
-          {{ isCountsLoading ? '...' : statusCounts.received }}
-        </strong>
-  
-        <span class="summary-note">
-          Quotation received
-        </span>
-  
-      </button>
-  
-  
-      <button
-        type="button"
-        class="summary-card"
-        (click)="filterForm.patchValue({ status: 'closed' })">
-  
-        <span class="summary-label">
-          Closed
-        </span>
-  
-        <strong class="summary-value">
-          {{ isCountsLoading ? '...' : statusCounts.closed }}
-        </strong>
-  
-        <span class="summary-note">
-          Completed enquiries
-        </span>
-  
-      </button>
-  
-  
-      <button
-        type="button"
-        class="summary-card"
-        (click)="filterForm.patchValue({ status: 'cancelled' })">
-  
-        <span class="summary-label">
-          Cancelled
-        </span>
-  
-        <strong class="summary-value">
-          {{ isCountsLoading ? '...' : statusCounts.cancelled }}
-        </strong>
-  
-        <span class="summary-note">
-          Cancelled enquiries
-        </span>
-  
-      </button>
-  
+
+  </div>
+
+
+  <!-- =========================================================
+       SUCCESS / ERROR MESSAGES
+  ========================================================== -->
+
+  <div
+    *ngIf="successMessage"
+    class="message-box message-box--success">
+
+    <div class="message-content">
+
+      <span class="message-icon">
+        ✓
+      </span>
+
+      <span>
+        {{ successMessage }}
+      </span>
+
     </div>
-  
-  
-    <!-- =========================================================
-         FILTERS
-    ========================================================== -->
-  
-    <div class="filter-card">
-  
-      <div class="filter-card-header">
-  
-        <div>
-  
-          <h2>
-            Search & Filters
-          </h2>
-  
-          <p>
-            Find vendor enquiries by reference, vendor, item, status,
-            source, or date.
-          </p>
-  
-        </div>
-  
-  
-        <button
-          type="button"
-          class="clear-filter-button"
-          (click)="clearFilters()">
-  
-          Clear Filters
-  
-        </button>
-  
-      </div>
-  
-  
-      <form
-        class="filter-grid"
-        [formGroup]="filterForm">
-  
-        <div class="field field--search">
-  
-          <label for="vendorEnquirySearch">
-            Search
-          </label>
-  
-          <div class="input-shell">
-  
-            <span class="input-prefix">
-              ⌕
-            </span>
-  
-            <input
-              id="vendorEnquirySearch"
-              type="search"
-              formControlName="search"
-              placeholder="Enquiry no., RFQ, vendor, item...">
-  
-          </div>
-  
-        </div>
-  
-  
-        <div class="field">
-  
-          <label for="vendorEnquiryStatus">
-            Status
-          </label>
-  
-          <select
-            id="vendorEnquiryStatus"
-            formControlName="status">
-  
-            <option value="">
-              All Statuses
-            </option>
-  
-            <option
-              *ngFor="let option of statusOptions"
-              [value]="option.value">
-  
-              {{ option.label }}
-  
-            </option>
-  
-          </select>
-  
-        </div>
-  
-  
-        <div class="field">
-  
-          <label for="vendorEnquirySource">
-            Source
-          </label>
-  
-          <select
-            id="vendorEnquirySource"
-            formControlName="source">
-  
-            <option value="">
-              All Sources
-            </option>
-  
-            <option
-              *ngFor="let option of sourceOptions"
-              [value]="option.value">
-  
-              {{ option.label }}
-  
-            </option>
-  
-          </select>
-  
-        </div>
-  
-  
-        <div class="field">
-  
-          <label for="vendorEnquiryFromDate">
-            From Date
-          </label>
-  
-          <input
-            id="vendorEnquiryFromDate"
-            type="date"
-            formControlName="fromDate">
-  
-        </div>
-  
-  
-        <div class="field">
-  
-          <label for="vendorEnquiryToDate">
-            To Date
-          </label>
-  
-          <input
-            id="vendorEnquiryToDate"
-            type="date"
-            formControlName="toDate">
-  
-        </div>
-  
-  
-        <div class="field">
-  
-          <label for="vendorEnquiryLimit">
-            Rows
-          </label>
-  
-          <select
-            id="vendorEnquiryLimit"
-            formControlName="limit">
-  
-            <option [ngValue]="10">
-              10
-            </option>
-  
-            <option [ngValue]="25">
-              25
-            </option>
-  
-            <option [ngValue]="50">
-              50
-            </option>
-  
-            <option [ngValue]="100">
-              100
-            </option>
-  
-          </select>
-  
-        </div>
-  
-      </form>
-  
+
+
+    <button
+      type="button"
+      class="message-close"
+      (click)="clearMessages()"
+      aria-label="Close success message">
+
+      ×
+
+    </button>
+
+  </div>
+
+
+  <div
+    *ngIf="errorMessage"
+    class="message-box message-box--error">
+
+    <div class="message-content">
+
+      <span class="message-icon">
+        !
+      </span>
+
+      <span>
+        {{ errorMessage }}
+      </span>
+
     </div>
-  
-  
-    <!-- =========================================================
-         TABLE CARD
-    ========================================================== -->
-  
-    <div class="table-card">
-  
-      <div class="table-card-header">
-  
-        <div>
-  
-          <h2>
-            Vendor Enquiries
-          </h2>
-  
-          <p>
-            {{ pagination.total }} record{{ pagination.total === 1 ? '' : 's' }}
-          </p>
-  
-        </div>
-  
-      </div>
-  
-  
-      <!-- =======================================================
-           LOADING
-      ======================================================== -->
-  
-      <div
-        *ngIf="isLoading"
-        class="loading-state">
-  
-        <div class="spinner">
-        </div>
-  
+
+
+    <button
+      type="button"
+      class="message-close"
+      (click)="clearMessages()"
+      aria-label="Close error message">
+
+      ×
+
+    </button>
+
+  </div>
+
+
+  <!-- =========================================================
+       SUMMARY CARDS
+  ========================================================== -->
+
+  <div class="summary-grid">
+
+    <button
+      type="button"
+      class="summary-card"
+      (click)="filterForm.patchValue({ status: '' })">
+
+      <span class="summary-label">
+        Total Enquiries
+      </span>
+
+      <strong class="summary-value">
+        {{ isCountsLoading ? '...' : statusCounts.total }}
+      </strong>
+
+      <span class="summary-note">
+        All vendor enquiries
+      </span>
+
+    </button>
+
+
+    <button
+      type="button"
+      class="summary-card"
+      (click)="filterForm.patchValue({ status: 'draft' })">
+
+      <span class="summary-label">
+        Draft
+      </span>
+
+      <strong class="summary-value">
+        {{ isCountsLoading ? '...' : statusCounts.draft }}
+      </strong>
+
+      <span class="summary-note">
+        Not yet sent
+      </span>
+
+    </button>
+
+
+    <button
+      type="button"
+      class="summary-card"
+      (click)="filterForm.patchValue({ status: 'requested' })">
+
+      <span class="summary-label">
+        Requested
+      </span>
+
+      <strong class="summary-value">
+        {{ isCountsLoading ? '...' : statusCounts.requested }}
+      </strong>
+
+      <span class="summary-note">
+        RFQ sent
+      </span>
+
+    </button>
+
+
+    <button
+      type="button"
+      class="summary-card"
+      (click)="filterForm.patchValue({ status: 'received' })">
+
+      <span class="summary-label">
+        Received
+      </span>
+
+      <strong class="summary-value">
+        {{ isCountsLoading ? '...' : statusCounts.received }}
+      </strong>
+
+      <span class="summary-note">
+        Quotation received
+      </span>
+
+    </button>
+
+
+    <button
+      type="button"
+      class="summary-card"
+      (click)="filterForm.patchValue({ status: 'closed' })">
+
+      <span class="summary-label">
+        Closed
+      </span>
+
+      <strong class="summary-value">
+        {{ isCountsLoading ? '...' : statusCounts.closed }}
+      </strong>
+
+      <span class="summary-note">
+        Completed enquiries
+      </span>
+
+    </button>
+
+
+    <button
+      type="button"
+      class="summary-card"
+      (click)="filterForm.patchValue({ status: 'cancelled' })">
+
+      <span class="summary-label">
+        Cancelled
+      </span>
+
+      <strong class="summary-value">
+        {{ isCountsLoading ? '...' : statusCounts.cancelled }}
+      </strong>
+
+      <span class="summary-note">
+        Cancelled enquiries
+      </span>
+
+    </button>
+
+  </div>
+
+
+  <!-- =========================================================
+       FILTERS
+  ========================================================== -->
+
+  <div class="filter-card">
+
+    <div class="filter-card-header">
+
+      <div>
+
+        <h2>
+          Search & Filters
+        </h2>
+
         <p>
-          Loading vendor enquiries...
+          Find vendor enquiries by reference, vendor, item, status,
+          source, or date.
         </p>
-  
+
       </div>
-  
-  
-      <!-- =======================================================
-           EMPTY
-      ======================================================== -->
-  
-      <div
-        *ngIf="!isLoading && enquiries.length === 0"
-        class="empty-state">
-  
-        <div class="empty-icon">
-          RFQ
+
+
+      <button
+        type="button"
+        class="clear-filter-button"
+        (click)="clearFilters()">
+
+        Clear Filters
+
+      </button>
+
+    </div>
+
+
+    <form
+      class="filter-grid"
+      [formGroup]="filterForm">
+
+      <div class="field field--search">
+
+        <label for="vendorEnquirySearch">
+          Search
+        </label>
+
+        <div class="input-shell">
+
+          <span class="input-prefix">
+            ⌕
+          </span>
+
+          <input
+            id="vendorEnquirySearch"
+            type="search"
+            formControlName="search"
+            placeholder="Enquiry no., RFQ, vendor, item...">
+
         </div>
-  
-        <h3>
-          No vendor enquiries found
-        </h3>
-  
-        <p>
-          Create your first vendor enquiry or change the current filters.
-        </p>
-  
-  
-        <a
-          class="btn btn-primary"
-          routerLink="/purchase/vendor-enquiries/new">
-  
-          Create Vendor Enquiry
-  
-        </a>
-  
+
       </div>
-  
-  
-      <!-- =======================================================
-           DESKTOP TABLE
-      ======================================================== -->
-  
-      <div
-        *ngIf="!isLoading && enquiries.length > 0"
-        class="table-scroll">
-  
-        <table>
-  
-          <thead>
-  
-            <tr>
-  
-              <th>
-                Enquiry / RFQ
-              </th>
-  
-              <th>
-                Vendor
-              </th>
-  
-              <th>
-                Item
-              </th>
-  
-              <th>
-                Qty
-              </th>
-  
-              <th>
-                Source
-              </th>
-  
-              <th>
-                Quoted Price
-              </th>
-  
-              <th>
-                Status
-              </th>
-  
-              <th>
-                Created
-              </th>
-  
-              <th class="actions-column">
-                Actions
-              </th>
-  
-            </tr>
-  
-          </thead>
-  
-  
-          <tbody>
-  
-            <tr
-              *ngFor="
-                let enquiry of enquiries;
-                trackBy: trackByEnquiryId
-              ">
-  
-              <td>
-  
-                <div class="reference-cell">
-  
-                  <strong>
-                    {{ enquiry.enquiryNumber }}
-                  </strong>
-  
-                  <span *ngIf="enquiry.rfqNumber">
-                    {{ enquiry.rfqNumber }}
-                  </span>
-  
-                </div>
-  
-              </td>
-  
-  
-              <td>
-  
-                <div class="vendor-cell">
-  
-                  <div class="vendor-avatar">
-  
-                    {{
-                      enquiry.vendorName
-                        ? enquiry.vendorName.charAt(0).toUpperCase()
-                        : 'V'
-                    }}
-  
-                  </div>
-  
-  
-                  <div>
-  
-                    <strong>
-                      {{ enquiry.vendorName || 'Vendor' }}
-                    </strong>
-  
-                    <span
-                      *ngIf="
-                        enquiry.contactPerson ||
-                        enquiry.vendorCode
-                      ">
-  
-                      {{
-                        enquiry.contactPerson ||
-                        enquiry.vendorCode
-                      }}
-  
-                    </span>
-  
-                  </div>
-  
-                </div>
-  
-              </td>
-  
-  
-              <td>
-  
-                <div class="item-cell">
-  
-                  <strong>
-                    {{ enquiry.itemName }}
-                  </strong>
-  
-                  <span *ngIf="enquiry.deliveryTime">
-                    Delivery:
-                    {{ enquiry.deliveryTime }}
-                  </span>
-  
-                </div>
-  
-              </td>
-  
-  
-              <td>
-  
+
+
+      <div class="field">
+
+        <label for="vendorEnquiryStatus">
+          Status
+        </label>
+
+        <select
+          id="vendorEnquiryStatus"
+          formControlName="status">
+
+          <option value="">
+            All Statuses
+          </option>
+
+          <option
+            *ngFor="let option of statusOptions"
+            [value]="option.value">
+
+            {{ option.label }}
+
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <div class="field">
+
+        <label for="vendorEnquirySource">
+          Source
+        </label>
+
+        <select
+          id="vendorEnquirySource"
+          formControlName="source">
+
+          <option value="">
+            All Sources
+          </option>
+
+          <option
+            *ngFor="let option of sourceOptions"
+            [value]="option.value">
+
+            {{ option.label }}
+
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <div class="field">
+
+        <label for="vendorEnquiryFromDate">
+          From Date
+        </label>
+
+        <input
+          id="vendorEnquiryFromDate"
+          type="date"
+          formControlName="fromDate">
+
+      </div>
+
+
+      <div class="field">
+
+        <label for="vendorEnquiryToDate">
+          To Date
+        </label>
+
+        <input
+          id="vendorEnquiryToDate"
+          type="date"
+          formControlName="toDate">
+
+      </div>
+
+
+      <div class="field">
+
+        <label for="vendorEnquiryLimit">
+          Rows
+        </label>
+
+        <select
+          id="vendorEnquiryLimit"
+          formControlName="limit">
+
+          <option [ngValue]="10">
+            10
+          </option>
+
+          <option [ngValue]="25">
+            25
+          </option>
+
+          <option [ngValue]="50">
+            50
+          </option>
+
+          <option [ngValue]="100">
+            100
+          </option>
+
+        </select>
+
+      </div>
+
+    </form>
+
+  </div>
+
+
+  <!-- =========================================================
+       TABLE CARD
+  ========================================================== -->
+
+  <div class="table-card">
+
+    <div class="table-card-header">
+
+      <div>
+
+        <h2>
+          Vendor Enquiries
+        </h2>
+
+        <p>
+          {{ pagination.total }} record{{ pagination.total === 1 ? '' : 's' }}
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <!-- =======================================================
+         LOADING
+    ======================================================== -->
+
+    <div
+      *ngIf="isLoading"
+      class="loading-state">
+
+      <div class="spinner">
+      </div>
+
+      <p>
+        Loading vendor enquiries...
+      </p>
+
+    </div>
+
+
+    <!-- =======================================================
+         EMPTY
+    ======================================================== -->
+
+    <div
+      *ngIf="!isLoading && enquiries.length === 0"
+      class="empty-state">
+
+      <div class="empty-icon">
+        RFQ
+      </div>
+
+      <h3>
+        No vendor enquiries found
+      </h3>
+
+      <p>
+        Create your first vendor enquiry or change the current filters.
+      </p>
+
+
+      <a
+        class="btn btn-primary"
+        routerLink="/purchase/vendor-enquiries/new">
+
+        Create Vendor Enquiry
+
+      </a>
+
+    </div>
+
+
+    <!-- =======================================================
+         DESKTOP TABLE
+    ======================================================== -->
+
+    <div
+      *ngIf="!isLoading && enquiries.length > 0"
+      class="table-scroll">
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>
+              Enquiry / RFQ
+            </th>
+
+            <th>
+              Vendor
+            </th>
+
+            <th>
+              Item
+            </th>
+
+            <th>
+              Qty
+            </th>
+
+            <th>
+              Source
+            </th>
+
+            <th>
+              Quoted Price
+            </th>
+
+            <th>
+              Status
+            </th>
+
+            <th>
+              Created
+            </th>
+
+            <th class="actions-column">
+              Actions
+            </th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          <tr
+            *ngFor="
+              let enquiry of enquiries;
+              trackBy: trackByEnquiryId
+            ">
+
+            <td>
+
+              <div class="reference-cell">
+
                 <strong>
-                  {{ enquiry.quantity }}
+                  {{ enquiry.enquiryNumber }}
                 </strong>
-  
-                <span class="muted-inline">
-                  {{ enquiry.unit || '' }}
+
+                <span *ngIf="enquiry.rfqNumber">
+                  {{ enquiry.rfqNumber }}
                 </span>
-  
-              </td>
-  
-  
-              <td>
-  
-                <span class="source-pill">
-                  {{ getDisplaySource(enquiry) }}
-                </span>
-  
-              </td>
-  
-  
-              <td>
-  
-                <div class="price-cell">
-  
+
+              </div>
+
+            </td>
+
+
+            <td>
+
+              <div class="vendor-cell">
+
+                <div class="vendor-avatar">
+
+                  {{
+                    enquiry.vendorName
+                      ? enquiry.vendorName.charAt(0).toUpperCase()
+                      : 'V'
+                  }}
+
+                </div>
+
+
+                <div>
+
                   <strong>
-                    {{ formatMoney(enquiry.quotedPrice) }}
+                    {{ enquiry.vendorName || 'Vendor' }}
                   </strong>
-  
+
                   <span
                     *ngIf="
-                      enquiry.taxPercent !== null &&
-                      enquiry.taxPercent !== undefined
+                      enquiry.contactPerson ||
+                      enquiry.vendorCode
                     ">
-  
-                    Tax {{ enquiry.taxPercent }}%
-  
+
+                    {{
+                      enquiry.contactPerson ||
+                      enquiry.vendorCode
+                    }}
+
                   </span>
-  
+
                 </div>
-  
-              </td>
-  
-  
-              <td>
-  
-                <span
-                  class="status-badge"
-                  [ngClass]="getStatusClass(enquiry.status)">
-  
-                  {{ getStatusLabel(enquiry.status) }}
-  
-                </span>
-  
-              </td>
-  
-  
-              <td>
-                {{ formatDate(enquiry.createdAt) }}
-              </td>
-  
-  
-              <td>
-  
-                <div class="row-actions">
-  
-                  <a
-                    class="icon-action"
-                    [routerLink]="[
-                      '/purchase/vendor-enquiries',
-                      enquiry._id,
-                      'edit'
-                    ]"
-                    title="Open / Edit">
-  
-                    Open
-  
-                  </a>
-  
-  
-                  <button
-                    *ngIf="enquiry.status === 'draft'"
-                    type="button"
-                    class="icon-action icon-action--send"
-                    (click)="sendRfq(enquiry)"
-                    [disabled]="isActionLoading(enquiry)">
-  
-                    {{
-                      isSendingRfq(enquiry)
-                        ? 'Sending...'
-                        : 'Send RFQ'
-                    }}
-  
-                  </button>
-  
-  
-                  <button
-                    *ngIf="enquiry.status === 'requested'"
-                    type="button"
-                    class="icon-action icon-action--receive"
-                    (click)="openReceivePanel(enquiry)"
-                    [disabled]="isActionLoading(enquiry)">
-  
-                    Receive Quote
-  
-                  </button>
-  
-  
-                  <button
-                    *ngIf="enquiry.status === 'received'"
-                    type="button"
-                    class="icon-action icon-action--close"
-                    (click)="closeEnquiry(enquiry)"
-                    [disabled]="isActionLoading(enquiry)">
-  
-                    {{
-                      isClosing(enquiry)
-                        ? 'Closing...'
-                        : 'Close'
-                    }}
-  
-                  </button>
-  
-  
-                  <button
-                    *ngIf="
-                      enquiry.status === 'draft' ||
-                      enquiry.status === 'requested' ||
-                      enquiry.status === 'received'
-                    "
-                    type="button"
-                    class="icon-action icon-action--cancel"
-                    (click)="cancelEnquiry(enquiry)"
-                    [disabled]="isActionLoading(enquiry)">
-  
-                    {{
-                      isCancelling(enquiry)
-                        ? 'Cancelling...'
-                        : 'Cancel'
-                    }}
-  
-                  </button>
-  
-                </div>
-  
-              </td>
-  
-            </tr>
-  
-          </tbody>
-  
-        </table>
-  
-      </div>
-  
-  
-      <!-- =======================================================
-           PAGINATION
-      ======================================================== -->
-  
-      <div
-        *ngIf="
-          !isLoading &&
-          enquiries.length > 0
-        "
-        class="pagination-bar">
-  
-        <div class="pagination-summary">
-  
-          Page
-          <strong>
-            {{ pagination.page }}
-          </strong>
-  
-          of
-  
-          <strong>
-            {{ pagination.pages || 1 }}
-          </strong>
-  
-          ·
-  
-          {{ pagination.total }} total
-  
-        </div>
-  
-  
-        <div class="pagination-actions">
-  
-          <button
-            type="button"
-            class="page-button"
-            (click)="previousPage()"
-            [disabled]="pagination.page <= 1">
-  
-            Previous
-  
-          </button>
-  
-  
-          <button
-            *ngFor="let page of getPageNumbers()"
-            type="button"
-            class="page-button page-button--number"
-            [class.is-active]="page === pagination.page"
-            (click)="goToPage(page)">
-  
-            {{ page }}
-  
-          </button>
-  
-  
-          <button
-            type="button"
-            class="page-button"
-            (click)="nextPage()"
-            [disabled]="pagination.page >= pagination.pages">
-  
-            Next
-  
-          </button>
-  
-        </div>
-  
-      </div>
-  
-    </div>
-  
-  
-    <!-- =========================================================
-         RECEIVE QUOTATION PANEL
-    ========================================================== -->
-  
-    <div
-      *ngIf="receivePanelOpen && selectedEnquiry"
-      class="modal-backdrop">
-  
-  
-      <div
-        class="receive-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="receiveQuotationTitle">
-  
-  
-        <div class="modal-header">
-  
-          <div>
-  
-            <div class="eyebrow">
-              Vendor Quotation
-            </div>
-  
-            <h2 id="receiveQuotationTitle">
-              Record Received Quotation
-            </h2>
-  
-            <p>
-  
-              RFQ:
-  
-              <strong>
-                {{
-                  selectedEnquiry.rfqNumber ||
-                  selectedEnquiry.enquiryNumber
-                }}
-              </strong>
-  
-              ·
-  
-              {{ selectedEnquiry.vendorName }}
-  
-            </p>
-  
-          </div>
-  
-  
-          <button
-            type="button"
-            class="modal-close"
-            (click)="closeReceivePanel()"
-            [disabled]="isReceivingQuotation(selectedEnquiry)"
-            aria-label="Close quotation form">
-  
-            ×
-  
-          </button>
-  
-        </div>
-  
-  
-        <form
-          class="receive-form"
-          [formGroup]="receiveForm"
-          (ngSubmit)="submitReceivedQuotation()">
-  
-  
-          <div class="modal-summary">
-  
-            <div class="summary-item">
-  
-              <span>
-                Item
-              </span>
-  
-              <strong>
-                {{ selectedEnquiry.itemName }}
-              </strong>
-  
-            </div>
-  
-  
-            <div class="summary-item">
-  
-              <span>
-                Quantity
-              </span>
-  
-              <strong>
-  
-                {{ selectedEnquiry.quantity }}
-  
-                {{ selectedEnquiry.unit || '' }}
-  
-              </strong>
-  
-            </div>
-  
-  
-            <div class="summary-item">
-  
-              <span>
-                Source
-              </span>
-  
-              <strong>
-                {{ getDisplaySource(selectedEnquiry) }}
-              </strong>
-  
-            </div>
-  
-          </div>
-  
-  
-          <div class="receive-grid">
-  
-  
-            <div class="field">
-  
-              <label for="receivedQuotedPrice">
-  
-                Quoted Price
-  
-                <span class="required">
-                  *
-                </span>
-  
-              </label>
-  
-              <div class="input-shell">
-  
-                <span class="input-prefix">
-                  ₹
-                </span>
-  
-                <input
-                  id="receivedQuotedPrice"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  formControlName="quotedPrice"
-                  placeholder="0.00">
-  
+
               </div>
-  
-  
-              <small
-                *ngIf="
-                  receiveForm.controls.quotedPrice.touched &&
-                  receiveForm.controls.quotedPrice.hasError('required')
-                "
-                class="field-error">
-  
-                Quoted price is required.
-  
-              </small>
-  
-  
-              <small
-                *ngIf="
-                  receiveForm.controls.quotedPrice.touched &&
-                  receiveForm.controls.quotedPrice.hasError('min')
-                "
-                class="field-error">
-  
-                Quoted price cannot be negative.
-  
-              </small>
-  
-            </div>
-  
-  
-            <div class="field">
-  
-              <label for="receivedTaxPercent">
-                Tax %
-              </label>
-  
+
+            </td>
+
+
+            <td>
+
+              <div class="item-cell">
+
+                <strong>
+                  {{ enquiry.itemName }}
+                </strong>
+
+                <span *ngIf="enquiry.deliveryTime">
+                  Delivery:
+                  {{ enquiry.deliveryTime }}
+                </span>
+
+              </div>
+
+            </td>
+
+
+            <td>
+
+              <strong>
+                {{ enquiry.quantity }}
+              </strong>
+
+              <span class="muted-inline">
+                {{ enquiry.unit || '' }}
+              </span>
+
+            </td>
+
+
+            <td>
+
+              <span class="source-pill">
+                {{ getDisplaySource(enquiry) }}
+              </span>
+
+            </td>
+
+
+            <td>
+
+              <div class="price-cell">
+
+                <strong>
+                  {{ formatMoney(enquiry.quotedPrice) }}
+                </strong>
+
+                <span
+                  *ngIf="
+                    enquiry.taxPercent !== null &&
+                    enquiry.taxPercent !== undefined
+                  ">
+
+                  Tax {{ enquiry.taxPercent }}%
+
+                </span>
+
+              </div>
+
+            </td>
+
+
+            <td>
+
+              <span
+                class="status-badge"
+                [ngClass]="getStatusClass(enquiry.status)">
+
+                {{ getStatusLabel(enquiry.status) }}
+
+              </span>
+
+            </td>
+
+
+            <td>
+              {{ formatDate(enquiry.createdAt) }}
+            </td>
+
+
+            <td>
+
+              <div class="row-actions">
+
+                <!--
+                  FIX:
+                  Existing Purchase route is:
+                  /purchase/vendor-enquiries/:id
+
+                  Do NOT append /edit here because that route does
+                  not exist and the Purchase wildcard redirects it
+                  to /purchase/dashboard.
+                -->
+                <a
+                  class="icon-action"
+                  [routerLink]="[
+                    '/purchase/vendor-enquiries',
+                    enquiry._id
+                  ]"
+                  title="Open / Edit">
+
+                  Open
+
+                </a>
+
+
+                <button
+                  *ngIf="enquiry.status === 'draft'"
+                  type="button"
+                  class="icon-action icon-action--send"
+                  (click)="sendRfq(enquiry)"
+                  [disabled]="isActionLoading(enquiry)">
+
+                  {{
+                    isSendingRfq(enquiry)
+                      ? 'Sending...'
+                      : 'Send RFQ'
+                  }}
+
+                </button>
+
+
+                <button
+                  *ngIf="enquiry.status === 'requested'"
+                  type="button"
+                  class="icon-action icon-action--receive"
+                  (click)="openReceivePanel(enquiry)"
+                  [disabled]="isActionLoading(enquiry)">
+
+                  Receive Quote
+
+                </button>
+
+
+                <button
+                  *ngIf="enquiry.status === 'received'"
+                  type="button"
+                  class="icon-action icon-action--close"
+                  (click)="closeEnquiry(enquiry)"
+                  [disabled]="isActionLoading(enquiry)">
+
+                  {{
+                    isClosing(enquiry)
+                      ? 'Closing...'
+                      : 'Close'
+                  }}
+
+                </button>
+
+
+                <button
+                  *ngIf="
+                    enquiry.status === 'draft' ||
+                    enquiry.status === 'requested' ||
+                    enquiry.status === 'received'
+                  "
+                  type="button"
+                  class="icon-action icon-action--cancel"
+                  (click)="cancelEnquiry(enquiry)"
+                  [disabled]="isActionLoading(enquiry)">
+
+                  {{
+                    isCancelling(enquiry)
+                      ? 'Cancelling...'
+                      : 'Cancel'
+                  }}
+
+                </button>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+
+    <!-- =======================================================
+         PAGINATION
+    ======================================================== -->
+
+    <div
+      *ngIf="
+        !isLoading &&
+        enquiries.length > 0
+      "
+      class="pagination-bar">
+
+      <div class="pagination-summary">
+
+        Page
+        <strong>
+          {{ pagination.page }}
+        </strong>
+
+        of
+
+        <strong>
+          {{ pagination.pages || 1 }}
+        </strong>
+
+        ·
+
+        {{ pagination.total }} total
+
+      </div>
+
+
+      <div class="pagination-actions">
+
+        <button
+          type="button"
+          class="page-button"
+          (click)="previousPage()"
+          [disabled]="pagination.page <= 1">
+
+          Previous
+
+        </button>
+
+
+        <button
+          *ngFor="let page of getPageNumbers()"
+          type="button"
+          class="page-button page-button--number"
+          [class.is-active]="page === pagination.page"
+          (click)="goToPage(page)">
+
+          {{ page }}
+
+        </button>
+
+
+        <button
+          type="button"
+          class="page-button"
+          (click)="nextPage()"
+          [disabled]="pagination.page >= pagination.pages">
+
+          Next
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =========================================================
+       RECEIVE QUOTATION PANEL
+  ========================================================== -->
+
+  <div
+    *ngIf="receivePanelOpen && selectedEnquiry"
+    class="modal-backdrop">
+
+
+    <div
+      class="receive-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="receiveQuotationTitle">
+
+
+      <div class="modal-header">
+
+        <div>
+
+          <div class="eyebrow">
+            Vendor Quotation
+          </div>
+
+          <h2 id="receiveQuotationTitle">
+            Record Received Quotation
+          </h2>
+
+          <p>
+
+            RFQ:
+
+            <strong>
+              {{
+                selectedEnquiry.rfqNumber ||
+                selectedEnquiry.enquiryNumber
+              }}
+            </strong>
+
+            ·
+
+            {{ selectedEnquiry.vendorName }}
+
+          </p>
+
+        </div>
+
+
+        <button
+          type="button"
+          class="modal-close"
+          (click)="closeReceivePanel()"
+          [disabled]="isReceivingQuotation(selectedEnquiry)"
+          aria-label="Close quotation form">
+
+          ×
+
+        </button>
+
+      </div>
+
+
+      <form
+        class="receive-form"
+        [formGroup]="receiveForm"
+        (ngSubmit)="submitReceivedQuotation()">
+
+
+        <div class="modal-summary">
+
+          <div class="summary-item">
+
+            <span>
+              Item
+            </span>
+
+            <strong>
+              {{ selectedEnquiry.itemName }}
+            </strong>
+
+          </div>
+
+
+          <div class="summary-item">
+
+            <span>
+              Quantity
+            </span>
+
+            <strong>
+
+              {{ selectedEnquiry.quantity }}
+
+              {{ selectedEnquiry.unit || '' }}
+
+            </strong>
+
+          </div>
+
+
+          <div class="summary-item">
+
+            <span>
+              Source
+            </span>
+
+            <strong>
+              {{ getDisplaySource(selectedEnquiry) }}
+            </strong>
+
+          </div>
+
+        </div>
+
+
+        <div class="receive-grid">
+
+
+          <div class="field">
+
+            <label for="receivedQuotedPrice">
+
+              Quoted Price
+
+              <span class="required">
+                *
+              </span>
+
+            </label>
+
+            <div class="input-shell">
+
+              <span class="input-prefix">
+                ₹
+              </span>
+
               <input
-                id="receivedTaxPercent"
+                id="receivedQuotedPrice"
                 type="number"
                 min="0"
-                max="100"
                 step="0.01"
-                formControlName="taxPercent"
-                placeholder="0">
-  
-              <small
-                *ngIf="
-                  receiveForm.controls.taxPercent.touched &&
-                  (
-                    receiveForm.controls.taxPercent.hasError('min') ||
-                    receiveForm.controls.taxPercent.hasError('max')
-                  )
-                "
-                class="field-error">
-  
-                Tax must be between 0 and 100%.
-  
-              </small>
-  
+                formControlName="quotedPrice"
+                placeholder="0.00">
+
             </div>
-  
-  
-            <div class="field">
-  
-              <label for="receivedDeliveryTime">
-                Delivery Time
-              </label>
-  
-              <input
-                id="receivedDeliveryTime"
-                type="text"
-                formControlName="deliveryTime"
-                placeholder="e.g. 7 days">
-  
-            </div>
-  
-  
-            <div class="field">
-  
-              <label for="receivedValidUntil">
-                Valid Until
-              </label>
-  
-              <input
-                id="receivedValidUntil"
-                type="date"
-                formControlName="validUntil">
-  
-            </div>
-  
-  
-            <div class="field field--full">
-  
-              <label for="receivedPaymentTerms">
-                Payment Terms
-              </label>
-  
-              <input
-                id="receivedPaymentTerms"
-                type="text"
-                formControlName="paymentTerms"
-                placeholder="e.g. 30% advance, balance on delivery">
-  
-            </div>
-  
-  
-            <div class="field field--full">
-  
-              <label for="receivedRemarks">
-                Remarks
-              </label>
-  
-              <textarea
-                id="receivedRemarks"
-                rows="4"
-                formControlName="remarks"
-                placeholder="Add quotation notes or vendor remarks">
-              </textarea>
-  
-            </div>
-  
+
+
+            <small
+              *ngIf="
+                receiveForm.controls.quotedPrice.touched &&
+                receiveForm.controls.quotedPrice.hasError('required')
+              "
+              class="field-error">
+
+              Quoted price is required.
+
+            </small>
+
+
+            <small
+              *ngIf="
+                receiveForm.controls.quotedPrice.touched &&
+                receiveForm.controls.quotedPrice.hasError('min')
+              "
+              class="field-error">
+
+              Quoted price cannot be negative.
+
+            </small>
+
           </div>
-  
-  
-          <div class="modal-actions">
-  
-            <button
-              type="button"
-              class="btn btn-secondary"
-              (click)="closeReceivePanel()"
-              [disabled]="isReceivingQuotation(selectedEnquiry)">
-  
-              Cancel
-  
-            </button>
-  
-  
-            <button
-              type="submit"
-              class="btn btn-primary"
-              [disabled]="
-                receiveForm.invalid ||
-                isReceivingQuotation(selectedEnquiry)
-              ">
-  
-              {{
-                isReceivingQuotation(selectedEnquiry)
-                  ? 'Saving...'
-                  : 'Save Received Quotation'
-              }}
-  
-            </button>
-  
+
+
+          <div class="field">
+
+            <label for="receivedTaxPercent">
+              Tax %
+            </label>
+
+            <input
+              id="receivedTaxPercent"
+              type="number"
+              min="0"
+              max="100"
+              step="0.01"
+              formControlName="taxPercent"
+              placeholder="0">
+
+            <small
+              *ngIf="
+                receiveForm.controls.taxPercent.touched &&
+                (
+                  receiveForm.controls.taxPercent.hasError('min') ||
+                  receiveForm.controls.taxPercent.hasError('max')
+                )
+              "
+              class="field-error">
+
+              Tax must be between 0 and 100%.
+
+            </small>
+
           </div>
-  
-        </form>
-  
-      </div>
-  
+
+
+          <div class="field">
+
+            <label for="receivedDeliveryTime">
+              Delivery Time
+            </label>
+
+            <input
+              id="receivedDeliveryTime"
+              type="text"
+              formControlName="deliveryTime"
+              placeholder="e.g. 7 days">
+
+          </div>
+
+
+          <div class="field">
+
+            <label for="receivedValidUntil">
+              Valid Until
+            </label>
+
+            <input
+              id="receivedValidUntil"
+              type="date"
+              formControlName="validUntil">
+
+          </div>
+
+
+          <div class="field field--full">
+
+            <label for="receivedPaymentTerms">
+              Payment Terms
+            </label>
+
+            <input
+              id="receivedPaymentTerms"
+              type="text"
+              formControlName="paymentTerms"
+              placeholder="e.g. 30% advance, balance on delivery">
+
+          </div>
+
+
+          <div class="field field--full">
+
+            <label for="receivedRemarks">
+              Remarks
+            </label>
+
+            <textarea
+              id="receivedRemarks"
+              rows="4"
+              formControlName="remarks"
+              placeholder="Add quotation notes or vendor remarks">
+            </textarea>
+
+          </div>
+
+        </div>
+
+
+        <div class="modal-actions">
+
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="closeReceivePanel()"
+            [disabled]="isReceivingQuotation(selectedEnquiry)">
+
+            Cancel
+
+          </button>
+
+
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="
+              receiveForm.invalid ||
+              isReceivingQuotation(selectedEnquiry)
+            ">
+
+            {{
+              isReceivingQuotation(selectedEnquiry)
+                ? 'Saving...'
+                : 'Save Received Quotation'
+            }}
+
+          </button>
+
+        </div>
+
+      </form>
+
     </div>
-  
-  </section>
+
+  </div>
+
+</section>

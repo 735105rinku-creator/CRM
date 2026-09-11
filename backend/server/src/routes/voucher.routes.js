@@ -9,6 +9,11 @@ import {
   voidVoucher,
 } from "../controllers/voucher.controller.js";
 
+import {
+  createPaymentAllocations,
+  getPaymentAllocationOptions,
+} from "../controllers/paymentAllocation.controller.js";
+
 
 /* ============================================================
    ROUTER
@@ -87,6 +92,18 @@ router.post(
 router.post(
   "/:voucherId/void",
   voidVoucher
+);
+
+
+router.get(
+  "/:voucherId/purchase-allocation-options",
+  getPaymentAllocationOptions
+);
+
+
+router.post(
+  "/:voucherId/purchase-allocations",
+  createPaymentAllocations
 );
 
 

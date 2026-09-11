@@ -40,6 +40,7 @@
   color: var(--text-primary);
 }
 
+
 /* ============================================================
    COMMON ICONS
 ============================================================ */
@@ -77,6 +78,7 @@
   font-weight: 900;
   line-height: 1;
 }
+
 
 /* ============================================================
    PAGE HEADER
@@ -122,6 +124,7 @@
   border-radius: 11px;
 
   color: #4b5b6f;
+
   background:
     linear-gradient(
       145deg,
@@ -172,7 +175,12 @@
 
   color: #10213a;
 
-  font-size: clamp(1.7rem, 2.7vw, 2.15rem);
+  font-size: clamp(
+    1.7rem,
+    2.7vw,
+    2.15rem
+  );
+
   font-weight: 900;
   line-height: 1.12;
 
@@ -226,6 +234,7 @@
   font-weight: 900;
 }
 
+
 /* ============================================================
    ALERTS
 ============================================================ */
@@ -258,11 +267,13 @@
   color: #a52f36;
 
   border: 1px solid #f0c7ca;
+
   background: var(--danger-soft);
 }
 
 .alert-error .alert-ui-icon {
   color: #ffffff;
+
   background: #c94e55;
 }
 
@@ -270,13 +281,16 @@
   color: #176b50;
 
   border: 1px solid #c4ead8;
+
   background: var(--success-soft);
 }
 
 .alert-success .alert-ui-icon {
   color: #ffffff;
+
   background: #1d8b68;
 }
+
 
 /* ============================================================
    LOADING
@@ -326,7 +340,8 @@
 
   border-radius: 50%;
 
-  animation: spin 0.8s linear infinite;
+  animation:
+    spin 0.8s linear infinite;
 }
 
 .small-spinner {
@@ -338,7 +353,8 @@
 
   border-radius: 50%;
 
-  animation: spin 0.8s linear infinite;
+  animation:
+    spin 0.8s linear infinite;
 }
 
 .button-spinner {
@@ -350,7 +366,8 @@
 
   border-radius: 50%;
 
-  animation: spin 0.7s linear infinite;
+  animation:
+    spin 0.7s linear infinite;
 }
 
 @keyframes spin {
@@ -372,11 +389,13 @@
   border-radius: 10px;
 
   color: var(--text-secondary);
+
   background: #f8fafc;
 
   font-size: 0.66rem;
   font-weight: 800;
 }
+
 
 /* ============================================================
    SECTION CARD
@@ -462,6 +481,7 @@
   line-height: 1.45;
 }
 
+
 /* ============================================================
    FORM
 ============================================================ */
@@ -470,13 +490,17 @@
   display: grid;
 
   grid-template-columns:
-    repeat(2, minmax(0, 1fr));
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
 
   gap: 14px;
 }
 
 .span-2 {
-  grid-column: span 2;
+  grid-column:
+    span 2;
 }
 
 .form-field {
@@ -508,6 +532,7 @@
   border-radius: 10px;
 
   color: var(--text-primary);
+
   background: #ffffff;
 
   font-family: inherit;
@@ -569,15 +594,19 @@
   color: var(--warning);
 }
 
+
 /* ============================================================
-   PO SUMMARY
+   SUMMARY DETAILS
 ============================================================ */
 
 .summary-details-grid {
   display: grid;
 
   grid-template-columns:
-    repeat(3, minmax(0, 1fr));
+    repeat(
+      3,
+      minmax(0, 1fr)
+    );
 
   gap: 11px;
 }
@@ -617,9 +646,445 @@
   white-space: nowrap;
 }
 
+.summary-detail .summary-subtext {
+  overflow: hidden;
+
+  color: var(--text-muted);
+
+  font-size: 0.57rem;
+  font-weight: 700;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .status-text {
   color: var(--accent-dark) !important;
 }
+
+
+/* ============================================================
+   RECEIPT OUTCOME BADGE
+============================================================ */
+
+.receipt-status-badge {
+  width: fit-content;
+  max-width: 100%;
+
+  min-height: 25px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  box-sizing: border-box;
+
+  padding: 0 10px;
+
+  border: 1px solid transparent;
+  border-radius: 999px;
+
+  font-size: 0.6rem !important;
+  font-weight: 900 !important;
+
+  line-height: 1;
+
+  text-overflow: initial !important;
+  white-space: nowrap !important;
+}
+
+.receipt-status-received {
+  color: #285fae !important;
+
+  border-color: #cbdcf7;
+
+  background: var(--info-soft);
+}
+
+.receipt-status-partial {
+  color: #906011 !important;
+
+  border-color: #efd6a6;
+
+  background: var(--warning-soft);
+}
+
+.receipt-status-completed {
+  color: #126c4e !important;
+
+  border-color: #bfe0d2;
+
+  background: var(--success-soft);
+}
+
+.receipt-status-rejected {
+  color: #a43d44 !important;
+
+  border-color: #ecc2c5;
+
+  background: var(--danger-soft);
+}
+
+.receipt-status-default {
+  color: #5e6b7c !important;
+
+  border-color: #dae2ea;
+
+  background: #edf1f5;
+}
+
+
+/* ============================================================
+   APPROVAL STATUS BADGE
+============================================================ */
+
+.approval-status-badge {
+  width: fit-content;
+  max-width: 100%;
+
+  min-height: 25px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  box-sizing: border-box;
+
+  padding: 0 10px;
+
+  border: 1px solid transparent;
+  border-radius: 999px;
+
+  font-size: 0.6rem !important;
+  font-weight: 900 !important;
+
+  line-height: 1;
+
+  text-overflow: initial !important;
+  white-space: nowrap !important;
+}
+
+.approval-status-pending {
+  color: #906011 !important;
+
+  border-color: #ebd29d;
+
+  background:
+    linear-gradient(
+      145deg,
+      #fff9eb,
+      #fff1d4
+    );
+}
+
+.approval-status-approved {
+  color: #126c4e !important;
+
+  border-color: #bfe1d2;
+
+  background:
+    linear-gradient(
+      145deg,
+      #edf9f4,
+      #ddf2e8
+    );
+}
+
+.approval-status-rejected {
+  color: #a43d44 !important;
+
+  border-color: #ecc2c5;
+
+  background:
+    linear-gradient(
+      145deg,
+      #fff7f7,
+      #ffe9eb
+    );
+}
+
+.approval-status-legacy {
+  color: #5f6c7e !important;
+
+  border-color: #dae2ea;
+
+  background:
+    linear-gradient(
+      145deg,
+      #f4f6f8,
+      #e9eef3
+    );
+}
+
+
+/* ============================================================
+   APPROVAL SECTION
+============================================================ */
+
+.approval-section-card {
+  border-color: #d8e2ec;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffffff,
+      #f4f8fb
+    );
+}
+
+.approval-section-icon {
+  color: var(--primary);
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffffff,
+      #eaf0fb
+    );
+}
+
+.approval-state-panel {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 12px;
+
+  margin-bottom: 15px;
+  padding: 13px 14px;
+
+  border: 1px solid transparent;
+  border-radius: 11px;
+}
+
+.approval-state-icon {
+  width: 32px;
+  height: 32px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 32px;
+
+  border-radius: 9px;
+
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+.approval-state-content {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+.approval-state-label {
+  font-size: 0.56rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+
+  text-transform: uppercase;
+}
+
+.approval-state-content strong {
+  color: var(--text-primary);
+
+  font-size: 0.74rem;
+  font-weight: 900;
+}
+
+.approval-state-content p {
+  margin: 2px 0 0;
+
+  color: var(--text-secondary);
+
+  font-size: 0.64rem;
+  line-height: 1.5;
+}
+
+.approval-state-pending {
+  border-color: #ecd7aa;
+
+  background:
+    linear-gradient(
+      145deg,
+      #fffaf0,
+      #fff4dd
+    );
+}
+
+.approval-state-pending .approval-state-icon {
+  color: #ffffff;
+
+  background: var(--warning);
+}
+
+.approval-state-pending .approval-state-label {
+  color: var(--warning);
+}
+
+.approval-state-approved {
+  border-color: #c5e5d8;
+
+  background:
+    linear-gradient(
+      145deg,
+      #f1fbf6,
+      #e5f6ee
+    );
+}
+
+.approval-state-approved .approval-state-icon {
+  color: #ffffff;
+
+  background: var(--success);
+}
+
+.approval-state-approved .approval-state-label {
+  color: var(--success);
+}
+
+.approval-state-rejected {
+  border-color: #efc9cc;
+
+  background:
+    linear-gradient(
+      145deg,
+      #fff7f7,
+      #ffedef
+    );
+}
+
+.approval-state-rejected .approval-state-icon {
+  color: #ffffff;
+
+  background: var(--danger);
+}
+
+.approval-state-rejected .approval-state-label {
+  color: var(--danger);
+}
+
+
+/* ============================================================
+   APPROVAL AUDIT
+============================================================ */
+
+.approval-audit-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      4,
+      minmax(0, 1fr)
+    );
+
+  gap: 10px;
+}
+
+.approval-audit-item {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 4px;
+
+  padding: 10px 11px;
+
+  border: 1px solid #dfe7ef;
+  border-radius: 9px;
+
+  background: #f8fafc;
+}
+
+.approval-audit-item span {
+  color: var(--text-muted);
+
+  font-size: 0.56rem;
+  font-weight: 800;
+}
+
+.approval-audit-item strong {
+  overflow: hidden;
+
+  color: var(--text-primary);
+
+  font-size: 0.66rem;
+  font-weight: 900;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.approval-audit-item small {
+  overflow: hidden;
+
+  color: var(--text-muted);
+
+  font-size: 0.56rem;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+/* ============================================================
+   APPROVAL REJECTION REASON
+============================================================ */
+
+.approval-rejection-reason {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 9px;
+
+  margin-top: 12px;
+  padding: 11px 12px;
+
+  border: 1px solid #efc9cc;
+  border-radius: 10px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #fff8f8,
+      #ffeff0
+    );
+}
+
+.approval-rejection-reason > div {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+.approval-rejection-reason > div > span {
+  color: var(--danger);
+
+  font-size: 0.57rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+
+  text-transform: uppercase;
+}
+
+.approval-rejection-reason > div > strong {
+  color: var(--text-primary);
+
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1.45;
+
+  white-space: pre-wrap;
+}
+
 
 /* ============================================================
    PO LOCATION
@@ -637,6 +1102,7 @@
   border-radius: 10px;
 
   color: var(--info);
+
   background: var(--info-soft);
 }
 
@@ -647,6 +1113,7 @@
   border-radius: 50%;
 
   color: #ffffff;
+
   background: var(--info);
 
   font-size: 0.65rem;
@@ -673,6 +1140,7 @@
   font-weight: 900;
 }
 
+
 /* ============================================================
    QUANTITY SUMMARY
 ============================================================ */
@@ -681,7 +1149,10 @@
   display: grid;
 
   grid-template-columns:
-    repeat(7, minmax(0, 1fr));
+    repeat(
+      7,
+      minmax(0, 1fr)
+    );
 
   gap: 11px;
 
@@ -723,6 +1194,7 @@
   border-radius: 9px;
 
   color: var(--accent-dark);
+
   background: #fff4dc;
 
   font-size: 0.86rem;
@@ -797,6 +1269,7 @@
 .remaining-card .quantity-symbol {
   background: var(--warning-soft);
 }
+
 
 /* ============================================================
    ITEMS TABLE
@@ -915,6 +1388,7 @@
   font-weight: 900;
 }
 
+
 /* ============================================================
    QUANTITY INPUTS
 ============================================================ */
@@ -933,6 +1407,7 @@
   border-radius: 8px;
 
   color: var(--text-primary);
+
   background: #ffffff;
 
   font-family: inherit;
@@ -975,8 +1450,9 @@
     0 0 0 3px rgba(193, 63, 77, 0.08);
 }
 
+
 /* ============================================================
-   REJECTION
+   ITEM REJECTION
 ============================================================ */
 
 .rejection-row td {
@@ -1016,6 +1492,7 @@
   border-radius: 9px;
 
   color: var(--text-primary);
+
   background: #ffffff;
 
   font-family: inherit;
@@ -1049,6 +1526,7 @@
   border-radius: 9px;
 
   color: var(--danger);
+
   background: #fff8f8;
 }
 
@@ -1059,6 +1537,7 @@
   border-radius: 50%;
 
   color: #ffffff;
+
   background: var(--danger);
 
   font-size: 0.68rem;
@@ -1088,6 +1567,7 @@
   font-weight: 700;
   line-height: 1.45;
 }
+
 
 /* ============================================================
    EMPTY ITEMS
@@ -1120,6 +1600,7 @@
   border-radius: 50%;
 
   color: #ffffff;
+
   background: var(--success);
 
   font-size: 1rem;
@@ -1142,6 +1623,7 @@
   font-size: 0.65rem;
 }
 
+
 /* ============================================================
    REMARKS VIEW
 ============================================================ */
@@ -1153,6 +1635,7 @@
   border-radius: 10px;
 
   color: var(--text-primary);
+
   background: #f8fafc;
 
   white-space: pre-wrap;
@@ -1160,6 +1643,7 @@
   font-size: 0.66rem;
   line-height: 1.55;
 }
+
 
 /* ============================================================
    ACTIONS
@@ -1254,6 +1738,7 @@
     0 4px 10px rgba(148, 163, 184, 0.1);
 }
 
+
 /* ============================================================
    SCROLLBAR
 ============================================================ */
@@ -1273,18 +1758,34 @@
   background: #b3beca;
 }
 
+
 /* ============================================================
    RESPONSIVE
 ============================================================ */
 
 @media (max-width: 1280px) {
+
   .quantity-summary-grid {
     grid-template-columns:
-      repeat(4, minmax(0, 1fr));
+      repeat(
+        4,
+        minmax(0, 1fr)
+      );
   }
+
+  .approval-audit-grid {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+
 }
 
+
 @media (max-width: 960px) {
+
   .goods-receipt-form-page {
     padding: 18px;
   }
@@ -1301,43 +1802,67 @@
 
   .summary-details-grid {
     grid-template-columns:
-      repeat(2, minmax(0, 1fr));
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
   }
 
   .quantity-summary-grid {
     grid-template-columns:
-      repeat(3, minmax(0, 1fr));
+      repeat(
+        3,
+        minmax(0, 1fr)
+      );
   }
+
 }
 
+
 @media (max-width: 720px) {
+
   .form-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns:
+      1fr;
   }
 
   .span-2 {
-    grid-column: span 1;
+    grid-column:
+      span 1;
   }
 
   .summary-details-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns:
+      1fr;
   }
 
   .quantity-summary-grid {
     grid-template-columns:
-      repeat(2, minmax(0, 1fr));
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+
+  .approval-audit-grid {
+    grid-template-columns:
+      1fr;
   }
 
   .form-actions {
-    flex-direction: column-reverse;
+    flex-direction:
+      column-reverse;
   }
 
   .form-actions .btn {
     width: 100%;
   }
+
 }
 
+
 @media (max-width: 520px) {
+
   .goods-receipt-form-page {
     padding: 13px;
   }
@@ -1373,11 +1898,33 @@
   }
 
   .quantity-summary-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns:
+      1fr;
   }
+
+  .approval-state-panel {
+    padding: 12px;
+  }
+
+  .approval-state-icon {
+    width: 29px;
+    height: 29px;
+
+    flex-basis: 29px;
+  }
+
+  .receipt-status-badge,
+  .approval-status-badge {
+    white-space: normal !important;
+
+    text-align: center;
+  }
+
 }
 
+
 @media (max-width: 360px) {
+
   .goods-receipt-form-page {
     padding: 10px;
   }
@@ -1385,4 +1932,5 @@
   .section-card {
     padding: 13px;
   }
+
 }

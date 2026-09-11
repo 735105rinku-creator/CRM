@@ -16,6 +16,11 @@ import {
   ApiError
 } from "../utils/apiError.js";
 
+import {
+  findPurchaseSeniorUserId,
+  sendPurchaseWorkflowNotification,
+} from "./purchaseWorkflowNotification.service.js";
+
 
 /* ============================================================
    HELPERS
@@ -992,10 +997,9 @@ class PurchaseOrderService {
           payload.quotationId
         ),
 
-        this.resolveWarehouse(
-            companyId,
-            payload.warehouseId
-          )
+        payload.deliveryType === "company_warehouse" || !payload.deliveryType
+          ? this.resolveWarehouse(companyId, payload.warehouseId)
+          : Promise.resolve(null)
 
       ]);
 
@@ -1077,7 +1081,8 @@ class PurchaseOrderService {
       );
 
 
-    return this.repository
+    const created =
+      await this.repository
       .create({
         companyId,
 
@@ -1130,6 +1135,21 @@ class PurchaseOrderService {
             payload.deliveryAddress
           ),
 
+        deliveryType:
+          clean(payload.deliveryType) || "company_warehouse",
+
+        deliveryLocationName:
+          clean(payload.deliveryLocationName),
+
+        deliveryContactPerson:
+          clean(payload.deliveryContactPerson),
+
+        deliveryContactNumber:
+          clean(payload.deliveryContactNumber),
+
+        otherDeliveryType:
+          clean(payload.otherDeliveryType),
+
         warehouseId:
           warehouse?._id ||
           null,
@@ -1161,6 +1181,28 @@ class PurchaseOrderService {
         updatedBy:
           userId
       });
+
+
+    const approverUserId =
+      await findPurchaseSeniorUserId({
+        companyId,
+        requesterUserId: userId,
+      });
+
+
+    await sendPurchaseWorkflowNotification({
+      companyId,
+      recipientUserId: approverUserId,
+      senderUserId: userId,
+      title: "Purchase Order awaiting approval",
+      message: `${created.poNumber || "Purchase Order"} requires your approval.`,
+      entityType: "PurchaseOrder",
+      entityId: created._id,
+      actionUrl: `/purchase/purchase-orders/${created._id}`,
+    });
+
+
+    return created;
   }
 
 
@@ -1253,8 +1295,19 @@ class PurchaseOrderService {
     let warehouse =
       null;
 
+    const deliveryType =
+      Object.prototype.hasOwnProperty.call(payload, "deliveryType")
+        ? clean(payload.deliveryType) || "company_warehouse"
+        : clean(existing.deliveryType) || "company_warehouse";
+
 
     if (
+      deliveryType !== "company_warehouse"
+    ) {
+
+      warehouse = null;
+
+    } else if (
       Object.prototype.hasOwnProperty.call(
         payload,
         "warehouseId"
@@ -1375,6 +1428,28 @@ class PurchaseOrderService {
                     payload.deliveryAddress
                   )
                 : existing.deliveryAddress,
+
+            deliveryType,
+
+            deliveryLocationName:
+              Object.prototype.hasOwnProperty.call(payload, "deliveryLocationName")
+                ? clean(payload.deliveryLocationName)
+                : existing.deliveryLocationName,
+
+            deliveryContactPerson:
+              Object.prototype.hasOwnProperty.call(payload, "deliveryContactPerson")
+                ? clean(payload.deliveryContactPerson)
+                : existing.deliveryContactPerson,
+
+            deliveryContactNumber:
+              Object.prototype.hasOwnProperty.call(payload, "deliveryContactNumber")
+                ? clean(payload.deliveryContactNumber)
+                : existing.deliveryContactNumber,
+
+            otherDeliveryType:
+              Object.prototype.hasOwnProperty.call(payload, "otherDeliveryType")
+                ? clean(payload.otherDeliveryType)
+                : existing.otherDeliveryType,
 
             warehouseId:
               warehouse?._id ||
@@ -1508,6 +1583,18 @@ class PurchaseOrderService {
         "Purchase Order could not be approved because its workflow state changed."
       );
     }
+
+
+    await sendPurchaseWorkflowNotification({
+      companyId,
+      recipientUserId: purchaseOrder.createdBy,
+      senderUserId: this.userIdOf(user),
+      title: "Purchase Order approved",
+      message: `${purchaseOrder.poNumber || "Purchase Order"} has been approved.`,
+      entityType: "PurchaseOrder",
+      entityId: purchaseOrder._id,
+      actionUrl: `/purchase/purchase-orders/${purchaseOrder._id}`,
+    });
 
 
     return approved;
@@ -1659,6 +1746,18 @@ class PurchaseOrderService {
         "Purchase Order could not be cancelled from its current state."
       );
     }
+
+
+    await sendPurchaseWorkflowNotification({
+      companyId,
+      recipientUserId: purchaseOrder.createdBy,
+      senderUserId: this.userIdOf(user),
+      title: "Purchase Order cancelled",
+      message: `${purchaseOrder.poNumber || "Purchase Order"} has been cancelled.`,
+      entityType: "PurchaseOrder",
+      entityId: purchaseOrder._id,
+      actionUrl: `/purchase/purchase-orders/${purchaseOrder._id}`,
+    });
 
 
     return cancelled;

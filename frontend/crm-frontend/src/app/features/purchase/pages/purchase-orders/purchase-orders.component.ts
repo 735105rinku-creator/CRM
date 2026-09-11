@@ -898,12 +898,24 @@ export class PurchaseOrdersComponent
       PurchaseOrder
   ):
     void {
-
+  
+    if (
+      !purchaseOrder?._id
+    ) {
+  
+      this.showMessage(
+        'Purchase Order reference is missing.',
+        'error'
+      );
+  
+      return;
+    }
+  
+  
     this.router
       .navigate([
         '/purchase/purchase-orders',
-        purchaseOrder._id,
-        'edit'
+        purchaseOrder._id
       ]);
   }
 
@@ -1375,15 +1387,13 @@ export class PurchaseOrdersComponent
       this.purchaseOrders
         .map(
           order =>
-            order._id ===
-            updated._id
-              ? updated
+            order._id === updated._id
+              ? { ...order, ...updated }
               : order
         );
 
 
-    this.cdr
-      .markForCheck();
+    this.cdr.detectChanges();
   }
 
 
@@ -1545,6 +1555,14 @@ export class PurchaseOrdersComponent
       PurchaseOrder
   ):
     string {
+
+    const deliveryType = purchaseOrder.deliveryType || 'company_warehouse';
+
+    if (deliveryType !== 'company_warehouse') {
+      return purchaseOrder.deliveryLocationName ||
+        purchaseOrder.otherDeliveryType ||
+        deliveryType.replace(/_/g, ' ');
+    }
 
     const raw =
       purchaseOrder as

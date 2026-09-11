@@ -1303,3 +1303,16 @@ export interface DayBookQuery {
   page?: number;
   limit?: number;
 }
+
+
+export interface PurchasePaymentAllocationOption {
+  purchaseInvoiceId: string;
+  vendorName: string;
+  vendorInvoiceNumber: string;
+  invoiceDate: string;
+  poNumber: string;
+  invoiceTotal: number;
+  paidAmount: number;
+  outstandingAmount: number;
+  accountsVoucherNumber: string;
+}

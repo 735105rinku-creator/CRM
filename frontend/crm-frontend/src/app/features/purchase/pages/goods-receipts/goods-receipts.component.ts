@@ -26,18 +26,25 @@ import {
   GoodsReceiptStatus,
   GoodsReceiptStatusCounts,
   GOODS_RECEIPT_STATUS_OPTIONS,
-  PurchasePagination
+  PurchasePagination,
+  PurchaseAccess
 } from '../../models/purchase.models';
 
 import {
   GoodsReceiptService
 } from '../../services/goods-receipt.service';
 
+import {
+  PurchaseRequestService
+} from '../../services/purchase-request.service';
+
 
 @Component({
-  selector: 'app-goods-receipts',
+  selector:
+    'app-goods-receipts',
 
-  standalone: true,
+  standalone:
+    true,
 
   imports: [
     CommonModule,
@@ -66,8 +73,20 @@ export class GoodsReceiptsComponent
   errorMessage =
     '';
 
+  successMessage =
+    '';
+
+  processingId =
+    '';
+
+  purchaseAccess:
+    PurchaseAccess |
+    null =
+      null;
+
   goodsReceipts:
     GoodsReceipt[] = [];
+
 
   readonly statusOptions =
     GOODS_RECEIPT_STATUS_OPTIONS;
@@ -85,6 +104,12 @@ export class GoodsReceiptsComponent
 
       status:
         '',
+
+      approvalStatus:
+        '',
+
+      scope:
+        'my',
 
       fromDate:
         '',
@@ -152,6 +177,9 @@ export class GoodsReceiptsComponent
     private readonly goodsReceiptService:
       GoodsReceiptService,
 
+    private readonly purchaseRequestService:
+      PurchaseRequestService,
+
     private readonly router:
       Router,
 
@@ -167,8 +195,123 @@ export class GoodsReceiptsComponent
   ngOnInit():
     void {
 
-    this.loadGoodsReceipts();
+    this.purchaseRequestService
+      .getPurchaseAccess()
+      .subscribe({
 
+        next:
+          (
+            access
+          ) => {
+
+            this.purchaseAccess =
+              access;
+
+
+            this.filters.scope =
+              access.canApprove
+                ? 'team'
+                : 'my';
+
+
+            this.loadGoodsReceipts();
+            this.loadStatusCounts();
+
+
+            this.cdr
+              .markForCheck();
+
+          },
+
+        error:
+          () => {
+
+            /*
+             * Fallback remains own-work oriented.
+             */
+            this.filters.scope =
+              'my';
+
+
+            this.loadGoodsReceipts();
+            this.loadStatusCounts();
+
+          }
+
+      });
+
+  }
+
+
+  /* ============================================================
+     ACCESS
+  ============================================================ */
+
+  get canApprove():
+    boolean {
+
+    return (
+      this.purchaseAccess?.canApprove ===
+      true
+    );
+  }
+
+
+  get canCreate():
+    boolean {
+
+    /*
+     * Both Junior and Senior Purchase employees
+     * can create operational GRNs.
+     *
+     * Backend decides:
+     * Junior -> pending approval
+     * Senior -> immediately approved
+     */
+    return this.purchaseAccess !==
+      null;
+  }
+
+
+  /* ============================================================
+     WORK SCOPE
+  ============================================================ */
+
+  setScope(
+    scope:
+      'my' |
+      'team'
+  ):
+    void {
+
+    if (
+      !this.canApprove &&
+      scope ===
+        'team'
+    ) {
+
+      return;
+    }
+
+
+    if (
+      this.filters.scope ===
+      scope
+    ) {
+
+      return;
+    }
+
+
+    this.filters.scope =
+      scope;
+
+
+    this.filters.page =
+      1;
+
+
+    this.loadGoodsReceipts();
     this.loadStatusCounts();
   }
 
@@ -182,6 +325,7 @@ export class GoodsReceiptsComponent
 
     this.loading =
       true;
+
 
     this.errorMessage =
       '';
@@ -197,6 +341,7 @@ export class GoodsReceiptsComponent
 
             this.loading =
               false;
+
 
             this.cdr
               .markForCheck();
@@ -282,6 +427,7 @@ export class GoodsReceiptsComponent
           }
 
       });
+
   }
 
 
@@ -297,13 +443,19 @@ export class GoodsReceiptsComponent
 
 
     this.goodsReceiptService
-      .getStatusCounts()
+      .getStatusCounts(
+        {
+          scope:
+            this.filters.scope
+        }
+      )
       .pipe(
         finalize(
           () => {
 
             this.statusCountsLoading =
               false;
+
 
             this.cdr
               .markForCheck();
@@ -370,11 +522,12 @@ export class GoodsReceiptsComponent
           }
 
       });
+
   }
 
 
   /* ============================================================
-     SEARCH
+     SEARCH / FILTER
   ============================================================ */
 
   applyFilters():
@@ -382,6 +535,7 @@ export class GoodsReceiptsComponent
 
     this.filters.page =
       1;
+
 
     this.loadGoodsReceipts();
   }
@@ -408,8 +562,10 @@ export class GoodsReceiptsComponent
     this.filters.status =
       status;
 
+
     this.filters.page =
       1;
+
 
     this.loadGoodsReceipts();
   }
@@ -430,6 +586,14 @@ export class GoodsReceiptsComponent
       status:
         '',
 
+      approvalStatus:
+        '',
+
+      scope:
+        this.canApprove
+          ? 'team'
+          : 'my',
+
       fromDate:
         '',
 
@@ -449,6 +613,7 @@ export class GoodsReceiptsComponent
 
 
     this.loadGoodsReceipts();
+    this.loadStatusCounts();
   }
 
 
@@ -459,11 +624,297 @@ export class GoodsReceiptsComponent
   createGoodsReceipt():
     void {
 
+    if (
+      !this.canCreate
+    ) {
+
+      return;
+    }
+
+
     this.router.navigate(
       [
         '/purchase/goods-receipts/new'
       ]
     );
+
+  }
+
+
+  /* ============================================================
+     APPROVE
+  ============================================================ */
+
+  approveGoodsReceipt(
+    grn:
+      GoodsReceipt
+  ):
+    void {
+
+    if (
+      !this.canApprove ||
+      grn.approvalStatus !==
+        'pending_approval' ||
+      Boolean(
+        this.processingId
+      )
+    ) {
+
+      return;
+    }
+
+
+    this.processingId =
+      grn._id;
+
+
+    this.errorMessage =
+      '';
+
+    this.successMessage =
+      '';
+
+
+    this.goodsReceiptService
+      .approve(
+        grn._id
+      )
+      .pipe(
+        finalize(
+          () => {
+
+            this.processingId =
+              '';
+
+
+            this.cdr
+              .markForCheck();
+
+          }
+        )
+      )
+      .subscribe({
+
+        next:
+          (
+            updated
+          ) => {
+
+            this.replaceGoodsReceipt(
+              updated
+            );
+
+
+            this.successMessage =
+              `${updated.grnNumber || grn.grnNumber} approved successfully.`;
+
+
+            this.loadStatusCounts();
+
+          },
+
+        error:
+          (
+            error
+          ) => {
+
+            this.errorMessage =
+              this.resolveErrorMessage(
+                error,
+                'GRN could not be approved.'
+              );
+
+          }
+
+      });
+
+  }
+
+
+  /* ============================================================
+     REJECT
+  ============================================================ */
+
+  rejectGoodsReceipt(
+    grn:
+      GoodsReceipt
+  ):
+    void {
+
+    if (
+      !this.canApprove ||
+      grn.approvalStatus !==
+        'pending_approval' ||
+      Boolean(
+        this.processingId
+      )
+    ) {
+
+      return;
+    }
+
+
+    const reason =
+      window
+        .prompt(
+          `Enter rejection reason for ${grn.grnNumber}:`
+        )
+        ?.trim();
+
+
+    if (
+      !reason
+    ) {
+
+      this.errorMessage =
+        'Rejection reason is required.';
+
+
+      return;
+    }
+
+
+    this.processingId =
+      grn._id;
+
+
+    this.errorMessage =
+      '';
+
+    this.successMessage =
+      '';
+
+
+    this.goodsReceiptService
+      .reject(
+        grn._id,
+        reason
+      )
+      .pipe(
+        finalize(
+          () => {
+
+            this.processingId =
+              '';
+
+
+            this.cdr
+              .markForCheck();
+
+          }
+        )
+      )
+      .subscribe({
+
+        next:
+          (
+            updated
+          ) => {
+
+            this.replaceGoodsReceipt(
+              updated
+            );
+
+
+            this.successMessage =
+              `${updated.grnNumber || grn.grnNumber} rejected.`;
+
+
+            this.loadStatusCounts();
+
+          },
+
+        error:
+          (
+            error
+          ) => {
+
+            this.errorMessage =
+              this.resolveErrorMessage(
+                error,
+                'GRN could not be rejected.'
+              );
+
+          }
+
+      });
+
+  }
+
+
+  private replaceGoodsReceipt(
+    updated:
+      GoodsReceipt
+  ):
+    void {
+
+    this.goodsReceipts =
+      this.goodsReceipts
+        .map(
+          (
+            row
+          ) =>
+            row._id ===
+            updated._id
+              ? {
+                  ...row,
+                  ...updated
+                }
+              : row
+        );
+
+
+    this.cdr
+      .detectChanges();
+
+  }
+
+
+  /* ============================================================
+     APPROVAL DISPLAY
+  ============================================================ */
+
+  approvalLabel(
+    grn:
+      GoodsReceipt
+  ):
+    string {
+
+    /*
+     * Legacy GRNs without approvalStatus are treated
+     * as approved for display compatibility.
+     */
+    return this.humanize(
+      grn.approvalStatus ||
+      'approved'
+    );
+  }
+
+
+  approvalClass(
+    grn:
+      GoodsReceipt
+  ):
+    string {
+
+    switch (
+      grn.approvalStatus ||
+      'approved'
+    ) {
+
+      case 'pending_approval':
+        return 'approval-pending';
+
+      case 'approved':
+        return 'approval-approved';
+
+      case 'rejected':
+        return 'approval-rejected';
+
+      default:
+        return 'approval-default';
+
+    }
   }
 
 
@@ -491,6 +942,7 @@ export class GoodsReceiptsComponent
         goodsReceipt._id
       ]
     );
+
   }
 
 
@@ -503,7 +955,7 @@ export class GoodsReceiptsComponent
 
     if (
       this.pagination.page <=
-      1 ||
+        1 ||
       this.loading
     ) {
 
@@ -515,7 +967,9 @@ export class GoodsReceiptsComponent
       this.pagination.page -
       1;
 
+
     this.loadGoodsReceipts();
+
   }
 
 
@@ -524,7 +978,7 @@ export class GoodsReceiptsComponent
 
     if (
       this.pagination.page >=
-      this.pagination.pages ||
+        this.pagination.pages ||
       this.loading
     ) {
 
@@ -536,7 +990,9 @@ export class GoodsReceiptsComponent
       this.pagination.page +
       1;
 
+
     this.loadGoodsReceipts();
+
   }
 
 
@@ -548,11 +1004,11 @@ export class GoodsReceiptsComponent
 
     if (
       page <
-      1 ||
+        1 ||
       page >
-      this.pagination.pages ||
+        this.pagination.pages ||
       page ===
-      this.pagination.page ||
+        this.pagination.page ||
       this.loading
     ) {
 
@@ -563,7 +1019,9 @@ export class GoodsReceiptsComponent
     this.filters.page =
       page;
 
+
     this.loadGoodsReceipts();
+
   }
 
 
@@ -634,6 +1092,7 @@ export class GoodsReceiptsComponent
 
 
     return pages;
+
   }
 
 
@@ -660,6 +1119,7 @@ export class GoodsReceiptsComponent
       this.humanize(
         status
       );
+
   }
 
 
@@ -690,6 +1150,7 @@ export class GoodsReceiptsComponent
         return 'status-default';
 
     }
+
   }
 
 
@@ -738,6 +1199,7 @@ export class GoodsReceiptsComponent
             'numeric'
         }
       );
+
   }
 
 
@@ -763,6 +1225,7 @@ export class GoodsReceiptsComponent
           ),
         0
       );
+
   }
 
 
@@ -788,6 +1251,7 @@ export class GoodsReceiptsComponent
           ),
         0
       );
+
   }
 
 
@@ -813,6 +1277,7 @@ export class GoodsReceiptsComponent
           ),
         0
       );
+
   }
 
 
@@ -838,6 +1303,7 @@ export class GoodsReceiptsComponent
           ),
         0
       );
+
   }
 
 
@@ -851,6 +1317,7 @@ export class GoodsReceiptsComponent
     string {
 
     return goodsReceipt._id;
+
   }
 
 
@@ -880,6 +1347,7 @@ export class GoodsReceiptsComponent
           character
             .toUpperCase()
       );
+
   }
 
 
@@ -897,6 +1365,7 @@ export class GoodsReceiptsComponent
       error?.message ||
       fallback
     );
+
   }
 
 }

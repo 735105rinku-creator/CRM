@@ -84,6 +84,109 @@ const objectId = (
       );
 
 
+/*
+ * Creator ownership is intentionally optional.
+ *
+ * The service layer decides:
+ *
+ * Junior:
+ *   creator scope is supplied.
+ *
+ * Senior Team Work:
+ *   creator scope is omitted.
+ *
+ * Senior My Work:
+ *   creator scope is supplied.
+ *
+ * Both Employee ownership and legacy User ownership are
+ * supported so older GRNs remain visible to their creator.
+ */
+const applyCreatorScope = (
+  query,
+  {
+    creatorEmployeeId = null,
+    creatorUserId = null
+  } = {},
+  {
+    convertToObjectId = false
+  } = {}
+) => {
+
+  if (
+    !creatorEmployeeId &&
+    !creatorUserId
+  ) {
+
+    return query;
+  }
+
+
+  const ownershipConditions =
+    [];
+
+
+  if (
+    creatorEmployeeId
+  ) {
+
+    ownershipConditions.push({
+      createdByEmployeeId:
+        convertToObjectId
+          ? objectId(
+              creatorEmployeeId
+            )
+          : creatorEmployeeId
+    });
+  }
+
+
+  if (
+    creatorUserId
+  ) {
+
+    ownershipConditions.push({
+      createdBy:
+        convertToObjectId
+          ? objectId(
+              creatorUserId
+            )
+          : creatorUserId
+    });
+  }
+
+
+  if (
+    ownershipConditions.length >
+    0
+  ) {
+
+    if (
+      Array.isArray(
+        query.$and
+      )
+    ) {
+
+      query.$and.push({
+        $or:
+          ownershipConditions
+      });
+
+    } else {
+
+      query.$and = [
+        {
+          $or:
+            ownershipConditions
+        }
+      ];
+    }
+  }
+
+
+  return query;
+};
+
+
 /* ============================================================
    REPOSITORY
 ============================================================ */
@@ -120,25 +223,43 @@ class GoodsReceiptRepository {
 
   /* ==========================================================
      FIND BY ID
+
+     Optional creator scope is used for Junior / My Work access.
   ========================================================== */
 
   async findById(
     companyId,
     id,
     {
-      session = null
+      session = null,
+      creatorEmployeeId = null,
+      creatorUserId = null
     } = {}
   ) {
 
+    const filter = {
+      _id:
+        id,
+
+      companyId:
+        companyId
+    };
+
+
+    applyCreatorScope(
+      filter,
+      {
+        creatorEmployeeId,
+        creatorUserId
+      }
+    );
+
+
     const query =
       GoodsReceipt
-        .findOne({
-          _id:
-            id,
-
-          companyId:
-            companyId
-        })
+        .findOne(
+          filter
+        )
         .lean();
 
 
@@ -159,6 +280,8 @@ class GoodsReceiptRepository {
   /* ==========================================================
      FIND DOCUMENT BY ID
      Used when a Mongoose document is required.
+
+     This remains company scoped by default.
   ========================================================== */
 
   async findDocumentById(
@@ -250,6 +373,12 @@ class GoodsReceiptRepository {
 
       warehouseId,
 
+      approvalStatus,
+
+      creatorEmployeeId,
+
+      creatorUserId,
+
       from,
 
       to,
@@ -268,6 +397,24 @@ class GoodsReceiptRepository {
     const query = {
       companyId
     };
+
+
+    applyCreatorScope(
+      query,
+      {
+        creatorEmployeeId,
+        creatorUserId
+      }
+    );
+
+
+    if (
+      approvalStatus
+    ) {
+
+      query.approvalStatus =
+        approvalStatus;
+    }
 
 
     /* --------------------------------------------------------
@@ -298,7 +445,7 @@ class GoodsReceiptRepository {
         );
 
 
-      query.$or = [
+      const searchConditions = [
 
         {
           grnNumber:
@@ -341,6 +488,28 @@ class GoodsReceiptRepository {
         }
 
       ];
+
+
+      if (
+        Array.isArray(
+          query.$and
+        )
+      ) {
+
+        query.$and.push({
+          $or:
+            searchConditions
+        });
+
+      } else {
+
+        query.$and = [
+          {
+            $or:
+              searchConditions
+          }
+        ];
+      }
     }
 
 
@@ -543,22 +712,43 @@ class GoodsReceiptRepository {
 
   /* ==========================================================
      FIND ALL GRNs FOR A PO
+
+     Optional creator scope:
+     - Junior -> own GRNs
+     - Senior Team -> all Purchase GRNs
+     - Senior My Work -> own GRNs
   ========================================================== */
 
   async findByPurchaseOrder(
     companyId,
     purchaseOrderId,
     {
-      session = null
+      session = null,
+      creatorEmployeeId = null,
+      creatorUserId = null
     } = {}
   ) {
 
+    const filter = {
+      companyId,
+      purchaseOrderId
+    };
+
+
+    applyCreatorScope(
+      filter,
+      {
+        creatorEmployeeId,
+        creatorUserId
+      }
+    );
+
+
     const query =
       GoodsReceipt
-        .find({
-          companyId,
-          purchaseOrderId
-        })
+        .find(
+          filter
+        )
         .sort({
           receiptDate:
             1,
@@ -638,13 +828,16 @@ class GoodsReceiptRepository {
      - Current GRN quantity only.
      - Company scoped.
      - Multiple GRNs are aggregated.
+     - Pending GRNs can optionally reserve quantity.
+     - Rejected approval records never reserve quantity.
   ========================================================== */
 
   async aggregateReceivedByPurchaseOrder(
     companyId,
     purchaseOrderId,
     {
-      session = null
+      session = null,
+      includePending = false
     } = {}
   ) {
 
@@ -660,7 +853,35 @@ class GoodsReceiptRepository {
           purchaseOrderId:
             objectId(
               purchaseOrderId
-            )
+            ),
+
+          ...(
+            includePending
+              ? {
+                  approvalStatus: {
+                    $ne:
+                      "rejected"
+                  }
+                }
+              : {
+                  $or: [
+                    {
+                      approvalStatus:
+                        "approved"
+                    },
+                    {
+                      approvalStatus: {
+                        $exists:
+                          false
+                      }
+                    },
+                    {
+                      approvalStatus:
+                        null
+                    }
+                  ]
+                }
+          )
         }
       },
 
@@ -739,22 +960,45 @@ class GoodsReceiptRepository {
 
   /* ==========================================================
      COUNT BY STATUS
+
+     Optional creator scope is used for Junior / My Work counts.
   ========================================================== */
 
   async countByStatus(
-    companyId
+    companyId,
+    {
+      creatorEmployeeId = null,
+      creatorUserId = null
+    } = {}
   ) {
+
+    const match = {
+      companyId:
+        objectId(
+          companyId
+        )
+    };
+
+
+    applyCreatorScope(
+      match,
+      {
+        creatorEmployeeId,
+        creatorUserId
+      },
+      {
+        convertToObjectId:
+          true
+      }
+    );
+
 
     const rows =
       await GoodsReceipt.aggregate([
 
         {
-          $match: {
-            companyId:
-              objectId(
-                companyId
-              )
-          }
+          $match:
+            match
         },
 
         {
@@ -821,7 +1065,88 @@ class GoodsReceiptRepository {
 
 
   /* ==========================================================
+     APPROVE PENDING GRN
+  ========================================================== */
+
+  async approvePendingById(
+    companyId,
+    id,
+    data,
+    {
+      session = null
+    } = {}
+  ) {
+
+    return GoodsReceipt
+      .findOneAndUpdate(
+        {
+          _id:
+            id,
+
+          companyId,
+
+          approvalStatus:
+            "pending_approval"
+        },
+        {
+          $set:
+            data
+        },
+        {
+          new:
+            true,
+
+          session
+        }
+      )
+      .lean();
+  }
+
+
+  /* ==========================================================
+     REJECT PENDING GRN
+  ========================================================== */
+
+  async rejectPendingById(
+    companyId,
+    id,
+    data,
+    {
+      session = null
+    } = {}
+  ) {
+
+    return GoodsReceipt
+      .findOneAndUpdate(
+        {
+          _id:
+            id,
+
+          companyId,
+
+          approvalStatus:
+            "pending_approval"
+        },
+        {
+          $set:
+            data
+        },
+        {
+          new:
+            true,
+
+          session
+        }
+      )
+      .lean();
+  }
+
+
+  /* ==========================================================
      COUNT FOR PURCHASE ORDER
+
+     Intentionally company/PO scoped.
+     This is an operational PO count, not My Work count.
   ========================================================== */
 
   async countForPurchaseOrder(
@@ -923,6 +1248,10 @@ class GoodsReceiptRepository {
 
   /* ==========================================================
      TOTAL CURRENT RECEIPT QUANTITY FOR PO
+
+     Kept unchanged for backward compatibility.
+     Approval-aware operational calculations use
+     aggregateReceivedByPurchaseOrder().
   ========================================================== */
 
   async totalReceivedQuantityForPurchaseOrder(

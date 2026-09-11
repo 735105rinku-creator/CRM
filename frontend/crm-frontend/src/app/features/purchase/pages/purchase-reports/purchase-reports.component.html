@@ -943,6 +943,46 @@
 
     </a>
 
+    <a routerLink="/purchase/invoices" class="report-card">
+      <div class="report-card-icon">INV</div>
+      <div>
+        <h2>Purchase Invoice Report</h2>
+        <p>Review vendor invoices, values and verification state.</p>
+        <small>Total: {{ invoiceMetrics().total }} &bull; Value: &#8377;{{ invoiceMetrics().invoiceTotal | number:'1.2-2' }}</small>
+      </div>
+      <span class="report-arrow">&rarr;</span>
+    </a>
+
+    <a routerLink="/purchase/invoices" class="report-card">
+      <div class="report-card-icon">3W</div>
+      <div>
+        <h2>3-Way Matching Report</h2>
+        <p>Review PO, GRN and invoice matches and exceptions.</p>
+        <small>Matched: {{ invoiceMetrics().matched }} &bull; Exceptions: {{ invoiceMetrics().exceptions }}</small>
+      </div>
+      <span class="report-arrow">&rarr;</span>
+    </a>
+
+    <a routerLink="/purchase/invoices" class="report-card">
+      <div class="report-card-icon">AP</div>
+      <div>
+        <h2>Accounts Payable Handoff Report</h2>
+        <p>Review verified invoices pending or completed Accounts handoff.</p>
+        <small>Pending: {{ invoiceMetrics().pendingHandoff }} &bull; Handed off: {{ invoiceMetrics().handedOff }}</small>
+      </div>
+      <span class="report-arrow">&rarr;</span>
+    </a>
+
+    <a routerLink="/purchase/invoices" class="report-card">
+      <div class="report-card-icon">PAY</div>
+      <div>
+        <h2>Payment Status Report</h2>
+        <p>Review authoritative posted Accounts allocations by Purchase Invoice.</p>
+        <small>Paid: &#8377;{{ invoiceMetrics().paidAmount | number:'1.2-2' }} &bull; Outstanding: &#8377;{{ invoiceMetrics().outstandingAmount | number:'1.2-2' }}</small>
+      </div>
+      <span class="report-arrow">&rarr;</span>
+    </a>
+
   </section>
 
 

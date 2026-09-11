@@ -441,6 +441,21 @@ export class PurchaseSidebarComponent {
 
           {
             id:
+              'invoices',
+
+            label:
+              'Vendor Invoices',
+
+            icon:
+              'I',
+
+            route:
+              '/purchase/invoices'
+          },
+
+
+          {
+            id:
               'vendors',
 
             label:

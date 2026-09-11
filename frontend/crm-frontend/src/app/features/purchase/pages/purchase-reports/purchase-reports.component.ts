@@ -52,6 +52,14 @@ import {
   PurchaseReferenceService
 } from '../../services/purchase-reference.service';
 
+import {
+  PurchaseInvoiceService
+} from '../../services/purchase-invoice.service';
+
+import {
+  PurchaseInvoiceMetrics
+} from '../../models/purchase.models';
+
 
 export interface PurchaseReportSummary {
   purchaseRequests: number;
@@ -114,6 +122,9 @@ export class PurchaseReportsComponent {
   private readonly purchaseReferenceService =
     inject(PurchaseReferenceService);
 
+  private readonly purchaseInvoiceService =
+    inject(PurchaseInvoiceService);
+
 
   /* ============================================================
      PAGE STATE
@@ -168,6 +179,23 @@ export class PurchaseReportsComponent {
 
   readonly goodsReceiptStatusCounts =
     signal<Record<string, number>>({});
+
+  readonly invoiceMetrics =
+    signal<PurchaseInvoiceMetrics>({
+      total: 0,
+      matched: 0,
+      exceptions: 0,
+      pendingVerification: 0,
+      verified: 0,
+      pendingHandoff: 0,
+      handedOff: 0,
+      invoiceTotal: 0,
+      paidAmount: 0,
+      outstandingAmount: 0,
+      unpaid: 0,
+      partiallyPaid: 0,
+      paid: 0
+    });
 
 
   constructor() {
@@ -300,6 +328,16 @@ export class PurchaseReportsComponent {
           .pipe(
             catchError(
               () => of([])
+            )
+          ),
+
+
+      invoiceMetrics:
+        this.purchaseInvoiceService
+          .metrics()
+          .pipe(
+            catchError(
+              () => of(null)
             )
           )
 
@@ -523,6 +561,14 @@ export class PurchaseReportsComponent {
                   response.vendors
                 );
 
+          if (
+            response.invoiceMetrics
+          ) {
+            this.invoiceMetrics.set(
+              response.invoiceMetrics
+            );
+          }
+
 
           /* ======================================================
              FINAL SUMMARY
@@ -564,7 +610,8 @@ export class PurchaseReportsComponent {
             response.vendorEnquiries === null ||
             response.quotations === null ||
             response.purchaseOrders === null ||
-            response.goodsReceipts === null;
+            response.goodsReceipts === null ||
+            response.invoiceMetrics === null;
 
 
           if (

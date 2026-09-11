@@ -105,6 +105,7 @@ const logisticsVendorSchema = new mongoose.Schema({
 
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
   createdByEmployeeId: { type: mongoose.Schema.Types.ObjectId, ref: "Employee", default: null },
+  sourceDepartmentId: { type: mongoose.Schema.Types.ObjectId, ref: "Department", default: null },
   updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
   isActive: { type: Boolean, default: true, index: true },
 }, { timestamps: true });

@@ -14,6 +14,12 @@ export const PURCHASE_ORDER_STATUSES = [
   "cancelled"
 ];
 
+export const PURCHASE_ORDER_DELIVERY_TYPES = [
+  "company_warehouse", "airport", "port", "customer_location",
+  "project_site", "factory_processing_unit", "third_party_warehouse",
+  "direct_delivery", "other"
+];
+
 
 /* ============================================================
    PURCHASE ORDER ITEM
@@ -360,6 +366,17 @@ const purchaseOrderSchema =
           ""
       },
 
+      deliveryType: {
+        type: String,
+        enum: PURCHASE_ORDER_DELIVERY_TYPES,
+        default: "company_warehouse"
+      },
+
+      deliveryLocationName: { type: String, trim: true, default: "" },
+      deliveryContactPerson: { type: String, trim: true, default: "" },
+      deliveryContactNumber: { type: String, trim: true, default: "" },
+      otherDeliveryType: { type: String, trim: true, default: "" },
+
       warehouseId: {
         type:
           mongoose.Schema.Types.ObjectId,
@@ -515,6 +532,20 @@ const purchaseOrderSchema =
 purchaseOrderSchema.pre(
   "validate",
   function purchaseOrderValidation() {
+
+    const deliveryType = this.deliveryType || "company_warehouse";
+
+    if (deliveryType === "company_warehouse" && !this.warehouseId) {
+      throw new Error("Warehouse is required for Company Warehouse delivery.");
+    }
+
+    if (deliveryType !== "company_warehouse" && !String(this.deliveryLocationName || "").trim()) {
+      throw new Error("Delivery location name is required for this delivery type.");
+    }
+
+    if (deliveryType === "other" && !String(this.otherDeliveryType || "").trim()) {
+      throw new Error("Specify Delivery Type is required when Other is selected.");
+    }
 
     if (
       !Array.isArray(

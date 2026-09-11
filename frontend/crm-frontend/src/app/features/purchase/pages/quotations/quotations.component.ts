@@ -729,7 +729,7 @@ export class QuotationsComponent
 
     void this.router.navigate(
       [
-        '/purchase/quotation-comparison'
+        '/purchase/quotations/comparison'
       ],
       {
         queryParams: {
@@ -968,32 +968,35 @@ export class QuotationsComponent
       PurchaseQuotation
   ):
     string {
-
+  
     const request =
       quotation.purchaseRequest;
-
-
+  
+  
     if (
-      !request
+      request &&
+      typeof request !==
+        'string'
     ) {
-
-      return '—';
+  
+      return (
+        request.prNumber ||
+        'Linked PR'
+      );
     }
-
-
+  
+  
     if (
+      quotation.purchaseRequestId ||
       typeof request ===
-      'string'
+        'string'
     ) {
-
+  
       return 'Linked PR';
     }
-
-
-    return (
-      request.prNumber ||
-      'Linked PR'
-    );
+  
+  
+    return '—';
   }
 
 
@@ -1002,28 +1005,38 @@ export class QuotationsComponent
       PurchaseQuotation
   ):
     string {
-
+  
+    if (
+      quotation.purchaseRequestId
+    ) {
+  
+      return String(
+        quotation.purchaseRequestId
+      );
+    }
+  
+  
     const request =
       quotation.purchaseRequest;
-
-
+  
+  
     if (
       !request
     ) {
-
+  
       return '';
     }
-
-
+  
+  
     if (
       typeof request ===
-      'string'
+        'string'
     ) {
-
+  
       return request;
     }
-
-
+  
+  
     return (
       request._id ||
       ''

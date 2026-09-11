@@ -48,6 +48,8 @@ export type GoodsReceiptStatus =
   | 'rejected'
   | 'completed';
 
+export type GoodsReceiptApprovalStatus = 'pending_approval' | 'approved' | 'rejected';
+
 
 /* ============================================================
    COMMON API TYPES
@@ -557,6 +559,10 @@ export interface PurchaseQuotation {
 
   rfqNumber?: string;
 
+  purchaseRequestId?: string | null;
+  vendorEnquiryId?: string | null;
+  vendorId?: string | null;
+
   purchaseRequest?:
     | PurchaseRequest
     | string
@@ -740,6 +746,11 @@ export interface PurchaseOrderItem {
   lineTotal?: number;
 }
 
+export type PurchaseOrderDeliveryType =
+  | 'company_warehouse' | 'airport' | 'port' | 'customer_location'
+  | 'project_site' | 'factory_processing_unit' | 'third_party_warehouse'
+  | 'direct_delivery' | 'other';
+
 
 export interface PurchaseOrder {
   _id: string;
@@ -751,6 +762,8 @@ export interface PurchaseOrder {
   vendor:
     | PurchaseVendorOption
     | string;
+
+  vendorName?: string;
 
   purchaseRequest?:
     | PurchaseRequest
@@ -780,6 +793,15 @@ export interface PurchaseOrder {
   grandTotal: number;
 
   deliveryAddress?: string;
+
+  deliveryType?: PurchaseOrderDeliveryType;
+  deliveryLocationName?: string;
+  deliveryContactPerson?: string;
+  deliveryContactNumber?: string;
+  otherDeliveryType?: string;
+
+  warehouseId?: string | null;
+  warehouseName?: string;
 
   warehouse?:
     | PurchaseWarehouseOption
@@ -844,6 +866,12 @@ export interface PurchaseOrderPayload {
   otherCharges?: number;
 
   deliveryAddress?: string;
+
+  deliveryType?: PurchaseOrderDeliveryType;
+  deliveryLocationName?: string;
+  deliveryContactPerson?: string;
+  deliveryContactNumber?: string;
+  otherDeliveryType?: string;
 
   warehouseId?: string | null;
 
@@ -946,13 +974,21 @@ export interface GoodsReceipt {
 
   vendorCode?: string;
 
-  warehouseId:
+  warehouseId?:
     | PurchaseWarehouseOption
-    | string;
+    | string
+    | null;
 
-  warehouseName: string;
+  warehouseName?: string;
 
   warehouseCode?: string;
+
+  deliveryType?: PurchaseOrderDeliveryType;
+  deliveryLocationName?: string;
+  deliveryAddress?: string;
+  deliveryContactPerson?: string;
+  deliveryContactNumber?: string;
+  otherDeliveryType?: string;
 
   deliveryChallanNumber?: string;
 
@@ -967,6 +1003,20 @@ export interface GoodsReceipt {
   remarks?: string;
 
   status: GoodsReceiptStatus;
+
+  approvalStatus?: GoodsReceiptApprovalStatus;
+  createdByEmployeeId?: string | null;
+  createdByEmployeeName?: string;
+  createdByEmployeeCode?: string;
+  submittedAt?: string | null;
+  submittedBy?: PurchaseUserReference | string | null;
+  approvedAt?: string | null;
+  approvedBy?: PurchaseUserReference | string | null;
+  approvedByName?: string;
+  rejectedAt?: string | null;
+  rejectedBy?: PurchaseUserReference | string | null;
+  rejectedByName?: string;
+  approvalRejectionReason?: string;
 
   companyId?: string;
 
@@ -988,7 +1038,7 @@ export interface GoodsReceiptPayload {
 
   receiptDate?: string;
 
-  warehouseId: string;
+  warehouseId?: string | null;
 
   deliveryChallanNumber?: string;
 
@@ -1012,6 +1062,9 @@ export interface GoodsReceiptFilters {
   search?: string;
 
   status?: GoodsReceiptStatus | '';
+
+  approvalStatus?: GoodsReceiptApprovalStatus | '';
+  scope?: 'my' | 'team';
 
   vendorId?: string;
 
@@ -1177,6 +1230,78 @@ export interface PurchaseReportFilters {
     | 'quantity_tracking'
     | 'vendor_wise'
     | string;
+}
+
+export type PurchaseInvoiceStatus = 'received' | 'matched' | 'exception' | 'verified';
+export type PurchaseInvoiceHandoffStatus = 'not_handed_off' | 'handing_off' | 'handed_off' | 'failed';
+
+export interface PurchaseInvoiceItem {
+  _id?: string;
+  purchaseOrderItemId: string;
+  itemName: string;
+  unit: string;
+  invoicedQuantity: number;
+  unitPrice: number;
+  taxableAmount: number;
+  taxPercent: number;
+  taxAmount: number;
+  lineTotal: number;
+  poQuantity: number;
+  receivedQuantity: number;
+  poUnitPrice: number;
+  matchStatus: 'matched' | 'exception';
+  mismatchReasons: string[];
+}
+
+export interface PurchaseInvoice {
+  _id: string;
+  vendorId: string;
+  vendorName: string;
+  vendorCode?: string;
+  purchaseOrderId: string;
+  poNumber: string;
+  goodsReceiptIds: string[];
+  grnNumbers: string[];
+  vendorInvoiceNumber: string;
+  invoiceDate: string;
+  receivedDate: string;
+  items: PurchaseInvoiceItem[];
+  taxableAmount: number;
+  taxTotal: number;
+  freightCharges: number;
+  otherCharges: number;
+  invoiceTotal: number;
+  declaredInvoiceTotal: number;
+  paidAmount: number;
+  outstandingAmount: number;
+  paymentStatus: 'unpaid' | 'partially_paid' | 'paid';
+  remarks?: string;
+  status: PurchaseInvoiceStatus;
+  matchStatus: 'matched' | 'exception';
+  mismatchReasons: string[];
+  verifiedBy?: PurchaseUserReference | string | null;
+  verifiedAt?: string | null;
+  handoffStatus: PurchaseInvoiceHandoffStatus;
+  accountsVoucherId?: string | null;
+  accountsVoucherNumber?: string;
+  handedOffAt?: string | null;
+  handoffError?: string;
+}
+
+export interface PurchaseInvoiceMetrics {
+  total: number;
+  pendingVerification: number;
+  matched: number;
+  exceptions: number;
+  verified: number;
+  pendingHandoff: number;
+  handedOff: number;
+  invoiceTotal: number;
+  paidAmount: number;
+  outstandingAmount: number;
+  unpaid: number;
+  partiallyPaid: number;
+  paid: number;
 }
 
 

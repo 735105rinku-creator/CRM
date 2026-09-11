@@ -46,6 +46,12 @@ import {
     currency?: string;
   
     status?: string;
+
+    addedBy?: string;
+
+    sourceDepartment?: string;
+
+    addedOn?: string | null;
   
   }
   
@@ -85,6 +91,14 @@ import {
   
     searchTerm =
       '';
+
+    saving = false;
+
+    formOpen = false;
+
+    successMessage = '';
+
+    vendorForm = this.emptyVendorForm();
   
   
     /* ============================================================
@@ -283,6 +297,54 @@ import {
   
   
       this.loadVendors();
+    }
+
+
+    openVendorForm(): void {
+      this.vendorForm = this.emptyVendorForm();
+      this.errorMessage = '';
+      this.successMessage = '';
+      this.formOpen = true;
+    }
+
+
+    closeVendorForm(): void {
+      if (!this.saving) this.formOpen = false;
+    }
+
+
+    createVendor(): void {
+      if (this.saving) return;
+
+      this.saving = true;
+      this.errorMessage = '';
+
+      const value = this.vendorForm;
+      this.purchaseReferenceService.createVendor({
+        vendorType: 'supplier',
+        vendorName: value.vendorName,
+        companyName: value.companyName,
+        contactPerson: value.contactPerson,
+        mobile: value.mobile,
+        email: value.email,
+        gstType: value.gstType,
+        gstNumber: value.gstNumber,
+        panNumber: value.panNumber,
+        address: { addressLine1: value.addressLine1, city: value.city, state: value.state, country: 'India', pincode: value.pincode },
+        serviceCategory: 'goods',
+        paymentTerms: value.paymentTerms,
+        creditDays: Number(value.creditDays || 0),
+        openingPayable: Number(value.openingPayable || 0),
+        currency: 'INR',
+        preferredPaymentMode: value.preferredPaymentMode,
+        preferredPaymentModeOther: value.preferredPaymentMode === 'other' ? value.preferredPaymentModeOther : '',
+        bankDetails: { accountHolderName: value.accountHolderName, bankName: value.bankName, accountNumber: value.accountNumber, ifscCode: value.ifscCode },
+        remarks: value.remarks,
+        status: 'active'
+      }).pipe(finalize(() => { this.saving = false; this.cdr.markForCheck(); })).subscribe({
+        next: () => { this.formOpen = false; this.successMessage = 'Vendor added to the shared Vendor Master.'; this.loadVendors(); },
+        error: error => { this.errorMessage = this.resolveErrorMessage(error, 'Unable to add vendor.'); this.cdr.markForCheck(); }
+      });
     }
   
   
@@ -700,6 +762,26 @@ import {
           index
         )
       );
+    }
+
+
+    addedBy(vendor: PurchaseVendorView): string {
+      return String(vendor.addedBy || '').trim() || 'Not Available';
+    }
+
+
+    sourceDepartment(vendor: PurchaseVendorView): string {
+      return String(vendor.sourceDepartment || '').trim() || 'Not Available';
+    }
+
+
+    private emptyVendorForm() {
+      return {
+        vendorName: '', companyName: '', contactPerson: '', mobile: '', email: '',
+        gstType: 'registered', gstNumber: '', panNumber: '', addressLine1: '', city: '', state: '', pincode: '',
+        paymentTerms: '', creditDays: 0, openingPayable: 0, preferredPaymentMode: 'bank_transfer', preferredPaymentModeOther: '',
+        accountHolderName: '', bankName: '', accountNumber: '', ifscCode: '', remarks: ''
+      };
     }
   
   

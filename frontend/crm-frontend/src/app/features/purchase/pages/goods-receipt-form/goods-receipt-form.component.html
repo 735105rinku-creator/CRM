@@ -41,7 +41,7 @@
         <p class="subtitle">
           {{
             isViewMode
-              ? 'Review received, accepted, rejected and remaining Purchase Order quantities.'
+              ? 'Review receipt quantities, physical outcome and approval status.'
               : 'Record material received against an approved Purchase Order.'
           }}
         </p>
@@ -102,12 +102,6 @@
 
   <!-- =========================================================
        MAIN LOADING
-
-       Important:
-       Full page loading is only used while viewing
-       an existing GRN.
-
-       Create mode must render immediately.
   ========================================================== -->
 
   <div
@@ -126,13 +120,7 @@
 
 
   <!-- =========================================================
-       FORM CONTENT
-
-       Create mode:
-       Always render immediately.
-
-       View mode:
-       Render after existing GRN finishes loading.
+       CONTENT
   ========================================================== -->
 
   <ng-container
@@ -148,9 +136,7 @@
 
     <ng-container *ngIf="!isViewMode">
 
-      <!-- =====================================================
-           PURCHASE ORDER SELECTION
-      ====================================================== -->
+      <!-- PURCHASE ORDER -->
 
       <div class="section-card">
 
@@ -288,9 +274,7 @@
       </div>
 
 
-      <!-- =====================================================
-           SELECTED PO SUMMARY
-      ====================================================== -->
+      <!-- PURCHASE ORDER SUMMARY -->
 
       <div
         *ngIf="
@@ -403,9 +387,7 @@
       </div>
 
 
-      <!-- =====================================================
-           WAREHOUSE
-      ====================================================== -->
+      <!-- RECEIPT LOCATION -->
 
       <div
         *ngIf="
@@ -435,7 +417,11 @@
             </h2>
 
             <p>
-              Select the warehouse where these goods have been received.
+              {{
+                isCompanyWarehouseDelivery
+                  ? 'Select the warehouse where these goods have been received.'
+                  : 'Goods will be received against the Purchase Order delivery destination.'
+              }}
             </p>
           </div>
 
@@ -444,7 +430,10 @@
 
         <div class="form-grid">
 
-          <div class="form-field span-2">
+          <div
+            *ngIf="isCompanyWarehouseDelivery"
+            class="form-field span-2"
+          >
 
             <label for="warehouse">
               Warehouse / Location
@@ -482,9 +471,7 @@
 
 
             <small
-              *ngIf="
-                loadingWarehouses
-              "
+              *ngIf="loadingWarehouses"
               class="field-hint"
             >
               Loading available warehouses...
@@ -505,7 +492,37 @@
 
 
           <div
-            *ngIf="selectedPurchaseOrder.warehouse"
+            *ngIf="!isCompanyWarehouseDelivery"
+            class="form-field span-2"
+          >
+            <label>
+              Purchase Order Delivery Destination
+            </label>
+
+            <div class="field-hint">
+
+              <strong>
+                {{ purchaseOrderDestination }}
+              </strong>
+
+              <span
+                *ngIf="
+                  selectedPurchaseOrder.deliveryAddress
+                "
+              >
+                —
+                {{ selectedPurchaseOrder.deliveryAddress }}
+              </span>
+
+            </div>
+          </div>
+
+
+          <div
+            *ngIf="
+              isCompanyWarehouseDelivery &&
+              selectedPurchaseOrder.warehouse
+            "
             class="po-location-info"
           >
 
@@ -534,9 +551,7 @@
       </div>
 
 
-      <!-- =====================================================
-           QUANTITY SUMMARY
-      ====================================================== -->
+      <!-- QUANTITY SUMMARY -->
 
       <div
         *ngIf="
@@ -687,9 +702,7 @@
       </div>
 
 
-      <!-- =====================================================
-           ITEM RECEIPT TABLE
-      ====================================================== -->
+      <!-- RECEIVED ITEMS -->
 
       <div
         *ngIf="
@@ -734,7 +747,7 @@
           </h3>
 
           <p>
-            All Purchase Order quantities have already been received.
+            All Purchase Order quantities have already been received or reserved.
           </p>
 
         </div>
@@ -749,13 +762,9 @@
 
             <thead>
               <tr>
-                <th>
-                  Item
-                </th>
+                <th>Item</th>
 
-                <th>
-                  Unit
-                </th>
+                <th>Unit</th>
 
                 <th class="number-column">
                   Ordered
@@ -946,9 +955,7 @@
       </div>
 
 
-      <!-- =====================================================
-           REMARKS
-      ====================================================== -->
+      <!-- REMARKS -->
 
       <div
         *ngIf="selectedPurchaseOrder"
@@ -997,9 +1004,7 @@
       </div>
 
 
-      <!-- =====================================================
-           ACTIONS
-      ====================================================== -->
+      <!-- ACTIONS -->
 
       <div
         *ngIf="selectedPurchaseOrder"
@@ -1073,7 +1078,7 @@
     >
 
       <!-- =====================================================
-           GRN BASIC INFO
+           GRN INFORMATION
       ====================================================== -->
 
       <div class="section-card">
@@ -1098,7 +1103,7 @@
             </h2>
 
             <p>
-              Recorded Goods Receipt details.
+              Receipt, Purchase Order and vendor details.
             </p>
           </div>
 
@@ -1140,14 +1145,55 @@
           </div>
 
 
+          <!-- Physical receipt status -->
+
           <div class="summary-detail">
+
             <span>
-              Status
+              Receipt Outcome
             </span>
 
-            <strong class="status-text">
-              {{ existingGoodsReceipt.status | titlecase }}
+            <strong
+              class="receipt-status-badge"
+              [ngClass]="
+                receiptOutcomeClass(
+                  existingGoodsReceipt
+                )
+              "
+            >
+              {{
+                receiptOutcomeLabel(
+                  existingGoodsReceipt
+                )
+              }}
             </strong>
+
+          </div>
+
+
+          <!-- Approval workflow status -->
+
+          <div class="summary-detail">
+
+            <span>
+              Approval Status
+            </span>
+
+            <strong
+              class="approval-status-badge"
+              [ngClass]="
+                approvalClass(
+                  existingGoodsReceipt
+                )
+              "
+            >
+              {{
+                approvalLabel(
+                  existingGoodsReceipt
+                )
+              }}
+            </strong>
+
           </div>
 
 
@@ -1157,7 +1203,7 @@
             </span>
 
             <strong>
-              {{ existingGoodsReceipt.vendorName }}
+              {{ existingGoodsReceipt.vendorName || '—' }}
             </strong>
           </div>
 
@@ -1174,17 +1220,47 @@
 
 
           <div class="summary-detail">
+
             <span>
-              Warehouse
+              {{
+                !existingGoodsReceipt.deliveryType ||
+                existingGoodsReceipt.deliveryType ===
+                  'company_warehouse'
+                  ? 'Warehouse'
+                  : 'Delivery Destination'
+              }}
             </span>
 
             <strong>
-              {{ existingGoodsReceipt.warehouseName }}
+              {{
+                (
+                  !existingGoodsReceipt.deliveryType ||
+                  existingGoodsReceipt.deliveryType ===
+                    'company_warehouse'
+                )
+                  ? (
+                      existingGoodsReceipt.warehouseName ||
+                      '—'
+                    )
+                  : (
+                      existingGoodsReceipt.deliveryLocationName ||
+                      existingGoodsReceipt.otherDeliveryType ||
+                      '—'
+                    )
+              }}
             </strong>
+
           </div>
 
 
-          <div class="summary-detail">
+          <div
+            *ngIf="
+              !existingGoodsReceipt.deliveryType ||
+              existingGoodsReceipt.deliveryType ===
+                'company_warehouse'
+            "
+            class="summary-detail"
+          >
             <span>
               Warehouse Code
             </span>
@@ -1208,12 +1284,303 @@
 
           <div class="summary-detail">
             <span>
-              Received By
+              Created / Received By
             </span>
 
             <strong>
-              {{ existingGoodsReceipt.receivedByName || '—' }}
+              {{ createdByDisplayName }}
             </strong>
+
+            <small
+              *ngIf="createdByDisplayCode"
+              class="summary-subtext"
+            >
+              {{ createdByDisplayCode }}
+            </small>
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- =====================================================
+           APPROVAL WORKFLOW
+      ====================================================== -->
+
+      <div
+        *ngIf="
+          existingGoodsReceipt.approvalStatus
+        "
+        class="section-card approval-section-card"
+      >
+
+        <div class="section-heading">
+
+          <div class="section-icon approval-section-icon">
+            <span class="section-symbol">
+              ✓
+            </span>
+          </div>
+
+          <div>
+            <h2>
+              GRN Approval
+            </h2>
+
+            <p>
+              Purchase approval status and authorization history for this Goods Receipt.
+            </p>
+          </div>
+
+        </div>
+
+
+        <!-- Pending -->
+
+        <div
+          *ngIf="
+            existingGoodsReceipt.approvalStatus ===
+              'pending_approval'
+          "
+          class="approval-state-panel approval-state-pending"
+        >
+
+          <div class="approval-state-icon">
+            ◷
+          </div>
+
+          <div class="approval-state-content">
+
+            <span class="approval-state-label">
+              Current Status
+            </span>
+
+            <strong>
+              Pending Senior Approval
+            </strong>
+
+            <p>
+              This GRN has been submitted and is waiting for Purchase Senior approval.
+              Purchase Order received quantities will be updated only after approval.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <!-- Approved -->
+
+        <div
+          *ngIf="
+            existingGoodsReceipt.approvalStatus ===
+              'approved'
+          "
+          class="approval-state-panel approval-state-approved"
+        >
+
+          <div class="approval-state-icon">
+            ✓
+          </div>
+
+          <div class="approval-state-content">
+
+            <span class="approval-state-label">
+              Current Status
+            </span>
+
+            <strong>
+              Approved
+            </strong>
+
+            <p>
+              This GRN is approved and its authorized receipt quantities are reflected in the Purchase Order.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <!-- Rejected -->
+
+        <div
+          *ngIf="
+            existingGoodsReceipt.approvalStatus ===
+              'rejected'
+          "
+          class="approval-state-panel approval-state-rejected"
+        >
+
+          <div class="approval-state-icon">
+            ×
+          </div>
+
+          <div class="approval-state-content">
+
+            <span class="approval-state-label">
+              Current Status
+            </span>
+
+            <strong>
+              Approval Rejected
+            </strong>
+
+            <p>
+              This GRN was rejected during the Purchase approval workflow and does not update Purchase Order receipt quantities.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <!-- Approval audit details -->
+
+        <div class="approval-audit-grid">
+
+          <div class="approval-audit-item">
+
+            <span>
+              Created By
+            </span>
+
+            <strong>
+              {{ createdByDisplayName }}
+            </strong>
+
+            <small *ngIf="createdByDisplayCode">
+              {{ createdByDisplayCode }}
+            </small>
+
+          </div>
+
+
+          <div
+            *ngIf="
+              existingGoodsReceipt.submittedAt
+            "
+            class="approval-audit-item"
+          >
+
+            <span>
+              Submitted At
+            </span>
+
+            <strong>
+              {{
+                formatDateTime(
+                  existingGoodsReceipt.submittedAt
+                )
+              }}
+            </strong>
+
+          </div>
+
+
+          <ng-container
+            *ngIf="
+              existingGoodsReceipt.approvalStatus ===
+                'approved'
+            "
+          >
+
+            <div class="approval-audit-item">
+
+              <span>
+                Approved By
+              </span>
+
+              <strong>
+                {{ approvedByDisplayName }}
+              </strong>
+
+            </div>
+
+
+            <div class="approval-audit-item">
+
+              <span>
+                Approved At
+              </span>
+
+              <strong>
+                {{
+                  formatDateTime(
+                    existingGoodsReceipt.approvedAt
+                  )
+                }}
+              </strong>
+
+            </div>
+
+          </ng-container>
+
+
+          <ng-container
+            *ngIf="
+              existingGoodsReceipt.approvalStatus ===
+                'rejected'
+            "
+          >
+
+            <div class="approval-audit-item">
+
+              <span>
+                Rejected By
+              </span>
+
+              <strong>
+                {{ rejectedByDisplayName }}
+              </strong>
+
+            </div>
+
+
+            <div class="approval-audit-item">
+
+              <span>
+                Rejected At
+              </span>
+
+              <strong>
+                {{
+                  formatDateTime(
+                    existingGoodsReceipt.rejectedAt
+                  )
+                }}
+              </strong>
+
+            </div>
+
+          </ng-container>
+
+        </div>
+
+
+        <div
+          *ngIf="
+            existingGoodsReceipt.approvalStatus ===
+              'rejected'
+          "
+          class="approval-rejection-reason"
+        >
+
+          <span class="warning-symbol">
+            !
+          </span>
+
+          <div>
+
+            <span>
+              Approval Rejection Reason
+            </span>
+
+            <strong>
+              {{ approvalRejectionReason }}
+            </strong>
+
           </div>
 
         </div>

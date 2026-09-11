@@ -84,6 +84,20 @@ class PurchaseRequestRepository {
         companyId,
 
       })
+      .populate({
+        path: "approvedBy",
+        select: "name",
+        match: {
+          companyId,
+        },
+      })
+      .populate({
+        path: "rejectedBy",
+        select: "name",
+        match: {
+          companyId,
+        },
+      })
       .lean();
   }
 
@@ -440,6 +454,20 @@ class PurchaseRequestRepository {
           .find(
             filter
           )
+          .populate({
+            path: "approvedBy",
+            select: "name",
+            match: {
+              companyId,
+            },
+          })
+          .populate({
+            path: "rejectedBy",
+            select: "name",
+            match: {
+              companyId,
+            },
+          })
           .sort({
 
             [safeSortBy]:

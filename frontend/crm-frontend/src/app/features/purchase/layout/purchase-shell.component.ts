@@ -176,6 +176,7 @@ export class PurchaseShellComponent {
     { label: 'Quotation Comparison', description: 'Compare quotations', route: '/purchase/quotations/comparison' },
     { label: 'Purchase Orders', description: 'Orders and approvals', route: '/purchase/purchase-orders' },
     { label: 'Goods Receipt / GRN', description: 'Received goods', route: '/purchase/goods-receipts' },
+    { label: 'Vendor Invoices', description: 'Invoice matching and Accounts handoff', route: '/purchase/invoices' },
     { label: 'Vendors', description: 'Purchase vendor directory', route: '/purchase/vendors' },
     { label: 'Reports', description: 'Purchase reports', route: '/purchase/reports' }
   ];
@@ -539,6 +540,34 @@ export class PurchaseShellComponent {
       ['/purchase/employee'],
       { queryParams: { feature: 'notifications' } }
     );
+  }
+
+
+  markAllNotificationsRead(): void {
+    if (
+      this.unreadNotificationCount() === 0 &&
+      this.notifications().every(notification => notification.isRead)
+    ) {
+      return;
+    }
+
+    this.api
+      .patch(
+        '/hr/communication/notifications/read-all',
+        {}
+      )
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.notifications.update(rows =>
+            rows.map(row => ({
+              ...row,
+              isRead: true
+            }))
+          );
+          this.unreadNotificationCount.set(0);
+        }
+      });
   }
 
 
