@@ -619,3 +619,39 @@ th {
     width: 100%;
   }
 }
+.purchase-proof-column {
+  min-width: 205px;
+}
+
+.purchase-origin-proof {
+  max-width: 190px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.proof-item {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.proof-item a {
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.proof-upload {
+  display: inline-flex;
+  margin-top: 7px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 800;
+}

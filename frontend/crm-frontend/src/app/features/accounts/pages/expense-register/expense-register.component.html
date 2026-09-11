@@ -323,7 +323,7 @@
             </td>
             <td class="expense-proof-cell">
 
-              <div *ngIf="expense.attachments?.length">
+              <div *ngIf="expense.attachments.length">
                 <div
                   *ngFor="let attachment of expense.attachments"
                   class="proof-item">
@@ -346,7 +346,7 @@
                 </div>
               </div>
 
-              <span *ngIf="!expense.attachments?.length">
+              <span *ngIf="!expense.attachments.length">
                 No proof
               </span>
 

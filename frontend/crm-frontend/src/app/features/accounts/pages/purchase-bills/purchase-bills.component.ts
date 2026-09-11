@@ -26,7 +26,8 @@ import {
   AccountParty,
   ChartOfAccount,
   Voucher,
-  VoucherLinePayload,
+    VoucherAttachment,
+VoucherLinePayload,
   VoucherQuery,
   VoucherStatus
 } from '../../models/accounts.models';
@@ -42,6 +43,10 @@ import {
 import {
   VoucherService
 } from '../../services/voucher.service';
+
+import {
+  apiUrl
+} from '../../../../core/config/api.config';
 
 
 @Component({
@@ -98,6 +103,9 @@ implements OnInit {
 
   readonly saving =
     signal(false);
+
+  readonly uploadingBillId =
+    signal<string | null>(null);
 
   readonly error =
     signal('');
@@ -765,6 +773,17 @@ implements OnInit {
       return;
     }
 
+    if (
+      !this.isPurchaseOriginBill(bill) &&
+      !(bill.attachments?.length)
+    ) {
+      this.error.set(
+        'Purchase Bill requires supporting proof before posting.'
+      );
+
+      return;
+    }
+
 
     const confirmed =
       window.confirm(
@@ -892,6 +911,237 @@ implements OnInit {
           );
         }
       });
+  }
+  isPurchaseOriginBill(
+    bill: Voucher
+  ): boolean {
+
+    return (
+      bill.sourceModule ===
+      'purchase_invoice'
+    );
+  }
+
+
+  onBillProofSelected(
+    bill: Voucher,
+    event: Event
+  ): void {
+
+    if (
+      bill.status !== 'draft' ||
+      !bill._id
+    ) {
+      return;
+    }
+
+    if (
+      this.isPurchaseOriginBill(
+        bill
+      )
+    ) {
+      this.error.set(
+        'Purchase-origin proof is managed by Purchase and must not be uploaded again in Accounts.'
+      );
+      return;
+    }
+
+    const input =
+      event.target as HTMLInputElement;
+
+    const files =
+      Array.from(
+        input.files ?? []
+      );
+
+    input.value = '';
+
+    if (!files.length) {
+      return;
+    }
+
+    if (
+      (bill.attachments?.length ?? 0) +
+      files.length > 5
+    ) {
+      this.error.set(
+        'A maximum of 5 supporting proof files is allowed.'
+      );
+      return;
+    }
+
+    const allowedTypes =
+      new Set([
+        'application/pdf',
+        'image/jpeg',
+        'image/png'
+      ]);
+
+    const invalid =
+      files.some(
+        file => {
+
+          const extension =
+            file.name
+              .split('.')
+              .pop()
+              ?.toLowerCase() ?? '';
+
+          return (
+            !allowedTypes.has(
+              file.type
+            ) ||
+            ![
+              'pdf',
+              'jpg',
+              'jpeg',
+              'png'
+            ].includes(
+              extension
+            )
+          );
+        }
+      );
+
+    if (invalid) {
+      this.error.set(
+        'Only PDF, JPG, JPEG and PNG files are allowed.'
+      );
+      return;
+    }
+
+    if (
+      files.some(
+        file =>
+          file.size >
+          10 * 1024 * 1024
+      )
+    ) {
+      this.error.set(
+        'Each supporting proof file must be 10 MB or smaller.'
+      );
+      return;
+    }
+
+    this.error.set('');
+    this.message.set('');
+
+    this.uploadingBillId.set(
+      bill._id
+    );
+
+    this.voucherService
+      .uploadAttachments(
+        bill._id,
+        files
+      )
+      .subscribe({
+
+        next: () => {
+
+          this.uploadingBillId.set(
+            null
+          );
+
+          this.message.set(
+            'Purchase Bill supporting proof uploaded successfully.'
+          );
+
+          this.loadBills();
+        },
+
+        error: (
+          err
+        ) => {
+
+          this.uploadingBillId.set(
+            null
+          );
+
+          this.error.set(
+            this.extractErrorMessage(
+              err,
+              'Unable to upload supporting proof.'
+            )
+          );
+        }
+      });
+  }
+
+
+  removeBillProof(
+    bill: Voucher,
+    attachment: VoucherAttachment
+  ): void {
+
+    if (
+      bill.status !== 'draft' ||
+      !bill._id ||
+      !attachment._id ||
+      this.isPurchaseOriginBill(bill)
+    ) {
+      return;
+    }
+
+    const confirmed =
+      window.confirm(
+        `Remove supporting proof "${attachment.originalName}"?`
+      );
+
+    if (!confirmed) {
+      return;
+    }
+
+    this.uploadingBillId.set(
+      bill._id
+    );
+
+    this.voucherService
+      .removeAttachment(
+        bill._id,
+        attachment._id
+      )
+      .subscribe({
+
+        next: () => {
+
+          this.uploadingBillId.set(
+            null
+          );
+
+          this.message.set(
+            'Purchase Bill supporting proof removed successfully.'
+          );
+
+          this.loadBills();
+        },
+
+        error: (
+          err
+        ) => {
+
+          this.uploadingBillId.set(
+            null
+          );
+
+          this.error.set(
+            this.extractErrorMessage(
+              err,
+              'Unable to remove supporting proof.'
+            )
+          );
+        }
+      });
+  }
+
+
+  attachmentUrl(
+    attachment: VoucherAttachment
+  ): string {
+
+    return apiUrl(
+      attachment.fileUrl
+    );
   }
 
 

@@ -130,6 +130,7 @@
               <th>Reference No.</th>
               <th>Status</th>
               <th class="money">Amount</th>
+              <th>Supporting Proof</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -172,6 +173,68 @@
                 <td class="money">
                   ₹{{ invoice.totalDebit | number:'1.2-2' }}
                 </td>
+
+                <td class="sales-proof-column">
+
+                  @if (invoice.attachments?.length) {
+
+                    @for (
+                      attachment of invoice.attachments;
+                      track attachment._id || attachment.fileUrl
+                    ) {
+
+                      <div class="proof-item">
+
+                        <a
+                          [href]="attachmentUrl(attachment)"
+                          target="_blank"
+                          rel="noopener noreferrer">
+                          {{ attachment.originalName }}
+                        </a>
+
+                        @if (invoice.status === 'draft') {
+
+                          <button
+                            type="button"
+                            class="mini-btn danger"
+                            [disabled]="uploadingInvoiceId() === invoice._id"
+                            (click)="removeInvoiceProof(invoice, attachment)">
+                            Remove
+                          </button>
+
+                        }
+
+                      </div>
+                    }
+
+                  } @else {
+
+                    <span class="muted">
+                      No proof
+                    </span>
+
+                  }
+
+                  @if (invoice.status === 'draft') {
+
+                    <label class="proof-upload">
+
+                      + Add Proof
+
+                      <input
+                        hidden
+                        type="file"
+                        multiple
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        [disabled]="uploadingInvoiceId() === invoice._id"
+                        (change)="onInvoiceProofSelected(invoice, $event)">
+
+                    </label>
+
+                  }
+
+                </td>
+
 
                 <td>
 
