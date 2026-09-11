@@ -85,6 +85,7 @@
     <div class="filter-heading">
 
       <div>
+
         <h3>
           Invoice Register
         </h3>
@@ -92,6 +93,7 @@
         <p>
           Search and filter vendor invoice records
         </p>
+
       </div>
 
     </div>
@@ -157,12 +159,16 @@
             Not handed off
           </option>
 
+          <option value="handing_off">
+            Sending
+          </option>
+
           <option value="handed_off">
             Handed off
           </option>
 
           <option value="failed">
-            Failed
+            Accounts setup required
           </option>
         </select>
 
@@ -230,6 +236,7 @@
       </div>
 
       <div>
+
         <strong>
           Loading invoices
         </strong>
@@ -237,6 +244,7 @@
         <p>
           Fetching vendor invoice records...
         </p>
+
       </div>
 
     </div>
@@ -286,13 +294,21 @@
 
           <tr>
 
-            <th>Invoice</th>
+            <th>
+              Invoice
+            </th>
 
-            <th>Date</th>
+            <th>
+              Date
+            </th>
 
-            <th>Vendor</th>
+            <th>
+              Vendor
+            </th>
 
-            <th>PO / GRN</th>
+            <th>
+              PO / GRN
+            </th>
 
             <th class="amount-column">
               Invoice Total
@@ -306,13 +322,21 @@
               Outstanding
             </th>
 
-            <th>Payment</th>
+            <th>
+              Payment
+            </th>
 
-            <th>Match</th>
+            <th>
+              Match
+            </th>
 
-            <th>Verification</th>
+            <th>
+              Verification
+            </th>
 
-            <th>Accounts</th>
+            <th>
+              Accounts
+            </th>
 
             <th class="action-column">
               Actions
@@ -328,6 +352,8 @@
           <tr
             *ngFor="let row of invoices()"
           >
+
+            <!-- INVOICE -->
 
             <td>
 
@@ -346,10 +372,16 @@
             </td>
 
 
+            <!-- DATE -->
+
             <td>
+
               {{ row.invoiceDate | date:'dd MMM yyyy' }}
+
             </td>
 
+
+            <!-- VENDOR -->
 
             <td>
 
@@ -363,6 +395,8 @@
 
             </td>
 
+
+            <!-- PO / GRN -->
 
             <td>
 
@@ -379,6 +413,8 @@
             </td>
 
 
+            <!-- INVOICE TOTAL -->
+
             <td class="amount-column">
 
               <strong>
@@ -388,10 +424,16 @@
             </td>
 
 
+            <!-- PAID -->
+
             <td class="amount-column">
+
               &#8377;{{ row.paidAmount | number:'1.2-2' }}
+
             </td>
 
+
+            <!-- OUTSTANDING -->
 
             <td class="amount-column">
 
@@ -401,6 +443,8 @@
 
             </td>
 
+
+            <!-- PAYMENT -->
 
             <td>
 
@@ -415,6 +459,8 @@
 
             </td>
 
+
+            <!-- MATCH -->
 
             <td>
 
@@ -436,6 +482,8 @@
             </td>
 
 
+            <!-- VERIFICATION -->
+
             <td>
 
               <span class="status-text">
@@ -445,27 +493,52 @@
             </td>
 
 
+            <!-- ACCOUNTS HANDOFF -->
+
             <td>
 
-              <span class="handoff-status">
-                {{ row.handoffStatus | titlecase }}
-              </span>
+              <div class="accounts-status-cell">
 
-              <small
-                *ngIf="row.accountsVoucherNumber"
-              >
-                {{ row.accountsVoucherNumber }}
-              </small>
+                <span
+                  class="handoff-status"
+                  [class.handoff-pending]="
+                    row.handoffStatus === 'not_handed_off'
+                  "
+                  [class.handoff-processing]="
+                    row.handoffStatus === 'handing_off'
+                  "
+                  [class.handoff-success]="
+                    row.handoffStatus === 'handed_off'
+                  "
+                  [class.handoff-failed]="
+                    row.handoffStatus === 'failed'
+                  "
+                >
+                  {{ handoffStatusLabel(row) }}
+                </span>
 
-              <small
-                class="issue-text"
-                *ngIf="row.handoffError"
-              >
-                {{ row.handoffError }}
-              </small>
+
+                <small
+                  class="accounts-voucher-number"
+                  *ngIf="row.accountsVoucherNumber"
+                >
+                  {{ row.accountsVoucherNumber }}
+                </small>
+
+
+                <small
+                  class="accounts-help-text"
+                  *ngIf="hasHandoffFailure(row)"
+                >
+                  Open invoice to view details
+                </small>
+
+              </div>
 
             </td>
 
+
+            <!-- ACTIONS -->
 
             <td>
 
@@ -511,7 +584,7 @@
                 </button>
 
 
-                <!-- SEND TO ACCOUNTS -->
+                <!-- SEND / RETRY TO ACCOUNTS -->
 
                 <button
                   type="button"
@@ -527,7 +600,7 @@
                   "
                   (click)="handoff(row)"
                 >
-                  Send to Accounts
+                  {{ handoffButtonLabel(row) }}
                 </button>
 
               </div>
@@ -582,6 +655,10 @@
 
       </header>
 
+
+      <!-- =====================================================
+           BASIC DETAILS
+      ====================================================== -->
 
       <div class="detail-summary">
 
@@ -639,6 +716,10 @@
       </div>
 
 
+      <!-- =====================================================
+           FINANCIAL SUMMARY
+      ====================================================== -->
+
       <div class="financial-summary">
 
         <div class="financial-card">
@@ -695,6 +776,10 @@
       </div>
 
 
+      <!-- =====================================================
+           WORKFLOW STATUS
+      ====================================================== -->
+
       <div class="detail-summary">
 
         <div class="detail-item">
@@ -713,17 +798,50 @@
         <div class="detail-item">
 
           <span>
+            Verification
+          </span>
+
+          <strong>
+            {{ row.status | titlecase }}
+          </strong>
+
+        </div>
+
+
+        <div class="detail-item">
+
+          <span>
             Accounts Handoff
           </span>
 
           <strong>
-            {{ row.handoffStatus | titlecase }}
+            {{ handoffStatusLabel(row) }}
+          </strong>
+
+        </div>
+
+
+        <div
+          class="detail-item"
+          *ngIf="row.accountsVoucherNumber"
+        >
+
+          <span>
+            Accounts Voucher
+          </span>
+
+          <strong>
+            {{ row.accountsVoucherNumber }}
           </strong>
 
         </div>
 
       </div>
 
+
+      <!-- =====================================================
+           MATCHING EXCEPTIONS
+      ====================================================== -->
 
       <div
         *ngIf="row.mismatchReasons.length"
@@ -746,6 +864,88 @@
 
       </div>
 
+
+      <!-- =====================================================
+           ACCOUNTS HANDOFF FAILURE
+
+           Full handoff reason is intentionally shown here
+           instead of expanding the invoice register table.
+      ====================================================== -->
+
+      <div
+        *ngIf="hasHandoffFailure(row)"
+        class="accounts-handoff-warning"
+      >
+
+        <div class="accounts-warning-icon">
+          !
+        </div>
+
+
+        <div class="accounts-warning-content">
+
+          <span class="accounts-warning-eyebrow">
+            ACCOUNTS HANDOFF
+          </span>
+
+          <h3>
+            Accounts Setup Required
+          </h3>
+
+          <p>
+            {{ handoffFailureMessage(row) }}
+          </p>
+
+          <small>
+            Purchase has not created or modified any Accounts ledger.
+            Once the Accounts team completes the required setup, retry
+            the handoff from the invoice register.
+          </small>
+
+        </div>
+
+      </div>
+
+
+      <!-- =====================================================
+           HANDED OFF INFORMATION
+      ====================================================== -->
+
+      <div
+        *ngIf="row.handoffStatus === 'handed_off'"
+        class="accounts-handoff-success"
+      >
+
+        <div class="accounts-success-icon">
+          ✓
+        </div>
+
+
+        <div>
+
+          <span class="accounts-warning-eyebrow">
+            ACCOUNTS HANDOFF
+          </span>
+
+          <h3>
+            Successfully Handed to Accounts
+          </h3>
+
+          <p *ngIf="row.accountsVoucherNumber">
+            Accounts voucher:
+            <strong>
+              {{ row.accountsVoucherNumber }}
+            </strong>
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <!-- =====================================================
+           DETAIL ACTIONS
+      ====================================================== -->
 
       <div
         class="detail-actions"

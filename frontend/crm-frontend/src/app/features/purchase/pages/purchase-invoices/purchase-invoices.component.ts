@@ -633,6 +633,136 @@ export class PurchaseInvoicesComponent implements OnInit {
 
 
   /* ============================================================
+     ACCOUNTS HANDOFF STATUS LABEL
+
+     Purchase only displays the Accounts integration state.
+     It does not create or modify Accounts ledgers here.
+  ============================================================ */
+
+  handoffStatusLabel(
+    row: PurchaseInvoice
+  ): string {
+
+    switch (
+      row.handoffStatus
+    ) {
+
+      case 'handed_off':
+
+        return 'Handed Off';
+
+
+      case 'handing_off':
+
+        return 'Sending...';
+
+
+      case 'failed':
+
+        return 'Accounts Setup Required';
+
+
+      default:
+
+        return 'Not Handed Off';
+
+    }
+
+  }
+
+
+  /* ============================================================
+     ACCOUNTS HANDOFF BUTTON LABEL
+  ============================================================ */
+
+  handoffButtonLabel(
+    row: PurchaseInvoice
+  ): string {
+
+    return (
+      row.handoffStatus ===
+      'failed'
+    )
+      ? 'Retry Send to Accounts'
+      : 'Send to Accounts';
+
+  }
+
+
+  /* ============================================================
+     HANDOFF FAILURE
+  ============================================================ */
+
+  hasHandoffFailure(
+    row: PurchaseInvoice
+  ): boolean {
+
+    return (
+      row.handoffStatus ===
+        'failed' &&
+      !!String(
+        row.handoffError ||
+        ''
+      )
+        .trim()
+    );
+
+  }
+
+
+  /* ============================================================
+     HANDOFF DETAIL MESSAGE
+
+     Technical backend detail is intentionally kept inside the
+     invoice detail view rather than expanding the table row.
+  ============================================================ */
+
+  handoffFailureMessage(
+    row: PurchaseInvoice
+  ): string {
+
+    const backendMessage =
+      String(
+        row.handoffError ||
+        ''
+      )
+        .trim();
+
+
+    if (
+      !backendMessage
+    ) {
+
+      return (
+        'Accounts could not accept this invoice. ' +
+        'Please contact the Accounts team and retry after the required setup is available.'
+      );
+
+    }
+
+
+    if (
+      backendMessage
+        .toLowerCase()
+        .includes(
+          'accounts requires an active vendor accounts payable account and purchase account'
+        )
+    ) {
+
+      return (
+        'Accounts setup is incomplete for this vendor. ' +
+        'An active vendor Accounts Payable ledger and an active Purchase account are required before this invoice can be handed off.'
+      );
+
+    }
+
+
+    return backendMessage;
+
+  }
+
+
+  /* ============================================================
      PURCHASE ORDER SELECTION
   ============================================================ */
 
@@ -1151,10 +1281,49 @@ export class PurchaseInvoicesComponent implements OnInit {
 
         error: error => {
 
-          this.error.set(
-            error?.error?.message ||
-            `Unable to ${action} invoice.`
-          );
+          const backendMessage =
+            String(
+              error?.error?.message ||
+              ''
+            )
+              .trim();
+
+
+          if (
+            action === 'handoff' &&
+            backendMessage
+              .toLowerCase()
+              .includes(
+                'accounts requires an active vendor accounts payable account and purchase account'
+              )
+          ) {
+
+            this.error.set(
+              'Accounts setup is incomplete for this vendor. Please ask the Accounts team to configure the vendor payable ledger and Purchase account, then retry.'
+            );
+
+          } else {
+
+            this.error.set(
+              backendMessage ||
+              `Unable to ${action} invoice.`
+            );
+
+          }
+
+
+          /*
+           * Reload so a failed handoff is immediately reflected
+           * as "Accounts Setup Required" in the invoice register.
+           */
+
+          if (
+            action === 'handoff'
+          ) {
+
+            this.load();
+
+          }
 
         }
 
