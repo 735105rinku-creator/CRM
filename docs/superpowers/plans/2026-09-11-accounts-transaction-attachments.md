@@ -569,7 +569,7 @@ git add `
 git commit -m "feat(accounts): add draft voucher proof API"
 ```
 
-If `voucher.repository.js` was not changed, omit it from `git add` rather than touching it unnecessarily.
+The Voucher repository is part of this task because attachment mutations are implemented through company-scoped draft-only repository methods.
 
 ---
 
@@ -1561,4 +1561,5 @@ Implementation is complete only when:
 - frontend Accounts regressions pass
 - Angular build passes
 - browser verification passes
+
 
