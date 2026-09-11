@@ -14,6 +14,9 @@ import chartOfAccountRepository
 import journalEntryService
   from "./journalEntry.service.js";
 
+import purchaseInvoiceRepository
+  from "../repositories/purchaseInvoice.repository.js";
+
 
 /* ============================================================
    HELPERS
@@ -52,6 +55,11 @@ export class VoucherService {
           chartOfAccountRepository,
 
 
+      purchaseInvoiceRepository:
+        purchaseInvoices =
+          purchaseInvoiceRepository,
+
+
       sessionProvider:
         sessions =
           mongoose,
@@ -68,6 +76,10 @@ export class VoucherService {
 
     this.chartRepository =
       chart;
+
+
+    this.purchaseInvoiceRepository =
+      purchaseInvoices;
 
 
     this.sessionProvider =
@@ -1852,6 +1864,84 @@ export class VoucherService {
             throw new Error(
               "Voucher is not available for posting."
             );
+          }
+
+
+          /* ==================================================
+             MANDATORY POSTING PROOF
+
+             Payment:
+               Accounts attachment required.
+
+             Purchase:
+               Accounts attachment required unless the Voucher
+               came from Purchase Invoice handoff, in which case
+               the Purchase Invoice attachment is reused.
+          ================================================== */
+
+          const hasAccountsProof =
+            Array.isArray(
+              voucher.attachments
+            ) &&
+            voucher.attachments.length > 0;
+
+
+          if (
+            voucher.voucherType ===
+              "payment" &&
+            !hasAccountsProof
+          ) {
+
+            throw new Error(
+              "Payment Voucher requires supporting proof before posting."
+            );
+          }
+
+
+          if (
+            voucher.voucherType ===
+              "purchase" &&
+            !hasAccountsProof
+          ) {
+
+            const isPurchaseInvoiceSource =
+              voucher.sourceModule ===
+                "purchase_invoice" &&
+              Boolean(
+                voucher.sourceReferenceId
+              );
+
+
+            if (!isPurchaseInvoiceSource) {
+
+              throw new Error(
+                "Purchase Voucher requires supporting proof before posting."
+              );
+            }
+
+
+            const sourceInvoice =
+              await this
+                .purchaseInvoiceRepository
+                .findById(
+                  companyId,
+                  voucher.sourceReferenceId
+                );
+
+
+            const hasPurchaseInvoiceProof =
+              Array.isArray(
+                sourceInvoice?.attachments
+              ) &&
+              sourceInvoice.attachments.length > 0;
+
+
+            if (!hasPurchaseInvoiceProof) {
+
+              throw new Error(
+                "Purchase Invoice supporting proof is required before posting."
+              );
+            }
           }
 
 

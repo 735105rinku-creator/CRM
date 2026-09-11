@@ -349,3 +349,197 @@ test("Voucher attachment removal rejects posted vouchers", async () => {
 
   assert.equal(removeCalled, false);
 });
+
+const makePostingService = async ({ voucher, purchaseInvoice = null } = {}) => {
+  const { VoucherService } = await import("../services/voucher.service.js");
+
+  let journalCreateCalled = false;
+  let purchaseInvoiceLookup = null;
+
+  const voucherRepository = {
+    async findById() {
+      return voucher;
+    },
+
+    async postById({ voucherId, journalEntryId }) {
+      return {
+        ...voucher,
+        _id: voucherId,
+        status: "posted",
+        journalEntryId,
+      };
+    },
+  };
+
+  const journalService = {
+    async createJournal() {
+      journalCreateCalled = true;
+      return {
+        _id: "journal-1",
+        status: "draft",
+      };
+    },
+
+    async postJournal({ journalEntryId }) {
+      return {
+        _id: journalEntryId,
+        status: "posted",
+      };
+    },
+  };
+
+  const purchaseInvoiceRepository = {
+    async findById(companyId, invoiceId) {
+      purchaseInvoiceLookup = {
+        companyId,
+        invoiceId,
+      };
+
+      return purchaseInvoice;
+    },
+  };
+
+  const sessionProvider = {
+    async startSession() {
+      return {
+        async withTransaction(callback) {
+          return callback();
+        },
+
+        async endSession() {},
+      };
+    },
+  };
+
+  const service = new VoucherService({
+    voucherRepository,
+    journalService,
+    chartRepository: {},
+    purchaseInvoiceRepository,
+    sessionProvider,
+  });
+
+  service.validatePaymentVoucher = async () => {};
+  service.validatePurchaseVoucher = async () => {};
+
+  return {
+    service,
+    journalCreateCalled: () => journalCreateCalled,
+    purchaseInvoiceLookup: () => purchaseInvoiceLookup,
+  };
+};
+
+test("Payment Voucher cannot be posted without Accounts proof", async () => {
+  const harness = await makePostingService({
+    voucher: {
+      _id: "payment-1",
+      voucherNumber: "PV/2026-27/000001",
+      voucherType: "payment",
+      voucherDate: "2026-09-11",
+      narration: "Supplier payment",
+      status: "draft",
+      attachments: [],
+      sourceModule: "accounts",
+      sourceReferenceId: null,
+      lines: [
+        { accountId: "payable-1", debit: 100, credit: 0 },
+        { accountId: "bank-1", debit: 0, credit: 100 },
+      ],
+    },
+  });
+
+  await assert.rejects(
+    () =>
+      harness.service.postVoucher({
+        companyId: "company-1",
+        voucherId: "payment-1",
+        userId: "user-1",
+      }),
+    /proof|attachment|supporting document/i
+  );
+
+  assert.equal(harness.journalCreateCalled(), false);
+});
+
+test("Manual Purchase Voucher cannot be posted without Accounts proof", async () => {
+  const harness = await makePostingService({
+    voucher: {
+      _id: "purchase-1",
+      voucherNumber: "PU/2026-27/000001",
+      voucherType: "purchase",
+      voucherDate: "2026-09-11",
+      narration: "Manual purchase bill",
+      status: "draft",
+      attachments: [],
+      sourceModule: "accounts",
+      sourceReferenceId: null,
+      lines: [
+        { accountId: "purchase-ledger", debit: 100, credit: 0 },
+        { accountId: "payable-1", debit: 0, credit: 100 },
+      ],
+    },
+  });
+
+  await assert.rejects(
+    () =>
+      harness.service.postVoucher({
+        companyId: "company-1",
+        voucherId: "purchase-1",
+        userId: "user-1",
+      }),
+    /proof|attachment|supporting document/i
+  );
+
+  assert.equal(harness.journalCreateCalled(), false);
+});
+
+test("Purchase-origin Purchase Voucher reuses Purchase Invoice proof without duplicate Accounts upload", async () => {
+  const sourceReferenceId = "64f000000000000000000123";
+
+  const harness = await makePostingService({
+    voucher: {
+      _id: "purchase-source-1",
+      voucherNumber: "PU/2026-27/000002",
+      voucherType: "purchase",
+      voucherDate: "2026-09-11",
+      narration: "Purchase invoice handoff",
+      status: "draft",
+      attachments: [],
+      sourceModule: "purchase_invoice",
+      sourceReferenceId,
+      lines: [
+        { accountId: "purchase-ledger", debit: 100, credit: 0 },
+        { accountId: "payable-1", debit: 0, credit: 100 },
+      ],
+    },
+    purchaseInvoice: {
+      _id: sourceReferenceId,
+      companyId: "company-1",
+      attachments: [
+        {
+          _id: "purchase-proof-1",
+          originalName: "vendor-invoice.pdf",
+          fileUrl: "/uploads/purchase-invoices/vendor-invoice.pdf",
+          mimeType: "application/pdf",
+          fileSize: 1000,
+        },
+      ],
+    },
+  });
+
+  const result = await harness.service.postVoucher({
+    companyId: "company-1",
+    voucherId: "purchase-source-1",
+    userId: "user-1",
+  });
+
+  assert.equal(result.status, "posted");
+
+  assert.deepEqual(
+    harness.purchaseInvoiceLookup(),
+    {
+      companyId: "company-1",
+      invoiceId: sourceReferenceId,
+    }
+  );
+});

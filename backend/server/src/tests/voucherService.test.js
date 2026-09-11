@@ -616,6 +616,12 @@ test(
           status:
             "draft",
 
+          attachments: [
+            {
+              _id: "proof-1",
+            },
+          ],
+
           lines: [
             {
               accountId:
@@ -935,6 +941,12 @@ test(
           voucherDate: "2026-09-03",
           narration: "Office payment",
           status: "draft",
+
+          attachments: [
+            {
+              _id: "proof-1",
+            },
+          ],
           lines: [
             {
               accountId: "64f000000000000000000002",
@@ -1106,6 +1118,12 @@ test(
 
           status:
             "draft",
+
+          attachments: [
+            {
+              _id: "proof-1",
+            },
+          ],
 
           lines: [
             {
@@ -2852,6 +2870,12 @@ test(
           _id: voucherId,
           companyId,
           status: "draft",
+
+          attachments: [
+            {
+              _id: "proof-1",
+            },
+          ],
           voucherType: "payment",
           voucherNumber:
             "PV/2026-27/000001",
@@ -5733,6 +5757,12 @@ test(
           companyId,
           status:
             "draft",
+
+          attachments: [
+            {
+              _id: "proof-1",
+            },
+          ],
           voucherType:
             "purchase",
           voucherNumber:
