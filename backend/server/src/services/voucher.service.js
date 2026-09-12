@@ -339,6 +339,129 @@ export class VoucherService {
      LIST VOUCHERS
   ========================================================== */
 
+  async withSourceAttachments({
+    companyId,
+    voucher,
+  }) {
+
+    if (!voucher) {
+      return voucher;
+    }
+
+    const plainVoucher =
+      typeof voucher.toObject === "function"
+        ? voucher.toObject()
+        : {
+            ...voucher,
+          };
+
+    const isPurchaseInvoiceSource =
+      plainVoucher.sourceModule ===
+        "purchase_invoice" &&
+      Boolean(
+        plainVoucher.sourceReferenceId
+      );
+
+    if (
+      !isPurchaseInvoiceSource ||
+      !this.purchaseInvoiceRepository ||
+      typeof this.purchaseInvoiceRepository
+        .findById !== "function"
+    ) {
+      return {
+        ...plainVoucher,
+        sourceAttachments: [],
+      };
+    }
+
+    const sourceInvoice =
+      await this.purchaseInvoiceRepository
+        .findById(
+          companyId,
+          plainVoucher.sourceReferenceId
+        );
+
+    const sourceAttachments =
+      Array.isArray(
+        sourceInvoice?.attachments
+      )
+        ? sourceInvoice.attachments
+            .map(
+              attachment => {
+
+                const row =
+                  typeof attachment?.toObject ===
+                    "function"
+                    ? attachment.toObject()
+                    : {
+                        ...attachment,
+                      };
+
+                return {
+                  _id:
+                    row._id ||
+                    null,
+
+                  originalName:
+                    row.originalName ||
+                    row.fileName ||
+                    "Purchase attachment",
+
+                  storedName:
+                    row.fileName ||
+                    "",
+
+                  fileUrl:
+                    row.fileUrl ||
+                    "",
+
+                  storageKey:
+                    row.storageKey ||
+                    "",
+
+                  mimeType:
+                    row.mimeType ||
+                    "",
+
+                  fileSize:
+                    Number(
+                      row.fileSize ||
+                      0
+                    ),
+
+                  uploadedBy:
+                    row.uploadedBy ||
+                    null,
+
+                  uploadedAt:
+                    row.uploadedAt ||
+                    null,
+
+                  documentType:
+                    row.documentType ||
+                    null,
+
+                  otherDocumentType:
+                    row.otherDocumentType ||
+                    "",
+                };
+              }
+            )
+            .filter(
+              attachment =>
+                Boolean(
+                  attachment.fileUrl
+                )
+            )
+        : [];
+
+    return {
+      ...plainVoucher,
+      sourceAttachments,
+    };
+  }
+
+
   async getVouchers({
     companyId,
     query = {},
@@ -354,15 +477,35 @@ export class VoucherService {
     }
 
 
-    return this
-      .voucherRepository
-      .list({
+    const vouchers =
+      await this
+        .voucherRepository
+        .list({
 
-        companyId,
+          companyId,
 
-        ...query,
+          ...query,
 
-      });
+        });
+
+
+    const rows =
+      Array.isArray(
+        vouchers
+      )
+        ? vouchers
+        : [];
+
+
+    return Promise.all(
+      rows.map(
+        voucher =>
+          this.withSourceAttachments({
+            companyId,
+            voucher,
+          })
+      )
+    );
 
   }
 
@@ -418,7 +561,11 @@ export class VoucherService {
     }
 
 
-    return voucher;
+    return this
+      .withSourceAttachments({
+        companyId,
+        voucher,
+      });
 
   }
 
