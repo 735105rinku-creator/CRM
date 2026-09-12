@@ -183,6 +183,34 @@
                       Managed by Purchase.
                     </div>
 
+                    @if (bill.sourceAttachments?.length) {
+
+                      @for (
+                        attachment of bill.sourceAttachments;
+                        track attachment._id || attachment.fileUrl
+                      ) {
+
+                        <div class="proof-item">
+
+                          <a
+                            [href]="attachmentUrl(attachment)"
+                            target="_blank"
+                            rel="noopener noreferrer">
+                            {{ attachment.originalName }}
+                          </a>
+
+                        </div>
+
+                      }
+
+                    } @else {
+
+                      <span class="muted">
+                        Source proof unavailable
+                      </span>
+
+                    }
+
                   } @else {
 
                     @if (bill.attachments?.length) {

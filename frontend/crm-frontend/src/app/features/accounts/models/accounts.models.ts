@@ -1154,6 +1154,7 @@ export interface Voucher {
   lines: VoucherLine[];
 
   attachments?: VoucherAttachment[];
+  sourceAttachments?: VoucherAttachment[];
 
   sourceModule?: string | null;
 
