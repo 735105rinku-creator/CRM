@@ -86,7 +86,14 @@ const warehouseRateSchema = new mongoose.Schema(
     storageRate: { type: Number, min: 0, default: 0 },
     storageRateUnit: {
       type: String,
-      enum: ["per_day", "per_week", "per_month", "per_mt", "per_pallet", "other"],
+      enum: [
+        "per_day",
+        "per_week",
+        "per_month",
+        "per_mt",
+        "per_pallet",
+        "other",
+      ],
       default: "per_day",
     },
     storageRateUnitOther: { type: String, trim: true, default: "" },
@@ -114,20 +121,47 @@ const receiptQualitySchema = new mongoose.Schema(
 
     expectedWeight: { type: Number, min: 0, default: 0 },
     receivedWeight: { type: Number, min: 0, default: 0 },
+
     weightUnit: {
       type: String,
       enum: ["kg", "mt", "ton", "lb", "other"],
       default: "kg",
     },
-    weightUnitOther: { type: String, trim: true, default: "" },
 
-    temperature: { type: Number, default: null },
-    humidity: { type: Number, min: 0, default: null },
+    weightUnitOther: {
+      type: String,
+      trim: true,
+      default: "",
+    },
 
-    batchNumber: { type: String, trim: true, default: "" },
-    lotNumber: { type: String, trim: true, default: "" },
+    temperature: {
+      type: Number,
+      default: null,
+    },
 
-    qualityRemarks: { type: String, trim: true, default: "" },
+    humidity: {
+      type: Number,
+      min: 0,
+      default: null,
+    },
+
+    batchNumber: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+
+    lotNumber: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+
+    qualityRemarks: {
+      type: String,
+      trim: true,
+      default: "",
+    },
   },
   { _id: false }
 );
@@ -183,11 +217,23 @@ const warehouseReceiptSchema = new mongoose.Schema(
       default: "",
     },
 
-    movementType: { type: String, trim: true, default: "inbound" },
+    movementType: {
+      type: String,
+      trim: true,
+      default: "inbound",
+    },
 
-    storageType: { type: String, trim: true, default: "general" },
+    storageType: {
+      type: String,
+      trim: true,
+      default: "general",
+    },
 
-    zone: { type: String, trim: true, default: "" },
+    zone: {
+      type: String,
+      trim: true,
+      default: "",
+    },
 
     rackLocation: {
       type: String,
@@ -195,7 +241,11 @@ const warehouseReceiptSchema = new mongoose.Schema(
       default: "",
     },
 
-    binLocation: { type: String, trim: true, default: "" },
+    binLocation: {
+      type: String,
+      trim: true,
+      default: "",
+    },
 
     quality: {
       type: receiptQualitySchema,
@@ -229,6 +279,12 @@ const warehouseReceiptSchema = new mongoose.Schema(
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+      default: null,
+    },
+
+    createdByEmployeeId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Employee",
       default: null,
     },
 
@@ -357,8 +413,13 @@ const logisticsWarehouseSchema = new mongoose.Schema(
 );
 
 logisticsWarehouseSchema.index(
-  { companyId: 1, warehouseCode: 1 },
-  { unique: true }
+  {
+    companyId: 1,
+    warehouseCode: 1,
+  },
+  {
+    unique: true,
+  }
 );
 
 logisticsWarehouseSchema.index({
@@ -375,7 +436,10 @@ logisticsWarehouseSchema.index({
 logisticsWarehouseSchema.pre("validate", function () {
   if (
     this.storage?.capacityUnit === "other" &&
-    !String(this.storage?.capacityUnitOther || "").trim()
+    !String(
+      this.storage?.capacityUnitOther ||
+      ""
+    ).trim()
   ) {
     this.invalidate(
       "storage.capacityUnitOther",
@@ -385,7 +449,10 @@ logisticsWarehouseSchema.pre("validate", function () {
 
   if (
     this.storage?.storageType === "other" &&
-    !String(this.storage?.storageTypeOther || "").trim()
+    !String(
+      this.storage?.storageTypeOther ||
+      ""
+    ).trim()
   ) {
     this.invalidate(
       "storage.storageTypeOther",
@@ -395,7 +462,10 @@ logisticsWarehouseSchema.pre("validate", function () {
 
   if (
     this.rates?.storageRateUnit === "other" &&
-    !String(this.rates?.storageRateUnitOther || "").trim()
+    !String(
+      this.rates?.storageRateUnitOther ||
+      ""
+    ).trim()
   ) {
     this.invalidate(
       "rates.storageRateUnitOther",
@@ -405,7 +475,10 @@ logisticsWarehouseSchema.pre("validate", function () {
 
   if (
     this.status === "other" &&
-    !String(this.statusOther || "").trim()
+    !String(
+      this.statusOther ||
+      ""
+    ).trim()
   ) {
     this.invalidate(
       "statusOther",
@@ -414,19 +487,30 @@ logisticsWarehouseSchema.pre("validate", function () {
   }
 
   if (this.storage) {
-    const total = Number(this.storage.totalCapacity || 0);
-    const occupied = Number(this.storage.occupiedCapacity || 0);
+    const total =
+      Number(
+        this.storage.totalCapacity ||
+        0
+      );
+
+    const occupied =
+      Number(
+        this.storage.occupiedCapacity ||
+        0
+      );
 
     this.storage.availableCapacity =
-      Math.max(0, total - occupied);
+      Math.max(
+        0,
+        total - occupied
+      );
   }
 });
 
-export const LogisticsWarehouse = mongoose.model(
-  "LogisticsWarehouse",
-  logisticsWarehouseSchema
-);
+export const LogisticsWarehouse =
+  mongoose.model(
+    "LogisticsWarehouse",
+    logisticsWarehouseSchema
+  );
 
 export default LogisticsWarehouse;
-
-

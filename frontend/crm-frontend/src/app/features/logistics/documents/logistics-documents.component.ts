@@ -5,10 +5,34 @@ import { catchError, finalize, forkJoin, of } from 'rxjs';
 
 import { ApiService } from '../../../core/services/api.service';
 
+
 interface Option {
   label: string;
   value: string;
 }
+
+
+interface UploaderUser {
+  _id?: string;
+  name?: string;
+  displayName?: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+}
+
+
+interface UploaderEmployee {
+  _id?: string;
+  employeeCode?: string;
+  firstName?: string;
+  lastName?: string;
+  name?: string;
+  displayName?: string;
+  designation?: string;
+  organizationRole?: string;
+}
+
 
 interface LogisticsDocumentApiRow {
   _id?: string;
@@ -30,40 +54,102 @@ interface LogisticsDocumentApiRow {
   status?: string;
   statusOther?: string;
   remarks?: string;
+
+  uploadedBy?: UploaderUser | string | null;
+  uploadedByEmployeeId?: UploaderEmployee | string | null;
+
   createdAt?: string;
 }
 
+
 interface LogisticsDocumentListResponse {
-  data?: LogisticsDocumentApiRow[] | { data?: LogisticsDocumentApiRow[]; records?: LogisticsDocumentApiRow[]; pagination?: unknown };
+  data?:
+    | LogisticsDocumentApiRow[]
+    | {
+        data?: LogisticsDocumentApiRow[];
+        records?: LogisticsDocumentApiRow[];
+        pagination?: unknown;
+      };
+
   records?: LogisticsDocumentApiRow[];
 }
+
 
 interface LogisticsShipmentApiRow {
   _id?: string;
   shipmentNumber?: string;
-  shipmentMode?: 'air_cargo' | 'sea_freight' | 'road' | 'other';
+
+  shipmentMode?:
+    | 'air_cargo'
+    | 'sea_freight'
+    | 'road'
+    | 'other';
+
   customerName?: string;
-  customerId?: { customerName?: string; companyName?: string; contactPerson?: string; mobile?: string; email?: string } | string | null;
+
+  customerId?:
+    | {
+        customerName?: string;
+        companyName?: string;
+        contactPerson?: string;
+        mobile?: string;
+        email?: string;
+      }
+    | string
+    | null;
+
   contactPerson?: string;
   mobile?: string;
   email?: string;
   currentLocation?: string;
   trackingReference?: string;
-  origin?: { name?: string; city?: string; country?: string };
-  destination?: { name?: string; city?: string; country?: string };
-  airFreight?: { awbNumber?: string; airline?: string; flightNumber?: string };
-  seaFreight?: { billOfLading?: string; containerNumber?: string; bookingNumber?: string; shippingLine?: string; vesselName?: string };
+
+  origin?: {
+    name?: string;
+    city?: string;
+    country?: string;
+  };
+
+  destination?: {
+    name?: string;
+    city?: string;
+    country?: string;
+  };
+
+  airFreight?: {
+    awbNumber?: string;
+    airline?: string;
+    flightNumber?: string;
+  };
+
+  seaFreight?: {
+    billOfLading?: string;
+    containerNumber?: string;
+    bookingNumber?: string;
+    shippingLine?: string;
+    vesselName?: string;
+  };
 }
 
+
 interface ShipmentListResponse {
-  data?: LogisticsShipmentApiRow[] | { data?: LogisticsShipmentApiRow[]; records?: LogisticsShipmentApiRow[]; pagination?: unknown };
+  data?:
+    | LogisticsShipmentApiRow[]
+    | {
+        data?: LogisticsShipmentApiRow[];
+        records?: LogisticsShipmentApiRow[];
+        pagination?: unknown;
+      };
+
   records?: LogisticsShipmentApiRow[];
 }
+
 
 interface ShipmentOption {
   label: string;
   value: string;
 }
+
 
 interface LogisticsDocument {
   id: number;
@@ -80,8 +166,14 @@ interface LogisticsDocument {
   expiryDate: string;
   status: string;
   statusOther: string;
+
+  uploaderName: string;
+  uploaderEmployeeCode: string;
+  uploaderDisplay: string;
+
   raw: LogisticsDocumentApiRow;
 }
+
 
 @Component({
   selector: 'app-logistics-documents',
@@ -91,418 +183,1322 @@ interface LogisticsDocument {
   styleUrl: './logistics-documents.component.scss'
 })
 export class LogisticsDocumentsComponent implements OnInit {
-  private readonly api = inject(ApiService);
 
-  protected readonly showForm = signal(false);
-  protected readonly search = signal('');
-  protected readonly typeFilter = signal('all');
+  private readonly api =
+    inject(ApiService);
 
-  protected readonly isLoading = signal(false);
-  protected readonly isSaving = signal(false);
-  protected readonly message = signal('');
-  protected readonly errorMessage = signal('');
 
-  protected selectedFile: File | null = null;
-  protected editingId = '';
+  protected readonly showForm =
+    signal(false);
+
+  protected readonly search =
+    signal('');
+
+  protected readonly typeFilter =
+    signal('all');
+
+
+  protected readonly isLoading =
+    signal(false);
+
+  protected readonly isSaving =
+    signal(false);
+
+  protected readonly message =
+    signal('');
+
+  protected readonly errorMessage =
+    signal('');
+
+
+  protected selectedFile:
+    File | null = null;
+
+  protected editingId =
+    '';
+
 
   protected readonly documentTypes: Option[] = [
-    { label: 'Commercial Invoice', value: 'commercial-invoice' },
-    { label: 'Packing List', value: 'packing-list' },
-    { label: 'Airway Bill', value: 'awb' },
-    { label: 'Bill of Lading', value: 'bill-of-lading' },
-    { label: 'Shipping Bill', value: 'shipping-bill' },
-    { label: 'Bill of Entry', value: 'bill-of-entry' },
-    { label: 'Certificate of Origin', value: 'certificate-origin' },
-    { label: 'Insurance Certificate', value: 'insurance' },
-    { label: 'Fumigation Certificate', value: 'fumigation' },
-    { label: 'Phytosanitary Certificate', value: 'phytosanitary' },
-    { label: 'Transport LR', value: 'lr' },
-    { label: 'Warehouse Receipt', value: 'warehouse-receipt' },
-    { label: 'Vendor Invoice', value: 'vendor-invoice' },
-    { label: 'Customer Invoice', value: 'customer-invoice' },
-    { label: 'Other', value: 'other' }
+    {
+      label: 'Commercial Invoice',
+      value: 'commercial-invoice'
+    },
+    {
+      label: 'Packing List',
+      value: 'packing-list'
+    },
+    {
+      label: 'Airway Bill',
+      value: 'awb'
+    },
+    {
+      label: 'Bill of Lading',
+      value: 'bill-of-lading'
+    },
+    {
+      label: 'Shipping Bill',
+      value: 'shipping-bill'
+    },
+    {
+      label: 'Bill of Entry',
+      value: 'bill-of-entry'
+    },
+    {
+      label: 'Certificate of Origin',
+      value: 'certificate-origin'
+    },
+    {
+      label: 'Insurance Certificate',
+      value: 'insurance'
+    },
+    {
+      label: 'Fumigation Certificate',
+      value: 'fumigation'
+    },
+    {
+      label: 'Phytosanitary Certificate',
+      value: 'phytosanitary'
+    },
+    {
+      label: 'Transport LR',
+      value: 'lr'
+    },
+    {
+      label: 'Warehouse Receipt',
+      value: 'warehouse-receipt'
+    },
+    {
+      label: 'Vendor Invoice',
+      value: 'vendor-invoice'
+    },
+    {
+      label: 'Customer Invoice',
+      value: 'customer-invoice'
+    },
+    {
+      label: 'Other',
+      value: 'other'
+    }
   ];
+
 
   protected readonly statuses: Option[] = [
-    { label: 'Valid', value: 'valid' },
-    { label: 'Pending Verification', value: 'pending' },
-    { label: 'Expired', value: 'expired' },
-    { label: 'Rejected', value: 'rejected' },
-    { label: 'Other', value: 'other' }
+    {
+      label: 'Valid',
+      value: 'valid'
+    },
+    {
+      label: 'Pending Verification',
+      value: 'pending'
+    },
+    {
+      label: 'Expired',
+      value: 'expired'
+    },
+    {
+      label: 'Rejected',
+      value: 'rejected'
+    },
+    {
+      label: 'Other',
+      value: 'other'
+    }
   ];
 
-  protected form = this.emptyForm();
 
-  protected readonly records = signal<LogisticsDocument[]>([]);
-  protected readonly shipments = signal<LogisticsShipmentApiRow[]>([]);
+  protected form =
+    this.emptyForm();
 
-  protected readonly filteredRecords = computed(() => {
-    const query = this.search().trim().toLowerCase();
-    const type = this.typeFilter();
 
-    return this.records().filter((item) => {
-      const matchesSearch =
-        !query ||
-        item.documentNo.toLowerCase().includes(query) ||
-        item.shipmentNo.toLowerCase().includes(query) ||
-        item.customer.toLowerCase().includes(query) ||
-        item.fileName.toLowerCase().includes(query);
+  protected readonly records =
+    signal<LogisticsDocument[]>([]);
 
-      const matchesType =
-        type === 'all' ||
-        item.documentType === type;
+  protected readonly shipments =
+    signal<LogisticsShipmentApiRow[]>([]);
 
-      return matchesSearch && matchesType;
+
+  protected readonly filteredRecords =
+    computed(() => {
+
+      const query =
+        this.search()
+          .trim()
+          .toLowerCase();
+
+      const type =
+        this.typeFilter();
+
+
+      return this.records()
+        .filter(
+          (
+            item
+          ) => {
+
+            const matchesSearch =
+              !query ||
+              item.documentNo
+                .toLowerCase()
+                .includes(query) ||
+              item.shipmentNo
+                .toLowerCase()
+                .includes(query) ||
+              item.customer
+                .toLowerCase()
+                .includes(query) ||
+              item.fileName
+                .toLowerCase()
+                .includes(query) ||
+              item.uploaderName
+                .toLowerCase()
+                .includes(query) ||
+              item.uploaderEmployeeCode
+                .toLowerCase()
+                .includes(query) ||
+              item.uploaderDisplay
+                .toLowerCase()
+                .includes(query);
+
+
+            const matchesType =
+              type === 'all' ||
+              item.documentType ===
+                type;
+
+
+            return (
+              matchesSearch &&
+              matchesType
+            );
+          }
+        );
     });
-  });
 
-  protected readonly summary = computed(() => ({
-    total: this.records().length,
-    valid: this.records().filter((item) => item.status === 'valid').length,
-    pending: this.records().filter((item) => item.status === 'pending').length,
-    expired: this.records().filter((item) => item.status === 'expired').length
-  }));
+
+  protected readonly summary =
+    computed(() => ({
+      total:
+        this.records().length,
+
+      valid:
+        this.records()
+          .filter(
+            (
+              item
+            ) =>
+              item.status ===
+              'valid'
+          )
+          .length,
+
+      pending:
+        this.records()
+          .filter(
+            (
+              item
+            ) =>
+              item.status ===
+              'pending'
+          )
+          .length,
+
+      expired:
+        this.records()
+          .filter(
+            (
+              item
+            ) =>
+              item.status ===
+              'expired'
+          )
+          .length
+    }));
+
 
   ngOnInit(): void {
+
     this.loadDocuments();
+
     this.loadShipments();
   }
 
+
   protected loadDocuments(): void {
-    this.isLoading.set(true);
-    this.errorMessage.set('');
+
+    this.isLoading.set(
+      true
+    );
+
+    this.errorMessage.set(
+      ''
+    );
+
 
     this.api
       .get<LogisticsDocumentListResponse>(
         '/logistics/documents',
         {
-          page: 1,
-          limit: 100,
-          sortBy: 'createdAt',
-          sortOrder: 'desc'
+          page:
+            1,
+
+          limit:
+            100,
+
+          sortBy:
+            'createdAt',
+
+          sortOrder:
+            'desc'
         }
       )
-      .pipe(finalize(() => this.isLoading.set(false)))
-      .subscribe({
-        next: (result) => {
-          this.records.set(
-            this.extractDocumentRows(result).map((document, index) =>
-              this.mapDocument(document, index)
+      .pipe(
+        finalize(
+          () =>
+            this.isLoading.set(
+              false
             )
+        )
+      )
+      .subscribe({
+
+        next: (
+          result
+        ) => {
+
+          this.records.set(
+            this.extractDocumentRows(
+              result
+            )
+              .map(
+                (
+                  document,
+                  index
+                ) =>
+                  this.mapDocument(
+                    document,
+                    index
+                  )
+              )
           );
         },
-        error: (error: { error?: { message?: string; errors?: Array<{ message?: string }> } }) => {
-          this.records.set([]);
+
+
+        error: (
+          error: {
+            error?: {
+              message?: string;
+              errors?: Array<{
+                message?: string;
+              }>;
+            };
+          }
+        ) => {
+
+          this.records.set(
+            []
+          );
+
           this.errorMessage.set(
             error?.error?.message ||
-            error?.error?.errors?.[0]?.message ||
+            error?.error?.errors?.[0]
+              ?.message ||
             'Unable to load Logistics documents.'
           );
         }
+
       });
   }
 
+
   protected loadShipments(): void {
+
     forkJoin({
-      all: this.api.get<ShipmentListResponse>('/logistics/shipments', { page: 1, limit: 100, sortBy: 'createdAt', sortOrder: 'desc' }).pipe(catchError((error) => this.shipmentLookupFailure(error))),
-      airCargo: this.api.get<ShipmentListResponse>('/logistics/shipments/air-cargo', { page: 1, limit: 100, sortBy: 'createdAt', sortOrder: 'desc' }).pipe(catchError((error) => this.shipmentLookupFailure(error))),
-      seaFreight: this.api.get<ShipmentListResponse>('/logistics/shipments/sea-freight', { page: 1, limit: 100, sortBy: 'createdAt', sortOrder: 'desc' }).pipe(catchError((error) => this.shipmentLookupFailure(error)))
-    }).subscribe({
-      next: ({ all, airCargo, seaFreight }) => {
-        const rows = this.uniqueShipments([
-          ...this.extractShipmentRows(all),
-          ...this.extractShipmentRows(airCargo),
-          ...this.extractShipmentRows(seaFreight)
-        ]);
-        this.shipments.set(rows);
-      },
-      error: () => {
-        this.shipments.set([]);
-      }
-    });
+
+      all:
+        this.api
+          .get<ShipmentListResponse>(
+            '/logistics/shipments',
+            {
+              page:
+                1,
+
+              limit:
+                100,
+
+              sortBy:
+                'createdAt',
+
+              sortOrder:
+                'desc'
+            }
+          )
+          .pipe(
+            catchError(
+              (
+                error
+              ) =>
+                this.shipmentLookupFailure(
+                  error
+                )
+            )
+          ),
+
+
+      airCargo:
+        this.api
+          .get<ShipmentListResponse>(
+            '/logistics/shipments/air-cargo',
+            {
+              page:
+                1,
+
+              limit:
+                100,
+
+              sortBy:
+                'createdAt',
+
+              sortOrder:
+                'desc'
+            }
+          )
+          .pipe(
+            catchError(
+              (
+                error
+              ) =>
+                this.shipmentLookupFailure(
+                  error
+                )
+            )
+          ),
+
+
+      seaFreight:
+        this.api
+          .get<ShipmentListResponse>(
+            '/logistics/shipments/sea-freight',
+            {
+              page:
+                1,
+
+              limit:
+                100,
+
+              sortBy:
+                'createdAt',
+
+              sortOrder:
+                'desc'
+            }
+          )
+          .pipe(
+            catchError(
+              (
+                error
+              ) =>
+                this.shipmentLookupFailure(
+                  error
+                )
+            )
+          )
+
+    })
+      .subscribe({
+
+        next: ({
+          all,
+          airCargo,
+          seaFreight
+        }) => {
+
+          const rows =
+            this.uniqueShipments([
+              ...this.extractShipmentRows(
+                all
+              ),
+
+              ...this.extractShipmentRows(
+                airCargo
+              ),
+
+              ...this.extractShipmentRows(
+                seaFreight
+              )
+            ]);
+
+
+          this.shipments.set(
+            rows
+          );
+        },
+
+
+        error: () => {
+
+          this.shipments.set(
+            []
+          );
+        }
+
+      });
   }
 
-  protected shipmentOptions(): ShipmentOption[] {
+
+  protected shipmentOptions():
+    ShipmentOption[] {
+
     return this.shipments()
-      .filter((shipment) => Boolean(shipment.shipmentNumber))
-      .map((shipment) => ({
-        value: shipment.shipmentNumber || '',
-        label: `${shipment.shipmentNumber} - ${this.shipmentCustomerName(shipment) || 'Customer'} - ${this.shipmentModeLabel(shipment.shipmentMode)}`
-      }));
+      .filter(
+        (
+          shipment
+        ) =>
+          Boolean(
+            shipment.shipmentNumber
+          )
+      )
+      .map(
+        (
+          shipment
+        ) => ({
+
+          value:
+            shipment.shipmentNumber ||
+            '',
+
+          label:
+            `${shipment.shipmentNumber} - ${this.shipmentCustomerName(shipment) || 'Customer'} - ${this.shipmentModeLabel(shipment.shipmentMode)}`
+        })
+      );
   }
 
-  protected selectedShipment(): LogisticsShipmentApiRow | null {
-    const shipmentNo = this.form.shipmentNo.trim();
-    return this.shipments().find((shipment) => shipment.shipmentNumber === shipmentNo) || null;
+
+  protected selectedShipment():
+    LogisticsShipmentApiRow | null {
+
+    const shipmentNo =
+      this.form.shipmentNo
+        .trim();
+
+
+    return this.shipments()
+      .find(
+        (
+          shipment
+        ) =>
+          shipment.shipmentNumber ===
+          shipmentNo
+      ) ||
+      null;
   }
-  protected onShipmentSelected(shipmentNumber: string): void {
-    this.form.shipmentNo = shipmentNumber;
 
-    const shipment = this.shipments().find(
-      (item) => item.shipmentNumber === shipmentNumber
-    );
 
-    if (!shipment) {
+  protected onShipmentSelected(
+    shipmentNumber: string
+  ): void {
+
+    this.form.shipmentNo =
+      shipmentNumber;
+
+
+    const shipment =
+      this.shipments()
+        .find(
+          (
+            item
+          ) =>
+            item.shipmentNumber ===
+            shipmentNumber
+        );
+
+
+    if (
+      !shipment
+    ) {
+
       return;
     }
 
-    this.form.customer = this.shipmentCustomerName(shipment);
+
+    this.form.customer =
+      this.shipmentCustomerName(
+        shipment
+      );
+
 
     const reference =
       shipment.trackingReference ||
-      shipment.airFreight?.awbNumber ||
-      shipment.seaFreight?.billOfLading ||
-      shipment.seaFreight?.containerNumber ||
-      shipment.seaFreight?.bookingNumber ||
-      shipment.airFreight?.flightNumber ||
-      shipment.seaFreight?.vesselName ||
+      shipment.airFreight
+        ?.awbNumber ||
+      shipment.seaFreight
+        ?.billOfLading ||
+      shipment.seaFreight
+        ?.containerNumber ||
+      shipment.seaFreight
+        ?.bookingNumber ||
+      shipment.airFreight
+        ?.flightNumber ||
+      shipment.seaFreight
+        ?.vesselName ||
       '';
 
-    if (!this.form.referenceNumber.trim()) {
-      this.form.referenceNumber = reference;
+
+    if (
+      !this.form
+        .referenceNumber
+        .trim()
+    ) {
+
+      this.form.referenceNumber =
+        reference;
     }
 
-    if (!this.form.documentTitle.trim()) {
-      const type = this.form.documentType
-        ? this.documentTypeLabel(this.form.documentType)
-        : 'Shipment Document';
 
-      this.form.documentTitle = `${type} - ${shipmentNumber}`;
+    if (
+      !this.form
+        .documentTitle
+        .trim()
+    ) {
+
+      const type =
+        this.form.documentType
+          ? this.documentTypeLabel(
+              this.form.documentType
+            )
+          : 'Shipment Document';
+
+
+      this.form.documentTitle =
+        `${type} - ${shipmentNumber}`;
     }
 
-    if (!this.form.remarks.trim()) {
-      this.form.remarks = `Attached to shipment ${shipmentNumber}.`;
+
+    if (
+      !this.form
+        .remarks
+        .trim()
+    ) {
+
+      this.form.remarks =
+        `Attached to shipment ${shipmentNumber}.`;
     }
   }
 
-  protected onDocumentTypeChanged(): void {
-    if (this.form.shipmentNo && !this.form.documentTitle.trim()) {
-      this.form.documentTitle = `${this.documentTypeLabel(this.form.documentType)} - ${this.form.shipmentNo}`;
+
+  protected onDocumentTypeChanged():
+    void {
+
+    if (
+      this.form.shipmentNo &&
+      !this.form
+        .documentTitle
+        .trim()
+    ) {
+
+      this.form.documentTitle =
+        `${this.documentTypeLabel(this.form.documentType)} - ${this.form.shipmentNo}`;
     }
   }
+
+
   protected openForm(): void {
-    this.editingId = '';
-    this.form = this.emptyForm();
-    this.selectedFile = null;
-    this.message.set('');
-    this.errorMessage.set('');
-    this.showForm.set(true);
+
+    this.editingId =
+      '';
+
+    this.form =
+      this.emptyForm();
+
+    this.selectedFile =
+      null;
+
+    this.message.set(
+      ''
+    );
+
+    this.errorMessage.set(
+      ''
+    );
+
+    this.showForm.set(
+      true
+    );
   }
+
 
   protected closeForm(): void {
-    this.editingId = '';
-    this.showForm.set(false);
-    this.selectedFile = null;
-    this.form = this.emptyForm();
-    this.message.set('');
-    this.errorMessage.set('');
+
+    this.editingId =
+      '';
+
+    this.showForm.set(
+      false
+    );
+
+    this.selectedFile =
+      null;
+
+    this.form =
+      this.emptyForm();
+
+    this.message.set(
+      ''
+    );
+
+    this.errorMessage.set(
+      ''
+    );
   }
 
-  protected onFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0] || null;
 
-    if (!file) {
-      this.selectedFile = null;
+  protected onFileSelected(
+    event: Event
+  ): void {
+
+    const input =
+      event.target as HTMLInputElement;
+
+
+    const file =
+      input.files?.[0] ||
+      null;
+
+
+    if (
+      !file
+    ) {
+
+      this.selectedFile =
+        null;
+
       return;
     }
 
-    const allowedTypes = new Set([
-      'application/pdf',
-      'image/jpeg',
-      'image/png'
-    ]);
+
+    const allowedTypes =
+      new Set([
+        'application/pdf',
+        'image/jpeg',
+        'image/png'
+      ]);
+
 
     const extension =
-      file.name.split('.').pop()?.toLowerCase() || '';
+      file.name
+        .split('.')
+        .pop()
+        ?.toLowerCase() ||
+      '';
+
 
     if (
-      !allowedTypes.has(file.type) ||
-      !['pdf', 'jpg', 'jpeg', 'png'].includes(extension)
+      !allowedTypes.has(
+        file.type
+      ) ||
+      ![
+        'pdf',
+        'jpg',
+        'jpeg',
+        'png'
+      ].includes(
+        extension
+      )
     ) {
-      this.selectedFile = null;
+
+      this.selectedFile =
+        null;
+
       this.errorMessage.set(
         'Only PDF, JPG, JPEG and PNG documents are allowed.'
       );
-      input.value = '';
+
+      input.value =
+        '';
+
       return;
     }
 
-    if (file.size > 10 * 1024 * 1024) {
-      this.selectedFile = null;
+
+    if (
+      file.size >
+      10 *
+        1024 *
+        1024
+    ) {
+
+      this.selectedFile =
+        null;
+
       this.errorMessage.set(
         'Document file must be 10 MB or smaller.'
       );
-      input.value = '';
+
+      input.value =
+        '';
+
       return;
     }
 
-    this.errorMessage.set('');
-    this.selectedFile = file;
+
+    this.errorMessage.set(
+      ''
+    );
+
+    this.selectedFile =
+      file;
   }
 
-  protected saveDocument(): void {
-    if (this.isSaving()) return;
 
-    const validationError = this.validateForm();
+  protected saveDocument():
+    void {
 
-    if (validationError) {
-      this.errorMessage.set(validationError);
-      window.alert(validationError);
+    if (
+      this.isSaving()
+    ) {
+
       return;
     }
 
-    if (!this.editingId && !this.selectedFile) {
-      this.errorMessage.set('Please select a document file.');
-      window.alert('Please select a document file.');
+
+    const validationError =
+      this.validateForm();
+
+
+    if (
+      validationError
+    ) {
+
+      this.errorMessage.set(
+        validationError
+      );
+
+      window.alert(
+        validationError
+      );
+
       return;
     }
 
-    if (this.editingId) {
+
+    if (
+      !this.editingId &&
+      !this.selectedFile
+    ) {
+
+      this.errorMessage.set(
+        'Please select a document file.'
+      );
+
+      window.alert(
+        'Please select a document file.'
+      );
+
+      return;
+    }
+
+
+    if (
+      this.editingId
+    ) {
+
       const metadata = {
-        documentTitle: this.form.documentTitle.trim(),
-        issueDate: this.form.issueDate || null,
-        expiryDate: this.form.expiryDate || null,
-        issuingAuthority: this.form.issuingAuthority.trim(),
-        referenceNumber: this.form.referenceNumber.trim(),
-        status: this.form.status,
-        statusOther: this.form.status === 'other' ? this.form.statusOther.trim() : '',
-        remarks: this.form.remarks.trim()
+
+        documentTitle:
+          this.form.documentTitle
+            .trim(),
+
+        issueDate:
+          this.form.issueDate ||
+          null,
+
+        expiryDate:
+          this.form.expiryDate ||
+          null,
+
+        issuingAuthority:
+          this.form.issuingAuthority
+            .trim(),
+
+        referenceNumber:
+          this.form.referenceNumber
+            .trim(),
+
+        status:
+          this.form.status,
+
+        statusOther:
+          this.form.status ===
+          'other'
+            ? this.form.statusOther
+                .trim()
+            : '',
+
+        remarks:
+          this.form.remarks
+            .trim()
       };
-      this.isSaving.set(true);
-      this.api.patch<LogisticsDocumentApiRow>('/logistics/documents/' + this.editingId, metadata)
-        .pipe(finalize(() => this.isSaving.set(false)))
+
+
+      this.isSaving.set(
+        true
+      );
+
+
+      this.api
+        .patch<LogisticsDocumentApiRow>(
+          '/logistics/documents/' +
+            this.editingId,
+          metadata
+        )
+        .pipe(
+          finalize(
+            () =>
+              this.isSaving.set(
+                false
+              )
+          )
+        )
         .subscribe({
-          next: () => { this.closeForm(); this.loadDocuments(); window.alert('Document metadata updated successfully.'); },
-          error: (error: any) => window.alert(error?.error?.message || 'Unable to update document metadata.')
+
+          next: () => {
+
+            this.closeForm();
+
+            this.loadDocuments();
+
+            window.alert(
+              'Document metadata updated successfully.'
+            );
+          },
+
+
+          error: (
+            error: any
+          ) => {
+
+            window.alert(
+              error?.error?.message ||
+              'Unable to update document metadata.'
+            );
+          }
+
         });
+
+
       return;
     }
 
-    const selectedFile = this.selectedFile;
-    if (!selectedFile) return;
-    const formData = new FormData();
 
-    formData.append('file', selectedFile);
-    formData.append('shipmentNo', this.form.shipmentNo.trim().toUpperCase());
-    formData.append('customer', this.form.customer.trim());
-    formData.append('documentType', this.form.documentType);
+    const selectedFile =
+      this.selectedFile;
+
+
+    if (
+      !selectedFile
+    ) {
+
+      return;
+    }
+
+
+    const formData =
+      new FormData();
+
+
+    formData.append(
+      'file',
+      selectedFile
+    );
+
+
+    formData.append(
+      'shipmentNo',
+      this.form.shipmentNo
+        .trim()
+        .toUpperCase()
+    );
+
+
+    formData.append(
+      'customer',
+      this.form.customer
+        .trim()
+    );
+
+
+    formData.append(
+      'documentType',
+      this.form.documentType
+    );
+
+
     formData.append(
       'documentTypeOther',
-      this.form.documentType === 'other'
-        ? this.form.documentTypeOther.trim()
+      this.form.documentType ===
+      'other'
+        ? this.form
+            .documentTypeOther
+            .trim()
         : ''
     );
-    formData.append('documentTitle', this.form.documentTitle.trim());
-    formData.append('issueDate', this.form.issueDate || '');
-    formData.append('expiryDate', this.form.expiryDate || '');
-    formData.append('issuingAuthority', this.form.issuingAuthority.trim());
-    formData.append('referenceNumber', this.form.referenceNumber.trim());
-    formData.append('status', this.form.status);
+
+
+    formData.append(
+      'documentTitle',
+      this.form.documentTitle
+        .trim()
+    );
+
+
+    formData.append(
+      'issueDate',
+      this.form.issueDate ||
+      ''
+    );
+
+
+    formData.append(
+      'expiryDate',
+      this.form.expiryDate ||
+      ''
+    );
+
+
+    formData.append(
+      'issuingAuthority',
+      this.form.issuingAuthority
+        .trim()
+    );
+
+
+    formData.append(
+      'referenceNumber',
+      this.form.referenceNumber
+        .trim()
+    );
+
+
+    formData.append(
+      'status',
+      this.form.status
+    );
+
+
     formData.append(
       'statusOther',
-      this.form.status === 'other'
-        ? this.form.statusOther.trim()
+      this.form.status ===
+      'other'
+        ? this.form
+            .statusOther
+            .trim()
         : ''
     );
-    formData.append('remarks', this.form.remarks.trim());
 
-    this.isSaving.set(true);
-    this.message.set('');
-    this.errorMessage.set('');
+
+    formData.append(
+      'remarks',
+      this.form.remarks
+        .trim()
+    );
+
+
+    this.isSaving.set(
+      true
+    );
+
+    this.message.set(
+      ''
+    );
+
+    this.errorMessage.set(
+      ''
+    );
+
 
     this.api
       .post<LogisticsDocumentApiRow>(
         '/logistics/documents',
         formData
       )
-      .pipe(finalize(() => this.isSaving.set(false)))
+      .pipe(
+        finalize(
+          () =>
+            this.isSaving.set(
+              false
+            )
+        )
+      )
       .subscribe({
-        next: (document) => {
-          const number = document?.documentNumber || 'Document';
 
-          this.message.set(`${number} uploaded successfully.`);
-          this.errorMessage.set('');
-          window.alert(`${number} uploaded successfully.`);
+        next: (
+          document
+        ) => {
 
-          this.showForm.set(false);
-          this.selectedFile = null;
-          this.form = this.emptyForm();
+          const number =
+            document?.documentNumber ||
+            'Document';
+
+
+          this.message.set(
+            `${number} uploaded successfully.`
+          );
+
+          this.errorMessage.set(
+            ''
+          );
+
+
+          window.alert(
+            `${number} uploaded successfully.`
+          );
+
+
+          this.showForm.set(
+            false
+          );
+
+          this.selectedFile =
+            null;
+
+          this.form =
+            this.emptyForm();
+
 
           this.loadDocuments();
         },
-        error: (error: { status?: number; error?: { message?: string; errors?: Array<{ message?: string }> } }) => {
-          const message =
-            error?.status === 0
-              ? 'Backend server is not running or API is unreachable. Please start backend and try again.'
-              : error?.error?.message ||
-              error?.error?.errors?.[0]?.message ||
-              'Unable to upload Logistics document.';
 
-          this.errorMessage.set(message);
-          window.alert(message);
+
+        error: (
+          error: {
+            status?: number;
+
+            error?: {
+              message?: string;
+
+              errors?: Array<{
+                message?: string;
+              }>;
+            };
+          }
+        ) => {
+
+          const message =
+            error?.status ===
+            0
+              ? 'Backend server is not running or API is unreachable. Please start backend and try again.'
+              : error?.error
+                  ?.message ||
+                error?.error
+                  ?.errors?.[0]
+                  ?.message ||
+                'Unable to upload Logistics document.';
+
+
+          this.errorMessage.set(
+            message
+          );
+
+          window.alert(
+            message
+          );
         }
+
       });
   }
 
-  protected editDocument(item: LogisticsDocument): void {
-    const row = item.raw;
-    if (!item.mongoId) return;
-    this.editingId = item.mongoId;
-    this.selectedFile = null;
-    this.form = {
-      documentNo: row.documentNumber || item.documentNo,
-      shipmentNo: row.shipmentNumber || item.shipmentNo,
-      customer: row.customerName || item.customer,
-      documentType: row.documentType || item.documentType,
-      documentTypeOther: row.documentTypeOther || item.documentTypeOther,
-      documentTitle: row.documentTitle || '',
-      issueDate: this.dateInputValue(row.issueDate),
-      expiryDate: this.dateInputValue(row.expiryDate),
-      issuingAuthority: row.issuingAuthority || '',
-      referenceNumber: row.referenceNumber || '',
-      status: row.status || item.status,
-      statusOther: row.statusOther || item.statusOther,
-      remarks: row.remarks || ''
-    };
-    this.showForm.set(true);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
 
-  protected deleteDocument(item: LogisticsDocument): void {
-    if (!item.mongoId || !window.confirm(`Delete document ${item.documentNo}?`)) return;
-    this.api.delete('/logistics/documents/' + item.mongoId).subscribe({
-      next: () => this.loadDocuments(),
-      error: (error: any) => window.alert(error?.error?.message || 'Unable to delete document.')
+  protected editDocument(
+    item: LogisticsDocument
+  ): void {
+
+    const row =
+      item.raw;
+
+
+    if (
+      !item.mongoId
+    ) {
+
+      return;
+    }
+
+
+    this.editingId =
+      item.mongoId;
+
+    this.selectedFile =
+      null;
+
+
+    this.form = {
+
+      documentNo:
+        row.documentNumber ||
+        item.documentNo,
+
+      shipmentNo:
+        row.shipmentNumber ||
+        item.shipmentNo,
+
+      customer:
+        row.customerName ||
+        item.customer,
+
+      documentType:
+        row.documentType ||
+        item.documentType,
+
+      documentTypeOther:
+        row.documentTypeOther ||
+        item.documentTypeOther,
+
+      documentTitle:
+        row.documentTitle ||
+        '',
+
+      issueDate:
+        this.dateInputValue(
+          row.issueDate
+        ),
+
+      expiryDate:
+        this.dateInputValue(
+          row.expiryDate
+        ),
+
+      issuingAuthority:
+        row.issuingAuthority ||
+        '',
+
+      referenceNumber:
+        row.referenceNumber ||
+        '',
+
+      status:
+        row.status ||
+        item.status,
+
+      statusOther:
+        row.statusOther ||
+        item.statusOther,
+
+      remarks:
+        row.remarks ||
+        ''
+    };
+
+
+    this.showForm.set(
+      true
+    );
+
+
+    window.scrollTo({
+      top:
+        0,
+
+      behavior:
+        'smooth'
     });
   }
 
-  protected documentTypeLabel(type: string): string {
+
+  protected deleteDocument(
+    item: LogisticsDocument
+  ): void {
+
+    if (
+      !item.mongoId ||
+      !window.confirm(
+        `Delete document ${item.documentNo}?`
+      )
+    ) {
+
+      return;
+    }
+
+
+    this.api
+      .delete(
+        '/logistics/documents/' +
+          item.mongoId
+      )
+      .subscribe({
+
+        next: () =>
+          this.loadDocuments(),
+
+
+        error: (
+          error: any
+        ) =>
+          window.alert(
+            error?.error?.message ||
+            'Unable to delete document.'
+          )
+
+      });
+  }
+
+
+  protected documentTypeLabel(
+    type: string
+  ): string {
+
     return (
-      this.documentTypes.find((option) => option.value === type)?.label ||
+      this.documentTypes
+        .find(
+          (
+            option
+          ) =>
+            option.value ===
+            type
+        )
+        ?.label ||
       type
     );
   }
 
-  protected statusLabel(status: string): string {
+
+  protected statusLabel(
+    status: string
+  ): string {
+
     return (
-      this.statuses.find((option) => option.value === status)?.label ||
+      this.statuses
+        .find(
+          (
+            option
+          ) =>
+            option.value ===
+            status
+        )
+        ?.label ||
       status
     );
   }
+
 
   protected downloadDocument(
     item: LogisticsDocument
   ): void {
 
-    if (!item.mongoId) {
+    if (
+      !item.mongoId
+    ) {
+
       this.errorMessage.set(
         'Document ID is not available.'
       );
+
       return;
     }
 
-    this.errorMessage.set('');
+
+    this.errorMessage.set(
+      ''
+    );
+
 
     this.api
       .getBlob(
@@ -510,37 +1506,46 @@ export class LogisticsDocumentsComponent implements OnInit {
       )
       .subscribe({
 
-        next: (blob) => {
+        next: (
+          blob
+        ) => {
 
           const url =
             URL.createObjectURL(
               blob
             );
 
+
           const anchor =
             document.createElement(
               'a'
             );
 
+
           anchor.href =
             url;
+
 
           anchor.download =
             item.fileName ||
             item.documentNo ||
             'document';
 
+
           anchor.style.display =
             'none';
+
 
           document.body
             .appendChild(
               anchor
             );
 
+
           anchor.click();
 
           anchor.remove();
+
 
           setTimeout(
             () =>
@@ -551,16 +1556,20 @@ export class LogisticsDocumentsComponent implements OnInit {
           );
         },
 
-        error: (error: {
-          error?: {
-            message?: string;
-          };
-        }) => {
+
+        error: (
+          error: {
+            error?: {
+              message?: string;
+            };
+          }
+        ) => {
 
           console.error(
             'Unable to download Logistics document',
             error
           );
+
 
           this.errorMessage.set(
             error?.error?.message ||
@@ -571,18 +1580,27 @@ export class LogisticsDocumentsComponent implements OnInit {
       });
   }
 
+
   protected previewDocument(
     item: LogisticsDocument
   ): void {
 
-    if (!item.mongoId) {
+    if (
+      !item.mongoId
+    ) {
+
       this.errorMessage.set(
         'Document ID is not available.'
       );
+
       return;
     }
 
-    this.errorMessage.set('');
+
+    this.errorMessage.set(
+      ''
+    );
+
 
     /*
      * Open the tab immediately so popup blockers
@@ -595,20 +1613,26 @@ export class LogisticsDocumentsComponent implements OnInit {
         'noopener,noreferrer'
       );
 
+
     this.api
       .getBlob(
         `/logistics/documents/${encodeURIComponent(item.mongoId)}/preview`
       )
       .subscribe({
 
-        next: (blob) => {
+        next: (
+          blob
+        ) => {
 
           const url =
             URL.createObjectURL(
               blob
             );
 
-          if (previewWindow) {
+
+          if (
+            previewWindow
+          ) {
 
             previewWindow.location.href =
               url;
@@ -621,6 +1645,7 @@ export class LogisticsDocumentsComponent implements OnInit {
               'noopener,noreferrer'
             );
           }
+
 
           /*
            * Give the browser enough time to load
@@ -635,20 +1660,28 @@ export class LogisticsDocumentsComponent implements OnInit {
           );
         },
 
-        error: (error: {
-          error?: {
-            message?: string;
-          };
-        }) => {
 
-          if (previewWindow) {
+        error: (
+          error: {
+            error?: {
+              message?: string;
+            };
+          }
+        ) => {
+
+          if (
+            previewWindow
+          ) {
+
             previewWindow.close();
           }
+
 
           console.error(
             'Unable to preview Logistics document',
             error
           );
+
 
           this.errorMessage.set(
             error?.error?.message ||
@@ -659,194 +1692,774 @@ export class LogisticsDocumentsComponent implements OnInit {
       });
   }
 
+
   private extractDocumentRows(
-    result: LogisticsDocumentListResponse | LogisticsDocumentApiRow[] | null | undefined
+    result:
+      | LogisticsDocumentListResponse
+      | LogisticsDocumentApiRow[]
+      | null
+      | undefined
   ): LogisticsDocumentApiRow[] {
-    if (Array.isArray(result)) {
+
+    if (
+      Array.isArray(
+        result
+      )
+    ) {
+
       return result;
     }
 
-    const data = result?.data;
 
-    if (Array.isArray(data)) {
+    const data =
+      result?.data;
+
+
+    if (
+      Array.isArray(
+        data
+      )
+    ) {
+
       return data;
     }
 
-    return data?.data || data?.records || result?.records || [];
+
+    return (
+      data?.data ||
+      data?.records ||
+      result?.records ||
+      []
+    );
   }
+
 
   private extractShipmentRows(
-    result: ShipmentListResponse | LogisticsShipmentApiRow[] | null | undefined
+    result:
+      | ShipmentListResponse
+      | LogisticsShipmentApiRow[]
+      | null
+      | undefined
   ): LogisticsShipmentApiRow[] {
-    if (Array.isArray(result)) {
+
+    if (
+      Array.isArray(
+        result
+      )
+    ) {
+
       return result;
     }
 
-    const data = result?.data;
 
-    if (Array.isArray(data)) {
+    const data =
+      result?.data;
+
+
+    if (
+      Array.isArray(
+        data
+      )
+    ) {
+
       return data;
     }
 
-    return data?.data || data?.records || result?.records || [];
+
+    return (
+      data?.data ||
+      data?.records ||
+      result?.records ||
+      []
+    );
   }
 
-  private uniqueShipments(rows: LogisticsShipmentApiRow[]): LogisticsShipmentApiRow[] {
-    const seen = new Set<string>();
-    return rows.filter((shipment, index) => {
-      const key = String(shipment._id || shipment.shipmentNumber || index).trim();
-      if (!key || seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
+
+  private uniqueShipments(
+    rows: LogisticsShipmentApiRow[]
+  ): LogisticsShipmentApiRow[] {
+
+    const seen =
+      new Set<string>();
+
+
+    return rows.filter(
+      (
+        shipment,
+        index
+      ) => {
+
+        const key =
+          String(
+            shipment._id ||
+            shipment.shipmentNumber ||
+            index
+          )
+            .trim();
+
+
+        if (
+          !key ||
+          seen.has(
+            key
+          )
+        ) {
+
+          return false;
+        }
+
+
+        seen.add(
+          key
+        );
+
+
+        return true;
+      }
+    );
   }
 
-  private shipmentCustomerName(shipment: LogisticsShipmentApiRow): string {
-    const customer = shipment.customerId;
-    if (customer && typeof customer === 'object') {
-      return customer.customerName || customer.companyName || shipment.customerName || '';
+
+  private shipmentCustomerName(
+    shipment: LogisticsShipmentApiRow
+  ): string {
+
+    const customer =
+      shipment.customerId;
+
+
+    if (
+      customer &&
+      typeof customer ===
+      'object'
+    ) {
+
+      return (
+        customer.customerName ||
+        customer.companyName ||
+        shipment.customerName ||
+        ''
+      );
     }
-    return shipment.customerName || '';
+
+
+    return (
+      shipment.customerName ||
+      ''
+    );
   }
 
-  private shipmentModeLabel(value?: string): string {
-    const mode = String(value || '').trim().toLowerCase().replace(/_/g, '-');
-    if (mode === 'air-cargo') return 'Air Cargo';
-    if (mode === 'sea-freight') return 'Sea Freight';
-    if (mode === 'road') return 'Road';
-    return value || 'Shipment';
+
+  private shipmentModeLabel(
+    value?: string
+  ): string {
+
+    const mode =
+      String(
+        value ||
+        ''
+      )
+        .trim()
+        .toLowerCase()
+        .replace(
+          /_/g,
+          '-'
+        );
+
+
+    if (
+      mode ===
+      'air-cargo'
+    ) {
+
+      return 'Air Cargo';
+    }
+
+
+    if (
+      mode ===
+      'sea-freight'
+    ) {
+
+      return 'Sea Freight';
+    }
+
+
+    if (
+      mode ===
+      'road'
+    ) {
+
+      return 'Road';
+    }
+
+
+    return (
+      value ||
+      'Shipment'
+    );
   }
 
-  protected shipmentRouteLabel(shipment: LogisticsShipmentApiRow | null): string {
-    if (!shipment) return '';
-    const from = shipment.origin?.city || shipment.origin?.name || shipment.origin?.country || '';
-    const to = shipment.destination?.city || shipment.destination?.name || shipment.destination?.country || '';
-    return [from, to].filter(Boolean).join(' to ');
+
+  protected shipmentRouteLabel(
+    shipment:
+      LogisticsShipmentApiRow | null
+  ): string {
+
+    if (
+      !shipment
+    ) {
+
+      return '';
+    }
+
+
+    const from =
+      shipment.origin?.city ||
+      shipment.origin?.name ||
+      shipment.origin?.country ||
+      '';
+
+
+    const to =
+      shipment.destination?.city ||
+      shipment.destination?.name ||
+      shipment.destination?.country ||
+      '';
+
+
+    return [
+      from,
+      to
+    ]
+      .filter(
+        Boolean
+      )
+      .join(
+        ' to '
+      );
   }
-  private validateForm(): string {
-    if (!this.form.shipmentNo.trim()) {
+
+
+  private validateForm():
+    string {
+
+    if (
+      !this.form.shipmentNo
+        .trim()
+    ) {
+
       return 'Shipment Number is required.';
     }
 
-    if (!this.form.customer.trim()) {
+
+    if (
+      !this.form.customer
+        .trim()
+    ) {
+
       return 'Customer is required.';
     }
 
-    if (!this.form.documentType) {
+
+    if (
+      !this.form.documentType
+    ) {
+
       return 'Document Type is required.';
     }
 
+
     if (
-      this.form.documentType === 'other' &&
-      !this.form.documentTypeOther.trim()
+      this.form.documentType ===
+        'other' &&
+      !this.form.documentTypeOther
+        .trim()
     ) {
+
       return 'Enter Document Type because Other is selected.';
     }
 
-    if (!this.form.status) {
+
+    if (
+      !this.form.status
+    ) {
+
       return 'Document Status is required.';
     }
 
+
     if (
-      this.form.status === 'other' &&
-      !this.form.statusOther.trim()
+      this.form.status ===
+        'other' &&
+      !this.form.statusOther
+        .trim()
     ) {
+
       return 'Enter Document Status because Other is selected.';
     }
 
-    if (!this.form.remarks.trim()) {
+
+    if (
+      !this.form.remarks
+        .trim()
+    ) {
+
       return 'Remarks are compulsory.';
     }
+
 
     if (
       this.form.issueDate &&
       this.form.expiryDate &&
-      new Date(this.form.expiryDate).getTime() <
-      new Date(this.form.issueDate).getTime()
+      new Date(
+        this.form.expiryDate
+      )
+        .getTime() <
+      new Date(
+        this.form.issueDate
+      )
+        .getTime()
     ) {
+
       return 'Expiry Date cannot be before Issue Date.';
     }
+
 
     return '';
   }
 
+
   private mapDocument(
-    document: LogisticsDocumentApiRow,
-    index: number
+    document:
+      LogisticsDocumentApiRow,
+    index:
+      number
   ): LogisticsDocument {
+
+    const uploader =
+      this.resolveUploader(
+        document
+      );
+
+
     return {
-      id: index + 1,
-      mongoId: document._id || '',
-      documentNo: document.documentNumber || '-',
-      shipmentNo: document.shipmentNumber || '-',
-      customer: document.customerName || '-',
-      documentType: document.documentType || 'other',
-      documentTypeOther: document.documentTypeOther || '',
+
+      id:
+        index +
+        1,
+
+      mongoId:
+        document._id ||
+        '',
+
+      documentNo:
+        document.documentNumber ||
+        '-',
+
+      shipmentNo:
+        document.shipmentNumber ||
+        '-',
+
+      customer:
+        document.customerName ||
+        '-',
+
+      documentType:
+        document.documentType ||
+        'other',
+
+      documentTypeOther:
+        document.documentTypeOther ||
+        '',
+
       fileName:
         document.originalFileName ||
         document.fileName ||
         '-',
-      fileUrl: document.fileUrl || '',
-      mimeType: document.mimeType || '',
-      uploadDate: this.formatDate(document.createdAt),
-      expiryDate: document.expiryDate
-        ? this.formatDate(document.expiryDate)
-        : '-',
-      status: document.status || 'pending',
-      statusOther: document.statusOther || '',
-      raw: document
+
+      fileUrl:
+        document.fileUrl ||
+        '',
+
+      mimeType:
+        document.mimeType ||
+        '',
+
+      uploadDate:
+        this.formatDate(
+          document.createdAt
+        ),
+
+      expiryDate:
+        document.expiryDate
+          ? this.formatDate(
+              document.expiryDate
+            )
+          : '-',
+
+      status:
+        document.status ||
+        'pending',
+
+      statusOther:
+        document.statusOther ||
+        '',
+
+
+      uploaderName:
+        uploader.name,
+
+      uploaderEmployeeCode:
+        uploader.employeeCode,
+
+      uploaderDisplay:
+        uploader.display,
+
+
+      raw:
+        document
     };
   }
 
-  private formatDate(
-    value: string | null | undefined
-  ): string {
-    if (!value) return '-';
 
-    const date = new Date(value);
+  private resolveUploader(
+    document:
+      LogisticsDocumentApiRow
+  ): {
+    name: string;
+    employeeCode: string;
+    display: string;
+  } {
 
-    if (Number.isNaN(date.getTime())) return '-';
+    const employee =
+      document.uploadedByEmployeeId;
 
-    return new Intl.DateTimeFormat(
-      'en-GB',
-      {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
+
+    /*
+     * Employee record is the preferred source because it
+     * represents the Logistics employee workspace.
+     */
+    if (
+      employee &&
+      typeof employee ===
+        'object'
+    ) {
+
+      const name =
+        this.personName(
+          employee
+        );
+
+
+      const employeeCode =
+        String(
+          employee.employeeCode ||
+          ''
+        )
+          .trim();
+
+
+      if (
+        name ||
+        employeeCode
+      ) {
+
+        const safeName =
+          name ||
+          'Employee';
+
+
+        return {
+          name:
+            safeName,
+
+          employeeCode,
+
+          display:
+            employeeCode
+              ? `${safeName} • ${employeeCode}`
+              : safeName
+        };
       }
-    ).format(date);
+    }
+
+
+    /*
+     * Legacy fallback for older documents where only
+     * uploadedBy User was stored.
+     */
+    const user =
+      document.uploadedBy;
+
+
+    if (
+      user &&
+      typeof user ===
+        'object'
+    ) {
+
+      const name =
+        this.personName(
+          user
+        ) ||
+        String(
+          user.email ||
+          ''
+        )
+          .trim();
+
+
+      if (
+        name
+      ) {
+
+        return {
+          name,
+
+          employeeCode:
+            '',
+
+          display:
+            name
+        };
+      }
+    }
+
+
+    return {
+      name:
+        'Not Available',
+
+      employeeCode:
+        '',
+
+      display:
+        'Not Available'
+    };
   }
 
-  private dateInputValue(value: string | null | undefined): string {
-    if (!value) return '';
-    const date = new Date(value);
-    return Number.isNaN(date.getTime()) ? '' : date.toISOString().slice(0, 10);
+
+  private personName(
+    person:
+      | UploaderUser
+      | UploaderEmployee
+      | null
+      | undefined
+  ): string {
+
+    if (
+      !person
+    ) {
+
+      return '';
+    }
+
+
+    const displayName =
+      String(
+        person.displayName ||
+        ''
+      )
+        .trim();
+
+
+    if (
+      displayName
+    ) {
+
+      return displayName;
+    }
+
+
+    const name =
+      String(
+        person.name ||
+        ''
+      )
+        .trim();
+
+
+    if (
+      name
+    ) {
+
+      return name;
+    }
+
+
+    const firstName =
+      String(
+        person.firstName ||
+        ''
+      )
+        .trim();
+
+
+    const lastName =
+      String(
+        person.lastName ||
+        ''
+      )
+        .trim();
+
+
+    return [
+      firstName,
+      lastName
+    ]
+      .filter(
+        Boolean
+      )
+      .join(
+        ' '
+      )
+      .trim();
   }
 
-  private shipmentLookupFailure(error: any) {
-    this.errorMessage.set(error?.error?.message || 'Unable to load shipment options for documents.');
-    return of(null);
+
+  private formatDate(
+    value:
+      | string
+      | null
+      | undefined
+  ): string {
+
+    if (
+      !value
+    ) {
+
+      return '-';
+    }
+
+
+    const date =
+      new Date(
+        value
+      );
+
+
+    if (
+      Number.isNaN(
+        date.getTime()
+      )
+    ) {
+
+      return '-';
+    }
+
+
+    return new Intl
+      .DateTimeFormat(
+        'en-GB',
+        {
+          day:
+            '2-digit',
+
+          month:
+            '2-digit',
+
+          year:
+            'numeric'
+        }
+      )
+      .format(
+        date
+      );
   }
+
+
+  private dateInputValue(
+    value:
+      | string
+      | null
+      | undefined
+  ): string {
+
+    if (
+      !value
+    ) {
+
+      return '';
+    }
+
+
+    const date =
+      new Date(
+        value
+      );
+
+
+    return Number.isNaN(
+      date.getTime()
+    )
+      ? ''
+      : date
+          .toISOString()
+          .slice(
+            0,
+            10
+          );
+  }
+
+
+  private shipmentLookupFailure(
+    error: any
+  ) {
+
+    this.errorMessage.set(
+      error?.error?.message ||
+      'Unable to load shipment options for documents.'
+    );
+
+
+    return of(
+      null
+    );
+  }
+
 
   private emptyForm() {
+
     return {
-      documentNo: 'AUTO',
-      shipmentNo: '',
-      customer: '',
-      documentType: '',
-      documentTypeOther: '',
-      documentTitle: '',
-      issueDate: '',
-      expiryDate: '',
-      issuingAuthority: '',
-      referenceNumber: '',
-      status: 'valid',
-      statusOther: '',
-      remarks: ''
+      documentNo:
+        'AUTO',
+
+      shipmentNo:
+        '',
+
+      customer:
+        '',
+
+      documentType:
+        '',
+
+      documentTypeOther:
+        '',
+
+      documentTitle:
+        '',
+
+      issueDate:
+        '',
+
+      expiryDate:
+        '',
+
+      issuingAuthority:
+        '',
+
+      referenceNumber:
+        '',
+
+      status:
+        'valid',
+
+      statusOther:
+        '',
+
+      remarks:
+        ''
     };
   }
 }
-
-
-
-

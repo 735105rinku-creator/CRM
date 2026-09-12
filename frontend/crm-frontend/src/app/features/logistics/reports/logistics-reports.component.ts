@@ -19,6 +19,30 @@ interface Option {
 }
 
 
+interface ReportEmployeeOption {
+  value: string;
+  employeeId: string;
+  name: string;
+  employeeCode: string;
+  label: string;
+}
+
+
+interface ReportScope {
+  type: 'own' | 'department';
+
+  label: string;
+
+  description: string;
+
+  scopeLabel: string;
+
+  canFilterEmployees: boolean;
+
+  selectedEmployeeId: string;
+}
+
+
 interface ReportRow {
   id: string;
 
@@ -51,6 +75,16 @@ interface ReportRow {
   gstAmount: number;
 
   status: string;
+
+  createdByEmployeeId: string;
+
+  createdByName: string;
+
+  createdByEmployeeCode: string;
+
+  createdByDesignation: string;
+
+  createdByDisplay: string;
 }
 
 
@@ -76,27 +110,6 @@ interface ReportDeliverySummary {
   transit: number;
   customs: number;
   cancelled: number;
-}
-
-
-interface ReportApi {
-  reportType?: string;
-
-  rows?: ReportRow[];
-
-  records?: ReportRow[];
-
-  items?: ReportRow[];
-
-  summary?: ReportSummary;
-
-  modeSummary?: ReportModeSummary;
-
-  deliverySummary?: ReportDeliverySummary;
-
-  data?: any;
-
-  result?: any;
 }
 
 
@@ -156,6 +169,10 @@ export class LogisticsReportsComponent
     signal('');
 
 
+  protected readonly employeeFilter =
+    signal('all');
+
+
   protected readonly isLoading =
     signal(false);
 
@@ -168,11 +185,93 @@ export class LogisticsReportsComponent
     signal<ReportRow[]>([]);
 
 
-  /*
-   * Backend summary is stored separately so that,
-   * when backend supplies authoritative totals,
-   * we can use them.
-   */
+  /* ============================================================
+     REPORT SCOPE
+  ============================================================ */
+
+  protected readonly reportScope =
+    signal<ReportScope>({
+      type:
+        'own',
+
+      label:
+        'My Logistics Report',
+
+      description:
+        'Only records from your Logistics workspace.',
+
+      scopeLabel:
+        'My Workspace',
+
+      canFilterEmployees:
+        false,
+
+      selectedEmployeeId:
+        ''
+    });
+
+
+  protected readonly employeeOptions =
+    signal<ReportEmployeeOption[]>([]);
+
+
+  protected readonly isDepartmentReport =
+    computed(
+      () =>
+        this.reportScope().type ===
+        'department'
+    );
+
+
+  protected readonly canFilterEmployees =
+    computed(
+      () =>
+        this.reportScope()
+          .canFilterEmployees ===
+        true
+    );
+
+
+  protected readonly scopeTitle =
+    computed(
+      () =>
+        this.reportScope().label ||
+        (
+          this.isDepartmentReport()
+            ? 'Logistics Department Report'
+            : 'My Logistics Report'
+        )
+    );
+
+
+  protected readonly scopeDescription =
+    computed(
+      () =>
+        this.reportScope().description ||
+        (
+          this.isDepartmentReport()
+            ? 'Includes records created by Logistics employees.'
+            : 'Only records from your Logistics workspace.'
+        )
+    );
+
+
+  protected readonly scopeLabel =
+    computed(
+      () =>
+        this.reportScope().scopeLabel ||
+        (
+          this.isDepartmentReport()
+            ? 'Department'
+            : 'My Workspace'
+        )
+    );
+
+
+  /* ============================================================
+     BACKEND SUMMARY
+  ============================================================ */
+
   protected readonly apiSummary =
     signal<ReportSummary | null>(
       null
@@ -318,7 +417,7 @@ export class LogisticsReportsComponent
 
 
   /* ============================================================
-     COMPUTED RECORDS
+     RECORDS
   ============================================================ */
 
   protected readonly filteredRecords =
@@ -328,12 +427,10 @@ export class LogisticsReportsComponent
     );
 
 
-  /*
-   * Prefer backend summary when supplied.
-   *
-   * If backend does not return summary,
-   * calculate it safely from rows.
-   */
+  /* ============================================================
+     SUMMARY
+  ============================================================ */
+
   protected readonly summary =
     computed(
       () => {
@@ -374,7 +471,6 @@ export class LogisticsReportsComponent
               this.number(
                 backend.gst
               )
-
           };
         }
 
@@ -399,7 +495,6 @@ export class LogisticsReportsComponent
                 this.number(
                   row.invoiceAmount
                 ),
-
               0
             ),
 
@@ -414,7 +509,6 @@ export class LogisticsReportsComponent
                 this.number(
                   row.receivedAmount
                 ),
-
               0
             ),
 
@@ -429,7 +523,6 @@ export class LogisticsReportsComponent
                 this.number(
                   row.outstandingAmount
                 ),
-
               0
             ),
 
@@ -444,7 +537,6 @@ export class LogisticsReportsComponent
                 this.number(
                   row.vendorBalance
                 ),
-
               0
             ),
 
@@ -459,14 +551,16 @@ export class LogisticsReportsComponent
                 this.number(
                   row.gstAmount
                 ),
-
               0
             )
-
         };
       }
     );
 
+
+  /* ============================================================
+     MODE SUMMARY
+  ============================================================ */
 
   protected readonly modeSummary =
     computed(
@@ -493,7 +587,6 @@ export class LogisticsReportsComponent
               this.number(
                 backend.road
               )
-
           };
         }
 
@@ -534,11 +627,14 @@ export class LogisticsReportsComponent
                   'road'
               )
               .length
-
         };
       }
     );
 
+
+  /* ============================================================
+     DELIVERY SUMMARY
+  ============================================================ */
 
   protected readonly deliverySummary =
     computed(
@@ -570,7 +666,6 @@ export class LogisticsReportsComponent
               this.number(
                 backend.cancelled
               )
-
           };
         }
 
@@ -623,7 +718,6 @@ export class LogisticsReportsComponent
                   'cancelled'
               )
               .length
-
         };
       }
     );
@@ -650,7 +744,6 @@ export class LogisticsReportsComponent
           fromRoute
         )
       );
-
     }
 
 
@@ -669,12 +762,37 @@ export class LogisticsReportsComponent
     if (!value) {
 
       return;
-
     }
 
 
     this.reportType.set(
       value
+    );
+
+
+    this.loadReport();
+  }
+
+
+  /* ============================================================
+     EMPLOYEE FILTER
+  ============================================================ */
+
+  protected setEmployeeFilter(
+    value: string
+  ): void {
+
+    if (
+      !this.canFilterEmployees()
+    ) {
+
+      return;
+    }
+
+
+    this.employeeFilter.set(
+      value ||
+      'all'
     );
 
 
@@ -714,6 +832,11 @@ export class LogisticsReportsComponent
     );
 
 
+    this.employeeFilter.set(
+      'all'
+    );
+
+
     this.loadReport();
   }
 
@@ -730,7 +853,6 @@ export class LogisticsReportsComponent
     ) {
 
       return;
-
     }
 
 
@@ -762,19 +884,7 @@ export class LogisticsReportsComponent
       .subscribe({
 
         next:
-          (
-            response
-          ) => {
-
-            /*
-             * Keep this temporarily while debugging.
-             * This will show the real API response in F12 Console.
-             */
-            console.log(
-              'LOGISTICS REPORT RESPONSE:',
-              response
-            );
-
+          response => {
 
             const payload =
               this.extractReportPayload(
@@ -786,12 +896,6 @@ export class LogisticsReportsComponent
               this.extractReportRows(
                 response
               );
-
-
-            console.log(
-              'LOGISTICS REPORT ROWS:',
-              rows
-            );
 
 
             this.records.set(
@@ -819,13 +923,22 @@ export class LogisticsReportsComponent
               )
             );
 
+
+            this.applyScope(
+              payload
+            );
+
+
+            this.employeeOptions.set(
+              this.extractEmployeeOptions(
+                payload
+              )
+            );
           },
 
 
         error:
-          (
-            error
-          ) => {
+          error => {
 
             console.error(
               'Unable to load Logistics report:',
@@ -853,12 +966,16 @@ export class LogisticsReportsComponent
             );
 
 
+            this.employeeOptions.set(
+              []
+            );
+
+
             this.errorMessage.set(
               error?.error?.message ||
               error?.message ||
               'Unable to load Logistics report.'
             );
-
           }
 
       });
@@ -866,7 +983,7 @@ export class LogisticsReportsComponent
 
 
   /* ============================================================
-     EXPORT EXCEL / CSV
+     EXCEL / CSV
   ============================================================ */
 
   protected exportExcel():
@@ -881,9 +998,7 @@ export class LogisticsReportsComponent
       .subscribe({
 
         next:
-          (
-            blob
-          ) => {
+          blob => {
 
             const url =
               URL.createObjectURL(
@@ -935,29 +1050,29 @@ export class LogisticsReportsComponent
                 URL.revokeObjectURL(
                   url
                 ),
-
               0
             );
-
           },
 
 
         error:
-          (
-            error
-          ) => {
+          error => {
 
             console.error(
-              'Unable to export logistics report',
+              'Unable to export Logistics report:',
               error
             );
 
 
-            window.alert(
+            const message =
               error?.error?.message ||
-              'Unable to export Logistics report.'
-            );
+              error?.message ||
+              'Unable to export Logistics report.';
 
+
+            window.alert(
+              message
+            );
           }
 
       });
@@ -971,7 +1086,9 @@ export class LogisticsReportsComponent
   protected exportPdf():
     void {
 
-    window.print();
+    this.openPrintableReport(
+      'pdf'
+    );
   }
 
 
@@ -982,7 +1099,1523 @@ export class LogisticsReportsComponent
   protected printReport():
     void {
 
-    window.print();
+    this.openPrintableReport(
+      'print'
+    );
+  }
+
+
+  /* ============================================================
+     PROFESSIONAL PRINT / PDF DOCUMENT
+  ============================================================ */
+
+  private openPrintableReport(
+    mode:
+      'pdf' |
+      'print'
+  ): void {
+
+    const popup =
+      window.open(
+        '',
+        '_blank',
+        'width=1300,height=900'
+      );
+
+
+    if (!popup) {
+
+      window.alert(
+        'Please allow pop-ups to print or save the report as PDF.'
+      );
+
+      return;
+    }
+
+
+    const html =
+      this.buildPrintableReportHtml(
+        mode
+      );
+
+
+    popup.document.open();
+
+    popup.document.write(
+      html
+    );
+
+    popup.document.close();
+
+
+    popup.focus();
+
+
+    setTimeout(
+      () => {
+
+        popup.print();
+
+      },
+      350
+    );
+  }
+
+
+  /* ============================================================
+     PRINTABLE REPORT HTML
+  ============================================================ */
+
+  private buildPrintableReportHtml(
+    mode:
+      'pdf' |
+      'print'
+  ): string {
+
+    const title =
+      this.reportTitle();
+
+
+    const generatedAt =
+      new Intl.DateTimeFormat(
+        'en-IN',
+        {
+          dateStyle:
+            'medium',
+
+          timeStyle:
+            'short'
+        }
+      )
+        .format(
+          new Date()
+        );
+
+
+    const selectedEmployee =
+      this.selectedEmployeeLabel();
+
+
+    const filterText =
+      this.printFilterDescription();
+
+
+    const summary =
+      this.summary();
+
+
+    const table =
+      this.buildPrintableTable();
+
+
+    const documentTitle =
+      mode ===
+        'pdf'
+        ? `${title} - PDF`
+        : `${title} - Print`;
+
+
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+
+  <meta charset="utf-8">
+
+  <title>
+    ${this.escapeHtml(documentTitle)}
+  </title>
+
+  <style>
+
+    @page {
+      size: A4 landscape;
+      margin: 12mm;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+
+      background: #ffffff;
+
+      color: #172033;
+
+      font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+    }
+
+    body {
+      padding: 8px;
+    }
+
+    .report-document {
+      width: 100%;
+
+      margin: 0 auto;
+    }
+
+    .report-header {
+      display: flex;
+
+      justify-content: space-between;
+      align-items: flex-start;
+
+      gap: 24px;
+
+      padding-bottom: 16px;
+
+      border-bottom:
+        2px solid #c9a86a;
+    }
+
+    .company {
+      margin-bottom: 5px;
+
+      color: #98703a;
+
+      font-size: 11px;
+      font-weight: 800;
+
+      letter-spacing: 1.4px;
+
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin:
+        0
+        0
+        5px;
+
+      color: #07111f;
+
+      font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+      font-size: 24px;
+    }
+
+    .subtitle {
+      margin: 0;
+
+      color: #6f7b89;
+
+      font-size: 11px;
+    }
+
+    .header-meta {
+      min-width: 250px;
+
+      font-size: 10px;
+      line-height: 1.7;
+
+      text-align: right;
+    }
+
+    .header-meta strong {
+      color: #07111f;
+    }
+
+    .scope-panel {
+      display: grid;
+
+      grid-template-columns:
+        repeat(
+          3,
+          minmax(0, 1fr)
+        );
+
+      gap: 10px;
+
+      margin:
+        14px
+        0;
+    }
+
+    .scope-item {
+      padding:
+        9px
+        11px;
+
+      border:
+        1px solid #dfe4ea;
+
+      border-radius:
+        7px;
+
+      background:
+        #f7f9fb;
+    }
+
+    .scope-item small {
+      display: block;
+
+      margin-bottom: 3px;
+
+      color: #7e8995;
+
+      font-size: 8px;
+      font-weight: 700;
+
+      text-transform: uppercase;
+
+      letter-spacing: 0.5px;
+    }
+
+    .scope-item strong {
+      color: #132034;
+
+      font-size: 10px;
+    }
+
+    .filters {
+      margin-bottom: 14px;
+
+      padding:
+        9px
+        11px;
+
+      border:
+        1px solid #e4e8ed;
+
+      border-radius:
+        7px;
+
+      color: #697584;
+
+      font-size: 9px;
+
+      line-height: 1.5;
+    }
+
+    .summary-grid {
+      display: grid;
+
+      grid-template-columns:
+        repeat(
+          6,
+          minmax(0, 1fr)
+        );
+
+      gap: 8px;
+
+      margin-bottom: 16px;
+    }
+
+    .summary-card {
+      padding:
+        9px;
+
+      border:
+        1px solid #dfe4ea;
+
+      border-radius:
+        7px;
+
+      background:
+        #fafbfc;
+    }
+
+    .summary-card small {
+      display: block;
+
+      margin-bottom: 5px;
+
+      color: #7d8895;
+
+      font-size: 8px;
+    }
+
+    .summary-card strong {
+      display: block;
+
+      color: #07111f;
+
+      font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+      font-size: 12px;
+    }
+
+    .table-title {
+      display: flex;
+
+      justify-content: space-between;
+      align-items: center;
+
+      margin-bottom: 7px;
+    }
+
+    .table-title h2 {
+      margin: 0;
+
+      color: #07111f;
+
+      font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+      font-size: 14px;
+    }
+
+    .table-title span {
+      color: #7b8795;
+
+      font-size: 9px;
+    }
+
+    table {
+      width: 100%;
+
+      border-collapse:
+        collapse;
+
+      table-layout:
+        auto;
+    }
+
+    thead {
+      display:
+        table-header-group;
+    }
+
+    tr {
+      page-break-inside:
+        avoid;
+    }
+
+    th,
+    td {
+      padding:
+        7px
+        6px;
+
+      border:
+        1px solid #dde2e7;
+
+      vertical-align:
+        top;
+
+      text-align:
+        left;
+    }
+
+    th {
+      background:
+        #07111f;
+
+      color:
+        #ffffff;
+
+      font-size:
+        7.5px;
+
+      font-weight:
+        700;
+
+      text-transform:
+        uppercase;
+
+      white-space:
+        nowrap;
+    }
+
+    td {
+      color:
+        #3f4d5d;
+
+      font-size:
+        8px;
+
+      line-height:
+        1.4;
+    }
+
+    tbody tr:nth-child(even) {
+      background:
+        #f7f9fb;
+    }
+
+    .employee strong {
+      display:
+        block;
+
+      color:
+        #07111f;
+    }
+
+    .employee small {
+      color:
+        #98703a;
+    }
+
+    .money {
+      white-space:
+        nowrap;
+    }
+
+    .positive {
+      color:
+        #2f7454;
+
+      font-weight:
+        700;
+    }
+
+    .negative {
+      color:
+        #9e3d43;
+
+      font-weight:
+        700;
+    }
+
+    .footer {
+      margin-top:
+        14px;
+
+      padding-top:
+        8px;
+
+      border-top:
+        1px solid #dfe4ea;
+
+      color:
+        #8994a0;
+
+      font-size:
+        8px;
+
+      text-align:
+        center;
+    }
+
+    .screen-note {
+      margin-bottom:
+        12px;
+
+      padding:
+        10px;
+
+      border:
+        1px solid #ead8b6;
+
+      border-radius:
+        7px;
+
+      background:
+        #fffaf1;
+
+      color:
+        #7d6238;
+
+      font-size:
+        10px;
+
+      text-align:
+        center;
+    }
+
+    @media print {
+
+      body {
+        padding:
+          0;
+      }
+
+      .screen-note {
+        display:
+          none;
+      }
+
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+  <div class="report-document">
+
+    ${
+      mode ===
+        'pdf'
+        ? `
+          <div class="screen-note">
+            In the print dialog choose
+            <strong>Save as PDF</strong>
+            as the destination.
+          </div>
+        `
+        : ''
+    }
+
+    <header class="report-header">
+
+      <div>
+
+        <div class="company">
+          OPAS BIZZ PRIVATE LIMITED
+        </div>
+
+        <h1>
+          ${this.escapeHtml(title)}
+        </h1>
+
+        <p class="subtitle">
+          Logistics Department Report
+        </p>
+
+      </div>
+
+      <div class="header-meta">
+
+        <div>
+          <strong>Generated:</strong>
+          ${this.escapeHtml(generatedAt)}
+        </div>
+
+        <div>
+          <strong>Scope:</strong>
+          ${this.escapeHtml(this.scopeLabel())}
+        </div>
+
+        <div>
+          <strong>Records:</strong>
+          ${this.filteredRecords().length}
+        </div>
+
+      </div>
+
+    </header>
+
+
+    <section class="scope-panel">
+
+      <div class="scope-item">
+
+        <small>
+          Report Scope
+        </small>
+
+        <strong>
+          ${this.escapeHtml(this.scopeTitle())}
+        </strong>
+
+      </div>
+
+
+      <div class="scope-item">
+
+        <small>
+          Employee
+        </small>
+
+        <strong>
+          ${this.escapeHtml(selectedEmployee)}
+        </strong>
+
+      </div>
+
+
+      <div class="scope-item">
+
+        <small>
+          Report Type
+        </small>
+
+        <strong>
+          ${this.escapeHtml(title)}
+        </strong>
+
+      </div>
+
+    </section>
+
+
+    <div class="filters">
+
+      <strong>
+        Applied Filters:
+      </strong>
+
+      ${this.escapeHtml(filterText)}
+
+    </div>
+
+
+    <section class="summary-grid">
+
+      <div class="summary-card">
+
+        <small>
+          Shipments
+        </small>
+
+        <strong>
+          ${summary.shipments}
+        </strong>
+
+      </div>
+
+
+      <div class="summary-card">
+
+        <small>
+          Total Sales
+        </small>
+
+        <strong>
+          ${this.escapeHtml(
+            this.formatCurrency(
+              summary.sales
+            )
+          )}
+        </strong>
+
+      </div>
+
+
+      <div class="summary-card">
+
+        <small>
+          Amount Received
+        </small>
+
+        <strong>
+          ${this.escapeHtml(
+            this.formatCurrency(
+              summary.received
+            )
+          )}
+        </strong>
+
+      </div>
+
+
+      <div class="summary-card">
+
+        <small>
+          Outstanding
+        </small>
+
+        <strong>
+          ${this.escapeHtml(
+            this.formatCurrency(
+              summary.outstanding
+            )
+          )}
+        </strong>
+
+      </div>
+
+
+      <div class="summary-card">
+
+        <small>
+          Vendor Payable
+        </small>
+
+        <strong>
+          ${this.escapeHtml(
+            this.formatCurrency(
+              summary.vendorPayable
+            )
+          )}
+        </strong>
+
+      </div>
+
+
+      <div class="summary-card">
+
+        <small>
+          GST
+        </small>
+
+        <strong>
+          ${this.escapeHtml(
+            this.formatCurrency(
+              summary.gst
+            )
+          )}
+        </strong>
+
+      </div>
+
+    </section>
+
+
+    <section>
+
+      <div class="table-title">
+
+        <h2>
+          Report Result
+        </h2>
+
+        <span>
+          ${this.filteredRecords().length}
+          records
+        </span>
+
+      </div>
+
+      ${table}
+
+    </section>
+
+
+    <footer class="footer">
+      OPAS BIZZ PRIVATE LIMITED • Logistics Department •
+      ${this.escapeHtml(title)}
+    </footer>
+
+  </div>
+
+</body>
+</html>
+    `;
+  }
+
+
+  /* ============================================================
+     PRINT TABLE
+  ============================================================ */
+
+  private buildPrintableTable():
+    string {
+
+    const rows =
+      this.filteredRecords();
+
+
+    if (
+      !rows.length
+    ) {
+
+      return `
+        <div
+          style="
+            padding:30px;
+            border:1px solid #dde2e7;
+            text-align:center;
+            font-size:11px;
+            color:#7d8997;
+          "
+        >
+          No report data found.
+        </div>
+      `;
+    }
+
+
+    switch (
+      this.reportType()
+    ) {
+
+      case 'sales':
+
+        return this.salesPrintTable(
+          rows
+        );
+
+
+      case 'outstanding':
+
+        return this.outstandingPrintTable(
+          rows
+        );
+
+
+      case 'gst':
+
+        return this.gstPrintTable(
+          rows
+        );
+
+
+      case 'vendor-payment':
+
+        return this.vendorPaymentPrintTable(
+          rows
+        );
+
+
+      default:
+
+        return this.shipmentPrintTable(
+          rows
+        );
+    }
+  }
+
+
+  /* ============================================================
+     SHIPMENT TABLE
+  ============================================================ */
+
+  private shipmentPrintTable(
+    rows: ReportRow[]
+  ): string {
+
+    return `
+      <table>
+
+        <thead>
+          <tr>
+            <th>Shipment</th>
+            <th>Date</th>
+            <th>Employee</th>
+            <th>Customer</th>
+            <th>Mode</th>
+            <th>Route</th>
+            <th>Invoice Value</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          ${rows
+            .map(
+              row => `
+                <tr>
+
+                  <td>
+                    <strong>
+                      ${this.escapeHtml(row.shipmentNo)}
+                    </strong>
+                  </td>
+
+                  <td>
+                    ${this.escapeHtml(
+                      this.formatDate(
+                        row.date
+                      )
+                    )}
+                  </td>
+
+                  <td class="employee">
+                    ${this.printEmployeeCell(row)}
+                  </td>
+
+                  <td>
+                    ${this.escapeHtml(row.customer)}
+                  </td>
+
+                  <td>
+                    ${this.escapeHtml(
+                      this.modeLabel(
+                        row.mode
+                      )
+                    )}
+                  </td>
+
+                  <td>
+                    ${this.escapeHtml(row.origin)}
+                    →
+                    ${this.escapeHtml(row.destination)}
+                  </td>
+
+                  <td class="money">
+                    ${this.escapeHtml(
+                      this.formatCurrency(
+                        row.invoiceAmount
+                      )
+                    )}
+                  </td>
+
+                  <td>
+                    ${this.escapeHtml(
+                      this.statusLabel(
+                        row.status
+                      )
+                    )}
+                  </td>
+
+                </tr>
+              `
+            )
+            .join('')}
+
+        </tbody>
+
+      </table>
+    `;
+  }
+
+
+  /* ============================================================
+     SALES TABLE
+  ============================================================ */
+
+  private salesPrintTable(
+    rows: ReportRow[]
+  ): string {
+
+    return `
+      <table>
+
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Shipment</th>
+            <th>Employee</th>
+            <th>Customer</th>
+            <th>Mode</th>
+            <th>Invoice</th>
+            <th>Received</th>
+            <th>Outstanding</th>
+            <th>Collection</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          ${rows
+            .map(
+              row => `
+                <tr>
+
+                  <td>
+                    ${this.escapeHtml(
+                      this.formatDate(
+                        row.date
+                      )
+                    )}
+                  </td>
+
+                  <td>
+                    <strong>
+                      ${this.escapeHtml(row.shipmentNo)}
+                    </strong>
+                  </td>
+
+                  <td class="employee">
+                    ${this.printEmployeeCell(row)}
+                  </td>
+
+                  <td>
+                    ${this.escapeHtml(row.customer)}
+                  </td>
+
+                  <td>
+                    ${this.escapeHtml(
+                      this.modeLabel(
+                        row.mode
+                      )
+                    )}
+                  </td>
+
+                  <td class="money">
+                    ${this.escapeHtml(
+                      this.formatCurrency(
+                        row.invoiceAmount
+                      )
+                    )}
+                  </td>
+
+                  <td class="money positive">
+                    ${this.escapeHtml(
+                      this.formatCurrency(
+                        row.receivedAmount
+                      )
+                    )}
+                  </td>
+
+                  <td class="money negative">
+                    ${this.escapeHtml(
+                      this.formatCurrency(
+                        row.outstandingAmount
+                      )
+                    )}
+                  </td>
+
+                  <td>
+                    ${this.receivedPercentage(row)}%
+                  </td>
+
+                </tr>
+              `
+            )
+            .join('')}
+
+        </tbody>
+
+      </table>
+    `;
+  }
+
+
+  /* ============================================================
+     OUTSTANDING TABLE
+  ============================================================ */
+
+  private outstandingPrintTable(
+    rows: ReportRow[]
+  ): string {
+
+    const outstandingRows =
+      rows.filter(
+        row =>
+          row.outstandingAmount >
+          0
+      );
+
+
+    if (
+      !outstandingRows.length
+    ) {
+
+      return `
+        <div
+          style="
+            padding:30px;
+            border:1px solid #dde2e7;
+            text-align:center;
+            font-size:11px;
+            color:#7d8997;
+          "
+        >
+          No outstanding records found.
+        </div>
+      `;
+    }
+
+
+    return `
+      <table>
+
+        <thead>
+          <tr>
+            <th>Shipment</th>
+            <th>Employee</th>
+            <th>Customer</th>
+            <th>Invoice</th>
+            <th>Received</th>
+            <th>Outstanding</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          ${outstandingRows
+            .map(
+              row => `
+                <tr>
+
+                  <td>
+                    <strong>
+                      ${this.escapeHtml(row.shipmentNo)}
+                    </strong>
+                  </td>
+
+                  <td class="employee">
+                    ${this.printEmployeeCell(row)}
+                  </td>
+
+                  <td>
+                    ${this.escapeHtml(row.customer)}
+                  </td>
+
+                  <td class="money">
+                    ${this.escapeHtml(
+                      this.formatCurrency(
+                        row.invoiceAmount
+                      )
+                    )}
+                  </td>
+
+                  <td class="money positive">
+                    ${this.escapeHtml(
+                      this.formatCurrency(
+                        row.receivedAmount
+                      )
+                    )}
+                  </td>
+
+                  <td class="money negative">
+                    ${this.escapeHtml(
+                      this.formatCurrency(
+                        row.outstandingAmount
+                      )
+                    )}
+                  </td>
+
+                  <td>
+                    Payment Pending
+                  </td>
+
+                </tr>
+              `
+            )
+            .join('')}
+
+        </tbody>
+
+      </table>
+    `;
+  }
+
+
+  /* ============================================================
+     GST TABLE
+  ============================================================ */
+
+  private gstPrintTable(
+    rows: ReportRow[]
+  ): string {
+
+    return `
+      <table>
+
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Shipment</th>
+            <th>Employee</th>
+            <th>Customer</th>
+            <th>Taxable Value</th>
+            <th>GST Amount</th>
+            <th>Total Invoice</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          ${rows
+            .map(
+              row => `
+                <tr>
+
+                  <td>
+                    ${this.escapeHtml(
+                      this.formatDate(
+                        row.date
+                      )
+                    )}
+                  </td>
+
+                  <td>
+                    <strong>
+                      ${this.escapeHtml(row.shipmentNo)}
+                    </strong>
+                  </td>
+
+                  <td class="employee">
+                    ${this.printEmployeeCell(row)}
+                  </td>
+
+                  <td>
+                    ${this.escapeHtml(row.customer)}
+                  </td>
+
+                  <td class="money">
+                    ${this.escapeHtml(
+                      this.formatCurrency(
+                        row.invoiceAmount -
+                        row.gstAmount
+                      )
+                    )}
+                  </td>
+
+                  <td class="money">
+                    ${this.escapeHtml(
+                      this.formatCurrency(
+                        row.gstAmount
+                      )
+                    )}
+                  </td>
+
+                  <td class="money">
+                    ${this.escapeHtml(
+                      this.formatCurrency(
+                        row.invoiceAmount
+                      )
+                    )}
+                  </td>
+
+                </tr>
+              `
+            )
+            .join('')}
+
+        </tbody>
+
+      </table>
+    `;
+  }
+
+
+  /* ============================================================
+     VENDOR PAYMENT TABLE
+  ============================================================ */
+
+  private vendorPaymentPrintTable(
+    rows: ReportRow[]
+  ): string {
+
+    return `
+      <table>
+
+        <thead>
+          <tr>
+            <th>Shipment</th>
+            <th>Employee</th>
+            <th>Vendor</th>
+            <th>Vendor Invoice</th>
+            <th>Paid</th>
+            <th>Balance</th>
+            <th>Payment Progress</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          ${rows
+            .map(
+              row => `
+                <tr>
+
+                  <td>
+                    <strong>
+                      ${this.escapeHtml(row.shipmentNo)}
+                    </strong>
+                  </td>
+
+                  <td class="employee">
+                    ${this.printEmployeeCell(row)}
+                  </td>
+
+                  <td>
+                    ${this.escapeHtml(row.vendor)}
+                  </td>
+
+                  <td class="money">
+                    ${this.escapeHtml(
+                      this.formatCurrency(
+                        row.vendorAmount
+                      )
+                    )}
+                  </td>
+
+                  <td class="money positive">
+                    ${this.escapeHtml(
+                      this.formatCurrency(
+                        row.vendorPaid
+                      )
+                    )}
+                  </td>
+
+                  <td class="money negative">
+                    ${this.escapeHtml(
+                      this.formatCurrency(
+                        row.vendorBalance
+                      )
+                    )}
+                  </td>
+
+                  <td>
+                    ${this.vendorPaidPercentage(row)}%
+                  </td>
+
+                </tr>
+              `
+            )
+            .join('')}
+
+        </tbody>
+
+      </table>
+    `;
+  }
+
+
+  /* ============================================================
+     EMPLOYEE CELL
+  ============================================================ */
+
+  private printEmployeeCell(
+    row: ReportRow
+  ): string {
+
+    const name =
+      row.createdByName ||
+      'Not Available';
+
+
+    const code =
+      row.createdByEmployeeCode ||
+      '';
+
+
+    return `
+      <strong>
+        ${this.escapeHtml(name)}
+      </strong>
+
+      ${
+        code
+          ? `
+            <small>
+              Employee Code:
+              ${this.escapeHtml(code)}
+            </small>
+          `
+          : ''
+      }
+    `;
+  }
+
+
+  /* ============================================================
+     SELECTED EMPLOYEE LABEL
+  ============================================================ */
+
+  private selectedEmployeeLabel():
+    string {
+
+    if (
+      !this.canFilterEmployees()
+    ) {
+
+      return (
+        this.reportScope().type ===
+          'own'
+          ? 'Current Employee'
+          : 'All Employees'
+      );
+    }
+
+
+    const employeeId =
+      this.employeeFilter();
+
+
+    if (
+      !employeeId ||
+      employeeId ===
+        'all'
+    ) {
+
+      return 'All Employees';
+    }
+
+
+    return (
+      this.employeeOptions()
+        .find(
+          item =>
+            item.employeeId ===
+            employeeId
+        )
+        ?.label ||
+      'Selected Employee'
+    );
+  }
+
+
+  /* ============================================================
+     FILTER DESCRIPTION
+  ============================================================ */
+
+  private printFilterDescription():
+    string {
+
+    const filters:
+      string[] = [];
+
+
+    const search =
+      this.search()
+        .trim();
+
+
+    if (search) {
+
+      filters.push(
+        `Search: ${search}`
+      );
+    }
+
+
+    if (
+      this.dateFrom()
+    ) {
+
+      filters.push(
+        `From: ${this.dateFrom()}`
+      );
+    }
+
+
+    if (
+      this.dateTo()
+    ) {
+
+      filters.push(
+        `To: ${this.dateTo()}`
+      );
+    }
+
+
+    if (
+      this.modeFilter() !==
+        'all'
+    ) {
+
+      filters.push(
+        `Mode: ${this.modeLabel(
+          this.modeFilter()
+        )}`
+      );
+    }
+
+
+    if (
+      this.statusFilter() !==
+        'all'
+    ) {
+
+      filters.push(
+        `Status: ${this.statusLabel(
+          this.statusFilter()
+        )}`
+      );
+    }
+
+
+    if (
+      this.canFilterEmployees()
+    ) {
+
+      filters.push(
+        `Employee: ${this.selectedEmployeeLabel()}`
+      );
+    }
+
+
+    return (
+      filters.length
+        ? filters.join(' | ')
+        : 'No additional filters applied'
+    );
   }
 
 
@@ -1059,6 +2692,39 @@ export class LogisticsReportsComponent
   }
 
 
+  protected employeeDisplay(
+    row: ReportRow
+  ): string {
+
+    if (
+      row.createdByDisplay &&
+      row.createdByDisplay !==
+        'Not Available'
+    ) {
+
+      return row.createdByDisplay;
+    }
+
+
+    if (
+      row.createdByEmployeeCode &&
+      row.createdByName
+    ) {
+
+      return (
+        `${row.createdByName} • ` +
+        row.createdByEmployeeCode
+      );
+    }
+
+
+    return (
+      row.createdByName ||
+      'Not Available'
+    );
+  }
+
+
   /* ============================================================
      RECEIVED PERCENTAGE
   ============================================================ */
@@ -1085,7 +2751,6 @@ export class LogisticsReportsComponent
     ) {
 
       return 0;
-
     }
 
 
@@ -1133,7 +2798,6 @@ export class LogisticsReportsComponent
     ) {
 
       return 0;
-
     }
 
 
@@ -1196,7 +2860,6 @@ export class LogisticsReportsComponent
     if (!value) {
 
       return '-';
-
     }
 
 
@@ -1213,7 +2876,6 @@ export class LogisticsReportsComponent
     ) {
 
       return value;
-
     }
 
 
@@ -1254,24 +2916,12 @@ export class LogisticsReportsComponent
         .trim();
 
 
-    /*
-     * IMPORTANT:
-     *
-     * Do not send:
-     *
-     * mode=all
-     * status=all
-     *
-     * because backend may interpret those
-     * as literal database values.
-     */
     if (search) {
 
       params[
         'search'
       ] =
         search;
-
     }
 
 
@@ -1285,7 +2935,6 @@ export class LogisticsReportsComponent
         'mode'
       ] =
         this.modeFilter();
-
     }
 
 
@@ -1299,7 +2948,6 @@ export class LogisticsReportsComponent
         'status'
       ] =
         this.statusFilter();
-
     }
 
 
@@ -1311,7 +2959,6 @@ export class LogisticsReportsComponent
         'fromDate'
       ] =
         this.dateFrom();
-
     }
 
 
@@ -1323,7 +2970,20 @@ export class LogisticsReportsComponent
         'toDate'
       ] =
         this.dateTo();
+    }
 
+
+    if (
+      this.canFilterEmployees() &&
+      this.employeeFilter() &&
+      this.employeeFilter() !==
+        'all'
+    ) {
+
+      params[
+        'employeeId'
+      ] =
+        this.employeeFilter();
     }
 
 
@@ -1342,17 +3002,8 @@ export class LogisticsReportsComponent
     if (!response) {
 
       return null;
-
     }
 
-
-    /*
-     * ApiService may already unwrap:
-     *
-     * { success, data }
-     *
-     * or may return data directly.
-     */
 
     if (
       response?.data &&
@@ -1361,42 +3012,20 @@ export class LogisticsReportsComponent
       )
     ) {
 
-      /*
-       * Handles:
-       *
-       * {
-       *   data: {
-       *     rows: [],
-       *     summary: {}
-       *   }
-       * }
-       */
-
       if (
         response.data.rows ||
         response.data.records ||
         response.data.items ||
         response.data.summary ||
         response.data.modeSummary ||
-        response.data.deliverySummary
+        response.data.deliverySummary ||
+        response.data.scope ||
+        response.data.employeeOptions
       ) {
 
         return response.data;
-
       }
 
-
-      /*
-       * Handles:
-       *
-       * {
-       *   data: {
-       *     data: {
-       *       rows: []
-       *     }
-       *   }
-       * }
-       */
 
       if (
         response.data.data &&
@@ -1405,7 +3034,6 @@ export class LogisticsReportsComponent
       ) {
 
         return response.data.data;
-
       }
 
     }
@@ -1418,11 +3046,262 @@ export class LogisticsReportsComponent
     ) {
 
       return response.result;
-
     }
 
 
     return response;
+  }
+
+
+  /* ============================================================
+     REPORT SCOPE
+  ============================================================ */
+
+  private applyScope(
+    payload: any
+  ): void {
+
+    const raw =
+      payload?.scope;
+
+
+    if (
+      !raw ||
+      typeof raw !==
+        'object'
+    ) {
+
+      this.reportScope.set({
+        type:
+          'own',
+
+        label:
+          'My Logistics Report',
+
+        description:
+          'Only records from your Logistics workspace.',
+
+        scopeLabel:
+          'My Workspace',
+
+        canFilterEmployees:
+          false,
+
+        selectedEmployeeId:
+          ''
+      });
+
+
+      this.employeeFilter.set(
+        'all'
+      );
+
+
+      return;
+    }
+
+
+    const type:
+      'own' |
+      'department' =
+        raw.type ===
+          'department'
+          ? 'department'
+          : 'own';
+
+
+    const canFilterEmployees =
+      raw.canFilterEmployees ===
+      true;
+
+
+    const selectedEmployeeId =
+      String(
+        raw.selectedEmployeeId ||
+        ''
+      )
+        .trim();
+
+
+    this.reportScope.set({
+
+      type,
+
+      label:
+        String(
+          raw.label ||
+          (
+            type ===
+              'department'
+              ? 'Logistics Department Report'
+              : 'My Logistics Report'
+          )
+        ),
+
+      description:
+        String(
+          raw.description ||
+          (
+            type ===
+              'department'
+              ? 'Includes records created by Logistics employees.'
+              : 'Only records from your Logistics workspace.'
+          )
+        ),
+
+      scopeLabel:
+        String(
+          raw.scopeLabel ||
+          (
+            type ===
+              'department'
+              ? 'Department'
+              : 'My Workspace'
+          )
+        ),
+
+      canFilterEmployees,
+
+      selectedEmployeeId
+    });
+
+
+    if (
+      !canFilterEmployees
+    ) {
+
+      this.employeeFilter.set(
+        'all'
+      );
+
+      return;
+    }
+
+
+    this.employeeFilter.set(
+      selectedEmployeeId ||
+      'all'
+    );
+  }
+
+
+  /* ============================================================
+     EMPLOYEE OPTIONS
+  ============================================================ */
+
+  private extractEmployeeOptions(
+    payload: any
+  ): ReportEmployeeOption[] {
+
+    if (
+      !this.reportScope()
+        .canFilterEmployees
+    ) {
+
+      return [];
+    }
+
+
+    const rawOptions =
+      Array.isArray(
+        payload?.employeeOptions
+      )
+        ? payload.employeeOptions
+        : [];
+
+
+    const unique =
+      new Map<
+        string,
+        ReportEmployeeOption
+      >();
+
+
+    for (
+      const raw of rawOptions
+    ) {
+
+      const employeeId =
+        String(
+          raw?.employeeId ??
+          raw?.value ??
+          raw?._id ??
+          ''
+        )
+          .trim();
+
+
+      if (
+        !employeeId
+      ) {
+
+        continue;
+      }
+
+
+      const name =
+        String(
+          raw?.name ??
+          raw?.displayName ??
+          ''
+        )
+          .trim() ||
+        'Employee';
+
+
+      const employeeCode =
+        String(
+          raw?.employeeCode ??
+          ''
+        )
+          .trim();
+
+
+      const label =
+        String(
+          raw?.label ??
+          ''
+        )
+          .trim() ||
+        (
+          employeeCode
+            ? `${name} (${employeeCode})`
+            : name
+        );
+
+
+      unique.set(
+        employeeId,
+        {
+          value:
+            employeeId,
+
+          employeeId,
+
+          name,
+
+          employeeCode,
+
+          label
+        }
+      );
+    }
+
+
+    return Array
+      .from(
+        unique.values()
+      )
+      .sort(
+        (
+          first,
+          second
+        ) =>
+          first.label
+            .localeCompare(
+              second.label
+            )
+      );
   }
 
 
@@ -1437,13 +3316,9 @@ export class LogisticsReportsComponent
     if (!response) {
 
       return [];
-
     }
 
 
-    /*
-     * Direct array response.
-     */
     if (
       Array.isArray(
         response
@@ -1453,15 +3328,9 @@ export class LogisticsReportsComponent
       return this.normalizeRows(
         response
       );
-
     }
 
 
-    /*
-     * Direct:
-     *
-     * { rows: [] }
-     */
     if (
       Array.isArray(
         response.rows
@@ -1471,15 +3340,9 @@ export class LogisticsReportsComponent
       return this.normalizeRows(
         response.rows
       );
-
     }
 
 
-    /*
-     * Direct:
-     *
-     * { records: [] }
-     */
     if (
       Array.isArray(
         response.records
@@ -1489,15 +3352,9 @@ export class LogisticsReportsComponent
       return this.normalizeRows(
         response.records
       );
-
     }
 
 
-    /*
-     * Direct:
-     *
-     * { items: [] }
-     */
     if (
       Array.isArray(
         response.items
@@ -1507,15 +3364,9 @@ export class LogisticsReportsComponent
       return this.normalizeRows(
         response.items
       );
-
     }
 
 
-    /*
-     * {
-     *   data: []
-     * }
-     */
     if (
       Array.isArray(
         response.data
@@ -1525,17 +3376,9 @@ export class LogisticsReportsComponent
       return this.normalizeRows(
         response.data
       );
-
     }
 
 
-    /*
-     * {
-     *   data: {
-     *     rows: []
-     *   }
-     * }
-     */
     if (
       Array.isArray(
         response.data?.rows
@@ -1545,17 +3388,9 @@ export class LogisticsReportsComponent
       return this.normalizeRows(
         response.data.rows
       );
-
     }
 
 
-    /*
-     * {
-     *   data: {
-     *     records: []
-     *   }
-     * }
-     */
     if (
       Array.isArray(
         response.data?.records
@@ -1565,17 +3400,9 @@ export class LogisticsReportsComponent
       return this.normalizeRows(
         response.data.records
       );
-
     }
 
 
-    /*
-     * {
-     *   data: {
-     *     items: []
-     *   }
-     * }
-     */
     if (
       Array.isArray(
         response.data?.items
@@ -1585,17 +3412,9 @@ export class LogisticsReportsComponent
       return this.normalizeRows(
         response.data.items
       );
-
     }
 
 
-    /*
-     * {
-     *   data: {
-     *     data: []
-     *   }
-     * }
-     */
     if (
       Array.isArray(
         response.data?.data
@@ -1605,19 +3424,9 @@ export class LogisticsReportsComponent
       return this.normalizeRows(
         response.data.data
       );
-
     }
 
 
-    /*
-     * {
-     *   data: {
-     *     data: {
-     *       rows: []
-     *     }
-     *   }
-     * }
-     */
     if (
       Array.isArray(
         response.data?.data?.rows
@@ -1627,17 +3436,9 @@ export class LogisticsReportsComponent
       return this.normalizeRows(
         response.data.data.rows
       );
-
     }
 
 
-    /*
-     * {
-     *   result: {
-     *     rows: []
-     *   }
-     * }
-     */
     if (
       Array.isArray(
         response.result?.rows
@@ -1647,17 +3448,9 @@ export class LogisticsReportsComponent
       return this.normalizeRows(
         response.result.rows
       );
-
     }
 
 
-    /*
-     * {
-     *   report: {
-     *     rows: []
-     *   }
-     * }
-     */
     if (
       Array.isArray(
         response.report?.rows
@@ -1667,7 +3460,6 @@ export class LogisticsReportsComponent
       return this.normalizeRows(
         response.report.rows
       );
-
     }
 
 
@@ -1763,6 +3555,73 @@ export class LogisticsReportsComponent
           );
 
 
+        const creatorName =
+          String(
+            row?.createdByName ??
+            row?.creatorName ??
+            row?.employeeName ??
+            row?.createdByEmployeeId?.displayName ??
+            row?.createdByEmployeeId?.name ??
+            this.personName(
+              row?.createdByEmployeeId
+            ) ??
+            row?.createdBy?.displayName ??
+            row?.createdBy?.name ??
+            this.personName(
+              row?.createdBy
+            ) ??
+            ''
+          )
+            .trim() ||
+          'Not Available';
+
+
+        const creatorEmployeeCode =
+          String(
+            row?.createdByEmployeeCode ??
+            row?.creatorEmployeeCode ??
+            row?.employeeCode ??
+            row?.createdByEmployeeId?.employeeCode ??
+            ''
+          )
+            .trim();
+
+
+        const creatorEmployeeId =
+          this.idText(
+            row?.createdByEmployeeId ??
+            row?.creatorEmployeeId ??
+            row?.employeeId
+          );
+
+
+        const creatorDesignation =
+          String(
+            row?.createdByDesignation ??
+            row?.designation ??
+            row?.createdByEmployeeId?.designation ??
+            row?.createdByEmployeeId?.organizationRole ??
+            ''
+          )
+            .trim();
+
+
+        const creatorDisplay =
+          String(
+            row?.createdByDisplay ??
+            row?.creatorDisplay ??
+            ''
+          )
+            .trim() ||
+          (
+            creatorEmployeeCode &&
+            creatorName !==
+              'Not Available'
+              ? `${creatorName} • ${creatorEmployeeCode}`
+              : creatorName
+          );
+
+
         return {
 
           id:
@@ -1842,32 +3701,25 @@ export class LogisticsReportsComponent
             ),
 
 
-          invoiceAmount:
-            invoiceAmount,
+          invoiceAmount,
 
 
-          receivedAmount:
-            receivedAmount,
+          receivedAmount,
 
 
-          outstandingAmount:
-            outstandingAmount,
+          outstandingAmount,
 
 
-          vendorAmount:
-            vendorAmount,
+          vendorAmount,
 
 
-          vendorPaid:
-            vendorPaid,
+          vendorPaid,
 
 
-          vendorBalance:
-            vendorBalance,
+          vendorBalance,
 
 
-          gstAmount:
-            gstAmount,
+          gstAmount,
 
 
           status:
@@ -1878,8 +3730,27 @@ export class LogisticsReportsComponent
                 row?.currentStatus ??
                 ''
               )
-            )
+            ),
 
+
+          createdByEmployeeId:
+            creatorEmployeeId,
+
+
+          createdByName:
+            creatorName,
+
+
+          createdByEmployeeCode:
+            creatorEmployeeCode,
+
+
+          createdByDesignation:
+            creatorDesignation,
+
+
+          createdByDisplay:
+            creatorDisplay
         };
       }
     );
@@ -1899,7 +3770,6 @@ export class LogisticsReportsComponent
     ) {
 
       return null;
-
     }
 
 
@@ -1954,7 +3824,6 @@ export class LogisticsReportsComponent
           summary.gstAmount ??
           summary.totalGst
         )
-
     };
   }
 
@@ -1972,7 +3841,6 @@ export class LogisticsReportsComponent
     ) {
 
       return null;
-
     }
 
 
@@ -2007,7 +3875,6 @@ export class LogisticsReportsComponent
           summary.road ??
           summary.roadTransport
         )
-
     };
   }
 
@@ -2025,7 +3892,6 @@ export class LogisticsReportsComponent
     ) {
 
       return null;
-
     }
 
 
@@ -2063,7 +3929,6 @@ export class LogisticsReportsComponent
           summary.cancelled ??
           summary.canceled
         )
-
     };
   }
 
@@ -2106,7 +3971,6 @@ export class LogisticsReportsComponent
     ) {
 
       return 'air-cargo';
-
     }
 
 
@@ -2124,7 +3988,6 @@ export class LogisticsReportsComponent
     ) {
 
       return 'sea-freight';
-
     }
 
 
@@ -2140,7 +4003,6 @@ export class LogisticsReportsComponent
     ) {
 
       return 'road';
-
     }
 
 
@@ -2186,7 +4048,6 @@ export class LogisticsReportsComponent
     ) {
 
       return 'booking-created';
-
     }
 
 
@@ -2204,7 +4065,6 @@ export class LogisticsReportsComponent
     ) {
 
       return 'customs';
-
     }
 
 
@@ -2220,7 +4080,6 @@ export class LogisticsReportsComponent
     ) {
 
       return 'in-transit';
-
     }
 
 
@@ -2236,7 +4095,6 @@ export class LogisticsReportsComponent
     ) {
 
       return 'delivered';
-
     }
 
 
@@ -2251,7 +4109,6 @@ export class LogisticsReportsComponent
     ) {
 
       return 'cancelled';
-
     }
 
 
@@ -2273,20 +4130,18 @@ export class LogisticsReportsComponent
     ) {
 
       return '-';
-
     }
 
 
     if (
       typeof value ===
-      'string'
+        'string'
     ) {
 
       return (
         value.trim() ||
         '-'
       );
-
     }
 
 
@@ -2299,6 +4154,144 @@ export class LogisticsReportsComponent
       value?.airportName ??
       '-'
     );
+  }
+
+
+  /* ============================================================
+     PERSON NAME
+  ============================================================ */
+
+  private personName(
+    value: any
+  ): string {
+
+    if (
+      !value ||
+      typeof value !==
+        'object'
+    ) {
+
+      return '';
+    }
+
+
+    const displayName =
+      String(
+        value.displayName ??
+        ''
+      )
+        .trim();
+
+
+    if (
+      displayName
+    ) {
+
+      return displayName;
+    }
+
+
+    const name =
+      String(
+        value.name ??
+        ''
+      )
+        .trim();
+
+
+    if (
+      name
+    ) {
+
+      return name;
+    }
+
+
+    return [
+      String(
+        value.firstName ??
+        ''
+      )
+        .trim(),
+
+      String(
+        value.lastName ??
+        ''
+      )
+        .trim()
+    ]
+      .filter(
+        Boolean
+      )
+      .join(
+        ' '
+      );
+  }
+
+
+  /* ============================================================
+     ID TEXT
+  ============================================================ */
+
+  private idText(
+    value: any
+  ): string {
+
+    if (!value) {
+
+      return '';
+    }
+
+
+    if (
+      typeof value ===
+        'string'
+    ) {
+
+      return value;
+    }
+
+
+    return String(
+      value?._id ??
+      value?.id ??
+      ''
+    );
+  }
+
+
+  /* ============================================================
+     ESCAPE HTML
+  ============================================================ */
+
+  private escapeHtml(
+    value: unknown
+  ): string {
+
+    return String(
+      value ??
+      ''
+    )
+      .replace(
+        /&/g,
+        '&amp;'
+      )
+      .replace(
+        /</g,
+        '&lt;'
+      )
+      .replace(
+        />/g,
+        '&gt;'
+      )
+      .replace(
+        /"/g,
+        '&quot;'
+      )
+      .replace(
+        /'/g,
+        '&#039;'
+      );
   }
 
 
@@ -2317,21 +4310,14 @@ export class LogisticsReportsComponent
     ) {
 
       return 0;
-
     }
 
 
     if (
       typeof value ===
-      'string'
+        'string'
     ) {
 
-      /*
-       * Allows values such as:
-       *
-       * ₹8,250
-       * 8,250.00
-       */
       const cleaned =
         value
           .replace(
@@ -2355,7 +4341,6 @@ export class LogisticsReportsComponent
       )
         ? parsed
         : 0;
-
     }
 
 

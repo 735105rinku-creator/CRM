@@ -1,4 +1,4 @@
-import { Employee } from "../models/Employee.js";
+﻿import { Employee } from "../models/Employee.js";
 import { User } from "../models/User.js";
 import { LogisticsShipment } from "../models/LogisticsShipment.js";
 import { ROLES } from "../constants/roles.js";
@@ -152,6 +152,25 @@ const viewOnly =
     delete: false,
     updateStatus: false,
     export: false,
+  });
+
+
+/*
+ * Reports may be viewed and exported by Logistics employees.
+ *
+ * Important:
+ * - Junior employee scope remains "own".
+ * - Senior / management scope remains controlled separately.
+ * - Export does not widen report scope.
+ */
+const reportViewer =
+  Object.freeze({
+    view: true,
+    create: false,
+    edit: false,
+    delete: false,
+    updateStatus: false,
+    export: true,
   });
 
 
@@ -930,31 +949,37 @@ export const defaultLogisticsPermissionsForRole =
                 }
               );
             }
+
+
             /*
-            * Reports
-            *
-            * Logistics employee can view Reports.
-            * Export is not automatically granted.
-            */
-           if (
-             subModule ===
-               "reports"
-           ) {
-           
-             return buildLogisticsPermission(
-               {
-           
-                 subModule:
-                   "reports",
-           
-                 viewScope:
-                   "own",
-           
-                 allowed:
-                   viewOnly,
-               }
-             );
-           }
+             * Reports
+             *
+             * Logistics employee can:
+             * - view own report
+             * - export own report
+             *
+             * Scope remains backend-enforced.
+             */
+            if (
+              subModule ===
+                "reports"
+            ) {
+
+              return buildLogisticsPermission(
+                {
+
+                  subModule:
+                    "reports",
+
+                  viewScope:
+                    "own",
+
+                  allowed:
+                    reportViewer,
+                }
+              );
+            }
+
 
             /*
              * Customers + Vendors
@@ -1210,42 +1235,46 @@ export const resolveLogisticsPermissions =
                   ),
               };
             }
+
+
             /*
-            * Reports
-            */
-           if (
-             permission.subModule ===
-               "reports"
-           ) {
-           
-             return {
-           
-               ...permission,
-           
-               view:
-                 true,
-           
-               viewScope:
-                 "own",
-           
-               create:
-                 false,
-           
-               edit:
-                 false,
-           
-               delete:
-                 false,
-           
-               updateStatus:
-                 false,
-           
-               export:
-                 Boolean(
-                   permission.export
-                 ),
-             };
-           }
+             * Reports.
+             *
+             * Employee may export only the report scope
+             * that backend allows for that requester.
+             */
+            if (
+              permission.subModule ===
+                "reports"
+            ) {
+
+              return {
+
+                ...permission,
+
+                view:
+                  true,
+
+                viewScope:
+                  "own",
+
+                create:
+                  false,
+
+                edit:
+                  false,
+
+                delete:
+                  false,
+
+                updateStatus:
+                  false,
+
+                export:
+                  true,
+              };
+            }
+
 
             /*
              * CUSTOMERS + VENDORS
@@ -1419,38 +1448,67 @@ export const resolveLogisticsPermissions =
           false;
       }
 
+
       /* --------------------------------------------------------
-      ENSURE REPORTS EXIST
-   -------------------------------------------------------- */
-   
-   {
-     const existingReportsPermission =
-       employeePermissions.find(
-         permission =>
-           permission.subModule ===
-           "reports"
-       );
-   
-     if (!existingReportsPermission) {
-   
-       employeePermissions.push(
-         buildLogisticsPermission({
-           subModule: "reports",
-           viewScope: "own",
-           allowed: viewOnly,
-         })
-       );
-   
-     } else {
-   
-       existingReportsPermission.view = true;
-       existingReportsPermission.viewScope = "own";
-       existingReportsPermission.create = false;
-       existingReportsPermission.edit = false;
-       existingReportsPermission.delete = false;
-       existingReportsPermission.updateStatus = false;
-     }
-   }
+         ENSURE REPORTS EXIST
+      -------------------------------------------------------- */
+
+      {
+        const existingReportsPermission =
+          employeePermissions.find(
+            permission =>
+              permission.subModule ===
+              "reports"
+          );
+
+
+        if (!existingReportsPermission) {
+
+          employeePermissions.push(
+            buildLogisticsPermission({
+              subModule:
+                "reports",
+
+              viewScope:
+                "own",
+
+              allowed:
+                reportViewer,
+            })
+          );
+
+        } else {
+
+          existingReportsPermission.view =
+            true;
+
+
+          existingReportsPermission.viewScope =
+            "own";
+
+
+          existingReportsPermission.create =
+            false;
+
+
+          existingReportsPermission.edit =
+            false;
+
+
+          existingReportsPermission.delete =
+            false;
+
+
+          existingReportsPermission.updateStatus =
+            false;
+
+
+          existingReportsPermission.export =
+            true;
+        }
+      }
+
+
       /* --------------------------------------------------------
          ENSURE CUSTOMERS + VENDORS EXIST
 
@@ -1622,41 +1680,157 @@ export const requireLogisticsPermission =
       }
     );
 
-export const shipmentSubModuleForMode = (shipmentMode) => {
-  const normalized = String(shipmentMode || "").trim().toLowerCase();
-  if (normalized === "air_cargo" || normalized === "air") return "airCargo";
-  if (normalized === "sea_freight" || normalized === "sea") return "seaFreight";
-  throw new ApiError(400, "Unsupported shipment mode");
+
+export const shipmentSubModuleForMode = (
+  shipmentMode
+) => {
+
+  const normalized =
+    String(
+      shipmentMode ||
+      ""
+    )
+      .trim()
+      .toLowerCase();
+
+
+  if (
+    normalized ===
+      "air_cargo" ||
+    normalized ===
+      "air"
+  ) {
+
+    return "airCargo";
+  }
+
+
+  if (
+    normalized ===
+      "sea_freight" ||
+    normalized ===
+      "sea"
+  ) {
+
+    return "seaFreight";
+  }
+
+
+  throw new ApiError(
+    400,
+    "Unsupported shipment mode"
+  );
 };
 
-export const requireShipmentPermission = (action) =>
-  asyncHandler(async (req, _res, next) => {
-    let shipmentMode;
 
-    if (req.params?.id) {
-      const companyId = req.auth?.companyId || req.user?.companyId?._id || req.user?.companyId;
-      const shipment = await LogisticsShipment.findOne({
-        _id: req.params.id,
-        companyId,
-        isActive: { $ne: false },
-      }).select("shipmentMode").lean();
+export const requireShipmentPermission =
+  (
+    action
+  ) =>
+    asyncHandler(
+      async (
+        req,
+        _res,
+        next
+      ) => {
 
-      if (!shipment) {
-        throw new ApiError(404, "Logistics shipment not found");
+        let shipmentMode;
+
+
+        if (
+          req.params?.id
+        ) {
+
+          const companyId =
+            req.auth?.companyId ||
+            req.user?.companyId?._id ||
+            req.user?.companyId;
+
+
+          const shipment =
+            await LogisticsShipment
+              .findOne({
+                _id:
+                  req.params.id,
+
+                companyId,
+
+                isActive: {
+                  $ne:
+                    false,
+                },
+              })
+              .select(
+                "shipmentMode"
+              )
+              .lean();
+
+
+          if (!shipment) {
+
+            throw new ApiError(
+              404,
+              "Logistics shipment not found"
+            );
+          }
+
+
+          shipmentMode =
+            shipment.shipmentMode;
+
+        } else {
+
+          shipmentMode =
+            req.body?.shipmentMode;
+        }
+
+
+        const subModule =
+          shipmentSubModuleForMode(
+            shipmentMode
+          );
+
+
+        const permission =
+          getLogisticsPermission(
+            req,
+            subModule
+          );
+
+
+        if (
+          !permission?.[
+            action
+          ]
+        ) {
+
+          throw new ApiError(
+            403,
+            "Permission denied for Logistics module"
+          );
+        }
+
+
+        req.logisticsPermission =
+          permission;
+
+
+        req.logisticsPermissions =
+          resolveLogisticsPermissions(
+            req
+          );
+
+
+        req.logisticsScope =
+          await resolveLogisticsScope(
+            req,
+            permission.viewScope
+          );
+
+
+        next();
       }
-
-      shipmentMode = shipment.shipmentMode;
-    } else {
-      shipmentMode = req.body?.shipmentMode;
-    }
-    const subModule = shipmentSubModuleForMode(shipmentMode);
-    const permission = getLogisticsPermission(req, subModule);
-    if (!permission?.[action]) throw new ApiError(403, "Permission denied for Logistics module");
-    req.logisticsPermission = permission;
-    req.logisticsPermissions = resolveLogisticsPermissions(req);
-    req.logisticsScope = await resolveLogisticsScope(req, permission.viewScope);
-    next();
-  });
+    );
 
 
 /* ============================================================

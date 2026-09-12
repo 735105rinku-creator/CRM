@@ -31,6 +31,28 @@ interface PageResult<T> {
 }
 
 
+interface CreatorUser {
+  _id?: string;
+  name?: string;
+  displayName?: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+}
+
+
+interface CreatorEmployee {
+  _id?: string;
+  employeeCode?: string;
+  firstName?: string;
+  lastName?: string;
+  name?: string;
+  displayName?: string;
+  designation?: string;
+  organizationRole?: string;
+}
+
+
 interface ChaVendor {
   _id?: string;
   vendorName?: string;
@@ -91,6 +113,13 @@ interface ChaCase {
   documents?: any;
   charges?: any;
   remarks?: string;
+
+  createdBy?: CreatorUser | string | null;
+  createdByEmployeeId?: CreatorEmployee | string | null;
+
+  creatorName?: string;
+  creatorEmployeeCode?: string;
+  creatorDisplay?: string;
 }
 
 
@@ -317,6 +346,13 @@ export class ChaComponent implements OnInit {
             this.cases.set(
               this.extractRows(
                 response
+              ).map(
+                (
+                  row
+                ) =>
+                  this.normalizeCase(
+                    row
+                  )
               )
             ),
 
@@ -582,7 +618,10 @@ export class ChaComponent implements OnInit {
                   item.customerName,
                   item.customer,
                   item.chaAgent,
-                  item.customsLocation
+                  item.customsLocation,
+                  item.creatorName,
+                  item.creatorEmployeeCode,
+                  item.creatorDisplay
                 ]
 
                   .some(
@@ -1715,7 +1754,216 @@ export class ChaComponent implements OnInit {
     row: ChaCase
   ): ChaCase {
 
-    return row;
+    const creator =
+      this.resolveCreator(
+        row
+      );
+
+
+    return {
+
+      ...row,
+
+      creatorName:
+        creator.name,
+
+      creatorEmployeeCode:
+        creator.employeeCode,
+
+      creatorDisplay:
+        creator.display
+
+    };
+
+  }
+
+
+  private resolveCreator(
+    row: ChaCase
+  ): {
+    name: string;
+    employeeCode: string;
+    display: string;
+  } {
+
+    const employee =
+      row.createdByEmployeeId;
+
+
+    if (
+      employee &&
+      typeof employee ===
+        'object'
+    ) {
+
+      const name =
+        this.personName(
+          employee
+        );
+
+
+      const employeeCode =
+        String(
+          employee.employeeCode ||
+          ''
+        ).trim();
+
+
+      if (
+        name
+      ) {
+
+        return {
+
+          name,
+
+          employeeCode,
+
+          display:
+            employeeCode
+
+              ? `${name} (${employeeCode})`
+
+              : name
+
+        };
+
+      }
+
+
+      if (
+        employeeCode
+      ) {
+
+        return {
+
+          name:
+            'Employee',
+
+          employeeCode,
+
+          display:
+            `Employee (${employeeCode})`
+
+        };
+
+      }
+
+    }
+
+
+    const user =
+      row.createdBy;
+
+
+    if (
+      user &&
+      typeof user ===
+        'object'
+    ) {
+
+      const name =
+        this.personName(
+          user
+        ) ||
+
+        String(
+          user.email ||
+          ''
+        ).trim();
+
+
+      if (
+        name
+      ) {
+
+        return {
+
+          name,
+
+          employeeCode: '',
+
+          display:
+            name
+
+        };
+
+      }
+
+    }
+
+
+    return {
+
+      name:
+        'Not Available',
+
+      employeeCode: '',
+
+      display:
+        'Not Available'
+
+    };
+
+  }
+
+
+  private personName(
+    person: any
+  ): string {
+
+    if (
+      !person ||
+      typeof person !==
+        'object'
+    ) {
+
+      return '';
+
+    }
+
+
+    const directName =
+      String(
+        person.displayName ||
+        person.name ||
+        ''
+      ).trim();
+
+
+    if (
+      directName
+    ) {
+
+      return directName;
+
+    }
+
+
+    return [
+
+      person.firstName,
+      person.lastName
+
+    ]
+
+      .map(
+        (
+          part
+        ) =>
+          String(
+            part ||
+            ''
+          ).trim()
+      )
+
+      .filter(
+        Boolean
+      )
+
+      .join(
+        ' '
+      );
 
   }
 

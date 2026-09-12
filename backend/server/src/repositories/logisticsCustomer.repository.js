@@ -1,71 +1,164 @@
 import LogisticsCustomer
   from "../models/LogisticsCustomer.js";
 
-class LogisticsCustomerRepository {
-  async create(payload) {
-    return LogisticsCustomer.create(
-      payload
+
+/* ============================================================
+   CREATOR DETAILS
+
+   Purpose:
+   - Senior can see which employee created the customer.
+   - Existing customer permissions/specs remain unchanged.
+============================================================ */
+
+function populateCreatorDetails(
+  query
+) {
+
+  return query
+    .populate(
+      "createdBy",
+      "name displayName firstName lastName email"
+    )
+    .populate(
+      "createdByEmployeeId",
+      "employeeCode firstName lastName name displayName designation organizationRole"
     );
+}
+
+
+/* ============================================================
+   REPOSITORY
+============================================================ */
+
+class LogisticsCustomerRepository {
+
+  async create(
+    payload
+  ) {
+
+    return LogisticsCustomer
+      .create(
+        payload
+      );
   }
+
 
   async findById({
     companyId,
     customerId,
   }) {
-    return LogisticsCustomer
-      .findOne({
-        _id:
-          customerId,
 
-        companyId,
+    const query =
+      LogisticsCustomer
+        .findOne({
 
-        isActive: { $ne: false },
-      })
+          _id:
+            customerId,
+
+          companyId,
+
+          isActive: {
+            $ne:
+              false,
+          },
+
+        });
+
+
+    populateCreatorDetails(
+      query
+    );
+
+
+    return query
       .lean();
   }
 
+
   async paginate({
+
     companyId,
+
     page = 1,
+
     limit = 20,
+
     search = "",
+
     customerType = "",
+
     status = "",
+
     fromDate = null,
+
     toDate = null,
+
     sortBy = "createdAt",
+
     sortOrder = "desc",
+
   }) {
+
     const filter = {
+
       companyId,
 
-      isActive: { $ne: false },
+      isActive: {
+        $ne:
+          false,
+      },
+
     };
 
-    if (customerType) {
+
+    if (
+      customerType
+    ) {
+
       filter.customerType =
         customerType;
     }
 
-    if (status) {
+
+    if (
+      status
+    ) {
+
       filter.status =
         status;
     }
 
-    applyCreatedAtRange(filter, fromDate, toDate);
+
+    applyCreatedAtRange(
+      filter,
+      fromDate,
+      toDate
+    );
+
 
     const q =
-      String(search || "")
+      String(
+        search ||
+        ""
+      )
         .trim();
 
-    if (q) {
+
+    if (
+      q
+    ) {
+
       const regex =
         new RegExp(
-          escapeRegex(q),
+          escapeRegex(
+            q
+          ),
           "i"
         );
 
+
       filter.$or = [
+
         {
           customerCode:
             regex,
@@ -120,69 +213,111 @@ class LogisticsCustomerRepository {
           "billingAddress.state":
             regex,
         },
+
       ];
     }
 
+
     const safePage =
       Math.max(
-        Number(page) || 1,
+        Number(
+          page
+        ) ||
+        1,
         1
       );
+
 
     const safeLimit =
       Math.min(
         Math.max(
-          Number(limit) || 20,
+          Number(
+            limit
+          ) ||
+          20,
           1
         ),
         500
       );
 
+
     const allowedSort =
       new Set([
+
         "createdAt",
+
         "updatedAt",
+
         "customerCode",
+
         "customerName",
+
         "status",
+
         "creditLimit",
+
       ]);
 
+
     const safeSortBy =
-      allowedSort.has(sortBy)
+      allowedSort.has(
+        sortBy
+      )
         ? sortBy
         : "createdAt";
 
+
     const direction =
-      sortOrder === "asc"
+      sortOrder ===
+        "asc"
         ? 1
         : -1;
 
+
+    const dataQuery =
+      LogisticsCustomer
+        .find(
+          filter
+        )
+        .sort({
+
+          [safeSortBy]:
+            direction,
+
+        })
+        .skip(
+          (
+            safePage -
+            1
+          ) *
+          safeLimit
+        )
+        .limit(
+          safeLimit
+        );
+
+
+    populateCreatorDetails(
+      dataQuery
+    );
+
+
     const [
       data,
-      total,
+      total
     ] =
       await Promise.all([
-        LogisticsCustomer
-          .find(filter)
-          .sort({
-            [safeSortBy]:
-              direction,
-          })
-          .skip(
-            (safePage - 1) *
-            safeLimit
-          )
-          .limit(
-            safeLimit
-          )
+
+        dataQuery
           .lean(),
 
         LogisticsCustomer
           .countDocuments(
             filter
           ),
+
       ]);
+
 
     const totalPages =
       Math.max(
@@ -193,10 +328,13 @@ class LogisticsCustomerRepository {
         1
       );
 
+
     return {
+
       data,
 
       pagination: {
+
         page:
           safePage,
 
@@ -214,131 +352,205 @@ class LogisticsCustomerRepository {
         hasPreviousPage:
           safePage >
           1,
+
       },
+
     };
   }
 
+
   async updateById({
+
     companyId,
+
     customerId,
+
     payload,
+
   }) {
-    return LogisticsCustomer
-      .findOneAndUpdate(
-        {
-          _id:
-            customerId,
 
-          companyId,
+    const query =
+      LogisticsCustomer
+        .findOneAndUpdate(
 
-          isActive: { $ne: false },
-        },
+          {
 
-        {
-          $set:
-            payload,
-        },
+            _id:
+              customerId,
 
-        {
-          new:
-            true,
+            companyId,
 
-          runValidators:
-            true,
-        }
-      )
+            isActive: {
+              $ne:
+                false,
+            },
+
+          },
+
+          {
+
+            $set:
+              payload,
+
+          },
+
+          {
+
+            new:
+              true,
+
+            runValidators:
+              true,
+
+          }
+
+        );
+
+
+    populateCreatorDetails(
+      query
+    );
+
+
+    return query
       .lean();
   }
 
+
   async softDelete({
+
     companyId,
+
     customerId,
+
     userId,
+
   }) {
+
     return LogisticsCustomer
       .findOneAndUpdate(
+
         {
+
           _id:
             customerId,
 
           companyId,
 
-          isActive: { $ne: false },
+          isActive: {
+            $ne:
+              false,
+          },
+
         },
 
         {
+
           $set: {
+
             isActive:
               false,
 
             updatedBy:
               userId,
+
           },
+
         },
 
         {
+
           new:
             true,
+
         }
+
       )
       .lean();
   }
 
+
   async summary(
     companyId
   ) {
-    return LogisticsCustomer.aggregate([
-      {
-        $match: {
-          companyId,
 
-          isActive: { $ne: false },
+    return LogisticsCustomer
+      .aggregate([
+
+        {
+
+          $match: {
+
+            companyId,
+
+            isActive: {
+              $ne:
+                false,
+            },
+
+          },
+
         },
-      },
 
-      {
-        $group: {
-          _id:
-            "$status",
+        {
 
-          count: {
-            $sum:
-              1,
+          $group: {
+
+            _id:
+              "$status",
+
+            count: {
+              $sum:
+                1,
+            },
+
+            creditLimit: {
+              $sum:
+                "$creditLimit",
+            },
+
+            openingBalance: {
+              $sum:
+                "$openingBalance",
+            },
+
           },
 
-          creditLimit: {
-            $sum:
-              "$creditLimit",
-          },
-
-          openingBalance: {
-            $sum:
-              "$openingBalance",
-          },
         },
-      },
-    ]);
+
+      ]);
   }
 
+
   async latestCode({
+
     companyId,
+
     dateCode,
+
   }) {
+
     return LogisticsCustomer
       .findOne({
+
         companyId,
 
         customerCode: {
+
           $regex:
             new RegExp(
               `^CUS-${dateCode}-`,
               "i"
             ),
+
         },
+
       })
       .sort({
+
         customerCode:
           -1,
+
       })
       .select(
         "customerCode"
@@ -346,43 +558,108 @@ class LogisticsCustomerRepository {
       .lean();
   }
 
+
   async codeExists({
+
     companyId,
+
     customerCode,
+
   }) {
+
     return LogisticsCustomer
       .exists({
+
         companyId,
 
         customerCode,
+
       });
   }
+
 }
+
+
+/* ============================================================
+   HELPERS
+============================================================ */
 
 function escapeRegex(
   value
 ) {
-  return String(value)
+
+  return String(
+    value
+  )
     .replace(
       /[.*+?^${}()|[\]\\]/g,
       "\\$&"
     );
 }
 
-function applyCreatedAtRange(filter, fromDate, toDate) {
-  if (!fromDate && !toDate) return;
-  filter.createdAt = {};
-  if (fromDate) filter.createdAt.$gte = new Date(fromDate);
-  if (toDate) {
-    const end = new Date(toDate);
-    end.setHours(23, 59, 59, 999);
-    filter.createdAt.$lte = end;
+
+function applyCreatedAtRange(
+  filter,
+  fromDate,
+  toDate
+) {
+
+  if (
+    !fromDate &&
+    !toDate
+  ) {
+
+    return;
+  }
+
+
+  filter.createdAt =
+    {};
+
+
+  if (
+    fromDate
+  ) {
+
+    filter.createdAt.$gte =
+      new Date(
+        fromDate
+      );
+  }
+
+
+  if (
+    toDate
+  ) {
+
+    const end =
+      new Date(
+        toDate
+      );
+
+
+    end.setHours(
+      23,
+      59,
+      59,
+      999
+    );
+
+
+    filter.createdAt.$lte =
+      end;
   }
 }
+
+
+/* ============================================================
+   EXPORT
+============================================================ */
 
 export const
   logisticsCustomerRepository =
     new LogisticsCustomerRepository();
+
 
 export default
   logisticsCustomerRepository;

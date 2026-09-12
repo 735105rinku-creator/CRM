@@ -22,6 +22,15 @@ export const PURCHASE_INVOICE_DOCUMENT_TYPES = [
   "other",
 ];
 
+export const PURCHASE_INVOICE_ACCOUNTS_STATUSES = [
+  "sent",
+  "under_review",
+  "verified",
+  "partially_paid",
+  "paid",
+  "rejected",
+];
+
 
 const purchaseInvoiceItemSchema = new mongoose.Schema(
   {
@@ -458,6 +467,64 @@ const purchaseInvoiceSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
+
+
+    /* ========================================================
+       CENTRAL ACCOUNTS INVOICE REGISTER
+
+       These fields mirror the Accounts DepartmentInvoice state.
+
+       Important:
+       - They do NOT replace the existing Purchase voucher flow.
+       - Actual Purchase settlement remains derived from posted
+         Payment Voucher + PaymentAllocation.
+       - No accounting ledger/journal/payment logic is stored
+         here.
+    ======================================================== */
+
+    accountsHandoffId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "DepartmentInvoice",
+      default: null,
+    },
+
+    accountsStatus: {
+      type: String,
+      enum: PURCHASE_INVOICE_ACCOUNTS_STATUSES,
+      default: null,
+    },
+
+    accountsPaidAmount: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+
+    accountsRemainingAmount: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+
+    accountsPaymentDate: {
+      type: Date,
+      default: null,
+    },
+
+    accountsPaymentReference: {
+      type: String,
+      trim: true,
+      maxlength: 250,
+      default: "",
+    },
+
+    accountsPaidByName: {
+      type: String,
+      trim: true,
+      maxlength: 250,
+      default: "",
+    },
+
 
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,

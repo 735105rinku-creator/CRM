@@ -8,6 +8,9 @@ import {
   getLogisticsVendorPaymentById,
   getLogisticsVendorPaymentVendorOptions,
   downloadLogisticsVendorPaymentProof,
+  uploadLogisticsVendorPaymentBill,
+  downloadLogisticsVendorPaymentBill,
+  handoffLogisticsVendorPaymentToAccounts,
   updateLogisticsVendorPayment,
   addLogisticsVendorPaymentTransaction,
   deleteLogisticsVendorPayment,
@@ -19,6 +22,7 @@ import {
 
 import {
   uploadVendorPaymentProof,
+  uploadLogisticsVendorBill,
 } from "../middleware/upload.middleware.js";
 
 
@@ -45,10 +49,12 @@ const router =
 
 router.get(
   "/summary",
+
   requireLogisticsPermission(
     "view",
     "vendorPayments"
   ),
+
   getLogisticsVendorPaymentSummary
 );
 
@@ -67,10 +73,12 @@ router.get(
 
 router.get(
   "/vendor-options",
+
   requireLogisticsPermission(
     "view",
     "vendorPayments"
   ),
+
   getLogisticsVendorPaymentVendorOptions
 );
 
@@ -86,6 +94,7 @@ router
       "view",
       "vendorPayments"
     ),
+
     getLogisticsVendorPayments
   )
   .post(
@@ -105,6 +114,10 @@ router
      *
      * If no file is sent,
      * multer continues normally.
+     *
+     * IMPORTANT:
+     * Vendor Bill is NOT uploaded from this endpoint.
+     * It has its own separate endpoint below.
      */
     uploadVendorPaymentProof.single(
       "paymentProof"
@@ -118,32 +131,135 @@ router
    DOWNLOAD PAYMENT PROOF
 
    IMPORTANT:
-   Keep this ABOVE /:id.
+   Keep specific routes ABOVE /:id.
 ============================================================ */
 
 router.get(
   "/:id/payment-proof/download",
+
   requireLogisticsPermission(
     "view",
     "vendorPayments"
   ),
+
   downloadLogisticsVendorPaymentProof
+);
+
+
+/* ============================================================
+   UPLOAD / REPLACE VENDOR BILL
+
+   This is separate from paymentProof.
+
+   Expected multipart field:
+   vendorBill
+
+   Allowed:
+   JPG / JPEG / PNG / PDF
+
+   Max:
+   1 MB
+
+   Physical file:
+   public/uploads/logistics-vendor-bills/
+
+   MongoDB:
+   metadata / URL only.
+
+   Once Accounts handoff exists, service blocks replacement.
+============================================================ */
+
+router.post(
+  "/:id/vendor-bill",
+
+  requireLogisticsPermission(
+    "edit",
+    "vendorPayments"
+  ),
+
+  uploadLogisticsVendorBill.single(
+    "vendorBill"
+  ),
+
+  uploadLogisticsVendorPaymentBill
+);
+
+
+/* ============================================================
+   DOWNLOAD VENDOR BILL
+
+   Company-scoped secure download.
+
+   Accounts and Logistics will reference the same document URL /
+   source document. No duplicate file storage is required here.
+============================================================ */
+
+router.get(
+  "/:id/vendor-bill/download",
+
+  requireLogisticsPermission(
+    "view",
+    "vendorPayments"
+  ),
+
+  downloadLogisticsVendorPaymentBill
+);
+
+
+/* ============================================================
+   SEND VENDOR PAYMENT TO ACCOUNTS
+
+   Route-level permission:
+   vendorPayments.edit
+
+   Final business authorization:
+   requireLogisticsAccess has already populated:
+
+   req.logisticsAccess.canHandoffToAccounts
+
+   Service permits only:
+   - department_head
+   - team_leader
+
+   Normal Logistics employee:
+   rejected with 403.
+
+   Super Admin / Company Admin / HR management context:
+   does NOT automatically receive this operational handoff.
+
+   Handoff is idempotent.
+============================================================ */
+
+router.post(
+  "/:id/handoff",
+
+  requireLogisticsPermission(
+    "edit",
+    "vendorPayments"
+  ),
+
+  handoffLogisticsVendorPaymentToAccounts
 );
 
 
 /* ============================================================
    ADD PAYMENT TRANSACTION
 
-   This modifies an existing Vendor Payment record,
-   therefore "edit" permission is required.
+   Existing direct Logistics payment flow is preserved BEFORE
+   Accounts handoff.
+
+   After Accounts handoff:
+   service returns 409 and Accounts owns settlement.
 ============================================================ */
 
 router.post(
   "/:id/payments",
+
   requireLogisticsPermission(
     "edit",
     "vendorPayments"
   ),
+
   addLogisticsVendorPaymentTransaction
 );
 
@@ -159,6 +275,7 @@ router
       "view",
       "vendorPayments"
     ),
+
     getLogisticsVendorPaymentById
   )
   .patch(
@@ -172,6 +289,10 @@ router
      *
      * Existing payment can still be updated
      * without uploading any file.
+     *
+     * IMPORTANT:
+     * This remains PAYMENT PROOF only.
+     * Vendor Bill uses /:id/vendor-bill.
      */
     uploadVendorPaymentProof.single(
       "paymentProof"
@@ -184,6 +305,7 @@ router
       "delete",
       "vendorPayments"
     ),
+
     deleteLogisticsVendorPayment
   );
 

@@ -38,6 +38,17 @@ export const REVERSE_CHARGE =
   });
 
 
+export const LOGISTICS_INVOICE_ACCOUNTS_STATUS =
+  Object.freeze({
+    SENT: "sent",
+    UNDER_REVIEW: "under_review",
+    VERIFIED: "verified",
+    PARTIALLY_PAID: "partially_paid",
+    PAID: "paid",
+    REJECTED: "rejected",
+  });
+
+
 /* ============================================================
    BANK DETAILS
 ============================================================ */
@@ -80,6 +91,14 @@ const bankDetailsSchema =
     }
   );
 
+
+/* ============================================================
+   INVOICE COPY
+
+   Physical file remains outside MongoDB.
+
+   MongoDB stores metadata/reference only.
+============================================================ */
 
 const invoiceCopySchema =
   new mongoose.Schema(
@@ -272,6 +291,50 @@ const additionalChargeSchema =
     },
     {
       _id: true,
+    }
+  );
+
+
+/* ============================================================
+   EDIT HISTORY
+============================================================ */
+
+const editHistorySchema =
+  new mongoose.Schema(
+    {
+      changedBy: {
+        type:
+          mongoose.Schema.Types.ObjectId,
+
+        ref:
+          "User",
+
+        default:
+          null,
+      },
+
+      changedByName: {
+        type:
+          String,
+
+        trim:
+          true,
+
+        default:
+          "",
+      },
+
+      changedAt: {
+        type:
+          Date,
+
+        default:
+          Date.now,
+      },
+    },
+    {
+      _id:
+        false,
     }
   );
 
@@ -733,7 +796,7 @@ const logisticsInvoiceSchema =
 
 
       /* ======================================================
-         PAYMENT
+         EXISTING LOGISTICS PAYMENT STATE
       ====================================================== */
 
       paymentStatus: {
@@ -828,6 +891,118 @@ const logisticsInvoiceSchema =
 
 
       /* ======================================================
+         ACCOUNTS HANDOFF / CENTRAL SETTLEMENT SNAPSHOT
+      ====================================================== */
+
+      accountsHandoffId: {
+        type:
+          mongoose.Schema.Types.ObjectId,
+
+        ref:
+          "DepartmentInvoice",
+
+        default:
+          null,
+
+        index:
+          true,
+      },
+
+      accountsStatus: {
+        type:
+          String,
+
+        enum:
+          Object.values(
+            LOGISTICS_INVOICE_ACCOUNTS_STATUS
+          ),
+
+        default:
+          null,
+
+        index:
+          true,
+      },
+
+      accountsHandedOffBy: {
+        type:
+          mongoose.Schema.Types.ObjectId,
+
+        ref:
+          "User",
+
+        default:
+          null,
+      },
+
+      accountsHandedOffAt: {
+        type:
+          Date,
+
+        default:
+          null,
+      },
+
+      accountsPaidAmount: {
+        type:
+          Number,
+
+        min:
+          0,
+
+        default:
+          0,
+      },
+
+      accountsRemainingAmount: {
+        type:
+          Number,
+
+        min:
+          0,
+
+        default:
+          0,
+      },
+
+      accountsPaymentDate: {
+        type:
+          Date,
+
+        default:
+          null,
+      },
+
+      accountsPaymentReference: {
+        type:
+          String,
+
+        trim:
+          true,
+
+        maxlength:
+          250,
+
+        default:
+          "",
+      },
+
+      accountsPaidByName: {
+        type:
+          String,
+
+        trim:
+          true,
+
+        maxlength:
+          250,
+
+        default:
+          "",
+      },
+
+
+      /* ======================================================
          BANK
       ====================================================== */
 
@@ -839,6 +1014,10 @@ const logisticsInvoiceSchema =
           {},
       },
 
+
+      /* ======================================================
+         INVOICE COPY
+      ====================================================== */
 
       invoiceCopy: {
         type:
@@ -914,7 +1093,7 @@ const logisticsInvoiceSchema =
 
 
       /* ======================================================
-         AUDIT
+         AUDIT / OWNERSHIP
       ====================================================== */
 
       createdBy: {
@@ -926,17 +1105,52 @@ const logisticsInvoiceSchema =
 
         default:
           null,
+
+        index:
+          true,
       },
 
-    // Append-only edit attribution, following Logistics embedded history conventions.
-    editHistory: {
-      type: [new mongoose.Schema({
-        changedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
-        changedByName: { type: String, default: "" },
-        changedAt: { type: Date, default: Date.now },
-      }, { _id: false })],
-      default: [],
-    },
+      /*
+       * Preferred employee-level ownership.
+       *
+       * New Logistics Invoices save the employee who actually
+       * created the record.
+       *
+       * This supports:
+       *
+       * Junior:
+       *   own workspace only
+       *
+       * Senior:
+       *   department review visibility
+       *
+       * Legacy invoices that do not have this value continue
+       * to use createdBy as ownership fallback.
+       */
+      createdByEmployeeId: {
+        type:
+          mongoose.Schema.Types.ObjectId,
+
+        ref:
+          "Employee",
+
+        default:
+          null,
+
+        index:
+          true,
+      },
+
+      /*
+       * Append-only edit attribution.
+       */
+      editHistory: {
+        type:
+          [editHistorySchema],
+
+        default:
+          [],
+      },
 
       updatedBy: {
         type:
@@ -1014,6 +1228,48 @@ logisticsInvoiceSchema.index({
 
   customerId:
     1,
+});
+
+
+logisticsInvoiceSchema.index({
+  companyId:
+    1,
+
+  accountsHandoffId:
+    1,
+});
+
+
+/*
+ * Workspace lookup index.
+ *
+ * This is only a schema declaration.
+ * We are NOT manually changing/migrating/resetting the DB.
+ */
+logisticsInvoiceSchema.index({
+  companyId:
+    1,
+
+  createdByEmployeeId:
+    1,
+
+  createdAt:
+    -1,
+});
+
+
+/*
+ * Legacy ownership lookup support.
+ */
+logisticsInvoiceSchema.index({
+  companyId:
+    1,
+
+  createdBy:
+    1,
+
+  createdAt:
+    -1,
 });
 
 

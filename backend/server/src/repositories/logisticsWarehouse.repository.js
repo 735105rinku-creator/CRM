@@ -1,5 +1,25 @@
 import LogisticsWarehouse from "../models/LogisticsWarehouse.js";
 
+function populateCreatorDetails(query) {
+  return query
+    .populate(
+      "createdBy",
+      "name displayName firstName lastName email"
+    )
+    .populate(
+      "createdByEmployeeId",
+      "employeeCode firstName lastName name displayName designation organizationRole"
+    )
+    .populate(
+      "receipts.createdBy",
+      "name displayName firstName lastName email"
+    )
+    .populate(
+      "receipts.createdByEmployeeId",
+      "employeeCode firstName lastName name displayName designation organizationRole"
+    );
+}
+
 class LogisticsWarehouseRepository {
   async create(payload) {
     return LogisticsWarehouse.create(payload);
@@ -9,11 +29,16 @@ class LogisticsWarehouseRepository {
     companyId,
     warehouseId,
   }) {
-    return LogisticsWarehouse.findOne({
-      _id: warehouseId,
-      companyId,
-      isActive: { $ne: false },
-    }).lean();
+    const query =
+      LogisticsWarehouse.findOne({
+        _id: warehouseId,
+        companyId,
+        isActive: { $ne: false },
+      });
+
+    populateCreatorDetails(query);
+
+    return query.lean();
   }
 
   async paginate({
@@ -38,10 +63,15 @@ class LogisticsWarehouseRepository {
     }
 
     if (storageType) {
-      filter["storage.storageType"] = storageType;
+      filter["storage.storageType"] =
+        storageType;
     }
 
-    applyCreatedAtRange(filter, fromDate, toDate);
+    applyCreatedAtRange(
+      filter,
+      fromDate,
+      toDate
+    );
 
     const q =
       String(search || "").trim();
@@ -68,11 +98,17 @@ class LogisticsWarehouseRepository {
     }
 
     const safePage =
-      Math.max(Number(page) || 1, 1);
+      Math.max(
+        Number(page) || 1,
+        1
+      );
 
     const safeLimit =
       Math.min(
-        Math.max(Number(limit) || 20, 1),
+        Math.max(
+          Number(limit) || 20,
+          1
+        ),
         100
       );
 
@@ -91,36 +127,57 @@ class LogisticsWarehouseRepository {
         : "createdAt";
 
     const direction =
-      sortOrder === "asc" ? 1 : -1;
+      sortOrder === "asc"
+        ? 1
+        : -1;
+
+    const dataQuery =
+      LogisticsWarehouse.find(filter)
+        .sort({
+          [field]: direction,
+        })
+        .skip(
+          (safePage - 1) *
+          safeLimit
+        )
+        .limit(safeLimit);
+
+    populateCreatorDetails(
+      dataQuery
+    );
 
     const [data, total] =
       await Promise.all([
-        LogisticsWarehouse.find(filter)
-          .sort({ [field]: direction })
-          .skip((safePage - 1) * safeLimit)
-          .limit(safeLimit)
-          .lean(),
+        dataQuery.lean(),
 
-        LogisticsWarehouse.countDocuments(filter),
+        LogisticsWarehouse
+          .countDocuments(filter),
       ]);
 
     const totalPages =
       Math.max(
-        Math.ceil(total / safeLimit),
+        Math.ceil(
+          total / safeLimit
+        ),
         1
       );
 
     return {
       data,
+
       pagination: {
         page: safePage,
         limit: safeLimit,
         total,
         totalPages,
+
         hasNextPage:
-          safePage < totalPages,
+          safePage <
+          totalPages,
+
         hasPreviousPage:
-          safePage > 1,
+          safePage >
+          1,
       },
     };
   }
@@ -130,18 +187,28 @@ class LogisticsWarehouseRepository {
     warehouseId,
     payload,
   }) {
-    return LogisticsWarehouse.findOneAndUpdate(
-      {
-        _id: warehouseId,
-        companyId,
-        isActive: { $ne: false },
-      },
-      { $set: payload },
-      {
-        new: true,
-        runValidators: true,
-      }
-    ).lean();
+    const query =
+      LogisticsWarehouse
+        .findOneAndUpdate(
+          {
+            _id: warehouseId,
+            companyId,
+            isActive: { $ne: false },
+          },
+          {
+            $set: payload,
+          },
+          {
+            new: true,
+            runValidators: true,
+          }
+        );
+
+    populateCreatorDetails(
+      query
+    );
+
+    return query.lean();
   }
 
   async addReceipt({
@@ -151,29 +218,44 @@ class LogisticsWarehouseRepository {
     occupiedIncrease,
     userId,
   }) {
-    return LogisticsWarehouse.findOneAndUpdate(
-      {
-        _id: warehouseId,
-        companyId,
-        isActive: { $ne: false },
-      },
-      {
-        $push: {
-          receipts: receipt,
-        },
-        $inc: {
-          "storage.occupiedCapacity":
-            Number(occupiedIncrease || 0),
-        },
-        $set: {
-          updatedBy: userId,
-        },
-      },
-      {
-        new: true,
-        runValidators: true,
-      }
-    ).lean();
+    const query =
+      LogisticsWarehouse
+        .findOneAndUpdate(
+          {
+            _id: warehouseId,
+            companyId,
+            isActive: { $ne: false },
+          },
+          {
+            $push: {
+              receipts:
+                receipt,
+            },
+
+            $inc: {
+              "storage.occupiedCapacity":
+                Number(
+                  occupiedIncrease ||
+                  0
+                ),
+            },
+
+            $set: {
+              updatedBy:
+                userId,
+            },
+          },
+          {
+            new: true,
+            runValidators: true,
+          }
+        );
+
+    populateCreatorDetails(
+      query
+    );
+
+    return query.lean();
   }
 
   async updateReceipt({
@@ -185,16 +267,25 @@ class LogisticsWarehouseRepository {
     userId,
   }) {
     const setData = {
-      updatedBy: userId,
-      "receipts.$.updatedAt": new Date(),
+      updatedBy:
+        userId,
+
+      "receipts.$.updatedAt":
+        new Date(),
     };
 
-    for (const [key, value] of Object.entries(payload)) {
-      setData[`receipts.$.${key}`] = value;
+    for (
+      const [key, value]
+      of Object.entries(payload)
+    ) {
+      setData[
+        `receipts.$.${key}`
+      ] = value;
     }
 
     const update = {
-      $set: setData,
+      $set:
+        setData,
     };
 
     if (occupiedDelta) {
@@ -204,19 +295,28 @@ class LogisticsWarehouseRepository {
       };
     }
 
-    return LogisticsWarehouse.findOneAndUpdate(
-      {
-        _id: warehouseId,
-        companyId,
-        isActive: { $ne: false },
-        "receipts._id": receiptId,
-      },
-      update,
-      {
-        new: true,
-        runValidators: true,
-      }
-    ).lean();
+    const query =
+      LogisticsWarehouse
+        .findOneAndUpdate(
+          {
+            _id: warehouseId,
+            companyId,
+            isActive: { $ne: false },
+            "receipts._id":
+              receiptId,
+          },
+          update,
+          {
+            new: true,
+            runValidators: true,
+          }
+        );
+
+    populateCreatorDetails(
+      query
+    );
+
+    return query.lean();
   }
 
   async softDelete({
@@ -224,20 +324,27 @@ class LogisticsWarehouseRepository {
     warehouseId,
     userId,
   }) {
-    return LogisticsWarehouse.findOneAndUpdate(
-      {
-        _id: warehouseId,
-        companyId,
-        isActive: { $ne: false },
-      },
-      {
-        $set: {
-          isActive: false,
-          updatedBy: userId,
+    return LogisticsWarehouse
+      .findOneAndUpdate(
+        {
+          _id: warehouseId,
+          companyId,
+          isActive: { $ne: false },
         },
-      },
-      { new: true }
-    ).lean();
+        {
+          $set: {
+            isActive:
+              false,
+
+            updatedBy:
+              userId,
+          },
+        },
+        {
+          new: true,
+        }
+      )
+      .lean();
   }
 
   async summary(companyId) {
@@ -248,15 +355,25 @@ class LogisticsWarehouseRepository {
           isActive: { $ne: false },
         },
       },
+
       {
         $group: {
-          _id: "$status",
-          count: { $sum: 1 },
-          capacity: {
-            $sum: "$storage.totalCapacity",
+          _id:
+            "$status",
+
+          count: {
+            $sum:
+              1,
           },
+
+          capacity: {
+            $sum:
+              "$storage.totalCapacity",
+          },
+
           occupied: {
-            $sum: "$storage.occupiedCapacity",
+            $sum:
+              "$storage.occupiedCapacity",
           },
         },
       },
@@ -267,18 +384,25 @@ class LogisticsWarehouseRepository {
     companyId,
     dateCode,
   }) {
-    return LogisticsWarehouse.findOne({
-      companyId,
-      warehouseCode: {
-        $regex:
-          new RegExp(
-            `^WH-${dateCode}-`,
-            "i"
-          ),
-      },
-    })
-      .sort({ warehouseCode: -1 })
-      .select("warehouseCode")
+    return LogisticsWarehouse
+      .findOne({
+        companyId,
+
+        warehouseCode: {
+          $regex:
+            new RegExp(
+              `^WH-${dateCode}-`,
+              "i"
+            ),
+        },
+      })
+      .sort({
+        warehouseCode:
+          -1,
+      })
+      .select(
+        "warehouseCode"
+      )
       .lean();
   }
 
@@ -298,6 +422,7 @@ class LogisticsWarehouseRepository {
   }) {
     return LogisticsWarehouse.exists({
       companyId,
+
       "receipts.receiptNumber":
         receiptNumber,
     });
@@ -311,14 +436,38 @@ function escapeRegex(value) {
   );
 }
 
-function applyCreatedAtRange(filter, fromDate, toDate) {
-  if (!fromDate && !toDate) return;
+function applyCreatedAtRange(
+  filter,
+  fromDate,
+  toDate
+) {
+  if (
+    !fromDate &&
+    !toDate
+  ) {
+    return;
+  }
+
   filter.createdAt = {};
-  if (fromDate) filter.createdAt.$gte = new Date(fromDate);
+
+  if (fromDate) {
+    filter.createdAt.$gte =
+      new Date(fromDate);
+  }
+
   if (toDate) {
-    const end = new Date(toDate);
-    end.setHours(23, 59, 59, 999);
-    filter.createdAt.$lte = end;
+    const end =
+      new Date(toDate);
+
+    end.setHours(
+      23,
+      59,
+      59,
+      999
+    );
+
+    filter.createdAt.$lte =
+      end;
   }
 }
 

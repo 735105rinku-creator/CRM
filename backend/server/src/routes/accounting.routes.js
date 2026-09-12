@@ -43,6 +43,8 @@ import gstReportRoutes
 import accountPartyRoutes
   from "./accountParty.routes.js";
 
+import departmentInvoiceRoutes from "./departmentInvoice.routes.js";
+
 const router = Router();
 router.use(requireAuth);
 router.use(requireTenant);
@@ -143,6 +145,8 @@ router.use(
   "/vouchers",
   voucherRoutes
 );
+
+router.use("/department-invoices", departmentInvoiceRoutes);
 
 router.use(
   accountPartyRoutes

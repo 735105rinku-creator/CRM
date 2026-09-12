@@ -1,6 +1,12 @@
 <div class="invoice-list-page">
+
+  <!-- =====================================================
+       HEADER
+  ====================================================== -->
   <header class="page-header">
+
     <div>
+
       <div class="breadcrumb">
         <span>Logistics</span>
         <b>&rsaquo;</b>
@@ -8,60 +14,298 @@
       </div>
 
       <div class="page-title">
-        <span class="title-icon">&#128196;</span>
+
+        <span class="title-icon">
+          &#128196;
+        </span>
+
         <div>
           <h1>Logistics Invoices</h1>
-          <p>Manage customer invoices, payments, balances and shipment billing.</p>
+
+          <p>
+            Manage customer invoices, payment status,
+            outstanding balances and Accounts handoff.
+          </p>
         </div>
+
       </div>
+
     </div>
 
     <div class="header-actions">
-      <button type="button" class="soft-btn" (click)="exportInvoices()">&#8681; Export</button>
-      <button type="button" class="gold-btn" (click)="newInvoice()">&#43; New Invoice</button>
+
+      <button
+        type="button"
+        class="soft-btn"
+        (click)="exportInvoices()"
+      >
+        &#8681; Export
+      </button>
+
+      <button
+        type="button"
+        class="gold-btn"
+        (click)="newInvoice()"
+      >
+        &#43; New Invoice
+      </button>
+
     </div>
+
   </header>
 
   <main class="page-content">
+
+    <!-- =====================================================
+         MESSAGES
+    ====================================================== -->
     @if (message()) {
-      <div class="notice success">{{ message() }}</div>
+
+      <div class="notice success">
+        {{ message() }}
+      </div>
+
     }
 
     @if (errorMessage()) {
-      <div class="notice error">{{ errorMessage() }}</div>
+
+      <div class="notice error">
+        {{ errorMessage() }}
+      </div>
+
     }
 
-    <section class="summary-grid">
-      <article>
-        <span class="summary-icon blue">&#128196;</span>
-        <div><small>Total Invoices</small><strong>{{ summary().totalInvoices || 0 }}</strong></div>
-      </article>
-      <article>
-        <span class="summary-icon green">&#8377;</span>
-        <div><small>Total Billed</small><strong>{{ formatCurrency(summary().totalBilled) }}</strong></div>
-      </article>
-      <article>
-        <span class="summary-icon gold">&#10003;</span>
-        <div><small>Received</small><strong>{{ formatCurrency(summary().totalReceived) }}</strong></div>
-      </article>
-      <article>
-        <span class="summary-icon red">&#9888;</span>
-        <div><small>Outstanding</small><strong>{{ formatCurrency(summary().totalOutstanding) }}</strong></div>
-      </article>
+    <!-- =====================================================
+         WORKSPACE CONTEXT
+    ====================================================== -->
+    <section class="workspace-card">
+
+      <div>
+
+        <span class="workspace-eyebrow">
+          LOGISTICS WORKSPACE
+        </span>
+
+        <h2>
+          @if (canHandoffToAccounts()) {
+            Department Review Workspace
+          } @else {
+            My Invoice Workspace
+          }
+        </h2>
+
+        <p>
+          @if (canHandoffToAccounts()) {
+            You can review department invoices and send eligible
+            invoices to Accounts. Only the creator can edit a
+            record before handoff.
+          } @else {
+            Only invoices created in your own Logistics workspace
+            are shown here.
+          }
+        </p>
+
+      </div>
+
+      <div class="workspace-user">
+
+        <small>Current Employee</small>
+
+        <strong>
+          {{ currentEmployeeName() || '-' }}
+        </strong>
+
+        @if (currentEmployeeCode()) {
+
+          <span>
+            {{ currentEmployeeCode() }}
+          </span>
+
+        }
+
+      </div>
+
     </section>
 
+    <!-- =====================================================
+         LOGISTICS SUMMARY
+    ====================================================== -->
+    <section class="summary-grid">
+
+      <article>
+
+        <span class="summary-icon blue">
+          &#128196;
+        </span>
+
+        <div>
+          <small>Total Invoices</small>
+
+          <strong>
+            {{ summary().totalInvoices || 0 }}
+          </strong>
+
+          <p>
+            @if (canHandoffToAccounts()) {
+              Department invoice records
+            } @else {
+              Your invoice records
+            }
+          </p>
+        </div>
+
+      </article>
+
+      <article>
+
+        <span class="summary-icon green">
+          &#8377;
+        </span>
+
+        <div>
+          <small>Total Billed</small>
+
+          <strong>
+            {{ formatCurrency(summary().totalBilled) }}
+          </strong>
+
+          <p>Total invoice value</p>
+        </div>
+
+      </article>
+
+      <article>
+
+        <span class="summary-icon gold">
+          &#10003;
+        </span>
+
+        <div>
+          <small>Received</small>
+
+          <strong>
+            {{ formatCurrency(summary().totalReceived) }}
+          </strong>
+
+          <p>Existing Logistics receipts</p>
+        </div>
+
+      </article>
+
+      <article>
+
+        <span class="summary-icon red">
+          &#9888;
+        </span>
+
+        <div>
+          <small>Outstanding</small>
+
+          <strong>
+            {{ formatCurrency(summary().totalOutstanding) }}
+          </strong>
+
+          <p>Open customer receivables</p>
+        </div>
+
+      </article>
+
+    </section>
+
+    <!-- =====================================================
+         ACCOUNTS SUMMARY
+    ====================================================== -->
+    <section class="accounts-summary-card">
+
+      <div class="accounts-summary-heading">
+
+        <div>
+          <span>ACCOUNTS CONTROL</span>
+
+          <h2>Invoice Handoff Overview</h2>
+
+          <p>
+            Track invoices already transferred to Accounts
+            for verification and payment collection.
+          </p>
+        </div>
+
+        <div class="handoff-count">
+
+          <small>Sent to Accounts</small>
+
+          <strong>
+            {{ accountsSummary().handedOffCount }}
+          </strong>
+
+        </div>
+
+      </div>
+
+      <div class="accounts-summary-grid">
+
+        <article>
+
+          <small>Accounts Paid</small>
+
+          <strong>
+            {{ formatCurrency(accountsSummary().accountsPaid) }}
+          </strong>
+
+          <span>
+            Payment received through Accounts
+          </span>
+
+        </article>
+
+        <article>
+
+          <small>Accounts Outstanding</small>
+
+          <strong>
+            {{ formatCurrency(accountsSummary().accountsRemaining) }}
+          </strong>
+
+          <span>
+            Remaining on handed-off invoices
+          </span>
+
+        </article>
+
+      </div>
+
+    </section>
+
+    <!-- =====================================================
+         FILTERS
+    ====================================================== -->
     <section class="filter-card">
+
       <div class="filter-heading">
+
         <div>
           <span>INVOICE CONTROL</span>
           <h2>Search & Filters</h2>
         </div>
-        <button type="button" class="soft-btn" (click)="clearFilters()">Clear Filters</button>
+
+        <button
+          type="button"
+          class="soft-btn"
+          (click)="clearFilters()"
+        >
+          Clear Filters
+        </button>
+
       </div>
 
       <div class="filter-grid">
+
         <div class="search-field">
-          <span>&#9906;</span>
+
+          <span>
+            &#9906;
+          </span>
+
           <input
             #searchInput
             type="search"
@@ -69,109 +313,705 @@
             (input)="searchTerm.set(searchInput.value); applyFilters()"
             placeholder="Invoice, customer, shipment, email..."
           />
+
         </div>
 
-        <select #statusSelect [value]="statusFilter()" (change)="statusFilter.set(statusSelect.value); applyFilters()">
-          <option value="">All Invoice Status</option>
-          <option value="draft">Draft</option>
-          <option value="issued">Issued</option>
-          <option value="cancelled">Cancelled</option>
+        <select
+          #statusSelect
+          [value]="statusFilter()"
+          (change)="statusFilter.set(statusSelect.value); applyFilters()"
+        >
+          <option value="">
+            All Invoice Status
+          </option>
+
+          <option value="draft">
+            Draft
+          </option>
+
+          <option value="issued">
+            Issued
+          </option>
+
+          <option value="cancelled">
+            Cancelled
+          </option>
         </select>
 
-        <select #paymentSelect [value]="paymentFilter()" (change)="paymentFilter.set(paymentSelect.value); applyFilters()">
-          <option value="">All Payment Status</option>
-          <option value="unpaid">Unpaid</option>
-          <option value="partial">Partially Paid</option>
-          <option value="paid">Paid</option>
-          <option value="overdue">Overdue</option>
-          <option value="cancelled">Cancelled</option>
+        <select
+          #paymentSelect
+          [value]="paymentFilter()"
+          (change)="paymentFilter.set(paymentSelect.value); applyFilters()"
+        >
+          <option value="">
+            All Payment Status
+          </option>
+
+          <option value="unpaid">
+            Unpaid
+          </option>
+
+          <option value="partial">
+            Partially Paid
+          </option>
+
+          <option value="paid">
+            Paid
+          </option>
+
+          <option value="overdue">
+            Overdue
+          </option>
+
+          <option value="cancelled">
+            Cancelled
+          </option>
         </select>
+
       </div>
+
     </section>
 
+    <!-- =====================================================
+         TABLE
+    ====================================================== -->
     <section class="table-card">
+
       <header class="card-header">
+
         <div>
           <span>INVOICE REGISTER</span>
-          <h2>All Invoice Records</h2>
+
+          <h2>
+            @if (canHandoffToAccounts()) {
+              Department Invoice Records
+            } @else {
+              My Invoice Records
+            }
+          </h2>
+
+          <p>
+            Creator, ownership, invoice copy, Logistics payment
+            state and Accounts status are shown together.
+          </p>
         </div>
-        <p>Showing <strong>{{ totalRecords() }}</strong> records</p>
+
+        <p>
+          Showing
+          <strong>
+            {{ totalRecords() }}
+          </strong>
+          records
+        </p>
+
       </header>
 
-      <div class="table-scroll">
-        <table>
-          <thead>
-            <tr>
-              <th>Invoice</th>
-              <th>Customer</th>
-              <th>Shipment</th>
-              <th>Date</th>
-              <th>Total</th>
-              <th>Balance</th>
-              <th>Status</th>
-              <th>Payment</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (invoice of filteredInvoices(); track invoice._id || invoice.invoiceNumber) {
-              <tr>
-                <td><strong>{{ invoice.invoiceNumber || '-' }}</strong>
-      @if (invoice.editHistory?.length) {
-        <div class="edit-audit" role="note">
-          <span>Edited by: {{ invoice.editHistory![invoice.editHistory!.length - 1].changedByName || invoice.editHistory![invoice.editHistory!.length - 1].changedBy || 'Unknown user' }}</span>
-          <span>Edited on: {{ invoice.editHistory![invoice.editHistory!.length - 1].changedAt | date:'dd/MM/yyyy HH:mm' }}</span>
-          <details>
-            <summary>Edit history</summary>
-            @for (entry of invoice.editHistory; track $index) {
-              <div>{{ entry.changedByName || entry.changedBy || 'Unknown user' }} ? {{ entry.changedAt | date:'dd/MM/yyyy HH:mm' }}</div>
-            }
-          </details>
-        </div>
-      }
-</td>
-                <td>
-                  <div class="stack"><strong>{{ invoice.customerName || '-' }}</strong><span>{{ invoice.mobile || invoice.email || '-' }}</span></div>
-                </td>
-                <td>{{ invoice.shipmentNumber || '-' }}</td>
-                <td>
-                  <div class="stack"><strong>{{ formatDate(invoice.invoiceDate) }}</strong><span>Due {{ formatDate(invoice.dueDate) }}</span></div>
-                </td>
-                <td><strong>{{ formatCurrency(invoice.invoiceTotal, invoice.currency) }}</strong></td>
-                <td>{{ formatCurrency(invoice.balanceDue, invoice.currency) }}</td>
-                <td><span class="pill" [class]="'pill ' + statusClass(invoice.status)">{{ label(invoice.status) }}</span></td>
-                <td><span class="pill muted">{{ label(invoice.paymentStatus) }}</span></td>
-                <td>
-                  <div class="actions">
-                    <button type="button" title="View" (click)="viewInvoice(invoice)">&#9673;</button>
-                    <button type="button" title="Edit" (click)="editInvoice(invoice)">&#9998;</button>
-                  </div>
-                </td>
-              </tr>
-            } @empty {
-              <tr>
-                <td colspan="9">
-                  <div class="empty-state">
-                    <span>&#128196;</span>
-                    <strong>No invoices found</strong>
-                    <p>Create an invoice or change filters.</p>
-                    <button type="button" class="gold-btn" (click)="newInvoice()">&#43; New Invoice</button>
-                  </div>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
+      @if (isLoading()) {
 
-      <footer class="pagination">
-        <p>Page <strong>{{ currentPage() }}</strong> of <strong>{{ serverTotalPages() }}</strong></p>
-        <div>
-          <button type="button" [disabled]="currentPage() === 1" (click)="previousPage()">&lsaquo; Previous</button>
-          <span>{{ currentPage() }}</span>
-          <button type="button" [disabled]="currentPage() === serverTotalPages()" (click)="nextPage()">Next &rsaquo;</button>
+        <div class="loading-state">
+          Loading invoices...
         </div>
+
+      } @else {
+
+        <div class="table-scroll">
+
+          <table>
+
+            <thead>
+
+              <tr>
+                <th>Invoice</th>
+                <th>Created By</th>
+                <th>Workspace</th>
+                <th>Customer</th>
+                <th>Shipment</th>
+                <th>Date</th>
+                <th>Total</th>
+                <th>Logistics Received</th>
+                <th>Outstanding</th>
+                <th>Invoice Status</th>
+                <th>Payment Status</th>
+                <th>Invoice Copy</th>
+                <th>Accounts Status</th>
+                <th>Accounts Paid</th>
+                <th>Accounts Balance</th>
+                <th>Action</th>
+              </tr>
+
+            </thead>
+
+            <tbody>
+
+              @for (
+                invoice of filteredInvoices();
+                track invoice._id || invoice.invoiceNumber
+              ) {
+
+                <tr
+                  [class.handed-off-row]="isHandedOff(invoice)"
+                  [class.review-row]="
+                    canHandoffToAccounts() &&
+                    !isOwnInvoice(invoice)
+                  "
+                >
+
+                  <!-- =======================================
+                       INVOICE
+                  ======================================== -->
+                  <td>
+
+                    <div class="invoice-main">
+
+                      <strong>
+                        {{ invoice.invoiceNumber || '-' }}
+                      </strong>
+
+                      @if (invoice.editHistory?.length) {
+
+                        <small>
+                          Last edited:
+                          {{
+                            invoice.editHistory![invoice.editHistory!.length - 1].changedAt
+                              | date:'dd/MM/yyyy HH:mm'
+                          }}
+                        </small>
+
+                        <details class="edit-history">
+
+                          <summary>
+                            Edit history
+                          </summary>
+
+                          @for (
+                            entry of invoice.editHistory;
+                            track $index
+                          ) {
+
+                            <div>
+                              {{
+                                entry.changedByName ||
+                                'Unknown user'
+                              }}
+                              &bull;
+                              {{
+                                entry.changedAt
+                                  | date:'dd/MM/yyyy HH:mm'
+                              }}
+                            </div>
+
+                          }
+
+                        </details>
+
+                      }
+
+                    </div>
+
+                  </td>
+
+                  <!-- =======================================
+                       CREATED BY
+                  ======================================== -->
+                  <td>
+
+                    <div class="creator-cell">
+
+                      <strong>
+                        {{ creatorName(invoice) }}
+                      </strong>
+
+                      @if (creatorEmployeeCode(invoice)) {
+
+                        <span>
+                          {{ creatorEmployeeCode(invoice) }}
+                        </span>
+
+                      }
+
+                      @if (creatorDesignation(invoice)) {
+
+                        <small>
+                          {{ creatorDesignation(invoice) }}
+                        </small>
+
+                      }
+
+                    </div>
+
+                  </td>
+
+                  <!-- =======================================
+                       WORKSPACE
+                  ======================================== -->
+                  <td>
+
+                    <span
+                      class="workspace-pill"
+                      [class.mine]="isOwnInvoice(invoice)"
+                      [class.review]="
+                        !isOwnInvoice(invoice) &&
+                        canHandoffToAccounts() &&
+                        !isHandedOff(invoice)
+                      "
+                      [class.locked]="isHandedOff(invoice)"
+                    >
+                      {{ recordAccessLabel(invoice) }}
+                    </span>
+
+                  </td>
+
+                  <!-- =======================================
+                       CUSTOMER
+                  ======================================== -->
+                  <td>
+
+                    <div class="stack">
+
+                      <strong>
+                        {{ invoice.customerName || '-' }}
+                      </strong>
+
+                      <span>
+                        {{
+                          invoice.mobile ||
+                          invoice.email ||
+                          '-'
+                        }}
+                      </span>
+
+                    </div>
+
+                  </td>
+
+                  <!-- =======================================
+                       SHIPMENT
+                  ======================================== -->
+                  <td>
+                    {{ invoice.shipmentNumber || '-' }}
+                  </td>
+
+                  <!-- =======================================
+                       DATE
+                  ======================================== -->
+                  <td>
+
+                    <div class="stack">
+
+                      <strong>
+                        {{ formatDate(invoice.invoiceDate) }}
+                      </strong>
+
+                      <span>
+                        Due
+                        {{ formatDate(invoice.dueDate) }}
+                      </span>
+
+                    </div>
+
+                  </td>
+
+                  <!-- =======================================
+                       TOTAL
+                  ======================================== -->
+                  <td>
+
+                    <strong class="money">
+                      {{
+                        formatCurrency(
+                          invoice.invoiceTotal,
+                          invoice.currency
+                        )
+                      }}
+                    </strong>
+
+                  </td>
+
+                  <!-- =======================================
+                       LOGISTICS RECEIVED
+                  ======================================== -->
+                  <td>
+
+                    <strong class="received-value">
+                      {{
+                        formatCurrency(
+                          invoice.amountReceived,
+                          invoice.currency
+                        )
+                      }}
+                    </strong>
+
+                  </td>
+
+                  <!-- =======================================
+                       OUTSTANDING
+                  ======================================== -->
+                  <td>
+
+                    <strong
+                      class="balance-value"
+                      [class.zero]="getDisplayBalance(invoice) === 0"
+                    >
+                      {{
+                        formatCurrency(
+                          getDisplayBalance(invoice),
+                          invoice.currency
+                        )
+                      }}
+                    </strong>
+
+                    @if (isHandedOff(invoice)) {
+
+                      <small class="table-subtext">
+                        Accounts controlled
+                      </small>
+
+                    } @else {
+
+                      <small class="table-subtext">
+                        Logistics balance
+                      </small>
+
+                    }
+
+                  </td>
+
+                  <!-- =======================================
+                       INVOICE STATUS
+                  ======================================== -->
+                  <td>
+
+                    <span
+                      [class]="'pill ' + statusClass(invoice.status)"
+                    >
+                      {{ label(invoice.status) }}
+                    </span>
+
+                  </td>
+
+                  <!-- =======================================
+                       PAYMENT STATUS
+                  ======================================== -->
+                  <td>
+
+                    <span
+                      [class]="'pill payment-' + statusClass(invoice.paymentStatus)"
+                    >
+                      {{ label(invoice.paymentStatus) }}
+                    </span>
+
+                  </td>
+
+                  <!-- =======================================
+                       INVOICE COPY
+                  ======================================== -->
+                  <td>
+
+                    @if (invoice.invoiceCopy?.fileUrl) {
+
+                      <div class="document-cell">
+
+                        <strong>
+                          {{ invoiceCopyName(invoice) }}
+                        </strong>
+
+                        <div class="document-actions">
+
+                          <button
+                            type="button"
+                            (click)="viewInvoiceCopy(invoice)"
+                          >
+                            View
+                          </button>
+
+                          <button
+                            type="button"
+                            (click)="downloadInvoiceCopy(invoice)"
+                          >
+                            Download
+                          </button>
+
+                        </div>
+
+                      </div>
+
+                    } @else {
+
+                      <div class="missing-copy-wrap">
+
+                        <span class="missing-copy">
+                          Not Attached
+                        </span>
+
+                        @if (
+                          canHandoffToAccounts() &&
+                          !isOwnInvoice(invoice)
+                        ) {
+
+                          <small>
+                            Waiting for creator
+                          </small>
+
+                        }
+
+                      </div>
+
+                    }
+
+                  </td>
+
+                  <!-- =======================================
+                       ACCOUNTS STATUS
+                  ======================================== -->
+                  <td>
+
+                    <span
+                      [class]="
+                        'accounts-pill ' +
+                        accountsStatusClass(invoice.accountsStatus)
+                      "
+                    >
+                      {{
+                        accountsStatusLabel(
+                          invoice.accountsStatus
+                        )
+                      }}
+                    </span>
+
+                    @if (invoice.accountsHandedOffAt) {
+
+                      <small class="table-subtext">
+                        {{
+                          formatDateTime(
+                            invoice.accountsHandedOffAt
+                          )
+                        }}
+                      </small>
+
+                    }
+
+                  </td>
+
+                  <!-- =======================================
+                       ACCOUNTS PAID
+                  ======================================== -->
+                  <td>
+
+                    @if (isHandedOff(invoice)) {
+
+                      <strong class="accounts-paid">
+                        {{
+                          formatCurrency(
+                            getAccountsPaidAmount(invoice),
+                            invoice.currency
+                          )
+                        }}
+                      </strong>
+
+                    } @else {
+
+                      <span>-</span>
+
+                    }
+
+                  </td>
+
+                  <!-- =======================================
+                       ACCOUNTS BALANCE
+                  ======================================== -->
+                  <td>
+
+                    @if (isHandedOff(invoice)) {
+
+                      <strong
+                        class="accounts-balance"
+                        [class.zero]="
+                          invoice.accountsRemainingAmount === 0
+                        "
+                      >
+                        {{
+                          formatCurrency(
+                            invoice.accountsRemainingAmount,
+                            invoice.currency
+                          )
+                        }}
+                      </strong>
+
+                    } @else {
+
+                      <span>-</span>
+
+                    }
+
+                  </td>
+
+                  <!-- =======================================
+                       ACTION
+                  ======================================== -->
+                  <td>
+
+                    <div class="actions">
+
+                      <button
+                        type="button"
+                        title="View"
+                        (click)="viewInvoice(invoice)"
+                      >
+                        &#9673;
+                      </button>
+
+                      @if (canEditInvoice(invoice)) {
+
+                        <button
+                          type="button"
+                          title="Edit"
+                          (click)="editInvoice(invoice)"
+                        >
+                          &#9998;
+                        </button>
+
+                      } @else {
+
+                        <button
+                          type="button"
+                          title="Read only"
+                          disabled
+                        >
+                          &#128274;
+                        </button>
+
+                      }
+
+                      @if (
+                        canHandoffToAccounts() &&
+                        !isHandedOff(invoice)
+                      ) {
+
+                        <button
+                          type="button"
+                          class="accounts-action"
+                          title="Send to Accounts"
+                          [disabled]="
+                            !canSendToAccounts(invoice) ||
+                            handingOffInvoiceId() === invoice._id
+                          "
+                          (click)="handoffToAccounts(invoice)"
+                        >
+                          &#8680;
+                        </button>
+
+                      }
+
+                    </div>
+
+                    @if (
+                      canHandoffToAccounts() &&
+                      !isOwnInvoice(invoice) &&
+                      !isHandedOff(invoice)
+                    ) {
+
+                      <small class="review-note">
+                        Review only
+                      </small>
+
+                    }
+
+                  </td>
+
+                </tr>
+
+              } @empty {
+
+                <tr>
+
+                  <td colspan="16">
+
+                    <div class="empty-state">
+
+                      <span>
+                        &#128196;
+                      </span>
+
+                      <strong>
+                        No invoices found
+                      </strong>
+
+                      <p>
+                        @if (canHandoffToAccounts()) {
+                          No department invoices match the current filters.
+                        } @else {
+                          No invoices exist in your workspace yet.
+                        }
+                      </p>
+
+                      <button
+                        type="button"
+                        class="gold-btn"
+                        (click)="newInvoice()"
+                      >
+                        &#43; New Invoice
+                      </button>
+
+                    </div>
+
+                  </td>
+
+                </tr>
+
+              }
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      }
+
+      <!-- ===================================================
+           PAGINATION
+      ==================================================== -->
+      <footer class="pagination">
+
+        <p>
+          Page
+          <strong>
+            {{ currentPage() }}
+          </strong>
+          of
+          <strong>
+            {{ serverTotalPages() }}
+          </strong>
+        </p>
+
+        <div>
+
+          <button
+            type="button"
+            [disabled]="currentPage() === 1"
+            (click)="previousPage()"
+          >
+            &lsaquo; Previous
+          </button>
+
+          <span>
+            {{ currentPage() }}
+          </span>
+
+          <button
+            type="button"
+            [disabled]="currentPage() === serverTotalPages()"
+            (click)="nextPage()"
+          >
+            Next &rsaquo;
+          </button>
+
+        </div>
+
       </footer>
+
     </section>
+
   </main>
+
 </div>

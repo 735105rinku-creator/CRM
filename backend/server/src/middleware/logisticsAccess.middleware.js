@@ -1,5 +1,9 @@
 ﻿import { Department } from "../models/Department.js";
-import { Employee } from "../models/Employee.js";
+
+import {
+  Employee,
+  ORGANIZATION_ROLE,
+} from "../models/Employee.js";
 
 import { ApiError } from "../utils/apiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -13,22 +17,67 @@ import { ROLES } from "../constants/roles.js";
    These roles can monitor and manage Logistics for
    their own company.
 
-   - Super Admin
-   - Company Admin
-   - HR
+   Important:
+   General Logistics management access does NOT automatically
+   grant Vendor Payment -> Accounts handoff authority.
 ============================================================ */
 
-const MANAGEMENT_ROLES = new Set(
-  [
-    ROLES.SUPER_ADMIN,
-    ROLES.COMPANY_ADMIN,
-    ROLES.HR,
-  ].map((role) =>
-    String(role || "")
-      .trim()
-      .toLowerCase()
-  )
-);
+const MANAGEMENT_ROLES =
+  new Set(
+    [
+      ROLES.SUPER_ADMIN,
+      ROLES.COMPANY_ADMIN,
+      ROLES.HR,
+    ]
+      .map(
+        (
+          role
+        ) =>
+          String(
+            role ||
+            ""
+          )
+            .trim()
+            .toLowerCase()
+      )
+  );
+
+
+/* ============================================================
+   LOGISTICS SENIOR ORGANIZATION ROLES
+
+   Accounts handoff is a senior-level Logistics action.
+
+   Existing Employee.organizationRole values are reused.
+
+   No:
+   - New DB field
+   - Migration
+   - Seed
+   - Permission reset
+============================================================ */
+
+const LOGISTICS_HANDOFF_ROLES =
+  new Set(
+    [
+      ORGANIZATION_ROLE
+        .DEPARTMENT_HEAD,
+
+      ORGANIZATION_ROLE
+        .TEAM_LEADER,
+    ]
+      .map(
+        (
+          role
+        ) =>
+          String(
+            role ||
+            ""
+          )
+            .trim()
+            .toLowerCase()
+      )
+  );
 
 
 /* ============================================================
@@ -39,28 +88,42 @@ const MANAGEMENT_ROLES = new Set(
    Normal employee access is controlled through:
 
    Employee
-        â†“
+        ↓
    Department
-        â†“
+        ↓
    featureKey = "logistics"
 
    Access Rules:
 
    SUPER ADMIN
-      â†’ Logistics allowed
+      → Logistics allowed
 
    COMPANY ADMIN
-      â†’ Logistics allowed for own company
+      → Logistics allowed for own company
 
    HR
-      â†’ Logistics allowed for own company
+      → Logistics allowed for own company
 
    EMPLOYEE
-      â†’ Allowed only when employee belongs to an
+      → Allowed only when employee belongs to an
         active department whose featureKey = logistics
 
    OTHER ROLE
-      â†’ Access denied
+      → Access denied
+
+   Accounts Handoff:
+
+   department_head
+      → allowed
+
+   team_leader
+      → allowed
+
+   normal employee
+      → not allowed
+
+   custom role
+      → not automatically allowed
 ============================================================ */
 
 export const requireLogisticsAccess =
@@ -75,7 +138,10 @@ export const requireLogisticsAccess =
          AUTHENTICATION CHECK
       ======================================================== */
 
-      if (!req.user) {
+      if (
+        !req.user
+      ) {
+
         throw new ApiError(
           401,
           "Authentication required"
@@ -89,7 +155,8 @@ export const requireLogisticsAccess =
 
       const role =
         String(
-          req.user.role || ""
+          req.user.role ||
+          ""
         )
           .trim()
           .toLowerCase();
@@ -103,6 +170,10 @@ export const requireLogisticsAccess =
 
          Company isolation is still handled by
          requireTenant + companyId filters.
+
+         IMPORTANT:
+         Management access by itself does NOT allow
+         Vendor Payment -> Accounts handoff.
       ======================================================== */
 
       if (
@@ -112,6 +183,7 @@ export const requireLogisticsAccess =
       ) {
 
         req.logisticsAccess = {
+
           featureKey:
             "logistics",
 
@@ -120,11 +192,23 @@ export const requireLogisticsAccess =
 
           role,
 
+          organizationRole:
+            null,
+
           canMonitor:
             true,
 
           canManage:
             true,
+
+          /*
+           * Explicitly false.
+           *
+           * Accounts handoff belongs to a Logistics
+           * Department Head / Team Leader workflow.
+           */
+          canHandoffToAccounts:
+            false,
 
           employeeId:
             null,
@@ -182,7 +266,9 @@ export const requireLogisticsAccess =
         req.user.companyId;
 
 
-      if (!companyId) {
+      if (
+        !companyId
+      ) {
 
         throw new ApiError(
           403,
@@ -199,6 +285,9 @@ export const requireLogisticsAccess =
 
          Fallback:
          Employee.userId relation
+
+         organizationRole is included because it controls
+         senior-level Logistics -> Accounts handoff.
       ======================================================== */
 
       let employee =
@@ -212,6 +301,7 @@ export const requireLogisticsAccess =
         employee =
           await Employee
             .findOne({
+
               _id:
                 req.user.employee,
 
@@ -223,10 +313,14 @@ export const requireLogisticsAccess =
                 "companyId",
                 "employeeCode",
                 "departmentId",
+                "organizationRole",
                 "employeeStatus",
                 "status",
                 "isActive",
-              ].join(" ")
+              ]
+                .join(
+                  " "
+                )
             )
             .lean();
       }
@@ -236,11 +330,14 @@ export const requireLogisticsAccess =
          FALLBACK FOR OLD EMPLOYEE ACCOUNTS
       ======================================================== */
 
-      if (!employee) {
+      if (
+        !employee
+      ) {
 
         employee =
           await Employee
             .findOne({
+
               userId:
                 req.user._id,
 
@@ -252,10 +349,14 @@ export const requireLogisticsAccess =
                 "companyId",
                 "employeeCode",
                 "departmentId",
+                "organizationRole",
                 "employeeStatus",
                 "status",
                 "isActive",
-              ].join(" ")
+              ]
+                .join(
+                  " "
+                )
             )
             .lean();
       }
@@ -265,7 +366,9 @@ export const requireLogisticsAccess =
          EMPLOYEE PROFILE CHECK
       ======================================================== */
 
-      if (!employee) {
+      if (
+        !employee
+      ) {
 
         throw new ApiError(
           403,
@@ -306,9 +409,10 @@ export const requireLogisticsAccess =
           "blocked",
           "terminated",
           "suspended",
-        ].includes(
-          employeeStatus
-        )
+        ]
+          .includes(
+            employeeStatus
+          )
       ) {
 
         throw new ApiError(
@@ -336,6 +440,7 @@ export const requireLogisticsAccess =
       const department =
         await Department
           .findOne({
+
             _id:
               employee.departmentId,
 
@@ -350,12 +455,17 @@ export const requireLogisticsAccess =
               "dashboardKey",
               "accessModules",
               "isActive",
-            ].join(" ")
+            ]
+              .join(
+                " "
+              )
           )
           .lean();
 
 
-      if (!department) {
+      if (
+        !department
+      ) {
 
         throw new ApiError(
           403,
@@ -392,14 +502,34 @@ export const requireLogisticsAccess =
           .trim()
           .toLowerCase();
 
-      const accessModules = Array.isArray(department.accessModules)
-        ? department.accessModules.map((item) => String(item || "").trim().toLowerCase())
-        : [];
+
+      const accessModules =
+        Array.isArray(
+          department.accessModules
+        )
+          ? department
+              .accessModules
+              .map(
+                (
+                  item
+                ) =>
+                  String(
+                    item ||
+                    ""
+                  )
+                    .trim()
+                    .toLowerCase()
+              )
+          : [];
+
 
       if (
         featureKey !==
-        "logistics" &&
-        !accessModules.includes("logistics")
+          "logistics" &&
+        !accessModules
+          .includes(
+            "logistics"
+          )
       ) {
 
         throw new ApiError(
@@ -407,6 +537,39 @@ export const requireLogisticsAccess =
           "Logistics access is available only to Logistics department employees"
         );
       }
+
+
+      /* ========================================================
+         ORGANIZATION ROLE
+
+         Existing Employee hierarchy is reused.
+
+         Senior:
+         - department_head
+         - team_leader
+
+         Normal employee:
+         - employee
+
+         Custom:
+         - not automatically considered senior
+      ======================================================== */
+
+      const organizationRole =
+        String(
+          employee.organizationRole ||
+          ORGANIZATION_ROLE
+            .EMPLOYEE
+        )
+          .trim()
+          .toLowerCase();
+
+
+      const canHandoffToAccounts =
+        LOGISTICS_HANDOFF_ROLES
+          .has(
+            organizationRole
+          );
 
 
       /* ========================================================
@@ -418,16 +581,29 @@ export const requireLogisticsAccess =
         featureKey:
           "logistics",
 
+        /*
+         * Keep existing accessType unchanged.
+         *
+         * This is intentionally still "employee" so existing
+         * Logistics permission resolution continues working.
+         */
         accessType:
           "employee",
 
         role,
+
+        organizationRole,
 
         canMonitor:
           false,
 
         canManage:
           true,
+
+        /*
+         * Dedicated senior-level Accounts handoff permission.
+         */
+        canHandoffToAccounts,
 
         employeeId:
           employee._id,

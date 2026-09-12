@@ -1,24 +1,57 @@
 import LogisticsCha from "../models/LogisticsCha.js";
 
+function populateCreatorDetails(query) {
+  return query
+    .populate(
+      "createdBy",
+      "name displayName firstName lastName email"
+    )
+    .populate(
+      "createdByEmployeeId",
+      "employeeCode firstName lastName name displayName designation organizationRole"
+    );
+}
+
 class LogisticsChaRepository {
   async create(payload) {
     return LogisticsCha.create(payload);
   }
 
-  async findById({ companyId, chaId }) {
-    return LogisticsCha.findOne({
-      _id: chaId,
-      companyId,
-      isActive: { $ne: false },
-    }).lean();
+  async findById({
+    companyId,
+    chaId,
+  }) {
+    const query =
+      LogisticsCha.findOne({
+        _id: chaId,
+        companyId,
+        isActive: { $ne: false },
+      });
+
+    populateCreatorDetails(query);
+
+    return query.lean();
   }
 
-  async findByCaseNumber({ companyId, caseNumber }) {
-    return LogisticsCha.findOne({
-      companyId,
-      caseNumber: String(caseNumber || "").trim().toUpperCase(),
-      isActive: { $ne: false },
-    }).lean();
+  async findByCaseNumber({
+    companyId,
+    caseNumber,
+  }) {
+    const query =
+      LogisticsCha.findOne({
+        companyId,
+
+        caseNumber:
+          String(caseNumber || "")
+            .trim()
+            .toUpperCase(),
+
+        isActive: { $ne: false },
+      });
+
+    populateCreatorDetails(query);
+
+    return query.lean();
   }
 
   async paginate({
@@ -41,12 +74,16 @@ class LogisticsChaRepository {
 
     if (shipmentNo) {
       filter.shipmentNumber =
-        String(shipmentNo).trim().toUpperCase();
+        String(shipmentNo)
+          .trim()
+          .toUpperCase();
     }
 
     if (shipmentType) {
       filter.shipmentMode =
-        normalizeShipmentMode(shipmentType);
+        normalizeShipmentMode(
+          shipmentType
+        );
     }
 
     if (status) {
@@ -54,13 +91,21 @@ class LogisticsChaRepository {
         normalizeStatus(status);
     }
 
-    applyCreatedAtRange(filter, fromDate, toDate);
+    applyCreatedAtRange(
+      filter,
+      fromDate,
+      toDate
+    );
 
-    const q = String(search || "").trim();
+    const q =
+      String(search || "").trim();
 
     if (q) {
       const regex =
-        new RegExp(escapeRegex(q), "i");
+        new RegExp(
+          escapeRegex(q),
+          "i"
+        );
 
       filter.$or = [
         { caseNumber: regex },
@@ -76,11 +121,17 @@ class LogisticsChaRepository {
     }
 
     const safePage =
-      Math.max(Number(page) || 1, 1);
+      Math.max(
+        Number(page) || 1,
+        1
+      );
 
     const safeLimit =
       Math.min(
-        Math.max(Number(limit) || 20, 1),
+        Math.max(
+          Number(limit) || 20,
+          1
+        ),
         100
       );
 
@@ -99,36 +150,65 @@ class LogisticsChaRepository {
         : "createdAt";
 
     const direction =
-      sortOrder === "asc" ? 1 : -1;
+      sortOrder === "asc"
+        ? 1
+        : -1;
+
+    const dataQuery =
+      LogisticsCha.find(filter)
+        .sort({
+          [field]: direction,
+        })
+        .skip(
+          (safePage - 1) *
+          safeLimit
+        )
+        .limit(
+          safeLimit
+        );
+
+    populateCreatorDetails(
+      dataQuery
+    );
 
     const [data, total] =
       await Promise.all([
-        LogisticsCha.find(filter)
-          .sort({ [field]: direction })
-          .skip((safePage - 1) * safeLimit)
-          .limit(safeLimit)
-          .lean(),
+        dataQuery.lean(),
 
-        LogisticsCha.countDocuments(filter),
+        LogisticsCha.countDocuments(
+          filter
+        ),
       ]);
 
     const totalPages =
       Math.max(
-        Math.ceil(total / safeLimit),
+        Math.ceil(
+          total / safeLimit
+        ),
         1
       );
 
     return {
       data,
+
       pagination: {
-        page: safePage,
-        limit: safeLimit,
+        page:
+          safePage,
+
+        limit:
+          safeLimit,
+
         total,
+
         totalPages,
+
         hasNextPage:
-          safePage < totalPages,
+          safePage <
+          totalPages,
+
         hasPreviousPage:
-          safePage > 1,
+          safePage >
+          1,
       },
     };
   }
@@ -138,18 +218,35 @@ class LogisticsChaRepository {
     chaId,
     payload,
   }) {
-    return LogisticsCha.findOneAndUpdate(
-      {
-        _id: chaId,
-        companyId,
-        isActive: { $ne: false },
-      },
-      { $set: payload },
-      {
-        new: true,
-        runValidators: true,
-      }
-    ).lean();
+    const query =
+      LogisticsCha.findOneAndUpdate(
+        {
+          _id:
+            chaId,
+
+          companyId,
+
+          isActive: {
+            $ne: false,
+          },
+        },
+
+        {
+          $set:
+            payload,
+        },
+
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
+
+    populateCreatorDetails(
+      query
+    );
+
+    return query.lean();
   }
 
   async pushStatus({
@@ -160,40 +257,65 @@ class LogisticsChaRepository {
     remarks,
     userId,
   }) {
-    return LogisticsCha.findOneAndUpdate(
-      {
-        _id: chaId,
-        companyId,
-        isActive: { $ne: false },
-      },
-      {
-        $set: {
-          status,
-          statusOther:
-            status === "other"
-              ? statusOther || ""
-              : "",
-          remarks,
-          updatedBy: userId,
+    const query =
+      LogisticsCha.findOneAndUpdate(
+        {
+          _id:
+            chaId,
+
+          companyId,
+
+          isActive: {
+            $ne: false,
+          },
         },
-        $push: {
-          statusHistory: {
+
+        {
+          $set: {
             status,
+
             statusOther:
               status === "other"
                 ? statusOther || ""
                 : "",
+
             remarks,
-            changedBy: userId,
-            changedAt: new Date(),
+
+            updatedBy:
+              userId,
+          },
+
+          $push: {
+            statusHistory: {
+              status,
+
+              statusOther:
+                status === "other"
+                  ? statusOther || ""
+                  : "",
+
+              remarks,
+
+              changedBy:
+                userId,
+
+              changedAt:
+                new Date(),
+            },
           },
         },
-      },
-      {
-        new: true,
-        runValidators: true,
-      }
-    ).lean();
+
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
+
+    populateCreatorDetails(
+      query
+    );
+
+    return query.lean();
   }
 
   async softDelete({
@@ -203,17 +325,29 @@ class LogisticsChaRepository {
   }) {
     return LogisticsCha.findOneAndUpdate(
       {
-        _id: chaId,
+        _id:
+          chaId,
+
         companyId,
-        isActive: { $ne: false },
-      },
-      {
-        $set: {
-          isActive: false,
-          updatedBy: userId,
+
+        isActive: {
+          $ne: false,
         },
       },
-      { new: true }
+
+      {
+        $set: {
+          isActive:
+            false,
+
+          updatedBy:
+            userId,
+        },
+      },
+
+      {
+        new: true,
+      }
     ).lean();
   }
 
@@ -222,13 +356,21 @@ class LogisticsChaRepository {
       {
         $match: {
           companyId,
-          isActive: { $ne: false },
+
+          isActive: {
+            $ne: false,
+          },
         },
       },
+
       {
         $group: {
-          _id: "$status",
-          count: { $sum: 1 },
+          _id:
+            "$status",
+
+          count: {
+            $sum: 1,
+          },
         },
       },
     ]);
@@ -240,6 +382,7 @@ class LogisticsChaRepository {
   }) {
     return LogisticsCha.findOne({
       companyId,
+
       caseNumber: {
         $regex:
           new RegExp(
@@ -248,8 +391,13 @@ class LogisticsChaRepository {
           ),
       },
     })
-      .sort({ caseNumber: -1 })
-      .select("caseNumber")
+      .sort({
+        caseNumber:
+          -1,
+      })
+      .select(
+        "caseNumber"
+      )
       .lean();
   }
 
@@ -264,44 +412,75 @@ class LogisticsChaRepository {
   }
 }
 
-function normalizeShipmentMode(value) {
+function normalizeShipmentMode(
+  value
+) {
   switch (value) {
     case "air-cargo":
       return "air_cargo";
+
     case "sea-freight":
       return "sea_freight";
+
     default:
       return value;
   }
 }
 
-function normalizeStatus(value) {
+function normalizeStatus(
+  value
+) {
   switch (value) {
     case "documents-pending":
       return "documents_pending";
+
     case "duty-pending":
       return "duty_pending";
+
     default:
       return value;
   }
 }
 
 function escapeRegex(value) {
-  return String(value)
-    .replace(
-      /[.*+?^${}()|[\]\\]/g,
-      "\\$&"
-    );
+  return String(value).replace(
+    /[.*+?^${}()|[\]\\]/g,
+    "\\$&"
+  );
 }
 
-function applyCreatedAtRange(filter, fromDate, toDate) {
-  if (!fromDate && !toDate) return;
+function applyCreatedAtRange(
+  filter,
+  fromDate,
+  toDate
+) {
+  if (
+    !fromDate &&
+    !toDate
+  ) {
+    return;
+  }
+
   filter.createdAt = {};
-  if (fromDate) filter.createdAt.$gte = new Date(fromDate);
+
+  if (fromDate) {
+    filter.createdAt.$gte =
+      new Date(fromDate);
+  }
+
   if (toDate) {
-    const end = new Date(toDate);
-    end.setHours(23, 59, 59, 999);
-    filter.createdAt.$lte = end;
+    const end =
+      new Date(toDate);
+
+    end.setHours(
+      23,
+      59,
+      59,
+      999
+    );
+
+    filter.createdAt.$lte =
+      end;
   }
 }
 

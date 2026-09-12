@@ -21,12 +21,32 @@ export const LOGISTICS_VENDOR_PAYMENT_MODES = Object.freeze([
 ]);
 
 
+export const LOGISTICS_VENDOR_PAYMENT_ACCOUNTS_STATUSES =
+  Object.freeze([
+    "sent",
+    "under_review",
+    "verified",
+    "partially_paid",
+    "paid",
+    "rejected",
+  ]);
+
+
 /* ============================================================
    PAYMENT HISTORY
+
+   Existing Logistics payment history.
+
+   Important:
+   After Accounts handoff, the service layer will prevent
+   Logistics users from directly recording new payments.
+
+   Historical records remain untouched.
 ============================================================ */
 
 const paymentHistorySchema = new mongoose.Schema(
   {
+
     amount: {
       type: Number,
       min: 0,
@@ -77,6 +97,7 @@ const paymentHistorySchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+
   },
   {
     _id: true,
@@ -85,20 +106,22 @@ const paymentHistorySchema = new mongoose.Schema(
 
 
 /* ============================================================
-   OPTIONAL PAYMENT PROOF
+   PAYMENT PROOF
 
-   File itself is stored under:
+   This remains PAYMENT PROOF only.
 
+   It must NOT be reused as the vendor invoice/bill document.
+
+   Physical file:
    public/uploads/vendor-payment-proofs/
 
-   MongoDB stores only metadata + public URL.
-
-   Supported by upload middleware:
-   JPG / JPEG / PNG / PDF
+   MongoDB:
+   metadata + URL only.
 ============================================================ */
 
 const paymentProofSchema = new mongoose.Schema(
   {
+
     url: {
       type: String,
       trim: true,
@@ -124,9 +147,87 @@ const paymentProofSchema = new mongoose.Schema(
       min: 0,
       default: 0,
     },
+
   },
   {
     _id: false,
+  }
+);
+
+
+/* ============================================================
+   VENDOR BILL / INVOICE DOCUMENT
+
+   This is separate from paymentProof.
+
+   Purpose:
+   - Logistics uploads the vendor invoice/bill once.
+   - Accounts receives the SAME stored document reference.
+   - No binary/base64/Buffer is stored in MongoDB.
+   - MongoDB stores only metadata.
+
+   Physical storage will be handled by upload middleware/service.
+============================================================ */
+
+const vendorBillDocumentSchema = new mongoose.Schema(
+  {
+
+    fileName: {
+      type: String,
+      trim: true,
+      default: "",
+      maxlength: 255,
+    },
+
+    originalName: {
+      type: String,
+      trim: true,
+      default: "",
+      maxlength: 500,
+    },
+
+    fileUrl: {
+      type: String,
+      trim: true,
+      required: true,
+      maxlength: 2000,
+    },
+
+    storageKey: {
+      type: String,
+      trim: true,
+      default: "",
+      maxlength: 1000,
+    },
+
+    mimeType: {
+      type: String,
+      trim: true,
+      required: true,
+      maxlength: 150,
+    },
+
+    fileSize: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+
+    uploadedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+
+    uploadedAt: {
+      type: Date,
+      default: Date.now,
+    },
+
+  },
+  {
+    _id: false,
+    id: false,
   }
 );
 
@@ -137,6 +238,7 @@ const paymentProofSchema = new mongoose.Schema(
 
 const logisticsVendorPaymentSchema = new mongoose.Schema(
   {
+
     companyId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Company",
@@ -151,9 +253,10 @@ const logisticsVendorPaymentSchema = new mongoose.Schema(
       required: true,
     },
 
-    /*
-     * Logistics Manager compulsory payment register fields.
-     */
+
+    /* ========================================================
+       LOGISTICS MANAGER PAYMENT REGISTER
+    ======================================================== */
 
     serialNumber: {
       type: Number,
@@ -291,9 +394,10 @@ const logisticsVendorPaymentSchema = new mongoose.Schema(
       default: "",
     },
 
-    /*
-     * Optional linkage to a Logistics Shipment.
-     */
+
+    /* ========================================================
+       OPTIONAL SHIPMENT LINK
+    ======================================================== */
 
     shipmentId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -319,26 +423,114 @@ const logisticsVendorPaymentSchema = new mongoose.Schema(
       maxlength: 10,
     },
 
+
+    /* ========================================================
+       EXISTING LOGISTICS PAYMENT HISTORY
+    ======================================================== */
+
     paymentHistory: {
       type: [paymentHistorySchema],
       default: [],
     },
 
-    /*
-     * Optional uploaded payment proof.
-     *
-     * Existing records without paymentProof
-     * remain fully valid.
-     */
+
+    /* ========================================================
+       EXISTING PAYMENT PROOF
+
+       This is proof that a payment was made.
+       It is NOT the vendor invoice.
+    ======================================================== */
 
     paymentProof: {
       type: paymentProofSchema,
       default: undefined,
     },
 
-    /*
-     * Compulsory final field from Logistics Manager requirement.
-     */
+
+    /* ========================================================
+       VENDOR BILL / INVOICE DOCUMENT
+
+       Separate from paymentProof.
+
+       Accounts will receive the same file URL during handoff.
+    ======================================================== */
+
+    vendorBillDocument: {
+      type: vendorBillDocumentSchema,
+      default: undefined,
+    },
+
+
+    /* ========================================================
+       CENTRAL ACCOUNTS HANDOFF / PAYMENT STATE
+
+       DepartmentInvoice becomes the central Accounts authority
+       after Logistics hands this record to Accounts.
+
+       These fields are only a synchronized snapshot for
+       Logistics display and locking rules.
+
+       They do NOT create journals, ledgers or Accounts vouchers.
+    ======================================================== */
+
+    accountsHandoffId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "DepartmentInvoice",
+      default: null,
+    },
+
+    accountsStatus: {
+      type: String,
+      enum: LOGISTICS_VENDOR_PAYMENT_ACCOUNTS_STATUSES,
+      default: null,
+    },
+
+    accountsHandedOffBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+
+    accountsHandedOffAt: {
+      type: Date,
+      default: null,
+    },
+
+    accountsPaidAmount: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+
+    accountsRemainingAmount: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+
+    accountsPaymentDate: {
+      type: Date,
+      default: null,
+    },
+
+    accountsPaymentReference: {
+      type: String,
+      trim: true,
+      maxlength: 250,
+      default: "",
+    },
+
+    accountsPaidByName: {
+      type: String,
+      trim: true,
+      maxlength: 250,
+      default: "",
+    },
+
+
+    /* ========================================================
+       REMARKS
+    ======================================================== */
 
     remarks: {
       type: String,
@@ -347,6 +539,11 @@ const logisticsVendorPaymentSchema = new mongoose.Schema(
       minlength: 2,
       maxlength: 3000,
     },
+
+
+    /* ========================================================
+       AUDIT
+    ======================================================== */
 
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
@@ -360,13 +557,38 @@ const logisticsVendorPaymentSchema = new mongoose.Schema(
       default: null,
     },
 
-    // Append-only edit attribution, following Logistics embedded history conventions.
+
+    /*
+     * Append-only edit attribution.
+     */
+
     editHistory: {
-      type: [new mongoose.Schema({
-        changedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
-        changedByName: { type: String, default: "" },
-        changedAt: { type: Date, default: Date.now },
-      }, { _id: false })],
+      type: [
+        new mongoose.Schema(
+          {
+
+            changedBy: {
+              type: mongoose.Schema.Types.ObjectId,
+              ref: "User",
+              default: null,
+            },
+
+            changedByName: {
+              type: String,
+              default: "",
+            },
+
+            changedAt: {
+              type: Date,
+              default: Date.now,
+            },
+
+          },
+          {
+            _id: false,
+          }
+        )
+      ],
       default: [],
     },
 
@@ -381,6 +603,7 @@ const logisticsVendorPaymentSchema = new mongoose.Schema(
       default: true,
       index: true,
     },
+
   },
   {
     timestamps: true,
@@ -426,6 +649,11 @@ logisticsVendorPaymentSchema.pre(
   "validate",
   function () {
 
+
+    /* ========================================================
+       WEIGHT UNIT "OTHER"
+    ======================================================== */
+
     if (
       this.weightUnit === "other" &&
       !String(
@@ -438,8 +666,23 @@ logisticsVendorPaymentSchema.pre(
         "weightUnitOther",
         "Weight unit is required when Other is selected"
       );
+
     }
 
+
+    if (
+      this.weightUnit !== "other"
+    ) {
+
+      this.weightUnitOther =
+        "";
+
+    }
+
+
+    /* ========================================================
+       PAYMENT STATUS "OTHER"
+    ======================================================== */
 
     if (
       this.status === "other" &&
@@ -453,21 +696,82 @@ logisticsVendorPaymentSchema.pre(
         "statusOther",
         "Payment status is required when Other is selected"
       );
+
     }
 
 
-    /*
-     * Payment calculation:
-     *
-     * Payable =
-     * Total Amount
-     * - Previous Advance
-     * - Deduction
-     *
-     * Supplier Balance / Pending Amount =
-     * Payable
-     * - Paid Amount
-     */
+    if (
+      this.status !== "other"
+    ) {
+
+      this.statusOther =
+        "";
+
+    }
+
+
+    /* ========================================================
+       PAYMENT MODE "OTHER"
+
+       Validate all embedded payment history records.
+    ======================================================== */
+
+    for (
+      const payment of
+      this.paymentHistory ||
+      []
+    ) {
+
+      if (
+        payment.paymentMode === "other" &&
+        !String(
+          payment.paymentModeOther ||
+          ""
+        ).trim()
+      ) {
+
+        payment.invalidate(
+          "paymentModeOther",
+          "Payment mode details are required when Other is selected"
+        );
+
+      }
+
+
+      if (
+        payment.paymentMode !== "other"
+      ) {
+
+        payment.paymentModeOther =
+          "";
+
+      }
+
+    }
+
+
+    /* ========================================================
+       PAYMENT CALCULATION
+
+       Existing Logistics calculation remains unchanged for
+       non-handoff / historical records.
+
+       Payable =
+         Total Amount
+         - Previous Advance
+         - Deduction
+
+       Balance =
+         Payable
+         - Paid Amount
+
+       Important:
+       Once accountsHandoffId exists, service-layer rules will
+       stop Logistics users from recording/changing payment
+       state directly.
+
+       Accounts synchronized fields remain separate.
+    ======================================================== */
 
     const total =
       Number(
@@ -529,7 +833,8 @@ logisticsVendorPaymentSchema.pre(
         this.status =
           "paid";
 
-      } else if (
+      }
+      else if (
         paid > 0 ||
         advance > 0 ||
         deduction > 0
@@ -538,12 +843,16 @@ logisticsVendorPaymentSchema.pre(
         this.status =
           "partial";
 
-      } else {
+      }
+      else {
 
         this.status =
           "pending";
+
       }
+
     }
+
   }
 );
 
@@ -553,6 +862,7 @@ logisticsVendorPaymentSchema.pre(
 ============================================================ */
 
 export const LogisticsVendorPayment =
+  mongoose.models.LogisticsVendorPayment ||
   mongoose.model(
     "LogisticsVendorPayment",
     logisticsVendorPaymentSchema

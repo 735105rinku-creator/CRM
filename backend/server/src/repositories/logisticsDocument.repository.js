@@ -4,6 +4,25 @@ import LogisticsDocument
   from "../models/LogisticsDocument.js";
 
 
+/* ============================================================
+   POPULATION
+============================================================ */
+
+function populateUploaderDetails(
+  query
+) {
+  return query
+    .populate(
+      "uploadedBy",
+      "name displayName firstName lastName email"
+    )
+    .populate(
+      "uploadedByEmployeeId",
+      "employeeCode firstName lastName name displayName designation organizationRole"
+    );
+}
+
+
 class LogisticsDocumentRepository {
 
   /* ==========================================================
@@ -41,18 +60,23 @@ class LogisticsDocumentRepository {
       !includeInactive
     ) {
 
-      filter.isActive = { $ne: false };
+      filter.isActive = {
+        $ne:
+          false,
+      };
     }
 
 
-    return LogisticsDocument
-      .findOne(
-        filter
-      )
-      .populate(
-        "uploadedByEmployeeId",
-        "employeeCode firstName lastName displayName"
-      )
+    const query =
+      LogisticsDocument
+        .findOne(
+          filter
+        );
+
+
+    return populateUploaderDetails(
+      query
+    )
       .lean();
   }
 
@@ -66,20 +90,29 @@ class LogisticsDocumentRepository {
     companyId,
   }) {
 
-    return LogisticsDocument
-      .findOne({
-        companyId,
+    const query =
+      LogisticsDocument
+        .findOne({
+          companyId,
 
-        documentNumber:
-          String(
-            documentNumber ||
-            ""
-          )
-            .trim()
-            .toUpperCase(),
+          documentNumber:
+            String(
+              documentNumber ||
+              ""
+            )
+              .trim()
+              .toUpperCase(),
 
-        isActive: { $ne: false },
-      })
+          isActive: {
+            $ne:
+              false,
+          },
+        });
+
+
+    return populateUploaderDetails(
+      query
+    )
       .lean();
   }
 
@@ -105,7 +138,10 @@ class LogisticsDocumentRepository {
           .trim()
           .toUpperCase(),
 
-      isActive: { $ne: false },
+      isActive: {
+        $ne:
+          false,
+      },
     };
 
 
@@ -220,20 +256,25 @@ class LogisticsDocumentRepository {
         : -1;
 
 
+    const listQuery =
+      LogisticsDocument
+        .find(
+          filter
+        );
+
+
+    populateUploaderDetails(
+      listQuery
+    );
+
+
     const [
       data,
       total,
     ] =
       await Promise.all([
 
-        LogisticsDocument
-          .find(
-            filter
-          )
-          .populate(
-            "uploadedByEmployeeId",
-            "employeeCode firstName lastName displayName"
-          )
+        listQuery
           .sort({
             [safeSortBy]:
               direction,
@@ -300,34 +341,40 @@ class LogisticsDocumentRepository {
     payload,
   }) {
 
-    return LogisticsDocument
-      .findOneAndUpdate(
-        {
-          _id:
-            documentId,
+    const query =
+      LogisticsDocument
+        .findOneAndUpdate(
+          {
+            _id:
+              documentId,
 
-          companyId,
+            companyId,
 
-          isActive: { $ne: false },
-        },
+            isActive: {
+              $ne:
+                false,
+            },
+          },
 
-        {
-          $set:
-            payload,
-        },
+          {
+            $set:
+              payload,
+          },
 
-        {
-          new:
-            true,
+          {
+            new:
+              true,
 
-          runValidators:
-            true,
-        }
-      )
-      .populate(
-        "uploadedByEmployeeId",
-        "employeeCode firstName lastName displayName"
-      );
+            runValidators:
+              true,
+          }
+        );
+
+
+    return populateUploaderDetails(
+      query
+    )
+      .lean();
   }
 
 
@@ -349,7 +396,10 @@ class LogisticsDocumentRepository {
 
           companyId,
 
-          isActive: { $ne: false },
+          isActive: {
+            $ne:
+              false,
+          },
         },
 
         {
@@ -387,7 +437,10 @@ class LogisticsDocumentRepository {
         {
           companyId,
 
-          isActive: { $ne: false },
+          isActive: {
+            $ne:
+              false,
+          },
 
           expiryDate: {
             $ne:
@@ -440,7 +493,10 @@ class LogisticsDocumentRepository {
             companyId:
               companyObjectId,
 
-            isActive: { $ne: false },
+            isActive: {
+              $ne:
+                false,
+            },
           },
         },
 
@@ -520,7 +576,10 @@ class LogisticsDocumentRepository {
     const filter = {
       companyId,
 
-      isActive: { $ne: false },
+      isActive: {
+        $ne:
+          false,
+      },
     };
 
 

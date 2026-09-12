@@ -23,8 +23,8 @@
           <h1>Vendor / Supplier Payment</h1>
 
           <p>
-            Record supplier invoices, advances,
-            deductions and outstanding balances.
+            Manage supplier invoices, advances, deductions,
+            vendor bills and Accounts payment handoff.
           </p>
         </div>
 
@@ -54,6 +54,7 @@
 
   </header>
 
+
   <main class="page-content">
 
     <!-- =====================================================
@@ -62,46 +63,149 @@
     <section class="summary-grid">
 
       <article>
+
         <span class="summary-icon">₹</span>
 
         <div>
           <small>Total Amount</small>
-          <strong>{{ formatCurrency(summary().totalAmount) }}</strong>
+
+          <strong>
+            {{ formatCurrency(summary().totalAmount) }}
+          </strong>
+
           <p>Total supplier invoices</p>
         </div>
+
       </article>
 
+
       <article>
+
         <span class="summary-icon advance">↘</span>
 
         <div>
           <small>Previous Advance</small>
-          <strong>{{ formatCurrency(summary().previousAdvance) }}</strong>
+
+          <strong>
+            {{ formatCurrency(summary().previousAdvance) }}
+          </strong>
+
           <p>Advance already adjusted</p>
         </div>
+
       </article>
 
+
       <article>
+
         <span class="summary-icon paid">✓</span>
 
         <div>
-          <small>Paid Amount</small>
-          <strong>{{ formatCurrency(summary().paidAmount) }}</strong>
-          <p>Total vendor payments</p>
+          <small>Logistics Paid</small>
+
+          <strong>
+            {{ formatCurrency(summary().paidAmount) }}
+          </strong>
+
+          <p>Payment before Accounts handoff</p>
         </div>
+
       </article>
 
+
       <article>
+
         <span class="summary-icon pending">◷</span>
 
         <div>
           <small>Supplier Balance</small>
-          <strong>{{ formatCurrency(summary().supplierBalance) }}</strong>
-          <p>Outstanding supplier amount</p>
+
+          <strong>
+            {{ formatCurrency(summary().supplierBalance) }}
+          </strong>
+
+          <p>Local outstanding supplier amount</p>
         </div>
+
       </article>
 
     </section>
+
+
+    <!-- =====================================================
+         ACCOUNTS SUMMARY
+    ====================================================== -->
+    <section class="accounts-summary">
+
+      <div class="accounts-summary-title">
+
+        <div>
+          <span>ACCOUNTS HANDOFF</span>
+
+          <h2>
+            Accounts Payment Overview
+          </h2>
+
+          <p>
+            Payment processing after Logistics sends a vendor
+            payable to Accounts.
+          </p>
+        </div>
+
+        <div class="handoff-count">
+
+          <small>
+            Sent to Accounts
+          </small>
+
+          <strong>
+            {{ summary().handedOffCount }}
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      <div class="accounts-summary-grid">
+
+        <article>
+
+          <span>
+            Accounts Paid
+          </span>
+
+          <strong>
+            {{ formatCurrency(summary().accountsPaidAmount) }}
+          </strong>
+
+          <small>
+            Payment recorded by Accounts
+          </small>
+
+        </article>
+
+
+        <article>
+
+          <span>
+            Accounts Outstanding
+          </span>
+
+          <strong>
+            {{ formatCurrency(summary().accountsRemainingAmount) }}
+          </strong>
+
+          <small>
+            Remaining on handed-off payables
+          </small>
+
+        </article>
+
+      </div>
+
+    </section>
+
 
     <!-- =====================================================
          SEARCH / FILTER
@@ -112,8 +216,15 @@
 
         <div>
           <span>PAYMENT CONTROL</span>
-          <h2>Vendor Payment Register</h2>
-          <p>Search and review all supplier payment records.</p>
+
+          <h2>
+            Vendor Payment Register
+          </h2>
+
+          <p>
+            Search and review supplier invoices, creator ownership
+            and Accounts payment status.
+          </p>
         </div>
 
         <button
@@ -126,6 +237,7 @@
 
       </div>
 
+
       <div class="filters">
 
         <div class="search-box">
@@ -137,10 +249,11 @@
             type="search"
             [value]="searchTerm()"
             (input)="setSearch(paymentSearch.value)"
-            placeholder="Search vendor or invoice number..."
+            placeholder="Search vendor, invoice, creator or Accounts status..."
           />
 
         </div>
+
 
         <select
           #paymentStatus
@@ -159,52 +272,120 @@
 
     </section>
 
+
     <!-- =====================================================
          FORM
     ====================================================== -->
-    <section class="form-card" #paymentForm>
+    <section
+      class="form-card"
+      #paymentForm
+    >
 
       <header class="section-header">
 
         <div>
+
           <span>PAYMENT ENTRY</span>
 
           <h2>
-            {{ isEditMode() ? 'Edit Vendor Payment' : 'Vendor Payment Details' }}
+            {{
+              isEditMode()
+                ? 'Edit Vendor Payment'
+                : 'Vendor Payment Details'
+            }}
           </h2>
 
           <p>
             @if (isEditMode()) {
-              Updating an existing supplier payment record.
+              Update your supplier payment before it is sent to Accounts.
             } @else {
-              Fields based on the Logistics Manager payment sheet.
+              Create your Logistics vendor payable and record any existing settlement.
             }
           </p>
+
         </div>
 
+
         <div class="live-balance">
-          <small>Current Supplier Balance</small>
-          <strong>{{ formatCurrency(currentSupplierBalance) }}</strong>
+
+          <small>
+            Current Supplier Balance
+          </small>
+
+          <strong>
+            {{ formatCurrency(currentSupplierBalance) }}
+          </strong>
+
         </div>
 
       </header>
 
 
+      <!-- ===================================================
+           EDIT AUDIT
+      ==================================================== -->
       @if (form.editHistory?.length) {
-        <div class="edit-audit" role="note">
-          <span>Edited by: {{ form.editHistory![form.editHistory!.length - 1].changedByName || form.editHistory![form.editHistory!.length - 1].changedBy || 'Unknown user' }}</span>
-          <span>Edited on: {{ form.editHistory![form.editHistory!.length - 1].changedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+
+        <div
+          class="edit-audit"
+          role="note"
+        >
+
+          <span>
+            Edited by:
+            {{
+              form.editHistory![form.editHistory!.length - 1].changedByName ||
+              form.editHistory![form.editHistory!.length - 1].changedBy ||
+              'Unknown user'
+            }}
+          </span>
+
+          <span>
+            Edited on:
+            {{
+              form.editHistory![form.editHistory!.length - 1].changedAt
+                | date:'dd/MM/yyyy HH:mm'
+            }}
+          </span>
+
           <details>
-            <summary>Edit history</summary>
-            @for (entry of form.editHistory; track $index) {
-              <div>{{ entry.changedByName || entry.changedBy || 'Unknown user' }} ? {{ entry.changedAt | date:'dd/MM/yyyy HH:mm' }}</div>
+
+            <summary>
+              Edit history
+            </summary>
+
+            @for (
+              entry of form.editHistory;
+              track $index
+            ) {
+
+              <div>
+                {{
+                  entry.changedByName ||
+                  entry.changedBy ||
+                  'Unknown user'
+                }}
+                •
+                {{
+                  entry.changedAt
+                    | date:'dd/MM/yyyy HH:mm'
+                }}
+              </div>
+
             }
+
           </details>
+
         </div>
+
       }
+
+
       <div class="form-grid">
 
-        <!-- Vendor -->
+        <!-- =================================================
+             VENDOR
+        ================================================== -->
         <div class="field span-2">
 
           <label>
@@ -216,29 +397,35 @@
             [(ngModel)]="form.vendor"
             (change)="onVendorSelected()"
           >
-            <option value="">Select Vendor</option>
 
-            @for (vendor of vendors; track vendor.value) {
-              <option [value]="vendor.value">{{ vendor.label }}</option>
+            <option value="">
+              Select Vendor
+            </option>
+
+            @for (
+              vendor of vendors;
+              track vendor.value
+            ) {
+
+              <option [value]="vendor.value">
+                {{ vendor.label }}
+              </option>
+
             }
+
           </select>
 
           @if (vendorLoadError()) {
-            <small class="field-error">{{ vendorLoadError() }}</small>
-          }
 
-          @if (form.vendor === 'other') {
-            <input
-              type="text"
-              class="other-input"
-              [(ngModel)]="form.vendorOther"
-              placeholder="Enter vendor name"
-            />
+            <small class="field-error">
+              {{ vendorLoadError() }}
+            </small>
+
           }
 
         </div>
 
-        <!-- Export Invoice -->
+
         <div class="field">
 
           <label>
@@ -254,7 +441,7 @@
 
         </div>
 
-        <!-- Invoice Date -->
+
         <div class="field">
 
           <label>
@@ -269,7 +456,7 @@
 
         </div>
 
-        <!-- From -->
+
         <div class="field">
 
           <label>
@@ -277,26 +464,41 @@
             <b>*</b>
           </label>
 
-          <select [(ngModel)]="form.from">
-            <option value="">Select Source</option>
+          <select
+            [(ngModel)]="form.from"
+          >
 
-            @for (option of sourceOptions; track option.value) {
-              <option [value]="option.value">{{ option.label }}</option>
+            <option value="">
+              Select Source
+            </option>
+
+            @for (
+              option of sourceOptions;
+              track option.value
+            ) {
+
+              <option [value]="option.value">
+                {{ option.label }}
+              </option>
+
             }
+
           </select>
 
           @if (form.from === 'other') {
+
             <input
               type="text"
               class="other-input"
               [(ngModel)]="form.fromOther"
-              placeholder="Enter source"
+              placeholder="Enter source details"
             />
+
           }
 
         </div>
 
-        <!-- Vendor Invoice -->
+
         <div class="field">
 
           <label>
@@ -312,7 +514,7 @@
 
         </div>
 
-        <!-- Vendor Invoice Date -->
+
         <div class="field">
 
           <label>
@@ -327,24 +529,29 @@
 
         </div>
 
-        <!-- Weight -->
+
         <div class="field">
 
-          <label>Weight</label>
+          <label>
+            Weight
+          </label>
 
           <div class="unit-input">
+
             <input
               type="number"
               min="0"
               [(ngModel)]="form.weight"
               placeholder="0.00"
             />
+
             <span>KG</span>
+
           </div>
 
         </div>
 
-        <!-- Total Amount -->
+
         <div class="field">
 
           <label>
@@ -353,46 +560,59 @@
           </label>
 
           <div class="money-input">
+
             <span>₹</span>
+
             <input
               type="number"
               min="0"
               [(ngModel)]="form.totalAmount"
               placeholder="0.00"
             />
+
           </div>
 
         </div>
 
-        <!-- Previous Advance -->
+
         <div class="field">
 
-          <label>Previous Advance</label>
+          <label>
+            Previous Advance
+          </label>
 
           <div class="money-input">
+
             <span>₹</span>
+
             <input
               type="number"
               min="0"
               [(ngModel)]="form.previousAdvance"
               placeholder="0.00"
             />
+
           </div>
 
         </div>
 
-        <!-- Pending -->
+
         <div class="field">
 
-          <label>Pending Amount</label>
+          <label>
+            Pending Amount
+          </label>
 
           <div class="money-input calculated-input">
+
             <span>₹</span>
+
             <input
               type="number"
               readonly
               [value]="currentPendingAmount"
             />
+
           </div>
 
           <small class="calculation-note">
@@ -401,52 +621,71 @@
 
         </div>
 
-        <!-- Paid -->
+
         <div class="field">
 
-          <label>Paid Amount</label>
+          <label>
+            Paid Amount
+          </label>
 
           <div class="money-input">
+
             <span>₹</span>
+
             <input
               type="number"
               min="0"
               [(ngModel)]="form.paidAmount"
               placeholder="0.00"
             />
+
           </div>
+
+          <small class="calculation-note">
+            Historical/direct Logistics payment before Accounts handoff
+          </small>
 
         </div>
 
-        <!-- Deduction -->
+
         <div class="field">
 
-          <label>Deduction</label>
+          <label>
+            Deduction
+          </label>
 
           <div class="money-input">
+
             <span>₹</span>
+
             <input
               type="number"
               min="0"
               [(ngModel)]="form.deduction"
               placeholder="0.00"
             />
+
           </div>
 
         </div>
 
-        <!-- Supplier Balance -->
+
         <div class="field">
 
-          <label>Supplier Balance</label>
+          <label>
+            Supplier Balance
+          </label>
 
           <div class="money-input balance-input">
+
             <span>₹</span>
+
             <input
               type="number"
               readonly
               [value]="currentSupplierBalance"
             />
+
           </div>
 
           <small class="calculation-note">
@@ -455,7 +694,7 @@
 
         </div>
 
-        <!-- Status -->
+
         <div class="field">
 
           <label>
@@ -463,27 +702,50 @@
             <b>*</b>
           </label>
 
-          <select [(ngModel)]="form.status">
-            @for (option of statusOptions; track option.value) {
-              <option [value]="option.value">{{ option.label }}</option>
+          <select
+            [(ngModel)]="form.status"
+          >
+
+            @for (
+              option of statusOptions;
+              track option.value
+            ) {
+
+              <option [value]="option.value">
+                {{ option.label }}
+              </option>
+
             }
+
           </select>
 
           @if (form.status === 'other') {
+
             <input
               type="text"
               class="other-input"
               [(ngModel)]="form.statusOther"
               placeholder="Enter custom status"
             />
+
           }
 
         </div>
 
-        <!-- Payment Proof -->
+
+        <!-- =================================================
+             PAYMENT PROOF
+        ================================================== -->
         <div class="field span-2">
 
-          <label>Payment Proof</label>
+          <label>
+            Payment Proof
+          </label>
+
+          <p class="field-description">
+            Proof of payment already made by Logistics.
+            This is separate from the Vendor Bill sent to Accounts.
+          </p>
 
           <input
             #fileInput
@@ -493,21 +755,33 @@
           />
 
           @if (selectedPaymentProof()) {
+
             <small class="file-selected">
-              Selected: {{ selectedPaymentProof()?.name }}
+              Selected:
+              {{ selectedPaymentProof()?.name }}
             </small>
+
           }
 
           @if (paymentProofError()) {
-            <small class="field-error">{{ paymentProofError() }}</small>
+
+            <small class="field-error">
+              {{ paymentProofError() }}
+            </small>
+
           }
 
-          @if (isEditMode() && form.paymentProof?.url && !selectedPaymentProof()) {
+          @if (
+            isEditMode() &&
+            form.paymentProof?.url &&
+            !selectedPaymentProof()
+          ) {
 
             <div class="existing-proof">
 
               <small>
-                Current file: {{ form.paymentProof?.originalName }}
+                Current file:
+                {{ paymentProofFileName(form) }}
               </small>
 
               <button
@@ -532,69 +806,82 @@
 
         </div>
 
-        <!-- Remarks MUST BE LAST -->
+
         <div class="field remarks-field span-4">
 
-          <label>Remarks</label>
+          <label>
+            Remarks
+            <b>*</b>
+          </label>
 
           <textarea
             rows="4"
             [(ngModel)]="form.remarks"
-            placeholder="
-              Enter final remarks,
-              payment notes,
-              deduction reason,
-              approval information, etc.
-            "
+            placeholder="Enter final remarks, payment notes, deduction reason, approval information, etc."
           ></textarea>
 
         </div>
 
       </div>
 
-      <!-- FORM FOOTER -->
+
+      <!-- ===================================================
+           FORM FOOTER
+      ==================================================== -->
       <footer class="form-footer">
 
         <div class="payment-calculation">
 
           <article>
             <span>Total</span>
-            <strong>{{ formatCurrency(form.totalAmount) }}</strong>
+            <strong>
+              {{ formatCurrency(form.totalAmount) }}
+            </strong>
           </article>
 
           <i>−</i>
 
           <article>
             <span>Advance</span>
-            <strong>{{ formatCurrency(form.previousAdvance) }}</strong>
+            <strong>
+              {{ formatCurrency(form.previousAdvance) }}
+            </strong>
           </article>
 
           <i>−</i>
 
           <article>
             <span>Paid</span>
-            <strong>{{ formatCurrency(form.paidAmount) }}</strong>
+            <strong>
+              {{ formatCurrency(form.paidAmount) }}
+            </strong>
           </article>
 
           <i>−</i>
 
           <article>
             <span>Deduction</span>
-            <strong>{{ formatCurrency(form.deduction) }}</strong>
+            <strong>
+              {{ formatCurrency(form.deduction) }}
+            </strong>
           </article>
 
           <i>=</i>
 
           <article class="final-balance">
             <span>Balance</span>
-            <strong>{{ formatCurrency(currentSupplierBalance) }}</strong>
+            <strong>
+              {{ formatCurrency(currentSupplierBalance) }}
+            </strong>
           </article>
 
         </div>
 
+
         <div class="form-actions">
 
           @if (isEditMode()) {
+
             <button
               type="button"
               class="soft-button"
@@ -602,7 +889,9 @@
             >
               Cancel Edit
             </button>
+
           } @else {
+
             <button
               type="button"
               class="soft-button"
@@ -610,6 +899,7 @@
             >
               Reset
             </button>
+
           }
 
           <button
@@ -618,7 +908,15 @@
             [disabled]="isSaving()"
             (click)="savePayment()"
           >
-            {{ isSaving() ? 'Saving...' : (isEditMode() ? 'Update Payment' : 'Save Payment') }}
+            {{
+              isSaving()
+                ? 'Saving...'
+                : (
+                    isEditMode()
+                      ? 'Update Payment'
+                      : 'Save Payment'
+                  )
+            }}
           </button>
 
         </div>
@@ -626,6 +924,7 @@
       </footer>
 
     </section>
+
 
     <!-- =====================================================
          REGISTER
@@ -636,219 +935,1662 @@
 
         <div>
           <span>PAYMENT DETAIL</span>
-          <h2>Supplier Payment Records</h2>
+
+          <h2>
+            Supplier Payment Records
+          </h2>
+
+          <p>
+            Review creator ownership, Vendor Bills and Accounts
+            processing for each supplier payable.
+          </p>
         </div>
 
-        <p>{{ filteredPayments().length }} records</p>
+        <p>
+          {{ filteredPayments().length }} records
+        </p>
 
       </header>
 
-      <div class="table-scroll">
 
-        <table>
+      @if (isLoading()) {
 
-          <thead>
-            <tr>
-              <th>S.No.</th>
-              <th>Vendor</th>
-              <th>Export Invoice No.</th>
-              <th>Invoice Date</th>
-              <th>From</th>
-              <th>Vendor Invoice No.</th>
-              <th>Vendor Invoice Date</th>
-              <th>Weight</th>
-              <th>Total Amount</th>
-              <th>Previous Advance</th>
-              <th>Pending Amount</th>
-              <th>Paid Amount</th>
-              <th>Deduction</th>
-              <th>Supplier Balance</th>
-              <th>Status</th>
-              <th>Payment Proof</th>
-              <th>Remarks</th>
-              <th>Action</th>
-            </tr>
-          </thead>
+        <div class="loading-state">
+          Loading vendor payments...
+        </div>
 
-          <tbody>
+      } @else {
 
-            @for (payment of filteredPayments(); track payment.id; let serial = $index) {
+        <div class="table-scroll">
+
+          <table>
+
+            <thead>
 
               <tr>
+                <th>S.No.</th>
+                <th>Created By</th>
+                <th>Vendor</th>
+                <th>Export Invoice</th>
+                <th>Vendor Invoice</th>
+                <th>Invoice Date</th>
+                <th>Total</th>
+                <th>Logistics Paid</th>
+                <th>Deduction</th>
+                <th>Outstanding</th>
+                <th>Logistics Status</th>
+                <th>Vendor Bill</th>
+                <th>Accounts Status</th>
+                <th>Accounts Paid</th>
+                <th>Accounts Balance</th>
+                <th>Payment Proof</th>
+                <th>Actions</th>
+              </tr>
 
-                <!-- S.No -->
-                <td>
-                  <span class="serial">{{ serial + 1 }}</span>
-                </td>
+            </thead>
 
-                <!-- Vendor -->
-                <td>
-                  <div class="primary-cell">
-                    <strong>{{ resolveVendorName(payment) }}</strong>
-                    <span>Supplier</span>
-                  </div>
-                </td>
 
-                <!-- Export Invoice -->
-                <td>
-                  <strong class="invoice-number">{{ payment.exportInvoiceNo }}</strong>
-                </td>
+            <tbody>
 
-                <!-- Invoice Date -->
-                <td>{{ formatDate(payment.invoiceDate) }}</td>
+              @for (
+                payment of filteredPayments();
+                track payment.id;
+                let serial = $index
+              ) {
 
-                <!-- From -->
-                <td>
-                  <span class="from-chip">{{ resolveSourceName(payment) }}</span>
-                </td>
+                <tr
+                  [class.handed-off-row]="isHandedOff(payment)"
+                >
 
-                <!-- Vendor Invoice -->
-                <td>
-                  <strong class="invoice-number">{{ payment.vendorInvoiceNo }}</strong>
-      @if (payment.editHistory?.length) {
-        <div class="edit-audit" role="note">
-          <span>Edited by: {{ payment.editHistory![payment.editHistory!.length - 1].changedByName || payment.editHistory![payment.editHistory!.length - 1].changedBy || 'Unknown user' }}</span>
-          <span>Edited on: {{ payment.editHistory![payment.editHistory!.length - 1].changedAt | date:'dd/MM/yyyy HH:mm' }}</span>
-          <details>
-            <summary>Edit history</summary>
-            @for (entry of payment.editHistory; track $index) {
-              <div>{{ entry.changedByName || entry.changedBy || 'Unknown user' }} ? {{ entry.changedAt | date:'dd/MM/yyyy HH:mm' }}</div>
-            }
-          </details>
-        </div>
-      }
+                  <td>
+                    <span class="serial">
+                      {{ serial + 1 }}
+                    </span>
+                  </td>
 
-                </td>
 
-                <!-- Vendor Invoice Date -->
-                <td>{{ formatDate(payment.vendorInvoiceDate) }}</td>
+                  <!-- =================================================
+                       CREATED BY / OWNERSHIP
+                  ================================================== -->
+                  <td>
 
-                <!-- Weight -->
-                <td>
-                  <strong class="weight">{{ payment.weight }} Kg</strong>
-                </td>
+                    <div class="primary-cell">
 
-                <!-- Total -->
-                <td>
-                  <strong class="money">{{ formatCurrency(payment.totalAmount) }}</strong>
-                </td>
+                      <strong>
+                        {{ creatorName(payment) }}
+                      </strong>
 
-                <!-- Advance -->
-                <td>{{ formatCurrency(payment.previousAdvance) }}</td>
+                      @if (creatorEmployeeCode(payment)) {
 
-                <!-- Pending -->
-                <td>
-                  <strong>{{ formatCurrency(getPendingAmount(payment)) }}</strong>
-                </td>
+                        <span>
+                          {{ creatorEmployeeCode(payment) }}
+                        </span>
 
-                <!-- Paid -->
-                <td>
-                  <span class="paid-value">{{ formatCurrency(payment.paidAmount) }}</span>
-                </td>
+                      }
 
-                <!-- Deduction -->
-                <td>{{ formatCurrency(payment.deduction) }}</td>
+                      @if (creatorDesignation(payment)) {
 
-                <!-- Balance -->
-                <td>
-                  <strong
-                    class="supplier-balance"
-                    [class.zero]="getSupplierBalance(payment) === 0"
-                  >
-                    {{ formatCurrency(getSupplierBalance(payment)) }}
-                  </strong>
-                </td>
+                        <small class="table-subtext">
+                          {{ creatorDesignation(payment) }}
+                        </small>
 
-                <!-- Status -->
-                <td>
-                  <span [class]="'status ' + statusClass(payment.status)">
-                    {{ resolveStatusName(payment) }}
-                  </span>
-                </td>
+                      }
 
-                <!-- Payment Proof -->
-                <td>
-                  @if (payment.paymentProof?.url) {
+                      <small class="table-subtext">
 
-                    <div class="proof-actions">
+                        @if (isHandedOff(payment)) {
 
-                      <button
-                        type="button"
-                        title="View proof"
-                        (click)="viewPaymentProof(payment)"
-                      >
-                        View
-                      </button>
+                          Read-only • Accounts controlled
 
-                      <button
-                        type="button"
-                        title="Download proof"
-                        (click)="downloadPaymentProof(payment)"
-                      >
-                        Download
-                      </button>
+                        } @else if (isOwnPayment(payment)) {
+
+                          Your Vendor Payment
+
+                        } @else if (canHandoffToAccounts()) {
+
+                          Department record • Review only
+
+                        } @else {
+
+                          Read-only
+
+                        }
+
+                      </small>
 
                     </div>
 
-                  } @else {
-                    -
-                  }
-                </td>
+                  </td>
 
-                <!-- Remarks -->
-                <td>
-                  <div class="remarks-cell" [title]="payment.remarks">
-                    {{ payment.remarks || '-' }}
-                  </div>
-                </td>
 
-                <!-- Action -->
-                <td>
-                  <div class="actions">
+                  <td>
 
-                    <button
-                      type="button"
-                      title="View"
-                      (click)="viewPayment(payment)"
+                    <div class="primary-cell">
+
+                      <strong>
+                        {{ resolveVendorName(payment) }}
+                      </strong>
+
+                      <span>
+                        {{ resolveSourceName(payment) }}
+                      </span>
+
+                    </div>
+
+                  </td>
+
+
+                  <td>
+
+                    <strong class="invoice-number">
+                      {{ payment.exportInvoiceNo || '-' }}
+                    </strong>
+
+                    <small class="table-subtext">
+                      {{ formatDate(payment.invoiceDate) }}
+                    </small>
+
+                  </td>
+
+
+                  <td>
+
+                    <strong class="invoice-number">
+                      {{ payment.vendorInvoiceNo || '-' }}
+                    </strong>
+
+                    <small class="table-subtext">
+                      {{ formatDate(payment.vendorInvoiceDate) }}
+                    </small>
+
+                    @if (payment.editHistory?.length) {
+
+                      <small class="table-subtext">
+                        Last edited:
+                        {{
+                          payment.editHistory![payment.editHistory!.length - 1].changedAt
+                            | date:'dd/MM/yyyy HH:mm'
+                        }}
+                      </small>
+
+                    }
+
+                  </td>
+
+
+                  <td>
+                    {{ formatDate(payment.vendorInvoiceDate) }}
+                  </td>
+
+
+                  <td>
+
+                    <strong class="money">
+                      {{ formatCurrency(payment.totalAmount) }}
+                    </strong>
+
+                  </td>
+
+
+                  <td>
+
+                    <span class="paid-value">
+                      {{ formatCurrency(payment.paidAmount) }}
+                    </span>
+
+                    @if (payment.previousAdvance > 0) {
+
+                      <small class="table-subtext">
+                        Advance:
+                        {{ formatCurrency(payment.previousAdvance) }}
+                      </small>
+
+                    }
+
+                  </td>
+
+
+                  <td>
+                    {{ formatCurrency(payment.deduction) }}
+                  </td>
+
+
+                  <td>
+
+                    <strong
+                      class="supplier-balance"
+                      [class.zero]="getDisplayOutstanding(payment) === 0"
                     >
-                      ◉
-                    </button>
+                      {{ formatCurrency(getDisplayOutstanding(payment)) }}
+                    </strong>
 
-                    <button
-                      type="button"
-                      title="Edit"
-                      (click)="editPayment(payment)"
+                    @if (isHandedOff(payment)) {
+
+                      <small class="table-subtext">
+                        Accounts controlled
+                      </small>
+
+                    } @else {
+
+                      <small class="table-subtext">
+                        Logistics balance
+                      </small>
+
+                    }
+
+                  </td>
+
+
+                  <td>
+
+                    <span
+                      [class]="'status ' + statusClass(payment.status)"
                     >
-                      ✎
-                    </button>
+                      {{ resolveStatusName(payment) }}
+                    </span>
 
-                  </div>
-                </td>
+                  </td>
 
-              </tr>
 
-            } @empty {
+                  <!-- =================================================
+                       VENDOR BILL
+                  ================================================== -->
+                  <td>
 
-              <tr>
-                <td colspan="18">
-                  <div class="empty-state">
-                    <span>₹</span>
-                    <strong>No vendor payments found</strong>
-                    <p>Add a payment or change your search filters.</p>
-                  </div>
-                </td>
-              </tr>
+                    @if (payment.vendorBillDocument?.fileUrl) {
 
-            }
+                      <div class="document-cell">
 
-          </tbody>
+                        <strong>
+                          {{ vendorBillFileName(payment) }}
+                        </strong>
 
-        </table>
+                        <small>
+                          {{
+                            fileSizeLabel(
+                              payment.vendorBillDocument?.fileSize
+                            )
+                          }}
+                        </small>
 
-      </div>
+                        <div class="proof-actions">
+
+                          <button
+                            type="button"
+                            title="View Vendor Bill"
+                            (click)="viewVendorBill(payment)"
+                          >
+                            View
+                          </button>
+
+                          <button
+                            type="button"
+                            title="Download Vendor Bill"
+                            (click)="downloadVendorBill(payment)"
+                          >
+                            Download
+                          </button>
+
+                        </div>
+
+                      </div>
+
+                    } @else {
+
+                      <div class="document-cell">
+
+                        <span class="missing-document">
+                          Not uploaded
+                        </span>
+
+                        @if (canModifyVendorBill(payment)) {
+
+                          <button
+                            type="button"
+                            class="soft-button"
+                            title="Upload Vendor Bill"
+                            (click)="viewPayment(payment)"
+                          >
+                            Upload Bill
+                          </button>
+
+                        } @else if (
+                          canHandoffToAccounts() &&
+                          !isHandedOff(payment)
+                        ) {
+
+                          <small class="table-subtext">
+                            Waiting for creator
+                          </small>
+
+                        }
+
+                      </div>
+
+                    }
+
+                  </td>
+
+
+                  <!-- =================================================
+                       ACCOUNTS STATUS
+                  ================================================== -->
+                  <td>
+
+                    <span
+                      [class]="
+                        'accounts-status ' +
+                        accountsStatusClass(payment.accountsStatus)
+                      "
+                    >
+                      {{
+                        accountsStatusLabel(
+                          payment.accountsStatus
+                        )
+                      }}
+                    </span>
+
+                    @if (payment.accountsHandedOffAt) {
+
+                      <small class="table-subtext">
+                        {{
+                          formatDateTime(
+                            payment.accountsHandedOffAt
+                          )
+                        }}
+                      </small>
+
+                    }
+
+                  </td>
+
+
+                  <td>
+
+                    @if (isHandedOff(payment)) {
+
+                      <strong class="accounts-paid-value">
+                        {{
+                          formatCurrency(
+                            getAccountsPaidAmount(payment)
+                          )
+                        }}
+                      </strong>
+
+                    } @else {
+
+                      <span>-</span>
+
+                    }
+
+                  </td>
+
+
+                  <td>
+
+                    @if (isHandedOff(payment)) {
+
+                      <strong
+                        class="accounts-balance-value"
+                        [class.zero]="
+                          payment.accountsRemainingAmount === 0
+                        "
+                      >
+                        {{
+                          formatCurrency(
+                            payment.accountsRemainingAmount || 0
+                          )
+                        }}
+                      </strong>
+
+                    } @else {
+
+                      <span>-</span>
+
+                    }
+
+                  </td>
+
+
+                  <td>
+
+                    @if (payment.paymentProof?.url) {
+
+                      <div class="proof-actions">
+
+                        <button
+                          type="button"
+                          title="View Payment Proof"
+                          (click)="viewPaymentProof(payment)"
+                        >
+                          View
+                        </button>
+
+                        <button
+                          type="button"
+                          title="Download Payment Proof"
+                          (click)="downloadPaymentProof(payment)"
+                        >
+                          Download
+                        </button>
+
+                      </div>
+
+                    } @else {
+
+                      <span>-</span>
+
+                    }
+
+                  </td>
+
+
+                  <!-- =================================================
+                       QUICK ACTIONS
+                  ================================================== -->
+                  <td>
+
+                    <div class="actions">
+
+                      <button
+                        type="button"
+                        title="View Details"
+                        (click)="viewPayment(payment)"
+                      >
+                        ◉
+                      </button>
+
+
+                      @if (canEditPayment(payment)) {
+
+                        <button
+                          type="button"
+                          title="Edit Your Vendor Payment"
+                          (click)="editPayment(payment)"
+                        >
+                          ✎
+                        </button>
+
+                      }
+
+
+                      @if (
+                        canHandoffToAccounts() &&
+                        !isHandedOff(payment)
+                      ) {
+
+                        <button
+                          type="button"
+                          class="accounts-action"
+                          title="Send to Accounts"
+                          [disabled]="
+                            !canSendToAccounts(payment) ||
+                            handingOffPaymentId() === payment._id
+                          "
+                          (click)="handoffToAccounts(payment)"
+                        >
+                          ⇢
+                        </button>
+
+                      }
+
+                    </div>
+
+                  </td>
+
+                </tr>
+
+              } @empty {
+
+                <tr>
+
+                  <td colspan="17">
+
+                    <div class="empty-state">
+
+                      <span>₹</span>
+
+                      <strong>
+                        No vendor payments found
+                      </strong>
+
+                      <p>
+                        Add a payment or change your search filters.
+                      </p>
+
+                    </div>
+
+                  </td>
+
+                </tr>
+
+              }
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      }
 
     </section>
 
   </main>
+
+
+  <!-- =====================================================
+       PAYMENT DETAIL MODAL
+  ====================================================== -->
+  @if (selectedPayment(); as payment) {
+
+    <div
+      class="detail-backdrop"
+      (click)="closePaymentDetail()"
+    >
+
+      <section
+        class="payment-detail-modal"
+        (click)="$event.stopPropagation()"
+      >
+
+        <!-- =================================================
+             MODAL HEADER
+        ================================================== -->
+        <header class="detail-header">
+
+          <div>
+
+            <span>VENDOR PAYABLE</span>
+
+            <h2>
+              {{ payment.vendorInvoiceNo || 'Vendor Payment' }}
+            </h2>
+
+            <p>
+              {{ resolveVendorName(payment) }}
+              •
+              {{ payment.exportInvoiceNo }}
+            </p>
+
+          </div>
+
+          <button
+            type="button"
+            class="modal-close"
+            title="Close"
+            (click)="closePaymentDetail()"
+          >
+            ×
+          </button>
+
+        </header>
+
+
+        <!-- =================================================
+             CREATOR / OWNERSHIP
+        ================================================== -->
+        <section class="detail-section">
+
+          <header>
+
+            <span>RECORD OWNERSHIP</span>
+
+            <h3>
+              Created By
+            </h3>
+
+          </header>
+
+
+          <div class="detail-grid">
+
+            <div>
+
+              <small>
+                Employee
+              </small>
+
+              <strong>
+                {{ creatorName(payment) }}
+              </strong>
+
+            </div>
+
+
+            <div>
+
+              <small>
+                Employee Code
+              </small>
+
+              <strong>
+                {{ creatorEmployeeCode(payment) || '-' }}
+              </strong>
+
+            </div>
+
+
+            <div>
+
+              <small>
+                Designation
+              </small>
+
+              <strong>
+                {{ creatorDesignation(payment) || '-' }}
+              </strong>
+
+            </div>
+
+
+            <div>
+
+              <small>
+                Workspace Access
+              </small>
+
+              <strong>
+                {{ recordAccessLabel(payment) }}
+              </strong>
+
+            </div>
+
+          </div>
+
+
+          @if (
+            !isOwnPayment(payment) &&
+            !isHandedOff(payment) &&
+            canHandoffToAccounts()
+          ) {
+
+            <div class="edit-audit">
+
+              <span>
+                Review mode
+              </span>
+
+              <span>
+                This Vendor Payment belongs to
+                <strong>{{ creatorName(payment) }}</strong>.
+                You can review the record, documents and send the
+                payable to Accounts, but you cannot edit the creator's work.
+              </span>
+
+            </div>
+
+          }
+
+
+          @if (
+            isOwnPayment(payment) &&
+            !isHandedOff(payment)
+          ) {
+
+            <div class="edit-audit">
+
+              <span>
+                Your workspace record
+              </span>
+
+              <span>
+                You can edit this Vendor Payment and maintain its
+                Vendor Bill until it is sent to Accounts.
+              </span>
+
+            </div>
+
+          }
+
+        </section>
+
+
+        <!-- =================================================
+             ACCOUNTS STATE
+        ================================================== -->
+        <section
+          [class]="
+            'accounts-state-card ' +
+            accountsStatusClass(payment.accountsStatus)
+          "
+        >
+
+          <div>
+
+            <small>
+              ACCOUNTS STATUS
+            </small>
+
+            <strong>
+              {{
+                accountsStatusLabel(
+                  payment.accountsStatus
+                )
+              }}
+            </strong>
+
+            <p>
+              {{
+                accountsStatusDescription(
+                  payment
+                )
+              }}
+            </p>
+
+          </div>
+
+          @if (isHandedOff(payment)) {
+
+            <div class="accounts-lock">
+
+              <span>🔒</span>
+
+              <div>
+                <strong>
+                  Accounts Controlled
+                </strong>
+
+                <small>
+                  Financial editing is locked in Logistics.
+                </small>
+              </div>
+
+            </div>
+
+          }
+
+        </section>
+
+
+        <!-- =================================================
+             FINANCIAL OVERVIEW
+        ================================================== -->
+        <section class="detail-financial-grid">
+
+          <article>
+            <span>Total Invoice</span>
+
+            <strong>
+              {{ formatCurrency(payment.totalAmount) }}
+            </strong>
+          </article>
+
+          <article>
+            <span>Previous Advance</span>
+
+            <strong>
+              {{ formatCurrency(payment.previousAdvance) }}
+            </strong>
+          </article>
+
+          <article>
+            <span>Logistics Paid</span>
+
+            <strong>
+              {{ formatCurrency(payment.paidAmount) }}
+            </strong>
+          </article>
+
+          <article>
+            <span>Deduction</span>
+
+            <strong>
+              {{ formatCurrency(payment.deduction) }}
+            </strong>
+          </article>
+
+          <article class="important">
+
+            <span>
+              Supplier Balance
+            </span>
+
+            <strong>
+              {{ formatCurrency(getSupplierBalance(payment)) }}
+            </strong>
+
+          </article>
+
+          @if (isHandedOff(payment)) {
+
+            <article class="accounts-paid-card">
+
+              <span>
+                Accounts Paid
+              </span>
+
+              <strong>
+                {{
+                  formatCurrency(
+                    payment.accountsPaidAmount || 0
+                  )
+                }}
+              </strong>
+
+            </article>
+
+            <article class="accounts-outstanding-card">
+
+              <span>
+                Accounts Remaining
+              </span>
+
+              <strong>
+                {{
+                  formatCurrency(
+                    payment.accountsRemainingAmount || 0
+                  )
+                }}
+              </strong>
+
+            </article>
+
+          }
+
+        </section>
+
+
+        <!-- =================================================
+             RECORD INFORMATION
+        ================================================== -->
+        <section class="detail-section">
+
+          <header>
+            <span>INVOICE INFORMATION</span>
+
+            <h3>
+              Vendor & Shipment Details
+            </h3>
+          </header>
+
+          <div class="detail-grid">
+
+            <div>
+              <small>Vendor</small>
+              <strong>{{ resolveVendorName(payment) }}</strong>
+            </div>
+
+            <div>
+              <small>Source</small>
+              <strong>{{ resolveSourceName(payment) }}</strong>
+            </div>
+
+            <div>
+              <small>Export Invoice No.</small>
+              <strong>{{ payment.exportInvoiceNo || '-' }}</strong>
+            </div>
+
+            <div>
+              <small>Export Invoice Date</small>
+              <strong>{{ formatDate(payment.invoiceDate) }}</strong>
+            </div>
+
+            <div>
+              <small>Vendor Invoice No.</small>
+              <strong>{{ payment.vendorInvoiceNo || '-' }}</strong>
+            </div>
+
+            <div>
+              <small>Vendor Invoice Date</small>
+              <strong>{{ formatDate(payment.vendorInvoiceDate) }}</strong>
+            </div>
+
+            <div>
+              <small>Weight</small>
+              <strong>{{ payment.weight }} KG</strong>
+            </div>
+
+            <div>
+              <small>Logistics Status</small>
+
+              <strong>
+                {{ resolveStatusName(payment) }}
+              </strong>
+            </div>
+
+          </div>
+
+        </section>
+
+
+        <!-- =================================================
+             DOCUMENTS
+        ================================================== -->
+        <section class="detail-section">
+
+          <header>
+
+            <span>
+              DOCUMENT CONTROL
+            </span>
+
+            <h3>
+              Vendor Bill & Payment Proof
+            </h3>
+
+            <p>
+              Vendor Bill is the supplier document sent to Accounts.
+              Payment Proof remains the historical Logistics payment document.
+            </p>
+
+          </header>
+
+
+          <div class="document-grid">
+
+            <!-- =============================================
+                 VENDOR BILL
+            ============================================== -->
+            <article class="document-card">
+
+              <div class="document-card-heading">
+
+                <span class="document-icon">
+                  ▤
+                </span>
+
+                <div>
+                  <small>
+                    ACCOUNTS DOCUMENT
+                  </small>
+
+                  <strong>
+                    Vendor Bill
+                  </strong>
+                </div>
+
+              </div>
+
+
+              @if (payment.vendorBillDocument?.fileUrl) {
+
+                <div class="document-meta">
+
+                  <strong>
+                    {{ vendorBillFileName(payment) }}
+                  </strong>
+
+                  <span>
+                    {{
+                      fileSizeLabel(
+                        payment.vendorBillDocument?.fileSize
+                      )
+                    }}
+                  </span>
+
+                  @if (payment.vendorBillDocument?.uploadedAt) {
+
+                    <span>
+                      Uploaded:
+                      {{
+                        formatDateTime(
+                          payment.vendorBillDocument?.uploadedAt
+                        )
+                      }}
+                    </span>
+
+                  }
+
+                </div>
+
+
+                <div class="document-actions">
+
+                  <button
+                    type="button"
+                    class="soft-button"
+                    (click)="viewVendorBill(payment)"
+                  >
+                    View
+                  </button>
+
+                  <button
+                    type="button"
+                    class="soft-button"
+                    (click)="downloadVendorBill(payment)"
+                  >
+                    Download
+                  </button>
+
+                </div>
+
+              } @else {
+
+                <div class="document-empty">
+
+                  <strong>
+                    Vendor Bill not uploaded
+                  </strong>
+
+                  <p>
+                    @if (isOwnPayment(payment)) {
+                      Upload the supplier invoice before this payable
+                      can be sent to Accounts.
+                    } @else {
+                      The creator has not uploaded the Vendor Bill yet.
+                    }
+                  </p>
+
+                </div>
+
+              }
+
+
+              <!-- =============================================
+                   CREATOR-ONLY VENDOR BILL UPLOAD
+              ============================================== -->
+              @if (canModifyVendorBill(payment)) {
+
+                <div class="vendor-bill-upload">
+
+                  <label>
+                    {{
+                      payment.vendorBillDocument?.fileUrl
+                        ? 'Replace Vendor Bill'
+                        : 'Upload Vendor Bill'
+                    }}
+                  </label>
+
+                  <input
+                    #vendorBillInput
+                    type="file"
+                    accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf"
+                    (change)="onVendorBillSelected($event)"
+                  />
+
+                  <small>
+                    PDF, JPG, JPEG or PNG • Maximum 1 MB
+                  </small>
+
+                  @if (selectedVendorBill()) {
+
+                    <div class="selected-document">
+
+                      <span>
+                        Selected:
+                        {{ selectedVendorBill()?.name }}
+                      </span>
+
+                      <strong>
+                        {{
+                          fileSizeLabel(
+                            selectedVendorBill()?.size
+                          )
+                        }}
+                      </strong>
+
+                    </div>
+
+                  }
+
+                  @if (vendorBillError()) {
+
+                    <small class="field-error">
+                      {{ vendorBillError() }}
+                    </small>
+
+                  }
+
+                  <button
+                    type="button"
+                    class="gold-button"
+                    [disabled]="
+                      !selectedVendorBill() ||
+                      uploadingVendorBillId() === payment._id
+                    "
+                    (click)="uploadVendorBill(payment)"
+                  >
+                    {{ vendorBillUploadLabel(payment) }}
+                  </button>
+
+                </div>
+
+              } @else if (isHandedOff(payment)) {
+
+                <div class="document-locked">
+                  🔒 Vendor Bill is locked after Accounts handoff.
+                </div>
+
+              } @else {
+
+                <div class="document-locked">
+                  🔒 Review only — Vendor Bill can be changed only by
+                  {{ creatorName(payment) }}.
+                </div>
+
+              }
+
+
+              <!-- =============================================
+                   ACCOUNTS HANDOFF CONTROL
+              ============================================== -->
+              @if (!isHandedOff(payment)) {
+
+                <div class="vendor-bill-upload">
+
+                  <label>
+                    Send Payable to Accounts
+                  </label>
+
+                  <div class="selected-document">
+
+                    <span>
+                      Supplier Balance
+                    </span>
+
+                    <strong>
+                      {{
+                        formatCurrency(
+                          getSupplierBalance(payment)
+                        )
+                      }}
+                    </strong>
+
+                  </div>
+
+
+                  @if (!payment.vendorBillDocument?.fileUrl) {
+
+                    <small class="field-error">
+
+                      @if (isOwnPayment(payment)) {
+
+                        Upload Vendor Bill first to enable Accounts handoff.
+
+                      } @else {
+
+                        Waiting for {{ creatorName(payment) }} to upload the Vendor Bill.
+
+                      }
+
+                    </small>
+
+                  } @else if (
+                    payment.status === 'cancelled'
+                  ) {
+
+                    <small class="field-error">
+                      Cancelled Vendor Payments cannot be sent to Accounts.
+                    </small>
+
+                  } @else if (
+                    getSupplierBalance(payment) <= 0
+                  ) {
+
+                    <small class="field-error">
+                      There is no outstanding Supplier Balance to send to Accounts.
+                    </small>
+
+                  } @else if (
+                    !canHandoffToAccounts()
+                  ) {
+
+                    <small>
+                      Only Logistics Department Head or Team Leader
+                      can send this payable to Accounts.
+                    </small>
+
+                  } @else {
+
+                    <small class="file-selected">
+                      ✓ Vendor Bill attached. This payable is ready for Accounts handoff.
+                    </small>
+
+                  }
+
+
+                  @if (canHandoffToAccounts()) {
+
+                    <button
+                      type="button"
+                      class="accounts-handoff-button"
+                      [disabled]="
+                        !canSendToAccounts(payment) ||
+                        handingOffPaymentId() === payment._id
+                      "
+                      (click)="handoffToAccounts(payment)"
+                    >
+                      {{ handoffButtonLabel(payment) }}
+                    </button>
+
+                  }
+
+                </div>
+
+              } @else {
+
+                <div class="handoff-complete">
+
+                  <span>✓</span>
+
+                  <div>
+
+                    <strong>
+                      Sent to Accounts
+                    </strong>
+
+                    <small>
+                      {{
+                        accountsStatusLabel(
+                          payment.accountsStatus
+                        )
+                      }}
+                    </small>
+
+                  </div>
+
+                </div>
+
+              }
+
+            </article>
+
+
+            <!-- =============================================
+                 PAYMENT PROOF
+            ============================================== -->
+            <article class="document-card">
+
+              <div class="document-card-heading">
+
+                <span class="document-icon">
+                  ✓
+                </span>
+
+                <div>
+                  <small>
+                    LOGISTICS DOCUMENT
+                  </small>
+
+                  <strong>
+                    Payment Proof
+                  </strong>
+                </div>
+
+              </div>
+
+
+              @if (payment.paymentProof?.url) {
+
+                <div class="document-meta">
+
+                  <strong>
+                    {{ paymentProofFileName(payment) }}
+                  </strong>
+
+                  <span>
+                    {{
+                      fileSizeLabel(
+                        payment.paymentProof?.size
+                      )
+                    }}
+                  </span>
+
+                </div>
+
+
+                <div class="document-actions">
+
+                  <button
+                    type="button"
+                    class="soft-button"
+                    (click)="viewPaymentProof(payment)"
+                  >
+                    View
+                  </button>
+
+                  <button
+                    type="button"
+                    class="soft-button"
+                    (click)="downloadPaymentProof(payment)"
+                  >
+                    Download
+                  </button>
+
+                </div>
+
+              } @else {
+
+                <div class="document-empty">
+
+                  <strong>
+                    No Payment Proof
+                  </strong>
+
+                  <p>
+                    No historical Logistics payment proof is attached.
+                  </p>
+
+                </div>
+
+              }
+
+            </article>
+
+          </div>
+
+        </section>
+
+
+        <!-- =================================================
+             ACCOUNTS PAYMENT DETAILS
+        ================================================== -->
+        @if (isHandedOff(payment)) {
+
+          <section class="detail-section accounts-payment-section">
+
+            <header>
+              <span>ACCOUNTS PROCESSING</span>
+
+              <h3>
+                Payment Information
+              </h3>
+            </header>
+
+
+            <div class="detail-grid">
+
+              <div>
+
+                <small>
+                  Handoff Status
+                </small>
+
+                <strong>
+                  {{
+                    accountsStatusLabel(
+                      payment.accountsStatus
+                    )
+                  }}
+                </strong>
+
+              </div>
+
+
+              <div>
+
+                <small>
+                  Sent to Accounts
+                </small>
+
+                <strong>
+                  {{
+                    formatDateTime(
+                      payment.accountsHandedOffAt
+                    )
+                  }}
+                </strong>
+
+              </div>
+
+
+              <div>
+
+                <small>
+                  Accounts Paid
+                </small>
+
+                <strong>
+                  {{
+                    formatCurrency(
+                      payment.accountsPaidAmount || 0
+                    )
+                  }}
+                </strong>
+
+              </div>
+
+
+              <div>
+
+                <small>
+                  Accounts Remaining
+                </small>
+
+                <strong>
+                  {{
+                    formatCurrency(
+                      payment.accountsRemainingAmount || 0
+                    )
+                  }}
+                </strong>
+
+              </div>
+
+
+              <div>
+
+                <small>
+                  Payment Date
+                </small>
+
+                <strong>
+                  {{
+                    formatDate(
+                      payment.accountsPaymentDate
+                    )
+                  }}
+                </strong>
+
+              </div>
+
+
+              <div>
+
+                <small>
+                  Payment Reference
+                </small>
+
+                <strong>
+                  {{
+                    payment.accountsPaymentReference ||
+                    '-'
+                  }}
+                </strong>
+
+              </div>
+
+
+              <div>
+
+                <small>
+                  Processed By
+                </small>
+
+                <strong>
+                  {{
+                    payment.accountsPaidByName ||
+                    '-'
+                  }}
+                </strong>
+
+              </div>
+
+            </div>
+
+          </section>
+
+        }
+
+
+        <!-- =================================================
+             REMARKS
+        ================================================== -->
+        <section class="detail-section">
+
+          <header>
+            <span>NOTES</span>
+            <h3>Remarks</h3>
+          </header>
+
+          <div class="detail-remarks">
+            {{ payment.remarks || '-' }}
+          </div>
+
+        </section>
+
+
+        <!-- =================================================
+             EDIT HISTORY
+        ================================================== -->
+        @if (payment.editHistory?.length) {
+
+          <section class="detail-section">
+
+            <header>
+              <span>AUDIT</span>
+
+              <h3>
+                Edit History
+              </h3>
+
+              <p>
+                Complete edit audit for this Vendor Payment.
+              </p>
+            </header>
+
+            <div class="history-list">
+
+              @for (
+                entry of payment.editHistory;
+                track $index
+              ) {
+
+                <article>
+
+                  <strong>
+                    {{
+                      entry.changedByName ||
+                      entry.changedBy ||
+                      'Unknown user'
+                    }}
+                  </strong>
+
+                  <span>
+                    {{
+                      entry.changedAt
+                        | date:'dd/MM/yyyy HH:mm'
+                    }}
+                  </span>
+
+                </article>
+
+              }
+
+            </div>
+
+          </section>
+
+        }
+
+
+        <!-- =================================================
+             MODAL FOOTER
+        ================================================== -->
+        <footer class="detail-footer">
+
+          <button
+            type="button"
+            class="soft-button"
+            (click)="closePaymentDetail()"
+          >
+            Close
+          </button>
+
+
+          @if (canEditPayment(payment)) {
+
+            <button
+              type="button"
+              class="soft-button"
+              (click)="editPayment(payment); closePaymentDetail()"
+            >
+              Edit Payment
+            </button>
+
+          }
+
+
+          @if (
+            !isOwnPayment(payment) &&
+            !isHandedOff(payment) &&
+            canHandoffToAccounts()
+          ) {
+
+            <div class="handoff-complete">
+
+              <span>◉</span>
+
+              <div>
+
+                <strong>
+                  Review Only
+                </strong>
+
+                <small>
+                  Created by {{ creatorName(payment) }}
+                </small>
+
+              </div>
+
+            </div>
+
+          }
+
+
+          @if (
+            canHandoffToAccounts() &&
+            !isHandedOff(payment)
+          ) {
+
+            <button
+              type="button"
+              class="accounts-handoff-button"
+              [disabled]="
+                !canSendToAccounts(payment) ||
+                handingOffPaymentId() === payment._id
+              "
+              (click)="handoffToAccounts(payment)"
+            >
+              {{ handoffButtonLabel(payment) }}
+            </button>
+
+          }
+
+
+          @if (isHandedOff(payment)) {
+
+            <div class="handoff-complete">
+
+              <span>✓</span>
+
+              <div>
+
+                <strong>
+                  Sent to Accounts
+                </strong>
+
+                <small>
+                  {{
+                    accountsStatusLabel(
+                      payment.accountsStatus
+                    )
+                  }}
+                </small>
+
+              </div>
+
+            </div>
+
+          }
+
+        </footer>
+
+      </section>
+
+    </div>
+
+  }
 
 </div>

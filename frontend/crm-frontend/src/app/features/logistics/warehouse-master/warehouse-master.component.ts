@@ -7,8 +7,43 @@ import { finalize } from 'rxjs';
 import { ApiService } from '../../../core/services/api.service';
 
 
-interface Option { label: string; value: string; }
-interface PageResult<T> { data?: T[] | { data?: T[]; records?: T[]; items?: T[]; warehouses?: T[] }; records?: T[]; items?: T[]; warehouses?: T[]; }
+interface Option {
+  label: string;
+  value: string;
+}
+
+interface PageResult<T> {
+  data?: T[] | {
+    data?: T[];
+    records?: T[];
+    items?: T[];
+    warehouses?: T[];
+  };
+  records?: T[];
+  items?: T[];
+  warehouses?: T[];
+}
+
+interface CreatorUser {
+  _id?: string;
+  name?: string;
+  displayName?: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+}
+
+interface CreatorEmployee {
+  _id?: string;
+  employeeCode?: string;
+  firstName?: string;
+  lastName?: string;
+  name?: string;
+  displayName?: string;
+  designation?: string;
+  organizationRole?: string;
+}
+
 interface WarehouseMaster {
   _id?: string;
   warehouseCode?: string;
@@ -23,6 +58,13 @@ interface WarehouseMaster {
   statusOther?: string;
   receipts?: any[];
   remarks?: string;
+
+  createdBy?: CreatorUser | string | null;
+  createdByEmployeeId?: CreatorEmployee | string | null;
+
+  creatorName?: string;
+  creatorEmployeeCode?: string;
+  creatorDisplay?: string;
 }
 
 @Component({
@@ -44,6 +86,7 @@ export class WarehouseMasterComponent implements OnInit {
   protected readonly typeFilter = signal('all');
   protected readonly records = signal<WarehouseMaster[]>([]);
   protected readonly selected = signal<WarehouseMaster | null>(null);
+
   protected mode: 'list' | 'new' | 'detail' = 'list';
   protected selectedId = '';
   protected form = this.emptyForm();
@@ -85,176 +128,1081 @@ export class WarehouseMasterComponent implements OnInit {
     const query = this.search().trim().toLowerCase();
     const status = this.statusFilter();
     const type = this.typeFilter();
+
     return this.records().filter((row) => {
-      const values = [row.warehouseCode, row.warehouseName, row.address?.city, row.contact?.contactPerson, row.contact?.mobile];
-      const matchesSearch = !query || values.some((value) => String(value || '').toLowerCase().includes(query));
-      const matchesStatus = status === 'all' || row.status === status;
-      const matchesType = type === 'all' || row.storage?.storageType === type;
-      return matchesSearch && matchesStatus && matchesType;
+      const values = [
+        row.warehouseCode,
+        row.warehouseName,
+        row.address?.city,
+        row.contact?.contactPerson,
+        row.contact?.mobile,
+        row.creatorName,
+        row.creatorEmployeeCode
+      ];
+
+      const matchesSearch =
+        !query ||
+        values.some(
+          (value) =>
+            String(value || '')
+              .toLowerCase()
+              .includes(query)
+        );
+
+      const matchesStatus =
+        status === 'all' ||
+        row.status === status;
+
+      const matchesType =
+        type === 'all' ||
+        row.storage?.storageType === type;
+
+      return (
+        matchesSearch &&
+        matchesStatus &&
+        matchesType
+      );
     });
   });
 
   protected readonly summary = computed(() => {
     const rows = this.records();
-    const totalCapacity = rows.reduce((sum, row) => sum + Number(row.storage?.totalCapacity || 0), 0);
-    const occupied = rows.reduce((sum, row) => sum + Number(row.storage?.occupiedCapacity || 0), 0);
+
+    const totalCapacity =
+      rows.reduce(
+        (sum, row) =>
+          sum +
+          Number(
+            row.storage?.totalCapacity ||
+            0
+          ),
+        0
+      );
+
+    const occupied =
+      rows.reduce(
+        (sum, row) =>
+          sum +
+          Number(
+            row.storage?.occupiedCapacity ||
+            0
+          ),
+        0
+      );
+
     return {
-      total: rows.length,
-      active: rows.filter((row) => row.status === 'active').length,
-      inactive: rows.filter((row) => row.status === 'inactive').length,
-      capacityUsed: totalCapacity ? Math.round((occupied / totalCapacity) * 100) : 0
+      total:
+        rows.length,
+
+      active:
+        rows.filter(
+          (row) =>
+            row.status === 'active'
+        ).length,
+
+      inactive:
+        rows.filter(
+          (row) =>
+            row.status === 'inactive'
+        ).length,
+
+      capacityUsed:
+        totalCapacity
+          ? Math.round(
+              (occupied / totalCapacity) *
+              100
+            )
+          : 0
     };
   });
 
   ngOnInit(): void {
     this.route.paramMap.subscribe((params) => {
-      const id = params.get('id') || '';
-      this.selectedId = id;
-      this.mode = this.route.snapshot.routeConfig?.path === 'warehouse/master/new' ? 'new' : id ? 'detail' : 'list';
-      if (this.mode === 'new') this.form = this.emptyForm();
+      const id =
+        params.get('id') ||
+        '';
+
+      this.selectedId =
+        id;
+
+      this.mode =
+        this.route.snapshot.routeConfig?.path ===
+        'warehouse/master/new'
+          ? 'new'
+          : id
+            ? 'detail'
+            : 'list';
+
+      if (
+        this.mode === 'new'
+      ) {
+        this.form =
+          this.emptyForm();
+      }
+
       this.loadWarehouses(id);
     });
   }
 
-  protected addWarehouse(): void { this.router.navigateByUrl('/logistics/warehouse/master/new'); }
-  protected cancel(): void { this.router.navigateByUrl('/logistics/warehouse/master'); }
-  protected viewWarehouse(row: WarehouseMaster): void { if (row._id) this.router.navigateByUrl('/logistics/warehouse/master/' + row._id); }
+  protected addWarehouse(): void {
+    this.router.navigateByUrl(
+      '/logistics/warehouse/master/new'
+    );
+  }
 
-  protected editWarehouse(row: WarehouseMaster): void {
-    this.selectedId = row._id || '';
+  protected cancel(): void {
+    this.router.navigateByUrl(
+      '/logistics/warehouse/master'
+    );
+  }
+
+  protected viewWarehouse(
+    row: WarehouseMaster
+  ): void {
+    if (
+      row._id
+    ) {
+      this.router.navigateByUrl(
+        '/logistics/warehouse/master/' +
+        row._id
+      );
+    }
+  }
+
+  protected editWarehouse(
+    row: WarehouseMaster
+  ): void {
+    this.selectedId =
+      row._id ||
+      '';
+
     this.selected.set(row);
-    this.form = this.formFromRecord(row);
-    this.mode = 'new';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
 
-  protected deleteWarehouse(row: WarehouseMaster): void {
-    if (!row._id || !window.confirm(`Delete warehouse ${row.warehouseName}?`)) return;
-    this.api.delete('/logistics/warehouse/' + row._id).subscribe({
-      next: () => { this.selected.set(null); this.selectedId = ''; this.loadWarehouses(); },
-      error: (error: any) => window.alert(error?.error?.message || 'Unable to delete warehouse.')
+    this.form =
+      this.formFromRecord(row);
+
+    this.mode =
+      'new';
+
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
     });
   }
 
-  protected saveWarehouse(): void {
-    if (!this.form.warehouseName.trim()) { window.alert('Warehouse name is required.'); return; }
-    if (!this.form.contact.contactPerson.trim()) { window.alert('Contact person is required.'); return; }
-    if (!this.form.contact.mobile.trim()) { window.alert('Mobile is required.'); return; }
-    if (!this.form.address.addressLine1.trim() || !this.form.address.city.trim() || !this.form.address.state.trim()) { window.alert('Address, city and state are required.'); return; }
-    if (!this.form.remarks.trim()) { window.alert('Remarks are required.'); return; }
+  protected deleteWarehouse(
+    row: WarehouseMaster
+  ): void {
+    if (
+      !row._id ||
+      !window.confirm(
+        `Delete warehouse ${row.warehouseName}?`
+      )
+    ) {
+      return;
+    }
 
-    const payload = this.payloadFromForm();
-    this.isSaving.set(true);
-    const request = this.selectedId
-      ? this.api.patch<WarehouseMaster>('/logistics/warehouse/' + this.selectedId, payload)
-      : this.api.post<WarehouseMaster>('/logistics/warehouse', payload);
-
-    request.pipe(finalize(() => this.isSaving.set(false))).subscribe({
-      next: () => {
-        window.alert('Warehouse saved successfully.');
-        this.router.navigateByUrl('/logistics/warehouse/master');
-        this.loadWarehouses();
-      },
-      error: (error: any) => window.alert(error?.error?.message || 'Unable to save warehouse.')
-    });
-  }
-
-  protected updateStatus(row: WarehouseMaster): void {
-    if (!row._id) return;
-    const nextStatus = row.status === 'active' ? 'inactive' : 'active';
-    this.api.patch<WarehouseMaster>('/logistics/warehouse/' + row._id, { status: nextStatus })
-      .subscribe({ next: () => this.loadWarehouses(), error: (error: any) => window.alert(error?.error?.message || 'Unable to update warehouse status.') });
-  }
-
-  protected hasCapability(value: string): boolean { return this.form.capabilities.includes(value); }
-  protected toggleCapability(value: string): void {
-    this.form.capabilities = this.hasCapability(value)
-      ? this.form.capabilities.filter((item: string) => item !== value)
-      : [...this.form.capabilities, value];
-    if (!this.form.capabilities.length) this.form.capabilities = [this.form.storage.storageType];
-  }
-
-  protected typeLabel(value?: string): string { return this.warehouseTypes.find((item) => item.value === value)?.label || value || '-'; }
-  protected unitLabel(value?: string, other?: string): string { return value === 'other' ? other || 'Other' : this.capacityUnits.find((item) => item.value === value)?.label || value || '-'; }
-  protected statusLabel(value?: string): string { return this.statuses.find((item) => item.value === value)?.label || value || '-'; }
-  protected availableCapacity(row: WarehouseMaster): number { return Math.max(0, Number(row.storage?.totalCapacity || 0) - Number(row.storage?.occupiedCapacity || 0)); }
-  protected addressText(row: WarehouseMaster): string { return [row.address?.addressLine1, row.address?.addressLine2, row.address?.city, row.address?.state, row.address?.country, row.address?.pincode].filter(Boolean).join(', ') || '-'; }
-
-  private loadWarehouses(selectId = ''): void {
-    this.isLoading.set(true);
-    this.api.get<PageResult<WarehouseMaster>>('/logistics/warehouse', { page: 1, limit: 100, sortBy: 'warehouseName', sortOrder: 'asc' })
-      .pipe(finalize(() => this.isLoading.set(false)))
+    this.api
+      .delete(
+        '/logistics/warehouse/' +
+        row._id
+      )
       .subscribe({
-        next: (response) => {
-          const rows = this.extractRows(response);
-          this.records.set(rows);
-          if (selectId) {
-            const found = rows.find((row) => row._id === selectId) || null;
-            this.selected.set(found);
-            if (found) this.form = this.formFromRecord(found);
-          }
+        next: () => {
+          this.selected.set(null);
+          this.selectedId = '';
+          this.loadWarehouses();
         },
-        error: (error: any) => window.alert(error?.error?.message || 'Unable to load warehouses.')
+
+        error: (error: any) => {
+          window.alert(
+            error?.error?.message ||
+            'Unable to delete warehouse.'
+          );
+        }
       });
   }
 
-  private payloadFromForm(): any {
-    const selectedCapability = this.form.capabilities[0] || this.form.storage.storageType || 'general';
+  protected saveWarehouse(): void {
+    if (
+      !this.form.warehouseName.trim()
+    ) {
+      window.alert(
+        'Warehouse name is required.'
+      );
+
+      return;
+    }
+
+    if (
+      !this.form.contact.contactPerson.trim()
+    ) {
+      window.alert(
+        'Contact person is required.'
+      );
+
+      return;
+    }
+
+    if (
+      !this.form.contact.mobile.trim()
+    ) {
+      window.alert(
+        'Mobile is required.'
+      );
+
+      return;
+    }
+
+    if (
+      !this.form.address.addressLine1.trim() ||
+      !this.form.address.city.trim() ||
+      !this.form.address.state.trim()
+    ) {
+      window.alert(
+        'Address, city and state are required.'
+      );
+
+      return;
+    }
+
+    if (
+      !this.form.remarks.trim()
+    ) {
+      window.alert(
+        'Remarks are required.'
+      );
+
+      return;
+    }
+
+    const payload =
+      this.payloadFromForm();
+
+    this.isSaving.set(true);
+
+    const request =
+      this.selectedId
+        ? this.api.patch<WarehouseMaster>(
+            '/logistics/warehouse/' +
+            this.selectedId,
+            payload
+          )
+        : this.api.post<WarehouseMaster>(
+            '/logistics/warehouse',
+            payload
+          );
+
+    request
+      .pipe(
+        finalize(
+          () =>
+            this.isSaving.set(false)
+        )
+      )
+      .subscribe({
+        next: () => {
+          window.alert(
+            'Warehouse saved successfully.'
+          );
+
+          this.router.navigateByUrl(
+            '/logistics/warehouse/master'
+          );
+
+          this.loadWarehouses();
+        },
+
+        error: (error: any) => {
+          window.alert(
+            error?.error?.message ||
+            'Unable to save warehouse.'
+          );
+        }
+      });
+  }
+
+  protected updateStatus(
+    row: WarehouseMaster
+  ): void {
+    if (
+      !row._id
+    ) {
+      return;
+    }
+
+    const nextStatus =
+      row.status === 'active'
+        ? 'inactive'
+        : 'active';
+
+    this.api
+      .patch<WarehouseMaster>(
+        '/logistics/warehouse/' +
+        row._id,
+        {
+          status:
+            nextStatus
+        }
+      )
+      .subscribe({
+        next: () =>
+          this.loadWarehouses(),
+
+        error: (error: any) =>
+          window.alert(
+            error?.error?.message ||
+            'Unable to update warehouse status.'
+          )
+      });
+  }
+
+  protected hasCapability(
+    value: string
+  ): boolean {
+    return this.form.capabilities.includes(
+      value
+    );
+  }
+
+  protected toggleCapability(
+    value: string
+  ): void {
+    this.form.capabilities =
+      this.hasCapability(value)
+        ? this.form.capabilities.filter(
+            (item: string) =>
+              item !== value
+          )
+        : [
+            ...this.form.capabilities,
+            value
+          ];
+
+    if (
+      !this.form.capabilities.length
+    ) {
+      this.form.capabilities = [
+        this.form.storage.storageType
+      ];
+    }
+  }
+
+  protected typeLabel(
+    value?: string
+  ): string {
+    return (
+      this.warehouseTypes
+        .find(
+          (item) =>
+            item.value === value
+        )
+        ?.label ||
+      value ||
+      '-'
+    );
+  }
+
+  protected unitLabel(
+    value?: string,
+    other?: string
+  ): string {
+    return value === 'other'
+      ? other || 'Other'
+      : this.capacityUnits
+          .find(
+            (item) =>
+              item.value === value
+          )
+          ?.label ||
+        value ||
+        '-';
+  }
+
+  protected statusLabel(
+    value?: string
+  ): string {
+    return (
+      this.statuses
+        .find(
+          (item) =>
+            item.value === value
+        )
+        ?.label ||
+      value ||
+      '-'
+    );
+  }
+
+  protected availableCapacity(
+    row: WarehouseMaster
+  ): number {
+    return Math.max(
+      0,
+      Number(
+        row.storage?.totalCapacity ||
+        0
+      ) -
+      Number(
+        row.storage?.occupiedCapacity ||
+        0
+      )
+    );
+  }
+
+  protected addressText(
+    row: WarehouseMaster
+  ): string {
+    return [
+      row.address?.addressLine1,
+      row.address?.addressLine2,
+      row.address?.city,
+      row.address?.state,
+      row.address?.country,
+      row.address?.pincode
+    ]
+      .filter(Boolean)
+      .join(', ') ||
+      '-';
+  }
+
+  private loadWarehouses(
+    selectId = ''
+  ): void {
+    this.isLoading.set(true);
+
+    this.api
+      .get<PageResult<WarehouseMaster>>(
+        '/logistics/warehouse',
+        {
+          page: 1,
+          limit: 100,
+          sortBy: 'warehouseName',
+          sortOrder: 'asc'
+        }
+      )
+      .pipe(
+        finalize(
+          () =>
+            this.isLoading.set(false)
+        )
+      )
+      .subscribe({
+        next: (response) => {
+          const rows =
+            this.extractRows(response)
+              .map(
+                (row) =>
+                  this.normalizeWarehouse(
+                    row
+                  )
+              );
+
+          this.records.set(rows);
+
+          if (
+            selectId
+          ) {
+            const found =
+              rows.find(
+                (row) =>
+                  row._id === selectId
+              ) ||
+              null;
+
+            this.selected.set(found);
+
+            if (
+              found
+            ) {
+              this.form =
+                this.formFromRecord(
+                  found
+                );
+            }
+          }
+        },
+
+        error: (error: any) => {
+          window.alert(
+            error?.error?.message ||
+            'Unable to load warehouses.'
+          );
+        }
+      });
+  }
+
+  private normalizeWarehouse(
+    row: WarehouseMaster
+  ): WarehouseMaster {
+    const creator =
+      this.resolveCreator(row);
+
     return {
-      warehouseName: this.form.warehouseName.trim(),
-      address: this.form.address,
-      contact: this.form.contact,
-      storage: {
-        totalCapacity: Number(this.form.storage.totalCapacity || 0),
-        occupiedCapacity: Number(this.form.storage.occupiedCapacity || 0),
-        capacityUnit: this.form.storage.capacityUnit,
-        capacityUnitOther: this.form.storage.capacityUnit === 'other' ? this.form.storage.capacityUnitOther || 'Other' : '',
-        storageType: selectedCapability,
-        storageTypeOther: selectedCapability === 'other' ? this.form.storage.storageTypeOther || 'Other' : '',
-        minTemperature: this.form.storage.minTemperature || null,
-        maxTemperature: this.form.storage.maxTemperature || null
-      },
-      rates: this.form.rates,
-      gstNumber: this.form.gstNumber,
-      licenseNumber: this.form.licenseNumber,
-      status: this.form.status,
-      remarks: this.form.remarks.trim()
+      ...row,
+
+      creatorName:
+        creator.name,
+
+      creatorEmployeeCode:
+        creator.employeeCode,
+
+      creatorDisplay:
+        creator.display
     };
   }
 
-  private formFromRecord(row: WarehouseMaster): any {
+  private resolveCreator(
+    row: WarehouseMaster
+  ): {
+    name: string;
+    employeeCode: string;
+    display: string;
+  } {
+    /*
+     * Preferred creator source:
+     * populated Logistics Employee.
+     */
+    const employee =
+      row.createdByEmployeeId;
+
+    if (
+      employee &&
+      typeof employee === 'object'
+    ) {
+      const name =
+        this.personName(
+          employee
+        );
+
+      const employeeCode =
+        String(
+          employee.employeeCode ||
+          ''
+        ).trim();
+
+      if (
+        name
+      ) {
+        return {
+          name,
+          employeeCode,
+
+          display:
+            employeeCode
+              ? `${name} (${employeeCode})`
+              : name
+        };
+      }
+
+      if (
+        employeeCode
+      ) {
+        return {
+          name:
+            'Employee',
+
+          employeeCode,
+
+          display:
+            `Employee (${employeeCode})`
+        };
+      }
+    }
+
+    /*
+     * Legacy / management-created records:
+     * fall back to User.
+     */
+    const user =
+      row.createdBy;
+
+    if (
+      user &&
+      typeof user === 'object'
+    ) {
+      const name =
+        this.personName(
+          user
+        ) ||
+        String(
+          user.email ||
+          ''
+        ).trim();
+
+      if (
+        name
+      ) {
+        return {
+          name,
+          employeeCode: '',
+          display: name
+        };
+      }
+    }
+
+    /*
+     * Old records may not contain creator details.
+     * Do not invent employee attribution.
+     */
     return {
-      warehouseCode: row.warehouseCode || 'Auto generated',
-      warehouseName: row.warehouseName || '',
-      companyName: '',
-      status: row.status || 'active',
-      contact: { contactPerson: row.contact?.contactPerson || '', mobile: row.contact?.mobile || '', alternateMobile: row.contact?.alternateMobile || '', email: row.contact?.email || '' },
-      address: { addressLine1: row.address?.addressLine1 || '', addressLine2: row.address?.addressLine2 || '', city: row.address?.city || '', state: row.address?.state || '', country: row.address?.country || 'India', pincode: row.address?.pincode || '' },
-      storage: { totalCapacity: Number(row.storage?.totalCapacity || 0), occupiedCapacity: Number(row.storage?.occupiedCapacity || 0), capacityUnit: row.storage?.capacityUnit || 'sq_ft', capacityUnitOther: row.storage?.capacityUnitOther || '', storageType: row.storage?.storageType || 'general', storageTypeOther: row.storage?.storageTypeOther || '', minTemperature: row.storage?.minTemperature || null, maxTemperature: row.storage?.maxTemperature || null },
-      rates: { storageRate: Number(row.rates?.storageRate || 0), storageRateUnit: row.rates?.storageRateUnit || 'per_day', inwardHandlingCharge: Number(row.rates?.inwardHandlingCharge || 0), outwardHandlingCharge: Number(row.rates?.outwardHandlingCharge || 0), loadingCharge: Number(row.rates?.loadingCharge || 0), unloadingCharge: Number(row.rates?.unloadingCharge || 0), currency: row.rates?.currency || 'INR' },
-      capabilities: [row.storage?.storageType || 'general'],
-      operatingHours: '', numberOfDocks: 0, forkliftAvailable: false, operations24x7: false, temperatureMonitoring: false,
-      gstNumber: row.gstNumber || '', licenseNumber: row.licenseNumber || '', remarks: row.remarks || ''
+      name:
+        'Not Available',
+
+      employeeCode:
+        '',
+
+      display:
+        'Not Available'
+    };
+  }
+
+  private personName(
+    person: any
+  ): string {
+    if (
+      !person ||
+      typeof person !== 'object'
+    ) {
+      return '';
+    }
+
+    const directName =
+      String(
+        person.displayName ||
+        person.name ||
+        ''
+      ).trim();
+
+    if (
+      directName
+    ) {
+      return directName;
+    }
+
+    return [
+      person.firstName,
+      person.lastName
+    ]
+      .map(
+        (part) =>
+          String(
+            part ||
+            ''
+          ).trim()
+      )
+      .filter(Boolean)
+      .join(' ');
+  }
+
+  private payloadFromForm(): any {
+    const selectedCapability =
+      this.form.capabilities[0] ||
+      this.form.storage.storageType ||
+      'general';
+
+    return {
+      warehouseName:
+        this.form.warehouseName.trim(),
+
+      address:
+        this.form.address,
+
+      contact:
+        this.form.contact,
+
+      storage: {
+        totalCapacity:
+          Number(
+            this.form.storage.totalCapacity ||
+            0
+          ),
+
+        occupiedCapacity:
+          Number(
+            this.form.storage.occupiedCapacity ||
+            0
+          ),
+
+        capacityUnit:
+          this.form.storage.capacityUnit,
+
+        capacityUnitOther:
+          this.form.storage.capacityUnit ===
+          'other'
+            ? this.form.storage.capacityUnitOther ||
+              'Other'
+            : '',
+
+        storageType:
+          selectedCapability,
+
+        storageTypeOther:
+          selectedCapability ===
+          'other'
+            ? this.form.storage.storageTypeOther ||
+              'Other'
+            : '',
+
+        minTemperature:
+          this.form.storage.minTemperature ||
+          null,
+
+        maxTemperature:
+          this.form.storage.maxTemperature ||
+          null
+      },
+
+      rates:
+        this.form.rates,
+
+      gstNumber:
+        this.form.gstNumber,
+
+      licenseNumber:
+        this.form.licenseNumber,
+
+      status:
+        this.form.status,
+
+      remarks:
+        this.form.remarks.trim()
+    };
+  }
+
+  private formFromRecord(
+    row: WarehouseMaster
+  ): any {
+    return {
+      warehouseCode:
+        row.warehouseCode ||
+        'Auto generated',
+
+      warehouseName:
+        row.warehouseName ||
+        '',
+
+      companyName:
+        '',
+
+      status:
+        row.status ||
+        'active',
+
+      contact: {
+        contactPerson:
+          row.contact?.contactPerson ||
+          '',
+
+        mobile:
+          row.contact?.mobile ||
+          '',
+
+        alternateMobile:
+          row.contact?.alternateMobile ||
+          '',
+
+        email:
+          row.contact?.email ||
+          ''
+      },
+
+      address: {
+        addressLine1:
+          row.address?.addressLine1 ||
+          '',
+
+        addressLine2:
+          row.address?.addressLine2 ||
+          '',
+
+        city:
+          row.address?.city ||
+          '',
+
+        state:
+          row.address?.state ||
+          '',
+
+        country:
+          row.address?.country ||
+          'India',
+
+        pincode:
+          row.address?.pincode ||
+          ''
+      },
+
+      storage: {
+        totalCapacity:
+          Number(
+            row.storage?.totalCapacity ||
+            0
+          ),
+
+        occupiedCapacity:
+          Number(
+            row.storage?.occupiedCapacity ||
+            0
+          ),
+
+        capacityUnit:
+          row.storage?.capacityUnit ||
+          'sq_ft',
+
+        capacityUnitOther:
+          row.storage?.capacityUnitOther ||
+          '',
+
+        storageType:
+          row.storage?.storageType ||
+          'general',
+
+        storageTypeOther:
+          row.storage?.storageTypeOther ||
+          '',
+
+        minTemperature:
+          row.storage?.minTemperature ||
+          null,
+
+        maxTemperature:
+          row.storage?.maxTemperature ||
+          null
+      },
+
+      rates: {
+        storageRate:
+          Number(
+            row.rates?.storageRate ||
+            0
+          ),
+
+        storageRateUnit:
+          row.rates?.storageRateUnit ||
+          'per_day',
+
+        inwardHandlingCharge:
+          Number(
+            row.rates?.inwardHandlingCharge ||
+            0
+          ),
+
+        outwardHandlingCharge:
+          Number(
+            row.rates?.outwardHandlingCharge ||
+            0
+          ),
+
+        loadingCharge:
+          Number(
+            row.rates?.loadingCharge ||
+            0
+          ),
+
+        unloadingCharge:
+          Number(
+            row.rates?.unloadingCharge ||
+            0
+          ),
+
+        currency:
+          row.rates?.currency ||
+          'INR'
+      },
+
+      capabilities: [
+        row.storage?.storageType ||
+        'general'
+      ],
+
+      operatingHours:
+        '',
+
+      numberOfDocks:
+        0,
+
+      forkliftAvailable:
+        false,
+
+      operations24x7:
+        false,
+
+      temperatureMonitoring:
+        false,
+
+      gstNumber:
+        row.gstNumber ||
+        '',
+
+      licenseNumber:
+        row.licenseNumber ||
+        '',
+
+      remarks:
+        row.remarks ||
+        ''
     };
   }
 
   private emptyForm(): any {
     return {
-      warehouseCode: 'Auto generated', warehouseName: '', companyName: '', status: 'active',
-      contact: { contactPerson: '', mobile: '', alternateMobile: '', email: '' },
-      address: { addressLine1: '', addressLine2: '', city: '', state: '', country: 'India', pincode: '' },
-      storage: { totalCapacity: 0, occupiedCapacity: 0, capacityUnit: 'sq_ft', capacityUnitOther: '', storageType: 'general', storageTypeOther: '', minTemperature: null, maxTemperature: null },
-      rates: { storageRate: 0, storageRateUnit: 'per_day', inwardHandlingCharge: 0, outwardHandlingCharge: 0, loadingCharge: 0, unloadingCharge: 0, currency: 'INR' },
-      capabilities: ['general'], operatingHours: '', numberOfDocks: 0, forkliftAvailable: false, operations24x7: false, temperatureMonitoring: false,
-      gstNumber: '', licenseNumber: '', remarks: ''
+      warehouseCode:
+        'Auto generated',
+
+      warehouseName:
+        '',
+
+      companyName:
+        '',
+
+      status:
+        'active',
+
+      contact: {
+        contactPerson:
+          '',
+
+        mobile:
+          '',
+
+        alternateMobile:
+          '',
+
+        email:
+          ''
+      },
+
+      address: {
+        addressLine1:
+          '',
+
+        addressLine2:
+          '',
+
+        city:
+          '',
+
+        state:
+          '',
+
+        country:
+          'India',
+
+        pincode:
+          ''
+      },
+
+      storage: {
+        totalCapacity:
+          0,
+
+        occupiedCapacity:
+          0,
+
+        capacityUnit:
+          'sq_ft',
+
+        capacityUnitOther:
+          '',
+
+        storageType:
+          'general',
+
+        storageTypeOther:
+          '',
+
+        minTemperature:
+          null,
+
+        maxTemperature:
+          null
+      },
+
+      rates: {
+        storageRate:
+          0,
+
+        storageRateUnit:
+          'per_day',
+
+        inwardHandlingCharge:
+          0,
+
+        outwardHandlingCharge:
+          0,
+
+        loadingCharge:
+          0,
+
+        unloadingCharge:
+          0,
+
+        currency:
+          'INR'
+      },
+
+      capabilities: [
+        'general'
+      ],
+
+      operatingHours:
+        '',
+
+      numberOfDocks:
+        0,
+
+      forkliftAvailable:
+        false,
+
+      operations24x7:
+        false,
+
+      temperatureMonitoring:
+        false,
+
+      gstNumber:
+        '',
+
+      licenseNumber:
+        '',
+
+      remarks:
+        ''
     };
   }
 
-  private extractRows<T>(response: PageResult<T> | T[] | null | undefined): T[] {
-    if (Array.isArray(response)) return response;
-    const data = response?.data;
-    if (Array.isArray(data)) return data;
-    return data?.data || data?.records || data?.items || data?.warehouses || response?.records || response?.items || response?.warehouses || [];
+  private extractRows<T>(
+    response:
+      PageResult<T> |
+      T[] |
+      null |
+      undefined
+  ): T[] {
+    if (
+      Array.isArray(response)
+    ) {
+      return response;
+    }
+
+    const data =
+      response?.data;
+
+    if (
+      Array.isArray(data)
+    ) {
+      return data;
+    }
+
+    return (
+      data?.data ||
+      data?.records ||
+      data?.items ||
+      data?.warehouses ||
+      response?.records ||
+      response?.items ||
+      response?.warehouses ||
+      []
+    );
   }
 }
-

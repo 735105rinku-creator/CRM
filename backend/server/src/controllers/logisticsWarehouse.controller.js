@@ -123,6 +123,7 @@ export const getLogisticsWarehouses =
       await logisticsWarehouseService.listWarehouses({
         companyId:
           companyIdForRequest(req),
+
         query,
       });
 
@@ -221,6 +222,11 @@ export const addWarehouseReceipt =
 
         userId:
           req.user?._id || null,
+
+        employeeId:
+          req.logisticsAccess
+            ?.employeeId ||
+          null,
 
         payload,
       });

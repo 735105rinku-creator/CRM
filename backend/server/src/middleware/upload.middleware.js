@@ -136,6 +136,81 @@ const vendorPaymentProofFilter = (
 
 
 /* ============================================================
+   LOGISTICS VENDOR BILL FILTER
+
+   Separate from Payment Proof.
+
+   Allowed:
+   - JPG
+   - JPEG
+   - PNG
+   - PDF
+
+   Maximum file size:
+   - 1 MB
+
+   MongoDB stores metadata / URL only.
+============================================================ */
+
+const logisticsVendorBillFileFilter = (
+  req,
+  file,
+  callback
+) => {
+
+  const allowedMimeTypes =
+    new Set([
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "application/pdf",
+    ]);
+
+
+  const extension =
+    path
+      .extname(
+        file.originalname ||
+        ""
+      )
+      .toLowerCase();
+
+
+  const allowedExtensions =
+    new Set([
+      ".jpg",
+      ".jpeg",
+      ".png",
+      ".pdf",
+    ]);
+
+
+  if (
+    !allowedMimeTypes.has(
+      file.mimetype
+    ) ||
+    !allowedExtensions.has(
+      extension
+    )
+  ) {
+
+    return callback(
+      new ApiError(
+        400,
+        "Vendor bill must be JPG, JPEG, PNG or PDF."
+      )
+    );
+  }
+
+
+  callback(
+    null,
+    true
+  );
+};
+
+
+/* ============================================================
    PURCHASE INVOICE FILTER
 
    Allowed:
@@ -306,6 +381,12 @@ const vendorPaymentProofStorage =
   );
 
 
+const logisticsVendorBillStorage =
+  makeStorage(
+    "logistics-vendor-bills"
+  );
+
+
 const purchaseInvoiceStorage =
   makeStorage(
     "purchase-invoices"
@@ -413,6 +494,7 @@ export const uploadEmployeeDocument =
    VENDOR PAYMENT PROOF
 
    Optional upload is controlled by the route:
+
    uploadVendorPaymentProof.single("paymentProof")
 
    No file = request continues normally.
@@ -431,6 +513,49 @@ export const uploadVendorPaymentProof =
 
       fileSize:
         10 *
+        1024 *
+        1024,
+
+    },
+
+  });
+
+
+/* ============================================================
+   LOGISTICS VENDOR BILL / INVOICE
+
+   Separate from payment proof.
+
+   Route usage:
+
+   uploadLogisticsVendorBill.single("vendorBill")
+
+   Actual file:
+   public/uploads/logistics-vendor-bills/
+
+   MongoDB:
+   metadata + URL only.
+
+   Allowed:
+   JPG / JPEG / PNG / PDF
+
+   Maximum:
+   1 MB
+============================================================ */
+
+export const uploadLogisticsVendorBill =
+  multer({
+
+    storage:
+      logisticsVendorBillStorage,
+
+    fileFilter:
+      logisticsVendorBillFileFilter,
+
+    limits: {
+
+      fileSize:
+        1 *
         1024 *
         1024,
 
@@ -573,6 +698,28 @@ export const toPublicVendorPaymentProofUrl = (
 
   return (
     `/uploads/vendor-payment-proofs/${file.filename}`
+  );
+};
+
+
+/* ============================================================
+   LOGISTICS VENDOR BILL PUBLIC URL
+============================================================ */
+
+export const toPublicLogisticsVendorBillUrl = (
+  file
+) => {
+
+  if (
+    !file?.filename
+  ) {
+
+    return "";
+  }
+
+
+  return (
+    `/uploads/logistics-vendor-bills/${file.filename}`
   );
 };
 

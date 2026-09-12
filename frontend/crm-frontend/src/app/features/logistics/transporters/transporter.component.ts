@@ -11,6 +11,26 @@ interface Option {
   value: string;
 }
 
+interface CreatorUser {
+  _id?: string;
+  name?: string;
+  displayName?: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+}
+
+interface CreatorEmployee {
+  _id?: string;
+  employeeCode?: string;
+  firstName?: string;
+  lastName?: string;
+  name?: string;
+  displayName?: string;
+  designation?: string;
+  organizationRole?: string;
+}
+
 interface TransporterRecord {
   _id?: string;
   id: number;
@@ -21,6 +41,14 @@ interface TransporterRecord {
   city: string;
   vehicleCount: number;
   status: string;
+
+  createdBy?: CreatorUser | string | null;
+  createdByEmployeeId?: CreatorEmployee | string | null;
+
+  creatorName: string;
+  creatorEmployeeCode: string;
+  creatorDisplay: string;
+
   raw?: any;
 }
 
@@ -33,12 +61,14 @@ interface TransporterRecord {
 })
 export class TransporterComponent implements OnInit {
   private readonly api = inject(ApiService);
+
   protected readonly isLoading = signal(false);
   protected readonly isSaving = signal(false);
   protected readonly showForm = signal(false);
   protected readonly search = signal('');
   protected readonly statusFilter = signal('all');
   protected readonly selectedTransporter = signal<any | null>(null);
+
   protected editingId = '';
 
   protected readonly transporterTypes: Option[] = [
@@ -72,15 +102,41 @@ export class TransporterComponent implements OnInit {
 
   protected readonly records = signal<TransporterRecord[]>([]);
 
-  ngOnInit(): void { this.loadTransporters(); }
+  ngOnInit(): void {
+    this.loadTransporters();
+  }
 
   protected loadTransporters(): void {
     this.isLoading.set(true);
-    this.api.get<any>('/logistics/transporters', { page: 1, limit: 100, sortBy: 'createdAt', sortOrder: 'desc' })
-      .pipe(finalize(() => this.isLoading.set(false)))
+
+    this.api
+      .get<any>(
+        '/logistics/transporters',
+        {
+          page: 1,
+          limit: 100,
+          sortBy: 'createdAt',
+          sortOrder: 'desc'
+        }
+      )
+      .pipe(
+        finalize(() => this.isLoading.set(false))
+      )
       .subscribe({
-        next: (response: any) => this.records.set(this.normalizeRows(this.extractRows(response))),
-        error: (error: any) => window.alert(error?.error?.message || 'Unable to load transporters.')
+        next: (response: any) => {
+          this.records.set(
+            this.normalizeRows(
+              this.extractRows(response)
+            )
+          );
+        },
+
+        error: (error: any) => {
+          window.alert(
+            error?.error?.message ||
+            'Unable to load transporters.'
+          );
+        }
       });
   }
 
@@ -95,10 +151,13 @@ export class TransporterComponent implements OnInit {
         item.transporterName.toLowerCase().includes(query) ||
         item.contactPerson.toLowerCase().includes(query) ||
         item.mobile.toLowerCase().includes(query) ||
-        item.city.toLowerCase().includes(query);
+        item.city.toLowerCase().includes(query) ||
+        item.creatorName.toLowerCase().includes(query) ||
+        item.creatorEmployeeCode.toLowerCase().includes(query);
 
       const matchesStatus =
-        status === 'all' || item.status === status;
+        status === 'all' ||
+        item.status === status;
 
       return matchesSearch && matchesStatus;
     });
@@ -106,9 +165,23 @@ export class TransporterComponent implements OnInit {
 
   protected readonly summary = computed(() => ({
     total: this.records().length,
-    active: this.records().filter(x => x.status === 'active').length,
-    inactive: this.records().filter(x => x.status === 'inactive').length,
-    vehicles: this.records().reduce((sum, x) => sum + x.vehicleCount, 0)
+
+    active:
+      this.records()
+        .filter((x) => x.status === 'active')
+        .length,
+
+    inactive:
+      this.records()
+        .filter((x) => x.status === 'inactive')
+        .length,
+
+    vehicles:
+      this.records()
+        .reduce(
+          (sum, x) => sum + x.vehicleCount,
+          0
+        )
   }));
 
   protected openForm(): void {
@@ -124,136 +197,606 @@ export class TransporterComponent implements OnInit {
   }
 
   protected saveTransporter(): void {
-    if (!this.form.transporterName.trim() || !this.form.contactPerson.trim() || !this.form.mobile.trim() || !this.form.address.trim()) {
-      window.alert('Transporter Name, Contact Person, Mobile and Address are required.');
+    if (
+      !this.form.transporterName.trim() ||
+      !this.form.contactPerson.trim() ||
+      !this.form.mobile.trim() ||
+      !this.form.address.trim()
+    ) {
+      window.alert(
+        'Transporter Name, Contact Person, Mobile and Address are required.'
+      );
+
       return;
     }
+
     const payload = {
-      transporterName: this.form.transporterName.trim(),
-      contactPerson: this.form.contactPerson.trim(),
-      mobile: this.form.mobile.trim(),
-      alternateMobile: this.form.alternateMobile,
-      email: this.form.email,
-      gstNumber: this.form.gstNumber,
-      panNumber: this.form.panNumber,
-      address: this.form.address,
-      city: this.form.city,
-      state: this.form.state,
-      country: 'India',
-      pincode: this.form.pincode,
-      serviceType: this.mapServiceType(this.form.transporterType),
-      serviceTypeOther: this.form.transporterTypeOther,
-      vehicleTypes: this.form.vehicleType ? [this.form.vehicleType] : [],
-      defaultDriverName: this.form.driverName,
-      defaultDriverMobile: this.form.driverMobile,
-      defaultVehicleNumber: this.form.vehicleNumber,
-      creditDays: 0,
-      bankDetails: { bankName: this.form.bankName, accountHolderName: this.form.accountName, accountNumber: this.form.accountNumber, ifscCode: this.form.ifscCode },
-      status: this.form.status === 'blacklisted' ? 'blocked' : this.form.status,
-      statusOther: this.form.statusOther,
-      remarks: this.form.remarks.trim() || 'Created from transporter form.'
+      transporterName:
+        this.form.transporterName.trim(),
+
+      contactPerson:
+        this.form.contactPerson.trim(),
+
+      mobile:
+        this.form.mobile.trim(),
+
+      alternateMobile:
+        this.form.alternateMobile,
+
+      email:
+        this.form.email,
+
+      gstNumber:
+        this.form.gstNumber,
+
+      panNumber:
+        this.form.panNumber,
+
+      address:
+        this.form.address,
+
+      city:
+        this.form.city,
+
+      state:
+        this.form.state,
+
+      country:
+        'India',
+
+      pincode:
+        this.form.pincode,
+
+      serviceType:
+        this.mapServiceType(
+          this.form.transporterType
+        ),
+
+      serviceTypeOther:
+        this.form.transporterTypeOther,
+
+      vehicleTypes:
+        this.form.vehicleType
+          ? [this.form.vehicleType]
+          : [],
+
+      defaultDriverName:
+        this.form.driverName,
+
+      defaultDriverMobile:
+        this.form.driverMobile,
+
+      defaultVehicleNumber:
+        this.form.vehicleNumber,
+
+      creditDays:
+        0,
+
+      bankDetails: {
+        bankName:
+          this.form.bankName,
+
+        accountHolderName:
+          this.form.accountName,
+
+        accountNumber:
+          this.form.accountNumber,
+
+        ifscCode:
+          this.form.ifscCode
+      },
+
+      status:
+        this.form.status === 'blacklisted'
+          ? 'blocked'
+          : this.form.status,
+
+      statusOther:
+        this.form.statusOther,
+
+      remarks:
+        this.form.remarks.trim() ||
+        'Created from transporter form.'
     };
-    const request = this.editingId
-      ? this.api.patch(`/logistics/transporters/${this.editingId}`, payload)
-      : this.api.post('/logistics/transporters', payload);
+
+    const request =
+      this.editingId
+        ? this.api.patch(
+            `/logistics/transporters/${this.editingId}`,
+            payload
+          )
+        : this.api.post(
+            '/logistics/transporters',
+            payload
+          );
+
     this.isSaving.set(true);
-    request.pipe(finalize(() => this.isSaving.set(false))).subscribe({
-      next: () => { this.showForm.set(false); this.editingId = ''; this.loadTransporters(); window.alert('Transporter saved successfully.'); },
-      error: (error: any) => window.alert(error?.error?.message || 'Unable to save transporter.')
-    });
+
+    request
+      .pipe(
+        finalize(() => this.isSaving.set(false))
+      )
+      .subscribe({
+        next: () => {
+          this.showForm.set(false);
+          this.editingId = '';
+          this.loadTransporters();
+
+          window.alert(
+            'Transporter saved successfully.'
+          );
+        },
+
+        error: (error: any) => {
+          window.alert(
+            error?.error?.message ||
+            'Unable to save transporter.'
+          );
+        }
+      });
   }
-  protected viewTransporter(item: TransporterRecord): void {
-    this.selectedTransporter.set(item.raw || item);
+
+  protected viewTransporter(
+    item: TransporterRecord
+  ): void {
+    const record = {
+      ...(item.raw || item),
+
+      creatorName:
+        item.creatorName,
+
+      creatorEmployeeCode:
+        item.creatorEmployeeCode,
+
+      creatorDisplay:
+        item.creatorDisplay
+    };
+
+    this.selectedTransporter.set(record);
+
     this.showForm.set(false);
     this.editingId = '';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
 
-  protected editTransporter(item: TransporterRecord): void {
-    const record = item.raw || item;
-    this.editingId = item._id || record?._id || '';
-    this.selectedTransporter.set(null);
-    this.form = this.formFromRecord(record);
-    this.showForm.set(true);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-  protected deleteTransporter(item: TransporterRecord): void {
-    const id = item.raw?._id || item._id;
-    if (!id || !window.confirm(`Delete transporter ${item.transporterName}?`)) return;
-    this.api.delete('/logistics/transporters/' + id).subscribe({
-      next: () => { this.selectedTransporter.set(null); this.loadTransporters(); },
-      error: (error: any) => window.alert(error?.error?.message || 'Unable to delete transporter.')
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
     });
   }
-  protected statusLabel(status: string): string {
-    return this.statusOptions.find(x => x.value === status)?.label || status;
+
+  protected editTransporter(
+    item: TransporterRecord
+  ): void {
+    const record =
+      item.raw ||
+      item;
+
+    this.editingId =
+      item._id ||
+      record?._id ||
+      '';
+
+    this.selectedTransporter.set(null);
+
+    this.form =
+      this.formFromRecord(record);
+
+    this.showForm.set(true);
+
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
   }
 
-  private normalizeRows(rows: any[]): TransporterRecord[] {
-    return rows.map((row, index) => ({
-      _id: row._id,
-      id: index + 1,
-      transporterCode: row.transporterCode || `TRN-${String(index + 1).padStart(3, '0')}`,
-      transporterName: row.transporterName || '-',
-      contactPerson: row.contactPerson || '-',
-      mobile: row.mobile || '-',
-      city: row.city || '',
-      vehicleCount: Array.isArray(row.vehicleTypes) ? row.vehicleTypes.length : 0,
-      status: row.status || 'active',
-      raw: row
-    }));
+  protected deleteTransporter(
+    item: TransporterRecord
+  ): void {
+    const id =
+      item.raw?._id ||
+      item._id;
+
+    if (
+      !id ||
+      !window.confirm(
+        `Delete transporter ${item.transporterName}?`
+      )
+    ) {
+      return;
+    }
+
+    this.api
+      .delete(
+        '/logistics/transporters/' + id
+      )
+      .subscribe({
+        next: () => {
+          this.selectedTransporter.set(null);
+          this.loadTransporters();
+        },
+
+        error: (error: any) => {
+          window.alert(
+            error?.error?.message ||
+            'Unable to delete transporter.'
+          );
+        }
+      });
   }
 
-  private mapServiceType(value: string): string {
-    if (value === 'local') return 'local';
-    if (value === 'interstate' || value === 'dedicated' || value === '3pl') return 'domestic';
+  protected statusLabel(
+    status: string
+  ): string {
+    return (
+      this.statusOptions
+        .find((x) => x.value === status)
+        ?.label ||
+      status
+    );
+  }
+
+  private normalizeRows(
+    rows: any[]
+  ): TransporterRecord[] {
+    return rows.map((row, index) => {
+      const creator =
+        this.resolveCreator(row);
+
+      return {
+        _id:
+          row._id,
+
+        id:
+          index + 1,
+
+        transporterCode:
+          row.transporterCode ||
+          `TRN-${String(index + 1).padStart(3, '0')}`,
+
+        transporterName:
+          row.transporterName ||
+          '-',
+
+        contactPerson:
+          row.contactPerson ||
+          '-',
+
+        mobile:
+          row.mobile ||
+          '-',
+
+        city:
+          row.city ||
+          '',
+
+        vehicleCount:
+          Array.isArray(row.vehicleTypes)
+            ? row.vehicleTypes.length
+            : 0,
+
+        status:
+          row.status ||
+          'active',
+
+        createdBy:
+          row.createdBy ||
+          null,
+
+        createdByEmployeeId:
+          row.createdByEmployeeId ||
+          null,
+
+        creatorName:
+          creator.name,
+
+        creatorEmployeeCode:
+          creator.employeeCode,
+
+        creatorDisplay:
+          creator.display,
+
+        raw:
+          row
+      };
+    });
+  }
+
+  private resolveCreator(
+    row: any
+  ): {
+    name: string;
+    employeeCode: string;
+    display: string;
+  } {
+    /*
+     * Prefer Logistics Employee creator.
+     */
+    const employee =
+      row?.createdByEmployeeId;
+
+    if (
+      employee &&
+      typeof employee === 'object'
+    ) {
+      const name =
+        this.personName(employee);
+
+      const employeeCode =
+        String(
+          employee.employeeCode ||
+          ''
+        ).trim();
+
+      if (name) {
+        return {
+          name,
+          employeeCode,
+
+          display:
+            employeeCode
+              ? `${name} (${employeeCode})`
+              : name
+        };
+      }
+
+      if (employeeCode) {
+        return {
+          name: 'Employee',
+          employeeCode,
+          display: `Employee (${employeeCode})`
+        };
+      }
+    }
+
+    /*
+     * Legacy / management-created record fallback.
+     */
+    const user =
+      row?.createdBy;
+
+    if (
+      user &&
+      typeof user === 'object'
+    ) {
+      const name =
+        this.personName(user) ||
+        String(
+          user.email ||
+          ''
+        ).trim();
+
+      if (name) {
+        return {
+          name,
+          employeeCode: '',
+          display: name
+        };
+      }
+    }
+
+    /*
+     * Old records may not contain creator information.
+     * Do not invent creator data.
+     */
+    return {
+      name: 'Not Available',
+      employeeCode: '',
+      display: 'Not Available'
+    };
+  }
+
+  private personName(
+    person: any
+  ): string {
+    if (
+      !person ||
+      typeof person !== 'object'
+    ) {
+      return '';
+    }
+
+    const directName =
+      String(
+        person.displayName ||
+        person.name ||
+        ''
+      ).trim();
+
+    if (directName) {
+      return directName;
+    }
+
+    return [
+      person.firstName,
+      person.lastName
+    ]
+      .map(
+        (part) =>
+          String(
+            part ||
+            ''
+          ).trim()
+      )
+      .filter(Boolean)
+      .join(' ');
+  }
+
+  private mapServiceType(
+    value: string
+  ): string {
+    if (value === 'local') {
+      return 'local';
+    }
+
+    if (
+      value === 'interstate' ||
+      value === 'dedicated' ||
+      value === '3pl'
+    ) {
+      return 'domestic';
+    }
+
     return value || 'domestic';
   }
 
-  private extractRows(response: any): any[] {
-    if (Array.isArray(response)) return response;
-    const data = response?.data;
-    if (Array.isArray(data)) return data;
-    return data?.data || data?.records || response?.records || [];
+  private extractRows(
+    response: any
+  ): any[] {
+    if (
+      Array.isArray(response)
+    ) {
+      return response;
+    }
+
+    const data =
+      response?.data;
+
+    if (
+      Array.isArray(data)
+    ) {
+      return data;
+    }
+
+    return (
+      data?.data ||
+      data?.records ||
+      response?.records ||
+      []
+    );
   }
 
-  private formFromRecord(row: any) {
+  private formFromRecord(
+    row: any
+  ) {
     return {
-      transporterCode: row.transporterCode || '',
-      transporterName: row.transporterName || '',
-      transporterType: row.serviceType === 'local' ? 'local' : 'interstate',
-      transporterTypeOther: row.serviceTypeOther || '',
-      contactPerson: row.contactPerson || '',
-      mobile: row.mobile || '',
-      alternateMobile: row.alternateMobile || '',
-      email: row.email || '',
-      gstNumber: row.gstNumber || '',
-      panNumber: row.panNumber || '',
-      address: row.address || '',
-      city: row.city || '',
-      state: row.state || '',
-      pincode: row.pincode || '',
-      vehicleType: Array.isArray(row.vehicleTypes) ? row.vehicleTypes[0] || '' : '',
-      vehicleTypeOther: '',
-      vehicleNumber: row.defaultVehicleNumber || '',
-      vehicleCapacity: 0,
-      driverName: row.defaultDriverName || '',
-      driverMobile: row.defaultDriverMobile || '',
-      driverLicense: '',
-      ratePerKm: 0,
-      minimumCharge: 0,
-      loadingCharge: 0,
-      unloadingCharge: 0,
-      waitingCharge: 0,
-      bankName: row.bankDetails?.bankName || '',
-      accountName: row.bankDetails?.accountHolderName || '',
-      accountNumber: row.bankDetails?.accountNumber || '',
-      ifscCode: row.bankDetails?.ifscCode || '',
-      status: row.status === 'blocked' ? 'blacklisted' : row.status || 'active',
-      statusOther: row.statusOther || '',
-      remarks: row.remarks || ''
+      transporterCode:
+        row.transporterCode ||
+        '',
+
+      transporterName:
+        row.transporterName ||
+        '',
+
+      transporterType:
+        row.serviceType === 'local'
+          ? 'local'
+          : 'interstate',
+
+      transporterTypeOther:
+        row.serviceTypeOther ||
+        '',
+
+      contactPerson:
+        row.contactPerson ||
+        '',
+
+      mobile:
+        row.mobile ||
+        '',
+
+      alternateMobile:
+        row.alternateMobile ||
+        '',
+
+      email:
+        row.email ||
+        '',
+
+      gstNumber:
+        row.gstNumber ||
+        '',
+
+      panNumber:
+        row.panNumber ||
+        '',
+
+      address:
+        row.address ||
+        '',
+
+      city:
+        row.city ||
+        '',
+
+      state:
+        row.state ||
+        '',
+
+      pincode:
+        row.pincode ||
+        '',
+
+      vehicleType:
+        Array.isArray(row.vehicleTypes)
+          ? row.vehicleTypes[0] || ''
+          : '',
+
+      vehicleTypeOther:
+        '',
+
+      vehicleNumber:
+        row.defaultVehicleNumber ||
+        '',
+
+      vehicleCapacity:
+        0,
+
+      driverName:
+        row.defaultDriverName ||
+        '',
+
+      driverMobile:
+        row.defaultDriverMobile ||
+        '',
+
+      driverLicense:
+        '',
+
+      ratePerKm:
+        0,
+
+      minimumCharge:
+        0,
+
+      loadingCharge:
+        0,
+
+      unloadingCharge:
+        0,
+
+      waitingCharge:
+        0,
+
+      bankName:
+        row.bankDetails?.bankName ||
+        '',
+
+      accountName:
+        row.bankDetails?.accountHolderName ||
+        '',
+
+      accountNumber:
+        row.bankDetails?.accountNumber ||
+        '',
+
+      ifscCode:
+        row.bankDetails?.ifscCode ||
+        '',
+
+      status:
+        row.status === 'blocked'
+          ? 'blacklisted'
+          : row.status || 'active',
+
+      statusOther:
+        row.statusOther ||
+        '',
+
+      remarks:
+        row.remarks ||
+        ''
     };
   }
+
   private emptyForm() {
     return {
       transporterCode: 'TRN-004',
@@ -302,7 +845,3 @@ export class TransporterComponent implements OnInit {
     };
   }
 }
-
-
-
-

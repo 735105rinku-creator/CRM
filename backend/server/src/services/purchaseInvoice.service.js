@@ -5,6 +5,7 @@ import purchaseInvoiceRepository from "../repositories/purchaseInvoice.repositor
 
 import voucherService from "./voucher.service.js";
 import paymentAllocationService from "./paymentAllocation.service.js";
+import departmentInvoiceService from "./departmentInvoice.service.js";
 
 import { ApiError } from "../utils/apiError.js";
 
@@ -32,6 +33,48 @@ const id = value =>
     value ||
     ""
   );
+
+
+const purchaseInvoiceDocumentLabel = attachment => {
+
+  if (
+    attachment?.documentType ===
+    "other"
+  ) {
+
+    return String(
+      attachment?.otherDocumentType ||
+      "Other Document"
+    )
+      .trim();
+
+  }
+
+
+  const labels = {
+
+    vendor_invoice:
+      "Vendor Invoice",
+
+    e_way_bill:
+      "E-Way Bill",
+
+    delivery_challan:
+      "Delivery Challan",
+
+    supporting_document:
+      "Supporting Document"
+
+  };
+
+
+  return (
+    labels[
+      attachment?.documentType
+    ] ||
+    "Invoice Document"
+  );
+};
 
 
 /* ============================================================
@@ -852,14 +895,6 @@ class PurchaseInvoiceService {
 
   /* ==========================================================
      UPDATE / CORRECT INVOICE
-
-     Rules:
-     - Existing invoice must belong to current company.
-     - Verified invoice cannot be edited.
-     - Handed-off invoice cannot be edited.
-     - Invoice is re-matched completely after correction.
-     - Same invoice number is allowed for the current record.
-     - Duplicate vendor invoice number remains blocked.
   ========================================================== */
 
   async update(
@@ -1104,17 +1139,6 @@ class PurchaseInvoiceService {
 
   /* ==========================================================
      ADD PURCHASE INVOICE ATTACHMENT
-
-     Rules:
-     - Invoice must belong to current company.
-     - Maximum 5 attachments.
-     - Verified invoices may still receive attachments before
-       Accounts handoff begins.
-     - No modification is allowed while Accounts handoff is
-       running or after handoff completes.
-     - accountsVoucherId also permanently locks modification.
-     - Repository performs the final atomic guarded update so
-       concurrent uploads cannot safely exceed the limit.
   ========================================================== */
 
   async addAttachment(
@@ -1211,14 +1235,6 @@ class PurchaseInvoiceService {
     }
 
 
-    /*
-     * The atomic repository update may fail because another
-     * request changed the invoice after our initial read.
-     *
-     * Re-read the invoice so the caller receives the correct
-     * business reason instead of a misleading generic failure.
-     */
-
     const latest =
       await purchaseInvoiceRepository
         .findById(
@@ -1280,16 +1296,6 @@ class PurchaseInvoiceService {
 
   /* ==========================================================
      REMOVE PURCHASE INVOICE ATTACHMENT
-
-     Rules:
-     - Invoice must belong to current company.
-     - Attachment must belong to the selected invoice.
-     - No deletion while Accounts handoff is running.
-     - No deletion after Accounts handoff completes.
-     - accountsVoucherId permanently locks attachment changes.
-     - Physical file deletion is intentionally NOT performed
-       here. Controller removes the filesystem file only after
-       MongoDB metadata removal succeeds.
   ========================================================== */
 
   async removeAttachment(
@@ -1377,12 +1383,6 @@ class PurchaseInvoiceService {
       updated
     ) {
 
-      /*
-       * Keep the removed metadata available to the controller.
-       * The controller needs storageKey/file information to
-       * delete the physical file only after DB removal succeeds.
-       */
-
       return {
 
         invoice:
@@ -1396,11 +1396,6 @@ class PurchaseInvoiceService {
       };
     }
 
-
-    /*
-     * A concurrent handoff/delete may have happened after our
-     * first read. Re-read before returning an error.
-     */
 
     const latest =
       await purchaseInvoiceRepository
@@ -1608,6 +1603,18 @@ class PurchaseInvoiceService {
 
   /* ==========================================================
      HANDOFF TO ACCOUNTS
+
+     Existing Purchase accounting flow is preserved:
+
+       Purchase Invoice
+          ->
+       Purchase Payable Voucher
+          ->
+       Payment Voucher
+          ->
+       PaymentAllocation
+
+     DepartmentInvoice is only the central Accounts register.
   ========================================================== */
 
   async handoff(
@@ -1635,13 +1642,31 @@ class PurchaseInvoiceService {
     }
 
 
+    /*
+     * Existing handed-off records may pre-date the new central
+     * DepartmentInvoice register.
+     *
+     * Do not return immediately. First ensure the central
+     * register exists idempotently.
+     */
+
     if (
       invoice.handoffStatus ===
         "handed_off" &&
       invoice.accountsVoucherId
     ) {
 
-      return invoice;
+      await this.registerWithAccounts(
+        companyId,
+        invoice,
+        userId
+      );
+
+
+      return this.getById(
+        companyId,
+        invoiceId
+      );
     }
 
 
@@ -1684,9 +1709,12 @@ class PurchaseInvoiceService {
     }
 
 
+    let voucher;
+
+
     try {
 
-      const voucher =
+      voucher =
         await voucherService
           .createPurchasePayableFromSource({
 
@@ -1712,17 +1740,43 @@ class PurchaseInvoiceService {
           });
 
 
-      return purchaseInvoiceRepository
-        .completeHandoff(
-          companyId,
-          invoiceId,
-          userId,
-          voucher
-        );
+      const completed =
+        await purchaseInvoiceRepository
+          .completeHandoff(
+            companyId,
+            invoiceId,
+            userId,
+            voucher
+          );
 
-    } catch (
+
+      if (
+        !completed
+      ) {
+
+        throw new ApiError(
+          409,
+          "Purchase Invoice handoff state changed. Please refresh and try again."
+        );
+      }
+
+
+      invoice =
+        completed;
+
+    }
+    catch (
       error
     ) {
+
+      /*
+       * Only failures belonging to the existing Purchase
+       * voucher/handoff phase are marked as Purchase handoff
+       * failures.
+       *
+       * Central DepartmentInvoice registration happens below
+       * after Purchase handoff is already complete.
+       */
 
       await purchaseInvoiceRepository
         .failHandoff(
@@ -1737,6 +1791,155 @@ class PurchaseInvoiceService {
       throw error;
 
     }
+
+
+    /*
+     * The Purchase payable voucher is now successfully linked.
+     *
+     * Register the invoice in the central Accounts inbox.
+     * This operation is idempotent by:
+     *
+     * companyId + sourceModule + sourceRecordId
+     *
+     * If this operation fails, DO NOT roll Purchase back to
+     * "failed" because the accounting voucher already exists.
+     * A retry of handoff() will enter the handed_off branch
+     * above and safely retry only this registration.
+     */
+
+    await this.registerWithAccounts(
+      companyId,
+      invoice,
+      userId
+    );
+
+
+    return this.getById(
+      companyId,
+      invoiceId
+    );
+  }
+
+
+  /* ==========================================================
+     REGISTER PURCHASE INVOICE IN CENTRAL ACCOUNTS INBOX
+
+     No binary data is copied.
+
+     DepartmentInvoice receives references to the same physical
+     Purchase Invoice attachments already stored by Purchase.
+  ========================================================== */
+
+  async registerWithAccounts(
+    companyId,
+    invoice,
+    userId
+  ) {
+
+    const documents =
+      (
+        Array.isArray(
+          invoice.attachments
+        )
+          ? invoice.attachments
+          : []
+      )
+        .filter(
+          attachment =>
+            attachment?.fileUrl
+        )
+        .map(
+          attachment => ({
+
+            label:
+              purchaseInvoiceDocumentLabel(
+                attachment
+              ),
+
+            fileName:
+              String(
+                attachment.originalName ||
+                attachment.fileName ||
+                ""
+              )
+                .trim(),
+
+            fileUrl:
+              String(
+                attachment.fileUrl ||
+                ""
+              )
+                .trim(),
+
+            filePath:
+              "",
+
+            mimeType:
+              String(
+                attachment.mimeType ||
+                ""
+              )
+                .trim()
+
+          })
+        );
+
+
+    const centralInvoice =
+      await departmentInvoiceService
+        .handoff({
+
+          companyId,
+
+          sourceDepartment:
+            "purchase",
+
+          sourceModule:
+            "purchase_invoice",
+
+          sourceRecordId:
+            invoice._id,
+
+          invoiceNumber:
+            invoice.vendorInvoiceNumber,
+
+          partyName:
+            invoice.vendorName,
+
+          invoiceDate:
+            invoice.invoiceDate,
+
+          totalAmount:
+            invoice.invoiceTotal,
+
+          documents,
+
+          sentToAccountsBy:
+            userId,
+
+          sentToAccountsByEmployeeId:
+            null,
+
+          sentToAccountsByName:
+            ""
+
+        });
+
+
+    /*
+     * DepartmentInvoice.handoff() creates/reuses the central
+     * record. syncSource is used here so Purchase immediately
+     * receives accountsHandoffId and the central status
+     * snapshot.
+     */
+
+    await departmentInvoiceService
+      .syncSource(
+        centralInvoice
+      );
+
+
+    return centralInvoice;
   }
 
 }

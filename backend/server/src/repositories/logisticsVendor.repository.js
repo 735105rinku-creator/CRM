@@ -2,6 +2,36 @@ import LogisticsVendor
   from "../models/LogisticsVendor.js";
 
 
+/* ============================================================
+   CREATOR DETAILS
+
+   Adds creator information to Vendor read responses only.
+
+   Preferred:
+   createdByEmployeeId -> Employee
+
+   Legacy fallback:
+   createdBy -> User
+
+   No Vendor permission / ownership behaviour is changed here.
+============================================================ */
+
+function populateCreatorDetails(
+  query
+) {
+
+  return query
+    .populate(
+      "createdBy",
+      "name displayName firstName lastName email"
+    )
+    .populate(
+      "createdByEmployeeId",
+      "employeeCode firstName lastName name displayName designation organizationRole"
+    );
+}
+
+
 class LogisticsVendorRepository {
 
 
@@ -19,21 +49,97 @@ class LogisticsVendorRepository {
   }
 
 
-  async findDuplicate({ companyId, vendorName, gstNumber, panNumber }) {
+  async findDuplicate({
+    companyId,
+    vendorName,
+    gstNumber,
+    panNumber
+  }) {
 
     const matches = [];
 
-    if (String(gstNumber || "").trim()) matches.push({ gstNumber: String(gstNumber).trim().toUpperCase() });
-    if (String(panNumber || "").trim()) matches.push({ panNumber: String(panNumber).trim().toUpperCase() });
-    if (String(vendorName || "").trim()) matches.push({ vendorName: new RegExp(`^${escapeRegex(String(vendorName).trim())}$`, "i") });
 
-    if (!matches.length) return null;
+    if (
+      String(
+        gstNumber ||
+        ""
+      ).trim()
+    ) {
 
-    return LogisticsVendor.findOne({
-      companyId,
-      isActive: { $ne: false },
-      $or: matches,
-    }).select("_id vendorCode vendorName gstNumber panNumber").lean();
+      matches.push({
+        gstNumber:
+          String(
+            gstNumber
+          )
+            .trim()
+            .toUpperCase()
+      });
+    }
+
+
+    if (
+      String(
+        panNumber ||
+        ""
+      ).trim()
+    ) {
+
+      matches.push({
+        panNumber:
+          String(
+            panNumber
+          )
+            .trim()
+            .toUpperCase()
+      });
+    }
+
+
+    if (
+      String(
+        vendorName ||
+        ""
+      ).trim()
+    ) {
+
+      matches.push({
+        vendorName:
+          new RegExp(
+            `^${escapeRegex(
+              String(
+                vendorName
+              ).trim()
+            )}$`,
+            "i"
+          )
+      });
+    }
+
+
+    if (
+      !matches.length
+    ) {
+
+      return null;
+    }
+
+
+    return LogisticsVendor
+      .findOne({
+        companyId,
+
+        isActive: {
+          $ne:
+            false
+        },
+
+        $or:
+          matches
+      })
+      .select(
+        "_id vendorCode vendorName gstNumber panNumber"
+      )
+      .lean();
   }
 
 
@@ -44,6 +150,8 @@ class LogisticsVendorRepository {
      - isActive true -> available
      - isActive missing -> available
      - isActive false -> soft deleted
+
+     Creator population added for visibility only.
   ============================================================ */
 
   async findById({
@@ -51,18 +159,29 @@ class LogisticsVendorRepository {
     vendorId,
   }) {
 
-    return LogisticsVendor
-      .findOne({
-        _id:
-          vendorId,
+    const query =
+      LogisticsVendor
+        .findOne({
 
-        companyId,
+          _id:
+            vendorId,
 
-        isActive: {
-          $ne:
-            false,
-        },
-      })
+          companyId,
+
+          isActive: {
+            $ne:
+              false,
+          },
+
+        });
+
+
+    populateCreatorDetails(
+      query
+    );
+
+
+    return query
       .lean();
   }
 
@@ -110,6 +229,7 @@ class LogisticsVendorRepository {
      * $ne:false keeps old records visible while still
      * excluding records explicitly soft deleted.
      */
+
     const filter = {
 
       companyId,
@@ -118,6 +238,7 @@ class LogisticsVendorRepository {
         $ne:
           false,
       },
+
     };
 
 
@@ -297,13 +418,21 @@ class LogisticsVendorRepository {
 
     const allowed =
       new Set([
+
         "createdAt",
+
         "updatedAt",
+
         "vendorCode",
+
         "vendorName",
+
         "status",
+
         "openingPayable",
+
         "creditDays",
+
       ]);
 
 
@@ -330,32 +459,46 @@ class LogisticsVendorRepository {
        QUERY
     ---------------------------------------------------------- */
 
+    const dataQuery =
+      LogisticsVendor
+        .find(
+          filter
+        )
+        .sort({
+
+          [safeSortBy]:
+            direction,
+
+        })
+        .skip(
+          (
+            safePage -
+            1
+          ) *
+          safeLimit
+        )
+        .limit(
+          safeLimit
+        );
+
+
+    /*
+     * Only new read behaviour:
+     * populate creator User + Employee.
+     */
+    populateCreatorDetails(
+      dataQuery
+    );
+
+
     const [
       data,
       total,
     ] =
       await Promise.all([
 
-        LogisticsVendor
-          .find(
-            filter
-          )
-          .sort({
-            [safeSortBy]:
-              direction,
-          })
-          .skip(
-            (
-              safePage -
-              1
-            ) *
-            safeLimit
-          )
-          .limit(
-            safeLimit
-          )
+        dataQuery
           .lean(),
-
 
         LogisticsVendor
           .countDocuments(
@@ -398,7 +541,9 @@ class LogisticsVendorRepository {
         hasPreviousPage:
           safePage >
           1,
+
       },
+
     };
   }
 
@@ -435,6 +580,7 @@ class LogisticsVendorRepository {
             $ne:
               false,
           },
+
         },
 
         {
@@ -449,6 +595,7 @@ class LogisticsVendorRepository {
           runValidators:
             true,
         }
+
       )
       .lean();
   }
@@ -486,6 +633,7 @@ class LogisticsVendorRepository {
             $ne:
               false,
           },
+
         },
 
         {
@@ -496,6 +644,7 @@ class LogisticsVendorRepository {
 
             updatedBy:
               userId,
+
           },
         },
 
@@ -503,6 +652,7 @@ class LogisticsVendorRepository {
           new:
             true,
         }
+
       )
       .lean();
   }
@@ -520,6 +670,7 @@ class LogisticsVendorRepository {
       .aggregate([
 
         {
+
           $match: {
 
             companyId,
@@ -532,10 +683,13 @@ class LogisticsVendorRepository {
               $ne:
                 false,
             },
+
           },
+
         },
 
         {
+
           $group: {
 
             _id:
@@ -550,7 +704,9 @@ class LogisticsVendorRepository {
               $sum:
                 "$openingPayable",
             },
+
           },
+
         },
 
       ]);
@@ -581,11 +737,15 @@ class LogisticsVendorRepository {
               `^VEN-${dateCode}-`,
               "i"
             ),
+
         },
+
       })
       .sort({
+
         vendorCode:
           -1,
+
       })
       .select(
         "vendorCode"
@@ -612,6 +772,7 @@ class LogisticsVendorRepository {
         companyId,
 
         vendorCode,
+
       });
   }
 }
@@ -654,7 +815,8 @@ function applyCreatedAtRange(
   }
 
 
-  filter.createdAt = {};
+  filter.createdAt =
+    {};
 
 
   if (

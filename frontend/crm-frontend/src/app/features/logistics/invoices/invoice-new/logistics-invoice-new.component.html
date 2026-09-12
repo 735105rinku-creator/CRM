@@ -1,1547 +1,1983 @@
 @if (isLoadingInvoice()) {
-  <p role="status">Loading invoice?</p>
-} @else if (invoiceLoadFailed()) {
-  <p role="alert">{{ errorMessage() }}</p>
-} @else {
-<div class="invoice-page">
-  @if (editHistory.length) {
-        <div class="edit-audit" role="note">
-          <span>Edited by: {{ editHistory![editHistory!.length - 1].changedByName || editHistory![editHistory!.length - 1].changedBy || 'Unknown user' }}</span>
-          <span>Edited on: {{ editHistory![editHistory!.length - 1].changedAt | date:'dd/MM/yyyy HH:mm' }}</span>
-          <details>
-            <summary>Edit history</summary>
-            @for (entry of editHistory; track $index) {
-              <div>{{ entry.changedByName || entry.changedBy || 'Unknown user' }} ? {{ entry.changedAt | date:'dd/MM/yyyy HH:mm' }}</div>
-            }
-          </details>
-        </div>
-      }
 
+  <div class="invoice-loading-page">
+    <div class="loading-card">
+      <span>◷</span>
+      <strong>Loading Invoice</strong>
+      <p>Please wait while the invoice details are being loaded.</p>
+    </div>
+  </div>
+
+} @else if (invoiceLoadFailed()) {
+
+  <div class="invoice-loading-page">
+    <div class="loading-card error-card">
+      <span>!</span>
+      <strong>Unable to Load Invoice</strong>
+      <p>{{ errorMessage() }}</p>
+    </div>
+  </div>
+
+} @else {
+
+  <div
+    class="invoice-page"
+    [class.accounts-locked-page]="isHandedOff()"
+    [class.review-only-page]="isReviewOnly()"
+  >
+
+    <!-- ======================================================
+         RECORD OWNERSHIP / REVIEW MODE
+    ======================================================= -->
+    @if (form.invoiceId) {
+
+      <section class="record-ownership-banner">
+
+        <div class="record-ownership-icon">
+          {{
+            isHandedOff()
+              ? '🔒'
+              : (
+                  isReviewOnly()
+                    ? '👁'
+                    : '✓'
+                )
+          }}
+        </div>
+
+        <div class="record-ownership-content">
+
+          <span>
+            RECORD OWNERSHIP
+          </span>
+
+          <h2>
+            {{ ownershipLabel() }}
+          </h2>
+
+          <p>
+            Created by
+            <strong>
+              {{ creatorDisplayName() }}
+            </strong>
+
+            @if (creatorEmployeeCode()) {
+              <span>
+                &bull; {{ creatorEmployeeCode() }}
+              </span>
+            }
+
+            @if (creatorDesignation()) {
+              <span>
+                &bull; {{ creatorDesignation() }}
+              </span>
+            }
+          </p>
+
+          @if (isReviewOnly()) {
+
+            <p class="ownership-help">
+              This invoice belongs to another employee workspace.
+              You can review the invoice and its document, but only
+              the creator can edit it before Accounts handoff.
+            </p>
+
+          } @else if (isHandedOff()) {
+
+            <p class="ownership-help">
+              This invoice has been handed over to Accounts.
+              Logistics editing is now locked for every Logistics user.
+            </p>
+
+          } @else {
+
+            <p class="ownership-help">
+              This invoice belongs to your workspace and can be edited
+              until it is handed over to Accounts.
+            </p>
+
+          }
+
+        </div>
+
+        <div class="record-ownership-status">
+
+          <small>
+            Workspace Access
+          </small>
+
+          <strong
+            [class.review-only]="isReviewOnly()"
+            [class.own-record]="
+              !isReviewOnly() &&
+              !isHandedOff()
+            "
+            [class.accounts-controlled]="isHandedOff()"
+          >
+            {{ ownershipLabel() }}
+          </strong>
+
+        </div>
+
+      </section>
+
+    }
+
+    <!-- ======================================================
+         EDIT AUDIT
+    ======================================================= -->
+    @if (editHistory.length) {
+
+      <div
+        class="edit-audit"
+        role="note"
+      >
+
+        <span>
+          Edited by:
+          {{
+            editHistory[editHistory.length - 1].changedByName ||
+            'Unknown user'
+          }}
+        </span>
+
+        <span>
+          Edited on:
+          {{
+            editHistory[editHistory.length - 1].changedAt
+              | date:'dd/MM/yyyy HH:mm'
+          }}
+        </span>
+
+        <details>
+
+          <summary>
+            Edit history
+          </summary>
+
+          @for (
+            entry of editHistory;
+            track $index
+          ) {
+
+            <div>
+              {{
+                entry.changedByName ||
+                'Unknown user'
+              }}
+
+              &bull;
+
+              {{
+                entry.changedAt
+                  | date:'dd/MM/yyyy HH:mm'
+              }}
+            </div>
+
+          }
+
+        </details>
+
+      </div>
+
+    }
+
+    <!-- ======================================================
+         REVIEW ONLY NOTICE
+    ======================================================= -->
+    @if (isReviewOnly()) {
+
+      <section class="review-only-banner">
+
+        <div class="accounts-lock-icon">
+          👁
+        </div>
+
+        <div class="accounts-lock-content">
+
+          <span>
+            REVIEW MODE
+          </span>
+
+          <h2>
+            Creator Workspace Protected
+          </h2>
+
+          <p>
+            This invoice was created by
+            <strong>{{ creatorDisplayName() }}</strong>.
+            You may review its details and documents, but you cannot
+            modify the creator's invoice.
+          </p>
+
+        </div>
+
+        <div class="accounts-lock-status">
+
+          <small>
+            Access
+          </small>
+
+          <strong class="accounts-status-pill under-review">
+            Review Only
+          </strong>
+
+        </div>
+
+      </section>
+
+    }
+
+    <!-- ======================================================
+         ACCOUNTS LOCK NOTICE
+    ======================================================= -->
+    @if (isHandedOff()) {
+
+      <section class="accounts-lock-banner">
+
+        <div class="accounts-lock-icon">
+          &#128274;
+        </div>
+
+        <div class="accounts-lock-content">
+
+          <span>
+            ACCOUNTS CONTROL ACTIVE
+          </span>
+
+          <h2>
+            Invoice Sent to Accounts
+          </h2>
+
+          <p>
+            This invoice has already been handed over to Accounts.
+            Logistics financial editing, invoice copy replacement
+            and invoice value changes are now locked.
+          </p>
+
+        </div>
+
+        <div class="accounts-lock-status">
+
+          <small>
+            Current Status
+          </small>
+
+          <strong
+            [class]="
+              'accounts-status-pill ' +
+              accountsStatusClass()
+            "
+          >
+            {{ accountsStatusLabel() }}
+          </strong>
+
+        </div>
+
+      </section>
+
+    }
 
     <!-- ======================================================
          HEADER
     ======================================================= -->
     <header class="page-header">
-  
+
       <div>
+
         <div class="breadcrumb">
           <span>Logistics</span>
-          <b>›</b>
+          <b>&rsaquo;</b>
           <span>Invoice</span>
-          <b>›</b>
-          <strong>New Invoice</strong>
+          <b>&rsaquo;</b>
+
+          <strong>
+            {{
+              form.invoiceId
+                ? (
+                    isReviewOnly()
+                      ? 'Invoice Review'
+                      : 'Invoice Details'
+                  )
+                : 'New Invoice'
+            }}
+          </strong>
         </div>
-  
+
         <div class="page-title">
+
           <span class="title-icon">
             ▤
           </span>
-  
+
           <div>
+
             <h1>
-              Create Logistics Invoice
+              {{
+                form.invoiceId
+                  ? (
+                      isReviewOnly()
+                        ? 'Review Logistics Invoice'
+                        : 'Logistics Invoice'
+                    )
+                  : 'Create Logistics Invoice'
+              }}
             </h1>
-  
+
             <p>
-              Generate customer invoices for
-              freight, CHA, transportation,
-              warehouse and logistics services.
+              @if (isReviewOnly()) {
+                Review invoice details created by
+                {{ creatorDisplayName() }}.
+              } @else {
+                Generate customer invoices for freight,
+                CHA, transportation, warehouse and
+                logistics services.
+              }
             </p>
+
           </div>
+
         </div>
+
       </div>
-  
+
       <div class="header-actions">
-  
+
+        @if (canEditInvoice()) {
+
+          <button
+            type="button"
+            class="soft-btn"
+            [disabled]="isSaving()"
+            (click)="saveDraft()"
+          >
+            Save Draft
+          </button>
+
+        }
+
         <button
           type="button"
           class="soft-btn"
-          (click)="saveDraft()"
-        >
-          Save Draft
-        </button>
-  
-        <button
-          type="button"
-          class="soft-btn"
+          [disabled]="!form.invoiceId"
           (click)="previewPdf()"
         >
           PDF Preview
         </button>
-  
-        <button
-          type="button"
-          class="gold-btn"
-          (click)="submitInvoice()"
-        >
-          Save Invoice
-        </button>
-  
+
+        @if (canEditInvoice()) {
+
+          <button
+            type="button"
+            class="gold-btn"
+            [disabled]="isSaving()"
+            (click)="submitInvoice()"
+          >
+            {{
+              isSaving()
+                ? 'Saving...'
+                : (
+                    form.invoiceId
+                      ? 'Update Invoice'
+                      : 'Save Invoice'
+                  )
+            }}
+          </button>
+
+        } @else if (form.invoiceId) {
+
+          <span class="header-readonly-badge">
+            {{
+              isHandedOff()
+                ? '🔒 Accounts Controlled'
+                : '👁 Review Only'
+            }}
+          </span>
+
+        }
+
       </div>
-  
+
     </header>
-  
+
+    <!-- ======================================================
+         MESSAGES
+    ======================================================= -->
+    @if (message()) {
+
+      <div class="invoice-message success">
+        {{ message() }}
+      </div>
+
+    }
+
+    @if (errorMessage()) {
+
+      <div class="invoice-message error">
+        {{ errorMessage() }}
+      </div>
+
+    }
+
     <div class="invoice-layout">
-  
+
       <!-- ====================================================
            MAIN CONTENT
       ===================================================== -->
       <main class="invoice-main">
-  
-        <!-- ==================================================
-             1 CUSTOMER & INVOICE
-        =================================================== -->
-        <section class="form-card">
-  
-          <header class="section-heading">
-            <span>1</span>
-  
-            <div>
-              <h2>
-                Customer & Invoice Details
-              </h2>
-  
-              <p>
-                Customer, shipment and invoice
-                information
-              </p>
-            </div>
-          </header>
-  
-          <div class="form-grid">
-  
-            <!-- CUSTOMER -->
-            <div class="field span-2">
-  
-              <label>
-                Customer
-                <b>*</b>
-              </label>
-  
-              <select
-                [(ngModel)]="form.customer"
-              
-                (change)="onCustomerSelected()"
-              >
-                <option value="">
-                  Select Customer
-                </option>
-  
-                @for (
-                  option of customers;
-                  track option.value
-                ) {
-  
-                  <option
-                    [value]="option.value"
-                  >
-                    {{ option.label }}
-                  </option>
-  
-                }
-              </select>
-  
-              @if (
-                form.customer === 'other'
-              ) {
-  
-                <input
-                  type="text"
-                  class="other-input"
-                  [(ngModel)]="
-                    form.customerOther
-                  "
-                  placeholder="Enter customer name"
-                />
-  
-              }
-  
-            </div>
-  
-            <!-- CONTACT -->
-            <div class="field">
-  
-              <label>
-                Contact Person
-              </label>
-  
-              <input
-                type="text"
-                [(ngModel)]="
-                  form.contactPerson
-                "
-                placeholder="Enter contact person"
-              />
-  
-            </div>
-  
-            <!-- MOBILE -->
-            <div class="field">
-  
-              <label>
-                Mobile Number
-              </label>
-  
-              <input
-                type="tel"
-                [(ngModel)]="
-                  form.mobile
-                "
-                placeholder="Enter mobile number"
-              />
-  
-            </div>
-  
-            <!-- EMAIL -->
-            <div class="field">
-  
-              <label>
-                Email
-              </label>
-  
-              <input
-                type="email"
-                [(ngModel)]="
-                  form.email
-                "
-                placeholder="Enter email"
-              />
-  
-            </div>
-  
-            <!-- GST -->
-            <div class="field">
-  
-              <label>
-                GST Number
-              </label>
-  
-              <input
-                type="text"
-                [(ngModel)]="
-                  form.gstNumber
-                "
-                placeholder="Enter GST number"
-              />
-  
-            </div>
-  
-            <!-- INVOICE NUMBER -->
-            <div class="field">
-  
-              <label>
-                Invoice Number
-                <b>*</b>
-              </label>
-  
-              <input
-                type="text"
-                class="readonly"
-                [(ngModel)]="
-                  form.invoiceNumber
-                "
-                readonly
-              />
-  
-            </div>
-  
-            <!-- INVOICE DATE -->
-            <div class="field">
-  
-              <label>
-                Invoice Date
-                <b>*</b>
-              </label>
-  
-              <input
-                type="date"
-                [(ngModel)]="
-                  form.invoiceDate
-                "
-              />
-  
-            </div>
-  
-            <!-- DUE DATE -->
-            <div class="field">
-  
-              <label>
-                Due Date
-                <b>*</b>
-              </label>
-  
-              <input
-                type="date"
-                [(ngModel)]="
-                  form.dueDate
-                "
-              />
-  
-            </div>
-  
-            <!-- INVOICE TYPE -->
-            <div class="field">
-  
-              <label>
-                Invoice Type
-                <b>*</b>
-              </label>
-  
-              <select
-                [(ngModel)]="
-                  form.invoiceType
-                "
-              >
-  
-                @for (
-                  option of invoiceTypes;
-                  track option.value
-                ) {
-  
-                  <option
-                    [value]="option.value"
-                  >
-                    {{ option.label }}
-                  </option>
-  
-                }
-  
-              </select>
-  
-              @if (
-                form.invoiceType === 'other'
-              ) {
-  
-                <input
-                  type="text"
-                  class="other-input"
-                  [(ngModel)]="
-                    form.invoiceTypeOther
-                  "
-                  placeholder="Enter invoice type"
-                />
-  
-              }
-  
-            </div>
-  
-            <!-- SHIPMENT -->
-            <div class="field span-2">
-  
-              <label>
-                Related Shipment
-              </label>
-  
-              <select
-                [(ngModel)]="
-                  form.shipment
-                "
-                (change)="onShipmentSelected()"
-              >
-  
-                <option value="">
-                  Select Shipment
-                </option>
-  
-                @for (
-                  option of shipmentOptions;
-                  track option.value
-                ) {
-  
-                  <option
-                    [value]="option.value"
-                  >
-                    {{ option.label }}
-                  </option>
-  
-                }
-  
-              </select>
-  
-              @if (
-                form.shipment === 'other'
-              ) {
-  
-                <input
-                  type="text"
-                  class="other-input"
-                  [(ngModel)]="
-                    form.shipmentOther
-                  "
-                  placeholder="Enter shipment reference"
-                />
-  
-              }
-  
-            </div>
-  
-            <!-- CUSTOMER REF -->
-            <div class="field">
-  
-              <label>
-                Customer Reference
-              </label>
-  
-              <input
-                type="text"
-                [(ngModel)]="
-                  form.customerReference
-                "
-                placeholder="PO / reference number"
-              />
-  
-            </div>
-  
-            <!-- PLACE OF SUPPLY -->
-            <div class="field">
-  
-              <label>
-                Place of Supply
-              </label>
-  
-              <input
-                type="text"
-                [(ngModel)]="
-                  form.placeOfSupply
-                "
-                placeholder="Enter place of supply"
-              />
-  
-            </div>
-  
-            <!-- CURRENCY -->
-            <div class="field">
-  
-              <label>
-                Currency
-                <b>*</b>
-              </label>
-  
-              <select
-                [(ngModel)]="
-                  form.currency
-                "
-              >
-  
-                @for (
-                  option of currencies;
-                  track option.value
-                ) {
-  
-                  <option
-                    [value]="option.value"
-                  >
-                    {{ option.label }}
-                  </option>
-  
-                }
-  
-              </select>
-  
-              @if (
-                form.currency === 'other'
-              ) {
-  
-                <input
-                  type="text"
-                  class="other-input"
-                  [(ngModel)]="
-                    form.currencyOther
-                  "
-                  placeholder="Enter currency"
-                />
-  
-              }
-  
-            </div>
-  
-            <!-- REVERSE CHARGE -->
-            <div class="field">
-  
-              <label>
-                Reverse Charge
-              </label>
-  
-              <div class="radio-group">
-  
-                <label>
-                  <input
-                    type="radio"
-                    name="reverseCharge"
-                    value="yes"
-                    [(ngModel)]="
-                      form.reverseCharge
-                    "
-                  />
-                  <span></span>
-                  Yes
-                </label>
-  
-                <label>
-                  <input
-                    type="radio"
-                    name="reverseCharge"
-                    value="no"
-                    [(ngModel)]="
-                      form.reverseCharge
-                    "
-                  />
-                  <span></span>
-                  No
-                </label>
-  
+
+        <!--
+          Existing invoice:
+          - Creator can edit before handoff.
+          - Senior reviewing another employee's invoice = read only.
+          - Accounts handoff = read only for everyone.
+
+          New invoice remains editable.
+        -->
+        <fieldset
+          class="invoice-edit-fieldset"
+          [disabled]="!canEditInvoice()"
+        >
+
+          <!-- ==================================================
+               1 CUSTOMER & INVOICE
+          =================================================== -->
+          <section class="form-card">
+
+            <header class="section-heading">
+
+              <span>1</span>
+
+              <div>
+
+                <h2>
+                  Customer & Invoice Details
+                </h2>
+
+                <p>
+                  Customer, shipment and invoice
+                  information
+                </p>
+
               </div>
-  
-            </div>
-  
-            <!-- BILLING -->
-            <div class="field span-2">
-  
-              <label>
-                Billing Address
-                <b>*</b>
-              </label>
-  
-              <textarea
-                rows="3"
-                [(ngModel)]="
-                  form.billingAddress
-                "
-                placeholder="Enter billing address"
-              ></textarea>
-  
-            </div>
-  
-            <!-- SHIPPING -->
-            <div class="field span-2">
-  
-              <label>
-                Shipping Address
-              </label>
-  
-              <textarea
-                rows="3"
-                [(ngModel)]="
-                  form.shippingAddress
-                "
-                placeholder="Enter shipping address"
-              ></textarea>
-  
-            </div>
-  
-          </div>
-  
-        </section>
-  
-        <!-- ==================================================
-             2 ITEM / CHARGE DETAILS
-        =================================================== -->
-        <section class="form-card">
-  
-          <header class="section-heading">
-            <span>2</span>
-  
-            <div>
-              <h2>
-                Item / Charge Details
-              </h2>
-  
-              <p>
-                Add freight and logistics service
-                charges
-              </p>
-            </div>
-  
-            <button
-              type="button"
-              class="section-action"
-              (click)="addItem()"
-            >
-              ＋ Add Item
-            </button>
-          </header>
-  
-          <div class="item-list">
-  
-            @for (
-              item of items;
-              track $index;
-              let index = $index
-            ) {
-  
-              <article class="invoice-item">
-  
-                <header class="item-header">
-  
-                  <div>
-                    <span>
-                      ITEM {{ index + 1 }}
-                    </span>
-  
-                    <strong>
-                      Logistics Service
-                    </strong>
-                  </div>
-  
-                  <button
-                    type="button"
-                    class="delete-item"
-                    [disabled]="items.length === 1"
-                    (click)="removeItem(index)"
-                  >
-                    ×
-                  </button>
-  
-                </header>
-  
-                <div class="item-grid">
-  
-                  <!-- SERVICE -->
-                  <div class="field span-2">
-  
-                    <label>
-                      Service / Charge
-                      <b>*</b>
-                    </label>
-  
-                    <select
-                      [(ngModel)]="
-                        item.description
-                      "
-                    
-                      (change)="onProductServiceSelected(item)"
-                    >
-  
-                      <option value="">
-                        Select Service
-                      </option>
-  
-                      @for (
-                        option of serviceOptions;
-                        track option.value
-                      ) {
-  
-                        <option
-                          [value]="option.value"
-                        >
-                          {{ option.label }}
-                        </option>
-  
-                      }
-  
-                    </select>
-  
-                    @if (
-                      item.description === 'other'
-                    ) {
-  
-                      <input
-                        type="text"
-                        class="other-input"
-                        [(ngModel)]="
-                          item.descriptionOther
-                        "
-                        placeholder="Enter service / charge"
-                      />
-  
-                    }
-  
-                  </div>
-  
-                  <!-- HSN -->
-                  <div class="field">
-  
-                    <label>
-                      HSN / SAC
-                    </label>
-  
-                    <input
-                      type="text"
-                      [(ngModel)]="
-                        item.hsnSac
-                      "
-                      placeholder="Enter HSN / SAC"
-                    />
-  
-                  </div>
-  
-                  <!-- QTY -->
-                  <div class="field">
-  
-                    <label>
-                      Quantity
-                      <b>*</b>
-                    </label>
-  
-                    <input
-                      type="number"
-                      min="0"
-                      [(ngModel)]="
-                        item.quantity
-                      "
-                    />
-  
-                  </div>
-  
-                  <!-- UNIT -->
-                  <div class="field">
-  
-                    <label>
-                      Unit
-                      <b>*</b>
-                    </label>
-  
-                    <select
-                      [(ngModel)]="
-                        item.unit
-                      "
-                    >
-  
-                      @for (
-                        option of units;
-                        track option.value
-                      ) {
-  
-                        <option
-                          [value]="option.value"
-                        >
-                          {{ option.label }}
-                        </option>
-  
-                      }
-  
-                    </select>
-  
-                    @if (
-                      item.unit === 'other'
-                    ) {
-  
-                      <input
-                        type="text"
-                        class="other-input"
-                        [(ngModel)]="
-                          item.unitOther
-                        "
-                        placeholder="Enter unit"
-                      />
-  
-                    }
-  
-                  </div>
-  
-                  <!-- RATE -->
-                  <div class="field">
-  
-                    <label>
-                      Rate
-                      <b>*</b>
-                    </label>
-  
-                    <div class="money-input">
-                      <span>
-                        {{ form.currency === 'INR' ? '₹' : '' }}
-                      </span>
-  
-                      <input
-                        type="number"
-                        min="0"
-                        [(ngModel)]="
-                          item.rate
-                        "
-                      />
-                    </div>
-  
-                  </div>
-  
-                  <!-- DISCOUNT -->
-                  <div class="field">
-  
-                    <label>
-                      Discount
-                    </label>
-  
-                    <div class="money-input">
-                      <span>
-                        {{ form.currency === 'INR' ? '₹' : '' }}
-                      </span>
-  
-                      <input
-                        type="number"
-                        min="0"
-                        [(ngModel)]="
-                          item.discount
-                        "
-                      />
-                    </div>
-  
-                  </div>
-  
-                  <!-- GST -->
-                  <div class="field">
-  
-                    <label>
-                      GST
-                      <b>*</b>
-                    </label>
-  
-                    <select
-                      [(ngModel)]="
-                        item.gstRate
-                      "
-                    >
-  
-                      @for (
-                        option of gstRates;
-                        track option.value
-                      ) {
-  
-                        <option
-                          [value]="option.value"
-                        >
-                          {{ option.label }}
-                        </option>
-  
-                      }
-  
-                    </select>
-  
-                    @if (
-                      item.gstRate === 'other'
-                    ) {
-  
-                      <input
-                        type="number"
-                        class="other-input"
-                        [(ngModel)]="
-                          item.gstRateOther
-                        "
-                        placeholder="Enter GST %"
-                      />
-  
-                    }
-  
-                  </div>
-  
-                </div>
-  
-                <footer class="item-total-row">
-  
-                  <div>
-                    <span>
-                      Base Amount
-                    </span>
-  
-                    <strong>
-                      {{
-                        formatCurrency(
-                          itemBaseAmount(item)
-                        )
-                      }}
-                    </strong>
-                  </div>
-  
-                  <div>
-                    <span>
-                      Taxable
-                    </span>
-  
-                    <strong>
-                      {{
-                        formatCurrency(
-                          itemTaxableAmount(item)
-                        )
-                      }}
-                    </strong>
-                  </div>
-  
-                  <div>
-                    <span>
-                      GST
-                    </span>
-  
-                    <strong>
-                      {{
-                        formatCurrency(
-                          itemTaxAmount(item)
-                        )
-                      }}
-                    </strong>
-                  </div>
-  
-                  <div class="item-total">
-                    <span>
-                      Item Total
-                    </span>
-  
-                    <strong>
-                      {{
-                        formatCurrency(
-                          itemTotal(item)
-                        )
-                      }}
-                    </strong>
-                  </div>
-  
-                </footer>
-  
-              </article>
-  
-            }
-  
-          </div>
-  
-        </section>
-  
-        <!-- ==================================================
-             3 TAX DETAILS
-        =================================================== -->
-        <section class="form-card">
-  
-          <header class="section-heading">
-            <span>3</span>
-  
-            <div>
-              <h2>
-                Tax & Discount Details
-              </h2>
-  
-              <p>
-                Invoice-level adjustment and tax
-                summary
-              </p>
-            </div>
-          </header>
-  
-          <div class="form-grid">
-  
-            <div class="field">
-  
-              <label>
-                Discount Type
-              </label>
-  
-              <select
-                [(ngModel)]="
-                  form.discountType
-                "
-              >
-                <option value="amount">
-                  Fixed Amount
-                </option>
-  
-                <option value="percentage">
-                  Percentage
-                </option>
-              </select>
-  
-            </div>
-  
-            <div class="field">
-  
-              <label>
-                Overall Discount
-              </label>
-  
-              <div
-                class="money-input"
-                [class.percent-input]="
-                  form.discountType ===
-                  'percentage'
-                "
-              >
-  
-                <span>
-                  {{
-                    form.discountType ===
-                    'percentage'
-                      ? '%'
-                      : (
-                          form.currency === 'INR'
-                            ? '₹'
-                            : ''
-                        )
-                  }}
-                </span>
-  
-                <input
-                  type="number"
-                  min="0"
-                  [(ngModel)]="
-                    form.overallDiscount
-                  "
-                />
-  
-              </div>
-  
-            </div>
-  
-            <div class="field">
-  
-              <label>
-                Round Off
-              </label>
-  
-              <div class="money-input">
-  
-                <span>
-                  {{ form.currency === 'INR' ? '₹' : '' }}
-                </span>
-  
-                <input
-                  type="number"
-                  [(ngModel)]="
-                    form.roundOff
-                  "
-                />
-  
-              </div>
-  
-            </div>
-  
-          </div>
-  
-        </section>
-  
-        <!-- ==================================================
-             4 ADDITIONAL CHARGES
-        =================================================== -->
-        <section class="form-card">
-  
-          <header class="section-heading">
-            <span>4</span>
-  
-            <div>
-              <h2>
-                Additional Charges
-              </h2>
-  
-              <p>
-                Add miscellaneous invoice charges
-              </p>
-            </div>
-  
-            <button
-              type="button"
-              class="section-action"
-              (click)="addAdditionalCharge()"
-            >
-              ＋ Add Charge
-            </button>
-          </header>
-  
-          @if (!additionalCharges.length) {
-  
-            <div class="empty-additional-charge">
-  
-              <span>＋</span>
-  
-              <strong>
-                No additional charges
-              </strong>
-  
-              <p>
-                Use Add Charge for miscellaneous
-                expenses.
-              </p>
-  
-            </div>
-  
-          }
-  
-          @for (
-            charge of additionalCharges;
-            track $index;
-            let index = $index
-          ) {
-  
-            <div class="additional-charge-row">
-  
-              <div class="field">
-  
+
+            </header>
+
+            <div class="form-grid">
+
+              <div class="field span-2">
+
                 <label>
-                  Charge Type
+                  Customer
+                  <b>*</b>
                 </label>
-  
+
                 <select
-                  [(ngModel)]="
-                    charge.description
-                  "
+                  [(ngModel)]="form.customer"
+                  (change)="onCustomerSelected()"
                 >
-  
+
                   <option value="">
-                    Select Charge
+                    Select Customer
                   </option>
-  
-                  <option value="handling">
-                    Handling Charge
-                  </option>
-  
-                  <option value="insurance">
-                    Insurance
-                  </option>
-  
-                  <option value="storage">
-                    Storage Charge
-                  </option>
-  
-                  <option value="demurrage">
-                    Demurrage
-                  </option>
-  
-                  <option value="other">
-                    Other
-                  </option>
-  
+
+                  @for (
+                    option of customers;
+                    track option.value
+                  ) {
+
+                    <option
+                      [value]="option.value"
+                    >
+                      {{ option.label }}
+                    </option>
+
+                  }
+
                 </select>
-  
+
                 @if (
-                  charge.description === 'other'
+                  form.customer === 'other'
                 ) {
-  
+
                   <input
                     type="text"
                     class="other-input"
-                    [(ngModel)]="
-                      charge.descriptionOther
-                    "
-                    placeholder="Enter charge"
+                    [(ngModel)]="form.customerOther"
+                    placeholder="Enter customer name"
                   />
-  
+
                 }
-  
+
               </div>
-  
+
               <div class="field">
-  
+
                 <label>
-                  Amount
+                  Contact Person
                 </label>
-  
-                <div class="money-input">
-  
+
+                <input
+                  type="text"
+                  [(ngModel)]="form.contactPerson"
+                  placeholder="Enter contact person"
+                />
+
+              </div>
+
+              <div class="field">
+
+                <label>
+                  Mobile Number
+                </label>
+
+                <input
+                  type="tel"
+                  [(ngModel)]="form.mobile"
+                  placeholder="Enter mobile number"
+                />
+
+              </div>
+
+              <div class="field">
+
+                <label>
+                  Email
+                </label>
+
+                <input
+                  type="email"
+                  [(ngModel)]="form.email"
+                  placeholder="Enter email"
+                />
+
+              </div>
+
+              <div class="field">
+
+                <label>
+                  GST Number
+                </label>
+
+                <input
+                  type="text"
+                  [(ngModel)]="form.gstNumber"
+                  placeholder="Enter GST number"
+                />
+
+              </div>
+
+              <div class="field">
+
+                <label>
+                  Invoice Number
+                  <b>*</b>
+                </label>
+
+                <input
+                  type="text"
+                  class="readonly"
+                  [(ngModel)]="form.invoiceNumber"
+                  readonly
+                />
+
+              </div>
+
+              <div class="field">
+
+                <label>
+                  Invoice Date
+                  <b>*</b>
+                </label>
+
+                <input
+                  type="date"
+                  [(ngModel)]="form.invoiceDate"
+                />
+
+              </div>
+
+              <div class="field">
+
+                <label>
+                  Due Date
+                  <b>*</b>
+                </label>
+
+                <input
+                  type="date"
+                  [(ngModel)]="form.dueDate"
+                />
+
+              </div>
+
+              <div class="field">
+
+                <label>
+                  Invoice Type
+                  <b>*</b>
+                </label>
+
+                <select
+                  [(ngModel)]="form.invoiceType"
+                >
+
+                  @for (
+                    option of invoiceTypes;
+                    track option.value
+                  ) {
+
+                    <option
+                      [value]="option.value"
+                    >
+                      {{ option.label }}
+                    </option>
+
+                  }
+
+                </select>
+
+                @if (
+                  form.invoiceType === 'other'
+                ) {
+
+                  <input
+                    type="text"
+                    class="other-input"
+                    [(ngModel)]="form.invoiceTypeOther"
+                    placeholder="Enter invoice type"
+                  />
+
+                }
+
+              </div>
+
+              <div class="field span-2">
+
+                <label>
+                  Related Shipment
+                </label>
+
+                <select
+                  [(ngModel)]="form.shipment"
+                  (change)="onShipmentSelected()"
+                >
+
+                  <option value="">
+                    Select Shipment
+                  </option>
+
+                  @for (
+                    option of shipmentOptions;
+                    track option.value
+                  ) {
+
+                    <option
+                      [value]="option.value"
+                    >
+                      {{ option.label }}
+                    </option>
+
+                  }
+
+                </select>
+
+                @if (
+                  form.shipment === 'other'
+                ) {
+
+                  <input
+                    type="text"
+                    class="other-input"
+                    [(ngModel)]="form.shipmentOther"
+                    placeholder="Enter shipment reference"
+                  />
+
+                }
+
+              </div>
+
+              <div class="field">
+
+                <label>
+                  Customer Reference
+                </label>
+
+                <input
+                  type="text"
+                  [(ngModel)]="form.customerReference"
+                  placeholder="PO / reference number"
+                />
+
+              </div>
+
+              <div class="field">
+
+                <label>
+                  Place of Supply
+                </label>
+
+                <input
+                  type="text"
+                  [(ngModel)]="form.placeOfSupply"
+                  placeholder="Enter place of supply"
+                />
+
+              </div>
+
+              <div class="field">
+
+                <label>
+                  Currency
+                  <b>*</b>
+                </label>
+
+                <select
+                  [(ngModel)]="form.currency"
+                >
+
+                  @for (
+                    option of currencies;
+                    track option.value
+                  ) {
+
+                    <option
+                      [value]="option.value"
+                    >
+                      {{ option.label }}
+                    </option>
+
+                  }
+
+                </select>
+
+                @if (
+                  form.currency === 'other'
+                ) {
+
+                  <input
+                    type="text"
+                    class="other-input"
+                    [(ngModel)]="form.currencyOther"
+                    maxlength="3"
+                    placeholder="Enter 3-letter currency code"
+                  />
+
+                }
+
+              </div>
+
+              <div class="field">
+
+                <label>
+                  Reverse Charge
+                </label>
+
+                <div class="radio-group">
+
+                  <label>
+
+                    <input
+                      type="radio"
+                      name="reverseCharge"
+                      value="yes"
+                      [(ngModel)]="form.reverseCharge"
+                    />
+
+                    <span></span>
+                    Yes
+
+                  </label>
+
+                  <label>
+
+                    <input
+                      type="radio"
+                      name="reverseCharge"
+                      value="no"
+                      [(ngModel)]="form.reverseCharge"
+                    />
+
+                    <span></span>
+                    No
+
+                  </label>
+
+                </div>
+
+              </div>
+
+              <div class="field span-2">
+
+                <label>
+                  Billing Address
+                  <b>*</b>
+                </label>
+
+                <textarea
+                  rows="3"
+                  [(ngModel)]="form.billingAddress"
+                  placeholder="Enter billing address"
+                ></textarea>
+
+              </div>
+
+              <div class="field span-2">
+
+                <label>
+                  Shipping Address
+                </label>
+
+                <textarea
+                  rows="3"
+                  [(ngModel)]="form.shippingAddress"
+                  placeholder="Enter shipping address"
+                ></textarea>
+
+              </div>
+
+            </div>
+
+          </section>
+
+          <!-- ==================================================
+               2 ITEM / CHARGE DETAILS
+          =================================================== -->
+          <section class="form-card">
+
+            <header class="section-heading">
+
+              <span>2</span>
+
+              <div>
+
+                <h2>
+                  Item / Charge Details
+                </h2>
+
+                <p>
+                  Add freight and logistics service
+                  charges
+                </p>
+
+              </div>
+
+              <button
+                type="button"
+                class="section-action"
+                [disabled]="!canEditInvoice()"
+                (click)="addItem()"
+              >
+                ＋ Add Item
+              </button>
+
+            </header>
+
+            <div class="item-list">
+
+              @for (
+                item of items;
+                track $index;
+                let index = $index
+              ) {
+
+                <article class="invoice-item">
+
+                  <header class="item-header">
+
+                    <div>
+
+                      <span>
+                        ITEM {{ index + 1 }}
+                      </span>
+
+                      <strong>
+                        Logistics Service
+                      </strong>
+
+                    </div>
+
+                    <button
+                      type="button"
+                      class="delete-item"
+                      [disabled]="
+                        items.length === 1 ||
+                        !canEditInvoice()
+                      "
+                      (click)="removeItem(index)"
+                    >
+                      ×
+                    </button>
+
+                  </header>
+
+                  <div class="item-grid">
+
+                    <div class="field span-2">
+
+                      <label>
+                        Service / Charge
+                        <b>*</b>
+                      </label>
+
+                      <select
+                        [(ngModel)]="item.description"
+                        (change)="onProductServiceSelected(item)"
+                      >
+
+                        <option value="">
+                          Select Service
+                        </option>
+
+                        @for (
+                          option of serviceOptions;
+                          track option.value
+                        ) {
+
+                          <option
+                            [value]="option.value"
+                          >
+                            {{ option.label }}
+                          </option>
+
+                        }
+
+                      </select>
+
+                      @if (
+                        item.description === 'other'
+                      ) {
+
+                        <input
+                          type="text"
+                          class="other-input"
+                          [(ngModel)]="item.descriptionOther"
+                          placeholder="Enter service / charge"
+                        />
+
+                      }
+
+                    </div>
+
+                    <div class="field">
+
+                      <label>
+                        HSN / SAC
+                      </label>
+
+                      <input
+                        type="text"
+                        [(ngModel)]="item.hsnSac"
+                        placeholder="Enter HSN / SAC"
+                      />
+
+                    </div>
+
+                    <div class="field">
+
+                      <label>
+                        Quantity
+                        <b>*</b>
+                      </label>
+
+                      <input
+                        type="number"
+                        min="0"
+                        [(ngModel)]="item.quantity"
+                      />
+
+                    </div>
+
+                    <div class="field">
+
+                      <label>
+                        Unit
+                        <b>*</b>
+                      </label>
+
+                      <select
+                        [(ngModel)]="item.unit"
+                      >
+
+                        @for (
+                          option of units;
+                          track option.value
+                        ) {
+
+                          <option
+                            [value]="option.value"
+                          >
+                            {{ option.label }}
+                          </option>
+
+                        }
+
+                      </select>
+
+                      @if (
+                        item.unit === 'other'
+                      ) {
+
+                        <input
+                          type="text"
+                          class="other-input"
+                          [(ngModel)]="item.unitOther"
+                          placeholder="Enter unit"
+                        />
+
+                      }
+
+                    </div>
+
+                    <div class="field">
+
+                      <label>
+                        Rate
+                        <b>*</b>
+                      </label>
+
+                      <div class="money-input">
+
+                        <span>
+                          {{
+                            form.currency === 'INR'
+                              ? '₹'
+                              : ''
+                          }}
+                        </span>
+
+                        <input
+                          type="number"
+                          min="0"
+                          [(ngModel)]="item.rate"
+                        />
+
+                      </div>
+
+                    </div>
+
+                    <div class="field">
+
+                      <label>
+                        Discount
+                      </label>
+
+                      <div class="money-input">
+
+                        <span>
+                          {{
+                            form.currency === 'INR'
+                              ? '₹'
+                              : ''
+                          }}
+                        </span>
+
+                        <input
+                          type="number"
+                          min="0"
+                          [(ngModel)]="item.discount"
+                        />
+
+                      </div>
+
+                    </div>
+
+                    <div class="field">
+
+                      <label>
+                        GST
+                        <b>*</b>
+                      </label>
+
+                      <select
+                        [(ngModel)]="item.gstRate"
+                      >
+
+                        @for (
+                          option of gstRates;
+                          track option.value
+                        ) {
+
+                          <option
+                            [value]="option.value"
+                          >
+                            {{ option.label }}
+                          </option>
+
+                        }
+
+                      </select>
+
+                      @if (
+                        item.gstRate === 'other'
+                      ) {
+
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          class="other-input"
+                          [(ngModel)]="item.gstRateOther"
+                          placeholder="Enter GST %"
+                        />
+
+                      }
+
+                    </div>
+
+                  </div>
+
+                  <footer class="item-total-row">
+
+                    <div>
+
+                      <span>
+                        Base Amount
+                      </span>
+
+                      <strong>
+                        {{
+                          formatCurrency(
+                            itemBaseAmount(item)
+                          )
+                        }}
+                      </strong>
+
+                    </div>
+
+                    <div>
+
+                      <span>
+                        Taxable
+                      </span>
+
+                      <strong>
+                        {{
+                          formatCurrency(
+                            itemTaxableAmount(item)
+                          )
+                        }}
+                      </strong>
+
+                    </div>
+
+                    <div>
+
+                      <span>
+                        GST
+                      </span>
+
+                      <strong>
+                        {{
+                          formatCurrency(
+                            itemTaxAmount(item)
+                          )
+                        }}
+                      </strong>
+
+                    </div>
+
+                    <div class="item-total">
+
+                      <span>
+                        Item Total
+                      </span>
+
+                      <strong>
+                        {{
+                          formatCurrency(
+                            itemTotal(item)
+                          )
+                        }}
+                      </strong>
+
+                    </div>
+
+                  </footer>
+
+                </article>
+
+              }
+
+            </div>
+
+          </section>
+
+          <!-- ==================================================
+               3 TAX DETAILS
+          =================================================== -->
+          <section class="form-card">
+
+            <header class="section-heading">
+
+              <span>3</span>
+
+              <div>
+
+                <h2>
+                  Tax & Discount Details
+                </h2>
+
+                <p>
+                  Invoice-level adjustment and tax
+                  summary
+                </p>
+
+              </div>
+
+            </header>
+
+            <div class="form-grid">
+
+              <div class="field">
+
+                <label>
+                  Discount Type
+                </label>
+
+                <select
+                  [(ngModel)]="form.discountType"
+                >
+
+                  <option value="amount">
+                    Fixed Amount
+                  </option>
+
+                  <option value="percentage">
+                    Percentage
+                  </option>
+
+                </select>
+
+              </div>
+
+              <div class="field">
+
+                <label>
+                  Overall Discount
+                </label>
+
+                <div
+                  class="money-input"
+                  [class.percent-input]="
+                    form.discountType ===
+                    'percentage'
+                  "
+                >
+
                   <span>
-                    {{ form.currency === 'INR' ? '₹' : '' }}
+                    {{
+                      form.discountType ===
+                      'percentage'
+                        ? '%'
+                        : (
+                            form.currency === 'INR'
+                              ? '₹'
+                              : ''
+                          )
+                    }}
                   </span>
-  
+
                   <input
                     type="number"
                     min="0"
-                    [(ngModel)]="
-                      charge.amount
-                    "
+                    [(ngModel)]="form.overallDiscount"
                   />
-  
+
                 </div>
-  
+
               </div>
-  
+
               <div class="field">
-  
+
                 <label>
-                  Taxable?
+                  Round Off
                 </label>
-  
-                <select
-                  [(ngModel)]="
-                    charge.taxable
-                  "
-                >
-                  <option value="yes">
-                    Yes
-                  </option>
-  
-                  <option value="no">
-                    No
-                  </option>
-                </select>
-  
+
+                <div class="money-input">
+
+                  <span>
+                    {{
+                      form.currency === 'INR'
+                        ? '₹'
+                        : ''
+                    }}
+                  </span>
+
+                  <input
+                    type="number"
+                    [(ngModel)]="form.roundOff"
+                  />
+
+                </div>
+
               </div>
-  
+
+            </div>
+
+          </section>
+
+          <!-- ==================================================
+               4 ADDITIONAL CHARGES
+          =================================================== -->
+          <section class="form-card">
+
+            <header class="section-heading">
+
+              <span>4</span>
+
+              <div>
+
+                <h2>
+                  Additional Charges
+                </h2>
+
+                <p>
+                  Add miscellaneous invoice charges
+                </p>
+
+              </div>
+
               <button
                 type="button"
-                class="remove-charge"
-                (click)="
-                  removeAdditionalCharge(index)
-                "
+                class="section-action"
+                [disabled]="!canEditInvoice()"
+                (click)="addAdditionalCharge()"
               >
-                ×
+                ＋ Add Charge
               </button>
-  
+
+            </header>
+
+            @if (!additionalCharges.length) {
+
+              <div class="empty-additional-charge">
+
+                <span>
+                  ＋
+                </span>
+
+                <strong>
+                  No additional charges
+                </strong>
+
+                <p>
+                  Use Add Charge for miscellaneous
+                  expenses.
+                </p>
+
+              </div>
+
+            }
+
+            @for (
+              charge of additionalCharges;
+              track $index;
+              let index = $index
+            ) {
+
+              <div class="additional-charge-row">
+
+                <div class="field">
+
+                  <label>
+                    Charge Type
+                  </label>
+
+                  <select
+                    [(ngModel)]="charge.description"
+                  >
+
+                    <option value="">
+                      Select Charge
+                    </option>
+
+                    <option value="handling">
+                      Handling Charge
+                    </option>
+
+                    <option value="insurance">
+                      Insurance
+                    </option>
+
+                    <option value="storage">
+                      Storage Charge
+                    </option>
+
+                    <option value="demurrage">
+                      Demurrage
+                    </option>
+
+                    <option value="other">
+                      Other
+                    </option>
+
+                  </select>
+
+                  @if (
+                    charge.description === 'other'
+                  ) {
+
+                    <input
+                      type="text"
+                      class="other-input"
+                      [(ngModel)]="charge.descriptionOther"
+                      placeholder="Enter charge"
+                    />
+
+                  }
+
+                </div>
+
+                <div class="field">
+
+                  <label>
+                    Amount
+                  </label>
+
+                  <div class="money-input">
+
+                    <span>
+                      {{
+                        form.currency === 'INR'
+                          ? '₹'
+                          : ''
+                      }}
+                    </span>
+
+                    <input
+                      type="number"
+                      min="0"
+                      [(ngModel)]="charge.amount"
+                    />
+
+                  </div>
+
+                </div>
+
+                <div class="field">
+
+                  <label>
+                    Taxable?
+                  </label>
+
+                  <select
+                    [(ngModel)]="charge.taxable"
+                  >
+
+                    <option value="yes">
+                      Yes
+                    </option>
+
+                    <option value="no">
+                      No
+                    </option>
+
+                  </select>
+
+                </div>
+
+                <button
+                  type="button"
+                  class="remove-charge"
+                  [disabled]="!canEditInvoice()"
+                  (click)="removeAdditionalCharge(index)"
+                >
+                  ×
+                </button>
+
+              </div>
+
+            }
+
+          </section>
+
+          <!-- ==================================================
+               5 PAYMENT DETAILS
+          =================================================== -->
+          <section class="form-card">
+
+            <header class="section-heading">
+
+              <span>5</span>
+
+              <div>
+
+                <h2>
+                  Payment Details
+                </h2>
+
+                <p>
+                  Payment status, received amount
+                  and banking information
+                </p>
+
+              </div>
+
+            </header>
+
+            @if (isHandedOff()) {
+
+              <div class="payment-lock-note">
+                Accounts now controls payment updates for this invoice.
+                Existing Logistics payment details are shown as historical
+                information.
+              </div>
+
+            } @else if (isReviewOnly()) {
+
+              <div class="payment-lock-note">
+                Payment details are read-only because this invoice belongs
+                to {{ creatorDisplayName() }}.
+              </div>
+
+            }
+
+            <div class="form-grid">
+
+              <div class="field">
+
+                <label>
+                  Payment Status
+                  <b>*</b>
+                </label>
+
+                <select
+                  [(ngModel)]="form.paymentStatus"
+                >
+
+                  @for (
+                    option of paymentStatuses;
+                    track option.value
+                  ) {
+
+                    <option
+                      [value]="option.value"
+                    >
+                      {{ option.label }}
+                    </option>
+
+                  }
+
+                </select>
+
+                @if (
+                  form.paymentStatus === 'other'
+                ) {
+
+                  <input
+                    type="text"
+                    class="other-input"
+                    [(ngModel)]="form.paymentStatusOther"
+                    placeholder="Enter payment status"
+                  />
+
+                }
+
+              </div>
+
+              <div class="field">
+
+                <label>
+                  Payment Mode
+                </label>
+
+                <select
+                  [(ngModel)]="form.paymentMode"
+                >
+
+                  <option value="">
+                    Select Payment Mode
+                  </option>
+
+                  @for (
+                    option of paymentModes;
+                    track option.value
+                  ) {
+
+                    <option
+                      [value]="option.value"
+                    >
+                      {{ option.label }}
+                    </option>
+
+                  }
+
+                </select>
+
+                @if (
+                  form.paymentMode === 'other'
+                ) {
+
+                  <input
+                    type="text"
+                    class="other-input"
+                    [(ngModel)]="form.paymentModeOther"
+                    placeholder="Enter payment mode"
+                  />
+
+                }
+
+              </div>
+
+              <div class="field">
+
+                <label>
+                  Amount Received
+                </label>
+
+                <div class="money-input">
+
+                  <span>
+                    {{
+                      form.currency === 'INR'
+                        ? '₹'
+                        : ''
+                    }}
+                  </span>
+
+                  <input
+                    type="number"
+                    min="0"
+                    [(ngModel)]="form.amountReceived"
+                  />
+
+                </div>
+
+              </div>
+
+              <div class="field">
+
+                <label>
+                  Payment Date
+                </label>
+
+                <input
+                  type="date"
+                  [(ngModel)]="form.paymentDate"
+                />
+
+              </div>
+
+              <div class="field span-2">
+
+                <label>
+                  Payment Reference
+                </label>
+
+                <input
+                  type="text"
+                  [(ngModel)]="form.paymentReference"
+                  placeholder="UTR / transaction / cheque number"
+                />
+
+              </div>
+
+              <div class="field">
+
+                <label>
+                  Bank Name
+                </label>
+
+                <input
+                  type="text"
+                  [(ngModel)]="form.bankName"
+                  placeholder="Enter bank name"
+                />
+
+              </div>
+
+              <div class="field">
+
+                <label>
+                  Account Name
+                </label>
+
+                <input
+                  type="text"
+                  [(ngModel)]="form.accountName"
+                  placeholder="Enter account name"
+                />
+
+              </div>
+
+              <div class="field">
+
+                <label>
+                  Account Number
+                </label>
+
+                <input
+                  type="text"
+                  [(ngModel)]="form.accountNumber"
+                  placeholder="Enter account number"
+                />
+
+              </div>
+
+              <div class="field">
+
+                <label>
+                  IFSC Code
+                </label>
+
+                <input
+                  type="text"
+                  [(ngModel)]="form.ifscCode"
+                  placeholder="Enter IFSC"
+                />
+
+              </div>
+
+              <div class="field span-2">
+
+                <label>
+                  Branch Name
+                </label>
+
+                <input
+                  type="text"
+                  [(ngModel)]="form.branchName"
+                  placeholder="Enter branch name"
+                />
+
+              </div>
+
             </div>
-  
-          }
-  
-        </section>
-  
-        <!-- ==================================================
-             5 PAYMENT DETAILS
-        =================================================== -->
-        <section class="form-card">
-  
-          <header class="section-heading">
-            <span>5</span>
-  
-            <div>
-              <h2>
-                Payment Details
-              </h2>
-  
-              <p>
-                Payment status, received amount and
-                banking information
-              </p>
-            </div>
-          </header>
-  
-          <div class="form-grid">
-  
-            <!-- STATUS -->
+
+          </section>
+
+          <!-- ==================================================
+               6 TERMS
+          =================================================== -->
+          <section class="form-card">
+
+            <header class="section-heading">
+
+              <span>6</span>
+
+              <div>
+
+                <h2>
+                  Terms & Conditions
+                </h2>
+
+                <p>
+                  Commercial and payment terms
+                </p>
+
+              </div>
+
+            </header>
+
             <div class="field">
-  
+
               <label>
-                Payment Status
+                Terms & Conditions
+              </label>
+
+              <textarea
+                rows="5"
+                [(ngModel)]="form.termsAndConditions"
+              ></textarea>
+
+            </div>
+
+          </section>
+
+          <!-- ==================================================
+               7 REMARKS
+          =================================================== -->
+          <section class="form-card remarks-card">
+
+            <header class="section-heading">
+
+              <span>7</span>
+
+              <div>
+
+                <h2>
+                  Remarks
+                </h2>
+
+                <p>
+                  Final invoice notes and internal
+                  instructions
+                </p>
+
+              </div>
+
+            </header>
+
+            <div class="field">
+
+              <label>
+                Remarks
                 <b>*</b>
               </label>
-  
-              <select
-                [(ngModel)]="
-                  form.paymentStatus
-                "
-              >
-  
-                @for (
-                  option of paymentStatuses;
-                  track option.value
-                ) {
-  
-                  <option
-                    [value]="option.value"
-                  >
-                    {{ option.label }}
-                  </option>
-  
-                }
-  
-              </select>
-  
-              @if (
-                form.paymentStatus === 'other'
-              ) {
-  
-                <input
-                  type="text"
-                  class="other-input"
-                  [(ngModel)]="
-                    form.paymentStatusOther
-                  "
-                  placeholder="Enter payment status"
-                />
-  
-              }
-  
+
+              <textarea
+                rows="5"
+                [(ngModel)]="form.remarks"
+                placeholder="Enter invoice remarks, shipment note, payment note or special instruction..."
+              ></textarea>
+
             </div>
-  
-            <!-- MODE -->
-            <div class="field">
-  
-              <label>
-                Payment Mode
-              </label>
-  
-              <select
-                [(ngModel)]="
-                  form.paymentMode
-                "
-              >
-  
-                <option value="">
-                  Select Payment Mode
-                </option>
-  
-                @for (
-                  option of paymentModes;
-                  track option.value
-                ) {
-  
-                  <option
-                    [value]="option.value"
-                  >
-                    {{ option.label }}
-                  </option>
-  
-                }
-  
-              </select>
-  
-              @if (
-                form.paymentMode === 'other'
-              ) {
-  
-                <input
-                  type="text"
-                  class="other-input"
-                  [(ngModel)]="
-                    form.paymentModeOther
-                  "
-                  placeholder="Enter payment mode"
-                />
-  
-              }
-  
-            </div>
-  
-            <!-- RECEIVED -->
-            <div class="field">
-  
-              <label>
-                Amount Received
-              </label>
-  
-              <div class="money-input">
-  
-                <span>
-                  {{ form.currency === 'INR' ? '₹' : '' }}
-                </span>
-  
-                <input
-                  type="number"
-                  min="0"
-                  [(ngModel)]="
-                    form.amountReceived
-                  "
-                />
-  
-              </div>
-  
-            </div>
-  
-            <!-- PAYMENT DATE -->
-            <div class="field">
-  
-              <label>
-                Payment Date
-              </label>
-  
-              <input
-                type="date"
-                [(ngModel)]="
-                  form.paymentDate
-                "
-              />
-  
-            </div>
-  
-            <!-- REF -->
-            <div class="field span-2">
-  
-              <label>
-                Payment Reference
-              </label>
-  
-              <input
-                type="text"
-                [(ngModel)]="
-                  form.paymentReference
-                "
-                placeholder="
-                  UTR / transaction / cheque number
-                "
-              />
-  
-            </div>
-  
-            <div class="field">
-  
-              <label>
-                Bank Name
-              </label>
-  
-              <input
-                type="text"
-                [(ngModel)]="
-                  form.bankName
-                "
-                placeholder="Enter bank name"
-              />
-  
-            </div>
-  
-            <div class="field">
-  
-              <label>
-                Account Name
-              </label>
-  
-              <input
-                type="text"
-                [(ngModel)]="
-                  form.accountName
-                "
-                placeholder="Enter account name"
-              />
-  
-            </div>
-  
-            <div class="field">
-  
-              <label>
-                Account Number
-              </label>
-  
-              <input
-                type="text"
-                [(ngModel)]="
-                  form.accountNumber
-                "
-                placeholder="Enter account number"
-              />
-  
-            </div>
-  
-            <div class="field">
-  
-              <label>
-                IFSC Code
-              </label>
-  
-              <input
-                type="text"
-                [(ngModel)]="
-                  form.ifscCode
-                "
-                placeholder="Enter IFSC"
-              />
-  
-            </div>
-  
-            <div class="field span-2">
-  
-              <label>
-                Branch Name
-              </label>
-  
-              <input
-                type="text"
-                [(ngModel)]="
-                  form.branchName
-                "
-                placeholder="Enter branch name"
-              />
-  
-            </div>
-  
-          </div>
-  
-        </section>
-  
-        <!-- ==================================================
-             6 TERMS
-        =================================================== -->
-        <section class="form-card">
-  
-          <header class="section-heading">
-            <span>6</span>
-  
-            <div>
-              <h2>
-                Terms & Conditions
-              </h2>
-  
-              <p>
-                Commercial and payment terms
-              </p>
-            </div>
-          </header>
-  
-          <div class="field">
-  
-            <label>
-              Terms & Conditions
-            </label>
-  
-            <textarea
-              rows="5"
-              [(ngModel)]="
-                form.termsAndConditions
-              "
-            ></textarea>
-  
-          </div>
-  
-        </section>
-  
-        <!-- ==================================================
-             7 REMARKS - ALWAYS LAST
-        =================================================== -->
-        <section class="form-card remarks-card">
-  
-          <header class="section-heading">
-            <span>7</span>
-  
-            <div>
-              <h2>
-                Remarks
-              </h2>
-  
-              <p>
-                Final invoice notes and internal
-                instructions
-              </p>
-            </div>
-          </header>
-  
-          <div class="field">
-  
-            <label>
-              Remarks
-            </label>
-  
-            <textarea
-              rows="5"
-              [(ngModel)]="
-                form.remarks
-              "
-              placeholder="
-                Enter invoice remarks,
-                shipment note,
-                payment note or special instruction...
-              "
-            ></textarea>
-  
-          </div>
-  
-        </section>
-  
+
+          </section>
+
+        </fieldset>
+
       </main>
-  
+
       <!-- ====================================================
            RIGHT PANEL
       ===================================================== -->
       <aside class="invoice-sidebar">
-  
-        <!-- SUMMARY -->
+
+        <!-- ==================================================
+             RECORD OWNER
+        =================================================== -->
+        @if (form.invoiceId) {
+
+          <section class="side-card ownership-card">
+
+            <header>
+
+              <span>
+                👤
+              </span>
+
+              <div>
+
+                <h3>
+                  Record Ownership
+                </h3>
+
+                <p>
+                  Creator & workspace access
+                </p>
+
+              </div>
+
+            </header>
+
+            <div class="meta-list">
+
+              <div>
+
+                <span>
+                  Created By
+                </span>
+
+                <strong>
+                  {{ creatorDisplayName() }}
+                </strong>
+
+              </div>
+
+              <div>
+
+                <span>
+                  Employee Code
+                </span>
+
+                <strong>
+                  {{
+                    creatorEmployeeCode() ||
+                    '-'
+                  }}
+                </strong>
+
+              </div>
+
+              <div>
+
+                <span>
+                  Designation
+                </span>
+
+                <strong>
+                  {{
+                    creatorDesignation() ||
+                    '-'
+                  }}
+                </strong>
+
+              </div>
+
+              <div>
+
+                <span>
+                  Workspace Access
+                </span>
+
+                <strong
+                  [class.meta-locked]="
+                    isReviewOnly() ||
+                    isHandedOff()
+                  "
+                  [class.meta-editable]="
+                    canEditInvoice()
+                  "
+                >
+                  {{ ownershipLabel() }}
+                </strong>
+
+              </div>
+
+            </div>
+
+            @if (isReviewOnly()) {
+
+              <div class="accounts-readonly-note">
+
+                <span>
+                  👁
+                </span>
+
+                <p>
+                  Review only. Editing remains with
+                  {{ creatorDisplayName() }}.
+                </p>
+
+              </div>
+
+            }
+
+          </section>
+
+        }
+
+        <!-- ==================================================
+             SUMMARY
+        =================================================== -->
         <section class="side-card summary-card">
-  
+
           <header>
+
             <span>₹</span>
-  
+
             <div>
+
               <h3>
                 Invoice Summary
               </h3>
-  
+
               <p>
                 Live calculation
               </p>
+
             </div>
+
           </header>
-  
+
           <div class="summary-line">
-  
+
             <span>
               Service Subtotal
             </span>
-  
+
             <strong>
               {{
                 formatCurrency(
@@ -1549,15 +1985,15 @@
                 )
               }}
             </strong>
-  
+
           </div>
-  
+
           <div class="summary-line">
-  
+
             <span>
               Additional Charges
             </span>
-  
+
             <strong>
               {{
                 formatCurrency(
@@ -1565,15 +2001,15 @@
                 )
               }}
             </strong>
-  
+
           </div>
-  
+
           <div class="summary-line discount">
-  
+
             <span>
               Overall Discount
             </span>
-  
+
             <strong>
               -
               {{
@@ -1582,15 +2018,15 @@
                 )
               }}
             </strong>
-  
+
           </div>
-  
+
           <div class="summary-line">
-  
+
             <span>
               Taxable Amount
             </span>
-  
+
             <strong>
               {{
                 formatCurrency(
@@ -1598,15 +2034,15 @@
                 )
               }}
             </strong>
-  
+
           </div>
-  
+
           <div class="summary-line">
-  
+
             <span>
               Tax
             </span>
-  
+
             <strong>
               {{
                 formatCurrency(
@@ -1614,15 +2050,15 @@
                 )
               }}
             </strong>
-  
+
           </div>
-  
+
           <div class="summary-line">
-  
+
             <span>
               Round Off
             </span>
-  
+
             <strong>
               {{
                 formatCurrency(
@@ -1630,15 +2066,15 @@
                 )
               }}
             </strong>
-  
+
           </div>
-  
+
           <div class="invoice-total">
-  
+
             <span>
               Invoice Total
             </span>
-  
+
             <strong>
               {{
                 formatCurrency(
@@ -1646,15 +2082,15 @@
                 )
               }}
             </strong>
-  
+
           </div>
-  
+
           <div class="received-line">
-  
+
             <span>
-              Amount Received
+              Logistics Received
             </span>
-  
+
             <strong>
               {{
                 formatCurrency(
@@ -1662,20 +2098,20 @@
                 )
               }}
             </strong>
-  
+
           </div>
-  
+
           <div
             class="balance-due"
             [class.paid]="
               balanceDue === 0
             "
           >
-  
+
             <span>
-              Balance Due
+              Logistics Balance Due
             </span>
-  
+
             <strong>
               {{
                 formatCurrency(
@@ -1683,39 +2119,296 @@
                 )
               }}
             </strong>
-  
+
           </div>
-  
+
         </section>
 
+        <!-- ==================================================
+             ACCOUNTS STATUS
+        =================================================== -->
+        @if (isHandedOff()) {
+
+          <section class="side-card accounts-state-card">
+
+            <header>
+
+              <span>
+                &#8377;
+              </span>
+
+              <div>
+
+                <h3>
+                  Accounts Status
+                </h3>
+
+                <p>
+                  Central payment control
+                </p>
+
+              </div>
+
+            </header>
+
+            <div class="accounts-current-status">
+
+              <small>
+                Current State
+              </small>
+
+              <strong
+                [class]="
+                  'accounts-status-pill ' +
+                  accountsStatusClass()
+                "
+              >
+                {{ accountsStatusLabel() }}
+              </strong>
+
+              <p>
+                {{ accountsStateDescription() }}
+              </p>
+
+            </div>
+
+            <div class="accounts-financial-grid">
+
+              <article>
+
+                <span>
+                  Accounts Paid
+                </span>
+
+                <strong>
+                  {{
+                    formatCurrency(
+                      accountsPaidAmount()
+                    )
+                  }}
+                </strong>
+
+              </article>
+
+              <article>
+
+                <span>
+                  Accounts Remaining
+                </span>
+
+                <strong>
+                  {{
+                    formatCurrency(
+                      accountsRemainingAmount()
+                    )
+                  }}
+                </strong>
+
+              </article>
+
+            </div>
+
+            <div class="accounts-meta-list">
+
+              <div>
+
+                <span>
+                  Sent to Accounts
+                </span>
+
+                <strong>
+                  {{
+                    formatAccountsDate(
+                      accountsHandedOffAt()
+                    )
+                  }}
+                </strong>
+
+              </div>
+
+              <div>
+
+                <span>
+                  Payment Reference
+                </span>
+
+                <strong>
+                  {{
+                    accountsPaymentReference() ||
+                    '-'
+                  }}
+                </strong>
+
+              </div>
+
+              <div>
+
+                <span>
+                  Payment Date
+                </span>
+
+                <strong>
+                  {{
+                    formatAccountsDate(
+                      accountsPaymentDate()
+                    )
+                  }}
+                </strong>
+
+              </div>
+
+              <div>
+
+                <span>
+                  Processed By
+                </span>
+
+                <strong>
+                  {{
+                    accountsPaidByName() ||
+                    '-'
+                  }}
+                </strong>
+
+              </div>
+
+            </div>
+
+            <div class="accounts-readonly-note">
+
+              <span>
+                &#128274;
+              </span>
+
+              <p>
+                Financial changes are controlled by
+                Accounts after handoff.
+              </p>
+
+            </div>
+
+          </section>
+
+        }
+
+        <!-- ==================================================
+             INVOICE COPY
+        =================================================== -->
         <section class="side-card invoice-copy-card">
+
           <header>
-            <span>&#8679;</span>
+
+            <span>
+              &#8679;
+            </span>
 
             <div>
-              <h3>Upload Invoice Copy</h3>
-              <p>Attach JPG/JPEG invoice image</p>
+
+              <h3>
+                Invoice Copy
+              </h3>
+
+              <p>
+                Attach JPG/JPEG invoice image
+              </p>
+
             </div>
+
           </header>
 
-          <label class="invoice-copy-upload">
-            <input
-              type="file"
-              accept=".jpg,.jpeg,image/jpeg"
-              (change)="onInvoiceCopySelected($event)"
-            />
-            <span>{{ invoiceCopyName || 'Choose JPG/JPEG file' }}</span>
-          </label>
+          @if (!canEditInvoice()) {
 
-          <button
-            type="button"
-            (click)="uploadInvoiceCopy()"
-            [disabled]="!selectedInvoiceCopy || isSaving()"
-          >
-            Upload Invoice Copy
-          </button>
+            <div class="invoice-copy-locked">
+
+              <span>
+                {{
+                  isHandedOff()
+                    ? '🔒'
+                    : '👁'
+                }}
+              </span>
+
+              <strong>
+                {{
+                  isHandedOff()
+                    ? 'Invoice Copy Locked'
+                    : 'Invoice Copy Review Only'
+                }}
+              </strong>
+
+              <p>
+                {{
+                  isHandedOff()
+                    ? 'Invoice copy cannot be replaced after Accounts handoff.'
+                    : 'Only the invoice creator can replace this invoice copy.'
+                }}
+              </p>
+
+            </div>
+
+          } @else {
+
+            <label class="invoice-copy-upload">
+
+              <input
+                type="file"
+                accept=".jpg,.jpeg,image/jpeg"
+                [disabled]="isSaving()"
+                (change)="onInvoiceCopySelected($event)"
+              />
+
+              <span>
+                {{
+                  invoiceCopyName ||
+                  'Choose JPG/JPEG file'
+                }}
+              </span>
+
+            </label>
+
+            <button
+              type="button"
+              (click)="uploadInvoiceCopy()"
+              [disabled]="
+                !selectedInvoiceCopy ||
+                isSaving() ||
+                !form.invoiceId
+              "
+            >
+              {{
+                isSaving()
+                  ? 'Uploading...'
+                  : 'Upload Invoice Copy'
+              }}
+            </button>
+
+          }
 
           @if (invoiceCopyUrl) {
+
+            <div class="existing-invoice-copy">
+
+              <span>
+                &#10003;
+              </span>
+
+              <div>
+
+                <strong>
+                  {{
+                    invoiceCopyName ||
+                    'Invoice Copy Attached'
+                  }}
+                </strong>
+
+                <small>
+                  Document available
+                </small>
+
+              </div>
+
+            </div>
+
             <a
               class="invoice-copy-link"
               [href]="invoiceCopyUrl"
@@ -1724,126 +2417,179 @@
             >
               View Invoice Copy
             </a>
+
+          } @else {
+
+            <div class="invoice-copy-missing">
+              No invoice copy attached yet.
+            </div>
+
           }
+
         </section>
-  
-        <!-- QUICK ACTION -->
+
+        <!-- ==================================================
+             QUICK ACTIONS
+        =================================================== -->
         <section class="side-card">
-  
+
           <header>
-            <span>⚡</span>
-  
+
+            <span>
+              ⚡
+            </span>
+
             <div>
+
               <h3>
                 Quick Actions
               </h3>
-  
+
               <p>
                 Invoice operations
               </p>
+
             </div>
+
           </header>
-  
+
           <div class="quick-actions">
-  
+
             <button
               type="button"
+              [disabled]="!form.invoiceId"
               (click)="previewPdf()"
             >
               <span>◉</span>
               PDF Preview
             </button>
-  
+
             <button
               type="button"
+              [disabled]="!form.invoiceId"
               (click)="downloadPdf()"
             >
               <span>⇩</span>
               Download PDF
             </button>
-  
+
             <button
               type="button"
+              [disabled]="!form.invoiceId"
               (click)="printInvoice()"
             >
               <span>▣</span>
               Print Invoice
             </button>
-  
+
             <button
               type="button"
+              [disabled]="!form.invoiceId"
               (click)="sendInvoice()"
             >
               <span>➤</span>
               Send to Customer
             </button>
-  
-            <button
-              type="button"
-              (click)="saveDraft()"
-            >
-              <span>▱</span>
-              Save Draft
-            </button>
-  
+
+            @if (canEditInvoice()) {
+
+              <button
+                type="button"
+                [disabled]="isSaving()"
+                (click)="saveDraft()"
+              >
+                <span>▱</span>
+                Save Draft
+              </button>
+
+            }
+
           </div>
-  
+
         </section>
-  
-        <!-- INVOICE META -->
+
+        <!-- ==================================================
+             INVOICE META
+        =================================================== -->
         <section class="side-card">
-  
+
           <header>
-            <span>▤</span>
-  
+
+            <span>
+              ▤
+            </span>
+
             <div>
+
               <h3>
                 Invoice Information
               </h3>
-  
+
               <p>
                 Current document
               </p>
+
             </div>
+
           </header>
-  
+
           <div class="meta-list">
-  
+
             <div>
+
               <span>
                 Invoice No.
               </span>
-  
+
               <strong>
                 {{ form.invoiceNumber }}
               </strong>
+
             </div>
-  
+
             <div>
+
               <span>
                 Invoice Date
               </span>
-  
+
               <strong>
-                {{ form.invoiceDate || '-' }}
+                {{
+                  form.invoiceDate ||
+                  '-'
+                }}
               </strong>
+
             </div>
-  
+
             <div>
+
               <span>
                 Shipment
               </span>
-  
+
               <strong>
-                {{ form.shipment || '-' }}
+                {{
+                  form.shipment === 'other'
+                    ? (
+                        form.shipmentOther ||
+                        '-'
+                      )
+                    : (
+                        form.shipment ||
+                        '-'
+                      )
+                }}
               </strong>
+
             </div>
-  
+
             <div>
+
               <span>
                 Currency
               </span>
-  
+
               <strong>
                 {{
                   form.currency === 'other'
@@ -1851,97 +2597,173 @@
                     : form.currency
                 }}
               </strong>
+
             </div>
-  
-          </div>
-  
-        </section>
-  
-        <!-- RECENT -->
-        <section class="side-card recent-invoices">
-  
-          <header>
-            <span>◷</span>
-  
+
             <div>
+
+              <span>
+                Invoice Total
+              </span>
+
+              <strong>
+                {{
+                  formatCurrency(
+                    invoiceTotal
+                  )
+                }}
+              </strong>
+
+            </div>
+
+            <div>
+
+              <span>
+                Edit Status
+              </span>
+
+              @if (isHandedOff()) {
+
+                <strong class="meta-locked">
+                  Locked by Accounts
+                </strong>
+
+              } @else if (isReviewOnly()) {
+
+                <strong class="meta-locked">
+                  Review Only
+                </strong>
+
+              } @else {
+
+                <strong class="meta-editable">
+                  Your Workspace
+                </strong>
+
+              }
+
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- ==================================================
+             RECENT INVOICES
+        =================================================== -->
+        <section class="side-card recent-invoices">
+
+          <header>
+
+            <span>
+              ◷
+            </span>
+
+            <div>
+
               <h3>
                 Recent Invoices
               </h3>
-  
+
               <p>
-                Latest logistics invoices
+                {{
+                  canHandoffToAccounts()
+                    ? 'Latest department invoices'
+                    : 'Latest invoices in your workspace'
+                }}
               </p>
+
             </div>
+
           </header>
-  
-          <article>
-  
-            <div>
-              <strong>
-                LINV-250808-0008
-              </strong>
-  
+
+          @for (
+            invoice of recentInvoices();
+            track invoice._id || invoice.invoiceNumber
+          ) {
+
+            <article>
+
+              <div>
+
+                <strong>
+                  {{
+                    invoice.invoiceNumber ||
+                    '-'
+                  }}
+                </strong>
+
+                <span>
+                  {{
+                    invoice.customerName ||
+                    'Customer'
+                  }}
+                </span>
+
+              </div>
+
+              <b>
+                {{
+                  formatCurrency(
+                    invoice.invoiceTotal || 0
+                  )
+                }}
+              </b>
+
+            </article>
+
+          } @empty {
+
+            <div class="recent-empty">
+
               <span>
-                Global Traders
+                &#128196;
               </span>
+
+              <p>
+                No recent invoices found.
+              </p>
+
             </div>
-  
-            <b>
-              ₹1.85L
-            </b>
-  
-          </article>
-  
-          <article>
-  
-            <div>
-              <strong>
-                LINV-250807-0007
-              </strong>
-  
-              <span>
-                Sunrise Enterprises
-              </span>
-            </div>
-  
-            <b>
-              ₹96.5K
-            </b>
-  
-          </article>
-  
-          <article>
-  
-            <div>
-              <strong>
-                LINV-250806-0006
-              </strong>
-  
-              <span>
-                Apex Exports
-              </span>
-            </div>
-  
-            <b>
-              ₹2.14L
-            </b>
-  
-          </article>
-  
+
+          }
+
         </section>
-  
-        <button
-          type="button"
-          class="reset-invoice"
-          (click)="resetInvoice()"
-        >
-          Reset Invoice
-        </button>
-  
+
+        <!-- ==================================================
+             RESET
+        =================================================== -->
+        @if (canEditInvoice()) {
+
+          <button
+            type="button"
+            class="reset-invoice"
+            [disabled]="isSaving()"
+            (click)="resetInvoice()"
+          >
+            Reset Invoice
+          </button>
+
+        } @else {
+
+          <button
+            type="button"
+            class="reset-invoice"
+            disabled
+          >
+            {{
+              isHandedOff()
+                ? 'Invoice Locked'
+                : 'Review Only'
+            }}
+          </button>
+
+        }
+
       </aside>
-  
+
     </div>
-  
+
   </div>
 
 }

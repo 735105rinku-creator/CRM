@@ -152,6 +152,7 @@ class LogisticsWarehouseService {
     companyId,
     warehouseId,
     userId = null,
+    employeeId = null,
     payload,
   }) {
     const warehouse =
@@ -323,17 +324,20 @@ class LogisticsWarehouseService {
           ? payload.statusOther || ""
           : "",
 
-      remarks:
-        payload.remarks,
-
-      createdBy:
-        userId,
-
-      createdAt:
-        new Date(),
-
-      updatedAt:
-        new Date(),
+          remarks:
+          payload.remarks,
+  
+        createdBy:
+          userId,
+  
+        createdByEmployeeId:
+          employeeId,
+  
+        createdAt:
+          new Date(),
+  
+        updatedAt:
+          new Date(),
     };
 
     const updated =
