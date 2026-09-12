@@ -17,6 +17,10 @@ import journalEntryService
 import purchaseInvoiceRepository
   from "../repositories/purchaseInvoice.repository.js";
 
+import {
+  safeRemoveAccountsProofFile
+} from "../utils/accountsProofFile.util.js";
+
 
 /* ============================================================
    HELPERS
@@ -2673,16 +2677,16 @@ export class VoucherService {
     }
 
 
-    const attachmentExists =
+    const attachmentToRemove =
       (voucher.attachments || [])
-        .some(
+        .find(
           (attachment) =>
             String(attachment._id) ===
             String(attachmentId)
         );
 
 
-    if (!attachmentExists) {
+    if (!attachmentToRemove) {
       throw new Error(
         "Voucher attachment not found."
       );
@@ -2702,6 +2706,15 @@ export class VoucherService {
     if (!updatedVoucher) {
       throw new Error(
         "Draft Voucher could not be updated."
+      );
+    }
+
+
+    if (
+      attachmentToRemove?.fileUrl
+    ) {
+      await safeRemoveAccountsProofFile(
+        attachmentToRemove.fileUrl
       );
     }
 

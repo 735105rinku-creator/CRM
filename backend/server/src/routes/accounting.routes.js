@@ -12,6 +12,10 @@ import {
   uploadAccountsProof,
   toPublicAccountsProofUrl,
 } from "../middleware/upload.middleware.js";
+
+import {
+  safeRemoveAccountsProofFile
+} from "../utils/accountsProofFile.util.js";
 import { ApiError } from "../utils/apiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ROLES } from "../constants/roles.js";
@@ -443,6 +447,9 @@ const removeExpenseAttachment = asyncHandler(
       );
     }
 
+    const attachmentFileUrl =
+      attachment.fileUrl || "";
+
     expense.attachments.pull(
       req.params.attachmentId
     );
@@ -451,6 +458,14 @@ const removeExpenseAttachment = asyncHandler(
       req.user?._id || null;
 
     await expense.save();
+
+    if (
+      attachmentFileUrl
+    ) {
+      await safeRemoveAccountsProofFile(
+        attachmentFileUrl
+      );
+    }
 
     res.json(
       new ApiResponse(
