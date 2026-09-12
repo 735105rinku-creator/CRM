@@ -1,4 +1,4 @@
-﻿import fs from "fs";
+import fs from "fs";
 import path from "path";
 
 import multer from "multer";
@@ -282,6 +282,74 @@ const purchaseInvoiceFileFilter = (
 
 
 /* ============================================================
+   ACCOUNTS PROOF FILTER
+
+   Allowed:
+   - JPG
+   - JPEG
+   - PNG
+   - PDF
+============================================================ */
+
+const accountsProofFileFilter = (
+  req,
+  file,
+  callback
+) => {
+
+  const allowedMimeTypes =
+    new Set([
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "application/pdf",
+    ]);
+
+
+  const extension =
+    path
+      .extname(
+        file.originalname ||
+        ""
+      )
+      .toLowerCase();
+
+
+  const allowedExtensions =
+    new Set([
+      ".jpg",
+      ".jpeg",
+      ".png",
+      ".pdf",
+    ]);
+
+
+  if (
+    !allowedMimeTypes.has(
+      file.mimetype
+    ) ||
+    !allowedExtensions.has(
+      extension
+    )
+  ) {
+
+    return callback(
+      new ApiError(
+        400,
+        "Accounts proof must be JPG, JPEG, PNG or PDF."
+      )
+    );
+  }
+
+
+  callback(
+    null,
+    true
+  );
+};
+
+
+/* ============================================================
    STORAGE FACTORY
 ============================================================ */
 
@@ -390,6 +458,12 @@ const logisticsVendorBillStorage =
 const purchaseInvoiceStorage =
   makeStorage(
     "purchase-invoices"
+  );
+
+
+const accountsProofStorage =
+  makeStorage(
+    "accounts-proofs"
   );
 
 
@@ -605,6 +679,44 @@ export const uploadPurchaseInvoice =
 
 
 /* ============================================================
+   ACCOUNTS SUPPORTING PROOF
+
+   Actual file is stored on server disk:
+
+   public/uploads/accounts-proofs/
+
+   Allowed:
+   - JPG
+   - JPEG
+   - PNG
+   - PDF
+
+   Maximum:
+   - 10 MB per file
+============================================================ */
+
+export const uploadAccountsProof =
+  multer({
+
+    storage:
+      accountsProofStorage,
+
+    fileFilter:
+      accountsProofFileFilter,
+
+    limits: {
+
+      fileSize:
+        10 *
+        1024 *
+        1024,
+
+    },
+
+  });
+
+
+/* ============================================================
    PUBLIC URL HELPERS
 ============================================================ */
 
@@ -742,5 +854,27 @@ export const toPublicPurchaseInvoiceUrl = (
 
   return (
     `/uploads/purchase-invoices/${file.filename}`
+  );
+};
+
+
+/* ============================================================
+   ACCOUNTS PROOF PUBLIC URL
+============================================================ */
+
+export const toPublicAccountsProofUrl = (
+  file
+) => {
+
+  if (
+    !file?.filename
+  ) {
+
+    return "";
+  }
+
+
+  return (
+    `/uploads/accounts-proofs/${file.filename}`
   );
 };

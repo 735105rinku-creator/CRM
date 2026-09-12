@@ -168,6 +168,41 @@ export class VoucherService {
   }
 
 
+  uploadAttachments(
+    voucherId: string,
+    files: File[]
+  ): Observable<Voucher> {
+
+    const formData =
+      new FormData();
+
+    for (
+      const file of files
+    ) {
+      formData.append(
+        'proofFiles',
+        file,
+        file.name
+      );
+    }
+
+    return this.api.post<Voucher>(
+      `${this.basePath}/${this.encodeId(voucherId)}/attachments`,
+      formData
+    );
+  }
+
+
+  removeAttachment(
+    voucherId: string,
+    attachmentId: string
+  ): Observable<Voucher> {
+
+    return this.api.delete<Voucher>(
+      `${this.basePath}/${this.encodeId(voucherId)}/attachments/${this.encodeId(attachmentId)}`
+    );
+  }
+
   getPurchaseAllocationOptions(
     voucherId: string
   ): Observable<PurchasePaymentAllocationOption[]> {

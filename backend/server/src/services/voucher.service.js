@@ -14,6 +14,14 @@ import chartOfAccountRepository
 import journalEntryService
   from "./journalEntry.service.js";
 
+import purchaseInvoiceRepository
+  from "../repositories/purchaseInvoice.repository.js";
+
+import {
+  safeRemoveAccountsProofFile,
+  safeRemoveUploadedAccountsProofFiles,
+} from "../utils/accountsProofFile.util.js";
+
 
 /* ============================================================
    HELPERS
@@ -52,6 +60,11 @@ export class VoucherService {
           chartOfAccountRepository,
 
 
+      purchaseInvoiceRepository:
+        purchaseInvoices =
+          purchaseInvoiceRepository,
+
+
       sessionProvider:
         sessions =
           mongoose,
@@ -68,6 +81,10 @@ export class VoucherService {
 
     this.chartRepository =
       chart;
+
+
+    this.purchaseInvoiceRepository =
+      purchaseInvoices;
 
 
     this.sessionProvider =
@@ -327,6 +344,129 @@ export class VoucherService {
      LIST VOUCHERS
   ========================================================== */
 
+  async withSourceAttachments({
+    companyId,
+    voucher,
+  }) {
+
+    if (!voucher) {
+      return voucher;
+    }
+
+    const plainVoucher =
+      typeof voucher.toObject === "function"
+        ? voucher.toObject()
+        : {
+            ...voucher,
+          };
+
+    const isPurchaseInvoiceSource =
+      plainVoucher.sourceModule ===
+        "purchase_invoice" &&
+      Boolean(
+        plainVoucher.sourceReferenceId
+      );
+
+    if (
+      !isPurchaseInvoiceSource ||
+      !this.purchaseInvoiceRepository ||
+      typeof this.purchaseInvoiceRepository
+        .findById !== "function"
+    ) {
+      return {
+        ...plainVoucher,
+        sourceAttachments: [],
+      };
+    }
+
+    const sourceInvoice =
+      await this.purchaseInvoiceRepository
+        .findById(
+          companyId,
+          plainVoucher.sourceReferenceId
+        );
+
+    const sourceAttachments =
+      Array.isArray(
+        sourceInvoice?.attachments
+      )
+        ? sourceInvoice.attachments
+            .map(
+              attachment => {
+
+                const row =
+                  typeof attachment?.toObject ===
+                    "function"
+                    ? attachment.toObject()
+                    : {
+                        ...attachment,
+                      };
+
+                return {
+                  _id:
+                    row._id ||
+                    null,
+
+                  originalName:
+                    row.originalName ||
+                    row.fileName ||
+                    "Purchase attachment",
+
+                  storedName:
+                    row.fileName ||
+                    "",
+
+                  fileUrl:
+                    row.fileUrl ||
+                    "",
+
+                  storageKey:
+                    row.storageKey ||
+                    "",
+
+                  mimeType:
+                    row.mimeType ||
+                    "",
+
+                  fileSize:
+                    Number(
+                      row.fileSize ||
+                      0
+                    ),
+
+                  uploadedBy:
+                    row.uploadedBy ||
+                    null,
+
+                  uploadedAt:
+                    row.uploadedAt ||
+                    null,
+
+                  documentType:
+                    row.documentType ||
+                    null,
+
+                  otherDocumentType:
+                    row.otherDocumentType ||
+                    "",
+                };
+              }
+            )
+            .filter(
+              attachment =>
+                Boolean(
+                  attachment.fileUrl
+                )
+            )
+        : [];
+
+    return {
+      ...plainVoucher,
+      sourceAttachments,
+    };
+  }
+
+
   async getVouchers({
     companyId,
     query = {},
@@ -342,15 +482,35 @@ export class VoucherService {
     }
 
 
-    return this
-      .voucherRepository
-      .list({
+    const vouchers =
+      await this
+        .voucherRepository
+        .list({
 
-        companyId,
+          companyId,
 
-        ...query,
+          ...query,
 
-      });
+        });
+
+
+    const rows =
+      Array.isArray(
+        vouchers
+      )
+        ? vouchers
+        : [];
+
+
+    return Promise.all(
+      rows.map(
+        voucher =>
+          this.withSourceAttachments({
+            companyId,
+            voucher,
+          })
+      )
+    );
 
   }
 
@@ -406,7 +566,11 @@ export class VoucherService {
     }
 
 
-    return voucher;
+    return this
+      .withSourceAttachments({
+        companyId,
+        voucher,
+      });
 
   }
 
@@ -1855,6 +2019,84 @@ export class VoucherService {
           }
 
 
+          /* ==================================================
+             MANDATORY POSTING PROOF
+
+             Payment:
+               Accounts attachment required.
+
+             Purchase:
+               Accounts attachment required unless the Voucher
+               came from Purchase Invoice handoff, in which case
+               the Purchase Invoice attachment is reused.
+          ================================================== */
+
+          const hasAccountsProof =
+            Array.isArray(
+              voucher.attachments
+            ) &&
+            voucher.attachments.length > 0;
+
+
+          if (
+            voucher.voucherType ===
+              "payment" &&
+            !hasAccountsProof
+          ) {
+
+            throw new Error(
+              "Payment Voucher requires supporting proof before posting."
+            );
+          }
+
+
+          if (
+            voucher.voucherType ===
+              "purchase" &&
+            !hasAccountsProof
+          ) {
+
+            const isPurchaseInvoiceSource =
+              voucher.sourceModule ===
+                "purchase_invoice" &&
+              Boolean(
+                voucher.sourceReferenceId
+              );
+
+
+            if (!isPurchaseInvoiceSource) {
+
+              throw new Error(
+                "Purchase Voucher requires supporting proof before posting."
+              );
+            }
+
+
+            const sourceInvoice =
+              await this
+                .purchaseInvoiceRepository
+                .findById(
+                  companyId,
+                  voucher.sourceReferenceId
+                );
+
+
+            const hasPurchaseInvoiceProof =
+              Array.isArray(
+                sourceInvoice?.attachments
+              ) &&
+              sourceInvoice.attachments.length > 0;
+
+
+            if (!hasPurchaseInvoiceProof) {
+
+              throw new Error(
+                "Purchase Invoice supporting proof is required before posting."
+              );
+            }
+          }
+
+
           if (
             voucher.voucherType ===
               "payment"
@@ -2251,6 +2493,248 @@ export class VoucherService {
 
   }
 
+
+
+  /* ==========================================================
+     ADD VOUCHER ATTACHMENTS
+  ========================================================== */
+
+  async addAttachments({
+    companyId,
+    voucherId,
+    userId = null,
+    files = [],
+  }) {
+
+    try {
+
+    if (!companyId) {
+      throw new Error(
+        "Company ID is required."
+      );
+    }
+
+
+    if (!voucherId) {
+      throw new Error(
+        "Voucher ID is required."
+      );
+    }
+
+
+    if (
+      !Array.isArray(files) ||
+      files.length === 0
+    ) {
+      throw new Error(
+        "At least one proof file is required."
+      );
+    }
+
+
+    const voucher =
+      await this.voucherRepository
+        .findById({
+          companyId,
+          voucherId,
+        });
+
+
+    if (!voucher) {
+      throw new Error(
+        "Voucher not found."
+      );
+    }
+
+
+    if (voucher.status !== "draft") {
+      throw new Error(
+        "Attachments can only be changed on a draft Voucher."
+      );
+    }
+
+
+    const existingCount =
+      Array.isArray(voucher.attachments)
+        ? voucher.attachments.length
+        : 0;
+
+
+    if (
+      existingCount + files.length > 5
+    ) {
+      throw new Error(
+        "A maximum of 5 attachments is allowed per Voucher."
+      );
+    }
+
+
+    const uploadedAt =
+      new Date();
+
+
+    const attachments =
+      files.map(
+        (file) => ({
+
+          originalName:
+            String(file.originalname || ""),
+
+          storedName:
+            String(file.filename || ""),
+
+          fileUrl:
+            `/uploads/accounts-proofs/${file.filename}`,
+
+          storageKey:
+            `accounts-proofs/${file.filename}`,
+
+          mimeType:
+            String(file.mimetype || ""),
+
+          fileSize:
+            Number(file.size || 0),
+
+          uploadedBy:
+            userId,
+
+          uploadedAt,
+
+        })
+      );
+
+
+    const updatedVoucher =
+      await this.voucherRepository
+        .appendAttachments({
+          companyId,
+          voucherId,
+          attachments,
+          userId,
+        });
+
+
+    if (!updatedVoucher) {
+      throw new Error(
+        "Draft Voucher could not be updated."
+      );
+    }
+
+
+    return updatedVoucher;
+
+
+    } catch (error) {
+
+      await safeRemoveUploadedAccountsProofFiles(
+        files
+      );
+
+      throw error;
+    }
+
+  }
+
+
+  /* ==========================================================
+     REMOVE VOUCHER ATTACHMENT
+  ========================================================== */
+
+  async removeAttachment({
+    companyId,
+    voucherId,
+    attachmentId,
+    userId = null,
+  }) {
+
+    if (!companyId) {
+      throw new Error(
+        "Company ID is required."
+      );
+    }
+
+
+    if (!voucherId) {
+      throw new Error(
+        "Voucher ID is required."
+      );
+    }
+
+
+    if (!attachmentId) {
+      throw new Error(
+        "Attachment ID is required."
+      );
+    }
+
+
+    const voucher =
+      await this.voucherRepository
+        .findById({
+          companyId,
+          voucherId,
+        });
+
+
+    if (!voucher) {
+      throw new Error(
+        "Voucher not found."
+      );
+    }
+
+
+    if (voucher.status !== "draft") {
+      throw new Error(
+        "Attachments can only be changed on a draft Voucher."
+      );
+    }
+
+
+    const attachmentToRemove =
+      (voucher.attachments || [])
+        .find(
+          (attachment) =>
+            String(attachment._id) ===
+            String(attachmentId)
+        );
+
+
+    if (!attachmentToRemove) {
+      throw new Error(
+        "Voucher attachment not found."
+      );
+    }
+
+
+    const updatedVoucher =
+      await this.voucherRepository
+        .removeAttachment({
+          companyId,
+          voucherId,
+          attachmentId,
+          userId,
+        });
+
+
+    if (!updatedVoucher) {
+      throw new Error(
+        "Draft Voucher could not be updated."
+      );
+    }
+
+
+    if (
+      attachmentToRemove?.fileUrl
+    ) {
+      await safeRemoveAccountsProofFile(
+        attachmentToRemove.fileUrl
+      );
+    }
+
+
+    return updatedVoucher;
+
+  }
 }
 
 /* ============================================================

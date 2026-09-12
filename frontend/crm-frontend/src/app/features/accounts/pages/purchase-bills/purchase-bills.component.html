@@ -130,6 +130,7 @@
               <th>Reference No.</th>
               <th>Status</th>
               <th class="money">Amount</th>
+              <th>Supporting Proof</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -172,6 +173,107 @@
                 <td class="money">
                   ₹{{ bill.totalDebit | number:'1.2-2' }}
                 </td>
+
+                <td class="purchase-proof-column">
+
+                  @if (isPurchaseOriginBill(bill)) {
+
+                    <div class="purchase-origin-proof">
+                      Purchase Invoice proof reused automatically.
+                      Managed by Purchase.
+                    </div>
+
+                    @if (bill.sourceAttachments?.length) {
+
+                      @for (
+                        attachment of bill.sourceAttachments;
+                        track attachment._id || attachment.fileUrl
+                      ) {
+
+                        <div class="proof-item">
+
+                          <a
+                            [href]="attachmentUrl(attachment)"
+                            target="_blank"
+                            rel="noopener noreferrer">
+                            {{ attachment.originalName }}
+                          </a>
+
+                        </div>
+
+                      }
+
+                    } @else {
+
+                      <span class="muted">
+                        Source proof unavailable
+                      </span>
+
+                    }
+
+                  } @else {
+
+                    @if (bill.attachments?.length) {
+
+                      @for (
+                        attachment of bill.attachments;
+                        track attachment._id || attachment.fileUrl
+                      ) {
+
+                        <div class="proof-item">
+
+                          <a
+                            [href]="attachmentUrl(attachment)"
+                            target="_blank"
+                            rel="noopener noreferrer">
+                            {{ attachment.originalName }}
+                          </a>
+
+                          @if (bill.status === 'draft') {
+
+                            <button
+                              type="button"
+                              class="mini-btn danger"
+                              [disabled]="uploadingBillId() === bill._id"
+                              (click)="removeBillProof(bill, attachment)">
+                              Remove
+                            </button>
+
+                          }
+
+                        </div>
+                      }
+
+                    } @else {
+
+                      <span class="muted">
+                        No proof
+                      </span>
+
+                    }
+
+                    @if (bill.status === 'draft') {
+
+                      <label class="proof-upload">
+
+                        + Add Proof
+
+                        <input
+                          hidden
+                          type="file"
+                          multiple
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          [disabled]="uploadingBillId() === bill._id"
+                          (change)="onBillProofSelected(bill, $event)">
+
+                      </label>
+
+                    }
+
+                  }
+
+                </td>
+
 
                 <td>
 

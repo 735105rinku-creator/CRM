@@ -303,17 +303,18 @@ th {
 .form-overlay {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  z-index: 1200;
   display: grid;
   place-items: center;
   padding: 24px;
   background: rgba(36, 48, 71, 0.38);
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 .voucher-form-card {
-  width: min(1180px, 100%);
+  width: min(1180px, calc(100vw - 48px));
   max-height: calc(100vh - 48px);
+  box-sizing: border-box;
   padding: 24px;
   overflow-y: auto;
 }
@@ -476,4 +477,24 @@ th {
 
 .allocation-card td input {
   width: 130px;
+}
+
+.proof-upload {
+  display: inline-flex;
+  margin-top: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.proof-item {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.voucher-proof-cell,
+.expense-proof-cell {
+  min-width: 190px;
 }

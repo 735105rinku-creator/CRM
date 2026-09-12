@@ -13,6 +13,27 @@ import {
 } from '../../../core/services/api.service';
 
 
+export interface AccountExpenseAttachment {
+  _id?: string;
+
+  originalName: string;
+
+  storedName?: string;
+
+  fileUrl: string;
+
+  storageKey?: string;
+
+  mimeType: string;
+
+  fileSize: number;
+
+  uploadedBy?: string | null;
+
+  uploadedAt?: string | null;
+}
+
+
 export interface AccountExpenseRecord {
   _id: string;
 
@@ -33,6 +54,8 @@ export interface AccountExpenseRecord {
   status: string;
 
   notes: string;
+
+  attachments: AccountExpenseAttachment[];
 
   assignedUserId?: string | null;
 
@@ -59,13 +82,16 @@ export class AccountExpenseService {
   private readonly api =
     inject(ApiService);
 
+  private readonly basePath =
+    '/accounting/expenses';
+
 
   getExpenses():
     Observable<AccountExpenseRecord[]> {
 
     return this.api
       .get<AccountExpenseResponse>(
-        '/accounting/expenses'
+        this.basePath
       )
       .pipe(
         map(
@@ -98,4 +124,51 @@ export class AccountExpenseService {
         )
       );
   }
+
+
+  uploadAttachments(
+    expenseId: string,
+    files: File[]
+  ): Observable<AccountExpenseRecord> {
+
+    const formData =
+      new FormData();
+
+    for (
+      const file of files
+    ) {
+      formData.append(
+        'proofFiles',
+        file,
+        file.name
+      );
+    }
+
+    return this.api.post<AccountExpenseRecord>(
+      `${this.basePath}/${this.encodeId(expenseId)}/attachments`,
+      formData
+    );
+  }
+
+
+  removeAttachment(
+    expenseId: string,
+    attachmentId: string
+  ): Observable<AccountExpenseRecord> {
+
+    return this.api.delete<AccountExpenseRecord>(
+      `${this.basePath}/${this.encodeId(expenseId)}/attachments/${this.encodeId(attachmentId)}`
+    );
+  }
+
+
+  private encodeId(
+    value: string
+  ): string {
+
+    return encodeURIComponent(
+      value.trim()
+    );
+  }
+
 }

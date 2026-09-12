@@ -85,7 +85,7 @@ test(
 
 
 test(
-  'expense register service is read-only and uses existing accounting expenses endpoint',
+  'expense register keeps financial records read-only while allowing proof attachment lifecycle',
   () => {
     assert.equal(
       exists(servicePath),
@@ -107,21 +107,40 @@ test(
 
     assert.doesNotMatch(
       service,
-      /\.post\s*</
-    );
-
-    assert.doesNotMatch(
-      service,
       /\.patch\s*</
     );
 
     assert.doesNotMatch(
       service,
-      /\.delete\s*</
+      /\.put\s*</
+    );
+
+    assert.match(
+      service,
+      /\.post\s*<AccountExpenseRecord>/
+    );
+
+    assert.match(
+      service,
+      /\/attachments`/
+    );
+
+    assert.match(
+      service,
+      /\.delete\s*<AccountExpenseRecord>/
+    );
+
+    assert.match(
+      service,
+      /\/attachments\/\$\{this\.encodeId\(attachmentId\)\}`/
+    );
+
+    assert.doesNotMatch(
+      service,
+      /\.post\s*<[^>]+>\s*\(\s*this\.basePath/
     );
   }
 );
-
 
 test(
   'expense register component supports read-only loading and filtering',

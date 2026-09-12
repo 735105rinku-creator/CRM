@@ -1100,6 +1100,26 @@ export interface VoucherLine {
 }
 
 
+export interface VoucherAttachment {
+  _id?: string;
+
+  originalName: string;
+
+  storedName?: string;
+
+  fileUrl: string;
+
+  storageKey?: string;
+
+  mimeType: string;
+
+  fileSize: number;
+
+  uploadedBy?: string | null;
+
+  uploadedAt?: string | null;
+}
+
 export interface Voucher {
   _id?: string;
 
@@ -1132,6 +1152,13 @@ export interface Voucher {
   totalCredit: number;
 
   lines: VoucherLine[];
+
+  attachments?: VoucherAttachment[];
+  sourceAttachments?: VoucherAttachment[];
+
+  sourceModule?: string | null;
+
+  sourceReferenceId?: string | null;
 
   journalEntryId?: string | null;
 

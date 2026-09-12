@@ -26,7 +26,8 @@ import {
   AccountParty,
   ChartOfAccount,
   Voucher,
-  VoucherLinePayload,
+    VoucherAttachment,
+VoucherLinePayload,
   VoucherQuery,
   VoucherStatus
 } from '../../models/accounts.models';
@@ -42,6 +43,10 @@ import {
 import {
   VoucherService
 } from '../../services/voucher.service';
+
+import {
+  apiUrl
+} from '../../../../core/config/api.config';
 
 
 @Component({
@@ -98,6 +103,9 @@ implements OnInit {
 
   readonly saving =
     signal(false);
+
+  readonly uploadingInvoiceId =
+    signal<string | null>(null);
 
   readonly error =
     signal('');
@@ -892,6 +900,214 @@ implements OnInit {
           );
         }
       });
+  }
+  onInvoiceProofSelected(
+    invoice: Voucher,
+    event: Event
+  ): void {
+
+    if (
+      invoice.status !== 'draft' ||
+      !invoice._id
+    ) {
+      return;
+    }
+
+    const input =
+      event.target as HTMLInputElement;
+
+    const files =
+      Array.from(
+        input.files ?? []
+      );
+
+    input.value = '';
+
+    if (!files.length) {
+      return;
+    }
+
+    if (
+      (invoice.attachments?.length ?? 0) +
+      files.length > 5
+    ) {
+      this.error.set(
+        'A maximum of 5 supporting proof files is allowed.'
+      );
+      return;
+    }
+
+    const allowedTypes =
+      new Set([
+        'application/pdf',
+        'image/jpeg',
+        'image/png'
+      ]);
+
+    const invalid =
+      files.some(
+        file => {
+
+          const extension =
+            file.name
+              .split('.')
+              .pop()
+              ?.toLowerCase() ?? '';
+
+          return (
+            !allowedTypes.has(
+              file.type
+            ) ||
+            ![
+              'pdf',
+              'jpg',
+              'jpeg',
+              'png'
+            ].includes(
+              extension
+            )
+          );
+        }
+      );
+
+    if (invalid) {
+      this.error.set(
+        'Only PDF, JPG, JPEG and PNG files are allowed.'
+      );
+      return;
+    }
+
+    if (
+      files.some(
+        file =>
+          file.size >
+          10 * 1024 * 1024
+      )
+    ) {
+      this.error.set(
+        'Each supporting proof file must be 10 MB or smaller.'
+      );
+      return;
+    }
+
+    this.error.set('');
+    this.message.set('');
+
+    this.uploadingInvoiceId.set(
+      invoice._id
+    );
+
+    this.voucherService
+      .uploadAttachments(
+        invoice._id,
+        files
+      )
+      .subscribe({
+
+        next: () => {
+
+          this.uploadingInvoiceId.set(
+            null
+          );
+
+          this.message.set(
+            'Sales Invoice supporting proof uploaded successfully.'
+          );
+
+          this.loadInvoices();
+        },
+
+        error: (
+          err
+        ) => {
+
+          this.uploadingInvoiceId.set(
+            null
+          );
+
+          this.error.set(
+            this.extractErrorMessage(
+              err,
+              'Unable to upload supporting proof.'
+            )
+          );
+        }
+      });
+  }
+
+
+  removeInvoiceProof(
+    invoice: Voucher,
+    attachment: VoucherAttachment
+  ): void {
+
+    if (
+      invoice.status !== 'draft' ||
+      !invoice._id ||
+      !attachment._id
+    ) {
+      return;
+    }
+
+    const confirmed =
+      window.confirm(
+        `Remove supporting proof "${attachment.originalName}"?`
+      );
+
+    if (!confirmed) {
+      return;
+    }
+
+    this.uploadingInvoiceId.set(
+      invoice._id
+    );
+
+    this.voucherService
+      .removeAttachment(
+        invoice._id,
+        attachment._id
+      )
+      .subscribe({
+
+        next: () => {
+
+          this.uploadingInvoiceId.set(
+            null
+          );
+
+          this.message.set(
+            'Sales Invoice supporting proof removed successfully.'
+          );
+
+          this.loadInvoices();
+        },
+
+        error: (
+          err
+        ) => {
+
+          this.uploadingInvoiceId.set(
+            null
+          );
+
+          this.error.set(
+            this.extractErrorMessage(
+              err,
+              'Unable to remove supporting proof.'
+            )
+          );
+        }
+      });
+  }
+
+
+  attachmentUrl(
+    attachment: VoucherAttachment
+  ): string {
+
+    return apiUrl(
+      attachment.fileUrl
+    );
   }
 
 

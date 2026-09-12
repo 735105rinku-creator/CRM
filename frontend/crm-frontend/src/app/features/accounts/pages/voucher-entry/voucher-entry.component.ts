@@ -34,11 +34,11 @@ import {
   ChartOfAccount,
   CreateVoucherPayload,
   Voucher,
-  VoucherLinePayload,
+    VoucherAttachment,
+VoucherLinePayload,
   VoucherQuery,
   VoucherStatus,
-  VoucherType,
-  PurchasePaymentAllocationOption
+  VoucherType
 } from '../../models/accounts.models';
 
 import {
@@ -48,6 +48,10 @@ import {
 import {
   VoucherService
 } from '../../services/voucher.service';
+
+import {
+  apiUrl
+} from '../../../../core/config/api.config';
 
 
 type SupportedVoucherType =
@@ -118,6 +122,9 @@ private readonly fb =
   readonly saving =
     signal(false);
 
+  readonly uploadingVoucherId =
+    signal<string | null>(null);
+
   readonly errorMessage =
     signal('');
 
@@ -141,12 +148,6 @@ private readonly fb =
 
   readonly toDate =
     signal('');
-
-  readonly allocationOpen = signal(false);
-  readonly allocationVoucher = signal<Voucher | null>(null);
-  readonly allocationOptions = signal<PurchasePaymentAllocationOption[]>([]);
-  allocationAmounts: Record<string, number> = {};
-
 
   readonly voucherForm =
     this.fb.group({
@@ -633,6 +634,16 @@ private readonly fb =
       return;
     }
 
+    if (
+      this.voucherType() === 'payment' &&
+      !(voucher.attachments?.length)
+    ) {
+      this.errorMessage.set(
+        'Payment Voucher requires supporting proof before posting.'
+      );
+      return;
+    }
+
     const confirmed =
       window.confirm(
         `Post voucher ${voucher.voucherNumber}? Posted vouchers cannot be edited.`
@@ -737,53 +748,124 @@ private readonly fb =
   }
 
 
-  openAllocations(voucher: Voucher): void {
-    if (this.voucherType() !== 'payment' || voucher.status !== 'draft' || !voucher._id) return;
-    this.allocationVoucher.set(voucher);
-    this.allocationOptions.set([]);
-    this.allocationAmounts = {};
-    this.allocationOpen.set(true);
-    this.saving.set(true);
-    this.voucherService.getPurchaseAllocationOptions(voucher._id)
-      .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.saving.set(false)))
+  onVoucherProofSelected(
+    voucher: Voucher,
+    event: Event
+  ): void {
+
+    if (voucher.status !== 'draft' || !voucher._id) return;
+
+    const input = event.target as HTMLInputElement;
+    const files = Array.from(input.files ?? []);
+    input.value = '';
+
+    if (!files.length) return;
+
+    if ((voucher.attachments?.length ?? 0) + files.length > 5) {
+      this.errorMessage.set(
+        'A maximum of 5 supporting proof files is allowed per voucher.'
+      );
+      return;
+    }
+
+    const allowed =
+      new Set([
+        'application/pdf',
+        'image/jpeg',
+        'image/png'
+      ]);
+
+    if (
+      files.some(
+        file =>
+          !allowed.has(file.type) ||
+          !['pdf', 'jpg', 'jpeg', 'png'].includes(
+            file.name.split('.').pop()?.toLowerCase() ?? ''
+          )
+      )
+    ) {
+      this.errorMessage.set(
+        'Only PDF, JPG, JPEG and PNG files are allowed.'
+      );
+      return;
+    }
+
+    if (
+      files.some(
+        file => file.size > 10 * 1024 * 1024
+      )
+    ) {
+      this.errorMessage.set(
+        'Each supporting proof file must be 10 MB or smaller.'
+      );
+      return;
+    }
+
+    this.errorMessage.set('');
+    this.uploadingVoucherId.set(voucher._id);
+
+    this.voucherService
+      .uploadAttachments(voucher._id, files)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.uploadingVoucherId.set(null))
+      )
       .subscribe({
-        next: rows => this.allocationOptions.set(rows || []),
-        error: error => { this.errorMessage.set(this.extractError(error, 'Unable to load outstanding Purchase Invoices.')); this.allocationOpen.set(false); }
+        next: () => {
+          this.message.set('Supporting proof uploaded successfully.');
+          this.loadVouchers();
+        },
+        error: error =>
+          this.errorMessage.set(
+            this.extractError(error, 'Unable to upload supporting proof.')
+          )
       });
   }
 
 
-  closeAllocations(): void {
-    if (!this.saving()) this.allocationOpen.set(false);
-  }
+  removeVoucherProof(
+    voucher: Voucher,
+    attachment: VoucherAttachment
+  ): void {
 
+    if (
+      voucher.status !== 'draft' ||
+      !voucher._id ||
+      !attachment._id
+    ) return;
 
-  setAllocation(invoiceId: string, value: string): void {
-    this.allocationAmounts = { ...this.allocationAmounts, [invoiceId]: this.roundMoney(Number(value || 0)) };
-  }
+    if (
+      !window.confirm(
+        `Remove supporting proof "${attachment.originalName}"?`
+      )
+    ) return;
 
+    this.uploadingVoucherId.set(voucher._id);
 
-  allocationTotal(): number {
-    return this.roundMoney(Object.values(this.allocationAmounts).reduce((sum, value) => sum + Number(value || 0), 0));
-  }
-
-
-  saveAllocations(): void {
-    const voucher = this.allocationVoucher();
-    if (!voucher?._id) return;
-    const allocations = Object.entries(this.allocationAmounts)
-      .filter(([, amount]) => amount > 0)
-      .map(([purchaseInvoiceId, allocatedAmount]) => ({ purchaseInvoiceId, allocatedAmount }));
-    if (!allocations.length) { this.errorMessage.set('Enter at least one Purchase Invoice allocation.'); return; }
-    this.saving.set(true);
-    this.voucherService.createPurchaseAllocations(voucher._id, allocations)
-      .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.saving.set(false)))
+    this.voucherService
+      .removeAttachment(voucher._id, attachment._id)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.uploadingVoucherId.set(null))
+      )
       .subscribe({
-        next: () => { this.allocationOpen.set(false); this.message.set('Payment allocations recorded. Post the voucher for them to count as paid.'); },
-        error: error => this.errorMessage.set(this.extractError(error, 'Unable to record payment allocations.'))
+        next: () => {
+          this.message.set('Supporting proof removed successfully.');
+          this.loadVouchers();
+        },
+        error: error =>
+          this.errorMessage.set(
+            this.extractError(error, 'Unable to remove supporting proof.')
+          )
       });
   }
 
+
+  attachmentUrl(
+    attachment: VoucherAttachment
+  ): string {
+    return apiUrl(attachment.fileUrl);
+  }
 
   accountLabel(
     accountId: string

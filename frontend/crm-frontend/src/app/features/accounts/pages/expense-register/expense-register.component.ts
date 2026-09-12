@@ -18,8 +18,13 @@ import {
 import {
   finalize
 } from 'rxjs';
+import {
+  apiUrl
+} from '../../../../core/config/api.config';
+
 
 import {
+  AccountExpenseAttachment,
   AccountExpenseRecord,
   AccountExpenseService
 } from '../../services/account-expense.service';
@@ -56,6 +61,12 @@ export class ExpenseRegisterComponent
 
   readonly loading =
     signal(false);
+
+  readonly uploadingExpenseId =
+    signal<string | null>(null);
+
+  readonly message =
+    signal('');
 
   readonly errorMessage =
     signal('');
@@ -354,7 +365,111 @@ export class ExpenseRegisterComponent
           }
       });
   }
+  onExpenseProofSelected(
+    expense: AccountExpenseRecord,
+    event: Event
+  ): void {
 
+    const input = event.target as HTMLInputElement;
+    const files = Array.from(input.files ?? []);
+    input.value = '';
+
+    if (!files.length) return;
+
+    if ((expense.attachments?.length ?? 0) + files.length > 5) {
+      this.errorMessage.set(
+        'A maximum of 5 supporting proof files is allowed per expense.'
+      );
+      return;
+    }
+
+    const allowed =
+      new Set([
+        'application/pdf',
+        'image/jpeg',
+        'image/png'
+      ]);
+
+    if (
+      files.some(
+        file =>
+          !allowed.has(file.type) ||
+          !['pdf', 'jpg', 'jpeg', 'png'].includes(
+            file.name.split('.').pop()?.toLowerCase() ?? ''
+          )
+      )
+    ) {
+      this.errorMessage.set(
+        'Only PDF, JPG, JPEG and PNG files are allowed.'
+      );
+      return;
+    }
+
+    if (
+      files.some(
+        file => file.size > 10 * 1024 * 1024
+      )
+    ) {
+      this.errorMessage.set(
+        'Each supporting proof file must be 10 MB or smaller.'
+      );
+      return;
+    }
+
+    this.uploadingExpenseId.set(expense._id);
+
+    this.expenseService
+      .uploadAttachments(expense._id, files)
+      .pipe(
+        finalize(() => this.uploadingExpenseId.set(null))
+      )
+      .subscribe({
+        next: () => {
+          this.message.set('Expense supporting proof uploaded successfully.');
+          this.loadExpenses();
+        },
+        error: error =>
+          this.errorMessage.set(this.resolveErrorMessage(error))
+      });
+  }
+
+
+  removeExpenseProof(
+    expense: AccountExpenseRecord,
+    attachment: AccountExpenseAttachment
+  ): void {
+
+    if (!attachment._id) return;
+
+    if (
+      !window.confirm(
+        `Remove supporting proof "${attachment.originalName}"?`
+      )
+    ) return;
+
+    this.uploadingExpenseId.set(expense._id);
+
+    this.expenseService
+      .removeAttachment(expense._id, attachment._id)
+      .pipe(
+        finalize(() => this.uploadingExpenseId.set(null))
+      )
+      .subscribe({
+        next: () => {
+          this.message.set('Expense supporting proof removed successfully.');
+          this.loadExpenses();
+        },
+        error: error =>
+          this.errorMessage.set(this.resolveErrorMessage(error))
+      });
+  }
+
+
+  attachmentUrl(
+    attachment: AccountExpenseAttachment
+  ): string {
+    return apiUrl(attachment.fileUrl);
+  }
 
   onSearchChange(
     value: string

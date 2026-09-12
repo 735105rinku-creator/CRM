@@ -161,6 +161,7 @@
                 Amount
               </th>
               <th>Status</th>
+              <th>Supporting Proof</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -206,21 +207,55 @@
                     {{ voucher.status | titlecase }}
                   </span>
                 </td>
+                <td class="voucher-proof-cell">
+
+                  @if (voucher.attachments?.length) {
+                    @for (
+                      attachment of voucher.attachments;
+                      track attachment._id || attachment.fileUrl
+                    ) {
+                      <div class="proof-item">
+                        <a
+                          [href]="attachmentUrl(attachment)"
+                          target="_blank"
+                          rel="noopener noreferrer">
+                          {{ attachment.originalName }}
+                        </a>
+
+                        @if (voucher.status === 'draft') {
+                          <button
+                            type="button"
+                            class="text-button danger-text"
+                            [disabled]="uploadingVoucherId() === voucher._id"
+                            (click)="removeVoucherProof(voucher, attachment)">
+                            Remove
+                          </button>
+                        }
+                      </div>
+                    }
+                  } @else {
+                    <span>No proof</span>
+                  }
+
+                  @if (voucher.status === 'draft') {
+                    <label class="proof-upload">
+                      + Add Proof
+                      <input
+                        hidden
+                        type="file"
+                        multiple
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        [disabled]="uploadingVoucherId() === voucher._id"
+                        (change)="onVoucherProofSelected(voucher, $event)">
+                    </label>
+                  }
+
+                </td>
 
                 <td>
-
                   <div class="row-actions">
 
                     @if (voucher.status === 'draft') {
-
-                      @if (voucherType() === 'payment') {
-                        <button
-                          type="button"
-                          class="text-button"
-                          (click)="openAllocations(voucher)">
-                          Allocate Invoices
-                        </button>
-                      }
 
                       <button
                         type="button"
@@ -265,46 +300,6 @@
 
   </section>
 
-
-  @if (allocationOpen()) {
-    <div class="form-overlay">
-      <section class="voucher-form-card allocation-card">
-        <header class="form-header">
-          <div><h2>Allocate Purchase Invoices</h2><p>{{ allocationVoucher()?.voucherNumber }}</p></div>
-          <button type="button" class="icon-button" (click)="closeAllocations()">&times;</button>
-        </header>
-
-        @if (saving() && !allocationOptions().length) {
-          <div class="empty-state">Loading outstanding invoices...</div>
-        } @else if (!allocationOptions().length) {
-          <div class="empty-state">No outstanding Purchase Invoices match this payment voucher's payable account.</div>
-        } @else {
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Vendor / Invoice</th><th>Invoice Total</th><th>Already Paid</th><th>Outstanding</th><th>Allocate</th></tr></thead>
-              <tbody>
-                @for (invoice of allocationOptions(); track invoice.purchaseInvoiceId) {
-                  <tr>
-                    <td><strong>{{ invoice.vendorName }}</strong><br>{{ invoice.vendorInvoiceNumber }} / {{ invoice.poNumber }}</td>
-                    <td>{{ invoice.invoiceTotal | number:'1.2-2' }}</td>
-                    <td>{{ invoice.paidAmount | number:'1.2-2' }}</td>
-                    <td>{{ invoice.outstandingAmount | number:'1.2-2' }}</td>
-                    <td><input type="number" min="0" [max]="invoice.outstandingAmount" [value]="allocationAmounts[invoice.purchaseInvoiceId] || 0" (input)="setAllocation(invoice.purchaseInvoiceId, $any($event.target).value)"></td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
-        }
-
-        <footer class="form-actions">
-          <strong>Allocation Total: {{ allocationTotal() | number:'1.2-2' }}</strong>
-          <button type="button" class="ghost-button" (click)="closeAllocations()">Cancel</button>
-          <button type="button" class="primary-button" [disabled]="saving() || !allocationOptions().length" (click)="saveAllocations()">Save Allocations</button>
-        </footer>
-      </section>
-    </div>
-  }
 
   @if (formOpen()) {
 
