@@ -137,3 +137,39 @@ export async function safeRemoveAccountsProofFile(
     throw error;
   }
 }
+
+
+
+export async function safeRemoveUploadedAccountsProofFiles(
+  files = [],
+  options = {}
+) {
+
+  const uploadedFiles =
+    Array.isArray(files)
+      ? files
+      : [];
+
+
+  for (
+    const file of uploadedFiles
+  ) {
+
+    const filename =
+      String(
+        file?.filename ||
+        ""
+      ).trim();
+
+
+    if (!filename) {
+      continue;
+    }
+
+
+    await safeRemoveAccountsProofFile(
+      `/uploads/accounts-proofs/${filename}`,
+      options
+    );
+  }
+}

@@ -14,7 +14,8 @@ import {
 } from "../middleware/upload.middleware.js";
 
 import {
-  safeRemoveAccountsProofFile
+  safeRemoveAccountsProofFile,
+  safeRemoveUploadedAccountsProofFiles,
 } from "../utils/accountsProofFile.util.js";
 import { ApiError } from "../utils/apiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -333,6 +334,9 @@ const uploadExpenseAttachments = asyncHandler(
       );
     }
 
+
+    try {
+
     const companyId =
       req.accountingAccess.companyId;
 
@@ -412,6 +416,15 @@ const uploadExpenseAttachments = asyncHandler(
         "Expense proof uploaded successfully."
       )
     );
+
+    } catch (error) {
+
+      await safeRemoveUploadedAccountsProofFiles(
+        files
+      );
+
+      throw error;
+    }
   }
 );
 

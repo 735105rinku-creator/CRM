@@ -18,7 +18,8 @@ import purchaseInvoiceRepository
   from "../repositories/purchaseInvoice.repository.js";
 
 import {
-  safeRemoveAccountsProofFile
+  safeRemoveAccountsProofFile,
+  safeRemoveUploadedAccountsProofFiles,
 } from "../utils/accountsProofFile.util.js";
 
 
@@ -2505,6 +2506,8 @@ export class VoucherService {
     files = [],
   }) {
 
+    try {
+
     if (!companyId) {
       throw new Error(
         "Company ID is required."
@@ -2619,6 +2622,16 @@ export class VoucherService {
 
 
     return updatedVoucher;
+
+
+    } catch (error) {
+
+      await safeRemoveUploadedAccountsProofFiles(
+        files
+      );
+
+      throw error;
+    }
 
   }
 
