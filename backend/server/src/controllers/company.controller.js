@@ -1,5 +1,7 @@
 import { ApiResponse } from "../utils/apiResponse.js";
+
 import { ApiError } from "../utils/apiError.js";
+
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 import {
@@ -21,104 +23,502 @@ import {
   updateMyCompanyProfileService,
 } from "../services/company.service.js";
 
-export const createCompany = asyncHandler(async (req, res) => {
-  const { value, error } = createCompanySchema.validate(req.body);
+import companyOwnerOverviewService
+  from "../services/companyOwnerOverview.service.js";
 
-  if (error) {
-    throw new ApiError(400, error.details[0].message);
-  }
+import {
+  ROLES,
+} from "../constants/roles.js";
 
-  const company = await createCompanyService(req.user, value);
 
-  res
-    .status(201)
-    .json(new ApiResponse(201, company, "Company created successfully"));
-});
+/* ============================================================
+   HELPERS
+============================================================ */
 
-export const getCompanies = asyncHandler(async (req, res) => {
-  const companies = await getCompaniesService(req.user, req.query);
+const companyIdOf = (
+  user
+) => {
 
-  res
-    .status(200)
-    .json(new ApiResponse(200, companies, "Companies fetched successfully"));
-});
+  return (
+    user?.companyId?._id ||
+    user?.companyId ||
+    null
+  );
 
-export const getCompanyById = asyncHandler(async (req, res) => {
-  const company = await getCompanyByIdService(req.user, req.params.id);
+};
 
-  res
-    .status(200)
-    .json(new ApiResponse(200, company, "Company fetched successfully"));
-});
 
-export const updateCompany = asyncHandler(async (req, res) => {
-  const { value, error } = updateCompanySchema.validate(req.body);
+/* ============================================================
+   COMPANY CRUD
+============================================================ */
 
-  if (error) {
-    throw new ApiError(400, error.details[0].message);
-  }
+export const createCompany =
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
 
-  const company = await updateCompanyService(req.user, req.params.id, value);
+      const {
+        value,
+        error,
+      } =
+        createCompanySchema.validate(
+          req.body
+        );
 
-  res
-    .status(200)
-    .json(new ApiResponse(200, company, "Company updated successfully"));
-});
 
-export const updateCompanyStatus = asyncHandler(async (req, res) => {
-  const { value, error } = updateCompanyStatusSchema.validate(req.body);
+      if (
+        error
+      ) {
 
-  if (error) {
-    throw new ApiError(400, error.details[0].message);
-  }
+        throw new ApiError(
+          400,
+          error.details[0].message
+        );
 
-  const company = await updateCompanyStatusService(req.user, req.params.id, value);
+      }
 
-  res
-    .status(200)
-    .json(new ApiResponse(200, company, "Company status updated successfully"));
-});
 
-export const deleteCompany = asyncHandler(async (req, res) => {
-  await deleteCompanyService(req.user, req.params.id);
+      const company =
+        await createCompanyService(
+          req.user,
+          value
+        );
 
-  res
-    .status(200)
-    .json(new ApiResponse(200, null, "Company deleted successfully"));
-});
 
-export const createCompanyAdmin = asyncHandler(async (req, res) => {
-  const { value, error } = createCompanyAdminSchema.validate(req.body);
+      res
+        .status(
+          201
+        )
+        .json(
+          new ApiResponse(
+            201,
+            company,
+            "Company created successfully"
+          )
+        );
 
-  if (error) {
-    throw new ApiError(400, error.details[0].message);
-  }
+    }
+  );
 
-  const user = await createCompanyAdminService(req.user, req.params.id, value);
 
-  res
-    .status(201)
-    .json(new ApiResponse(201, user, "Company admin created successfully"));
-});
+export const getCompanies =
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
 
-export const getMyCompanyProfile = asyncHandler(async (req, res) => {
-  const company = await getMyCompanyProfileService(req.user);
+      const companies =
+        await getCompaniesService(
+          req.user,
+          req.query
+        );
 
-  res
-    .status(200)
-    .json(new ApiResponse(200, company, "Company profile fetched successfully"));
-});
 
-export const updateMyCompanyProfile = asyncHandler(async (req, res) => {
-  const { value, error } = updateCompanySchema.validate(req.body);
+      res
+        .status(
+          200
+        )
+        .json(
+          new ApiResponse(
+            200,
+            companies,
+            "Companies fetched successfully"
+          )
+        );
 
-  if (error) {
-    throw new ApiError(400, error.details[0].message);
-  }
+    }
+  );
 
-  const company = await updateMyCompanyProfileService(req.user, value);
 
-  res
-    .status(200)
-    .json(new ApiResponse(200, company, "Company profile updated successfully"));
-});
+export const getCompanyById =
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
+
+      const company =
+        await getCompanyByIdService(
+          req.user,
+          req.params.id
+        );
+
+
+      res
+        .status(
+          200
+        )
+        .json(
+          new ApiResponse(
+            200,
+            company,
+            "Company fetched successfully"
+          )
+        );
+
+    }
+  );
+
+
+export const updateCompany =
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
+
+      const {
+        value,
+        error,
+      } =
+        updateCompanySchema.validate(
+          req.body
+        );
+
+
+      if (
+        error
+      ) {
+
+        throw new ApiError(
+          400,
+          error.details[0].message
+        );
+
+      }
+
+
+      const company =
+        await updateCompanyService(
+          req.user,
+          req.params.id,
+          value
+        );
+
+
+      res
+        .status(
+          200
+        )
+        .json(
+          new ApiResponse(
+            200,
+            company,
+            "Company updated successfully"
+          )
+        );
+
+    }
+  );
+
+
+export const updateCompanyStatus =
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
+
+      const {
+        value,
+        error,
+      } =
+        updateCompanyStatusSchema.validate(
+          req.body
+        );
+
+
+      if (
+        error
+      ) {
+
+        throw new ApiError(
+          400,
+          error.details[0].message
+        );
+
+      }
+
+
+      const company =
+        await updateCompanyStatusService(
+          req.user,
+          req.params.id,
+          value
+        );
+
+
+      res
+        .status(
+          200
+        )
+        .json(
+          new ApiResponse(
+            200,
+            company,
+            "Company status updated successfully"
+          )
+        );
+
+    }
+  );
+
+
+export const deleteCompany =
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
+
+      await deleteCompanyService(
+        req.user,
+        req.params.id
+      );
+
+
+      res
+        .status(
+          200
+        )
+        .json(
+          new ApiResponse(
+            200,
+            null,
+            "Company deleted successfully"
+          )
+        );
+
+    }
+  );
+
+
+/* ============================================================
+   COMPANY ADMIN
+============================================================ */
+
+export const createCompanyAdmin =
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
+
+      const {
+        value,
+        error,
+      } =
+        createCompanyAdminSchema.validate(
+          req.body
+        );
+
+
+      if (
+        error
+      ) {
+
+        throw new ApiError(
+          400,
+          error.details[0].message
+        );
+
+      }
+
+
+      const user =
+        await createCompanyAdminService(
+          req.user,
+          req.params.id,
+          value
+        );
+
+
+      res
+        .status(
+          201
+        )
+        .json(
+          new ApiResponse(
+            201,
+            user,
+            "Company admin created successfully"
+          )
+        );
+
+    }
+  );
+
+
+/* ============================================================
+   MY COMPANY PROFILE
+============================================================ */
+
+export const getMyCompanyProfile =
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
+
+      const company =
+        await getMyCompanyProfileService(
+          req.user
+        );
+
+
+      res
+        .status(
+          200
+        )
+        .json(
+          new ApiResponse(
+            200,
+            company,
+            "Company profile fetched successfully"
+          )
+        );
+
+    }
+  );
+
+
+export const updateMyCompanyProfile =
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
+
+      const {
+        value,
+        error,
+      } =
+        updateCompanySchema.validate(
+          req.body
+        );
+
+
+      if (
+        error
+      ) {
+
+        throw new ApiError(
+          400,
+          error.details[0].message
+        );
+
+      }
+
+
+      const company =
+        await updateMyCompanyProfileService(
+          req.user,
+          value
+        );
+
+
+      res
+        .status(
+          200
+        )
+        .json(
+          new ApiResponse(
+            200,
+            company,
+            "Company profile updated successfully"
+          )
+        );
+
+    }
+  );
+
+
+/* ============================================================
+   OWNER COMMAND CENTER
+   READ-ONLY COMPANY ADMIN FINANCIAL OVERVIEW
+============================================================ */
+
+export const getMyOwnerOverview =
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
+
+      /*
+       * Owner Command Center is intentionally Company Admin only.
+       *
+       * This does NOT provide:
+       * - Purchase approval rights
+       * - Logistics handoff rights
+       * - Accounts posting rights
+       * - Voucher mutation rights
+       * - Journal mutation rights
+       */
+
+      if (
+        req.user?.role !==
+        ROLES.COMPANY_ADMIN
+      ) {
+
+        throw new ApiError(
+          403,
+          "Owner overview is available only to Company Admin."
+        );
+
+      }
+
+
+      const companyId =
+        companyIdOf(
+          req.user
+        );
+
+
+      if (
+        !companyId
+      ) {
+
+        throw new ApiError(
+          403,
+          "Company context missing."
+        );
+
+      }
+
+
+      const data =
+        await companyOwnerOverviewService
+          .getOwnerOverview({
+            companyId,
+
+            query: {
+              from:
+                req.query?.from,
+
+              to:
+                req.query?.to,
+
+              asOf:
+                req.query?.asOf,
+            },
+          });
+
+
+      return res
+        .status(
+          200
+        )
+        .json(
+          new ApiResponse(
+            200,
+            data,
+            "Owner overview fetched successfully"
+          )
+        );
+
+    }
+  );

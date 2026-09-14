@@ -10,64 +10,129 @@ import {
   createCompanyAdmin,
   getMyCompanyProfile,
   updateMyCompanyProfile,
+  getMyOwnerOverview,
 } from "../controllers/company.controller.js";
 
-import { requireAuth, requirePermission } from "../middleware/auth.middleware.js";
+import {
+  requireAuth,
+  requirePermission,
+} from "../middleware/auth.middleware.js";
 
-import { PERMISSIONS } from "../constants/permissions.js";
+import {
+  PERMISSIONS,
+} from "../constants/permissions.js";
 
-const router = Router();
 
-router.use(requireAuth);
+const router =
+  Router();
 
-router.get("/my/profile", requirePermission(PERMISSIONS.COMPANY_PROFILE_READ),getMyCompanyProfile);
+
+router.use(
+  requireAuth
+);
+
+
+/* ============================================================
+   MY COMPANY
+============================================================ */
+
+router.get(
+  "/my/profile",
+  requirePermission(
+    PERMISSIONS.COMPANY_PROFILE_READ
+  ),
+  getMyCompanyProfile
+);
+
 
 router.patch(
   "/my/profile",
-  requirePermission(PERMISSIONS.COMPANY_PROFILE_UPDATE),
+  requirePermission(
+    PERMISSIONS.COMPANY_PROFILE_UPDATE
+  ),
   updateMyCompanyProfile
 );
 
+
+/* ============================================================
+   OWNER COMMAND CENTER
+   READ-ONLY COMPANY ADMIN OVERVIEW
+============================================================ */
+
+router.get(
+  "/my/owner-overview",
+  requirePermission(
+    PERMISSIONS.COMPANY_PROFILE_READ
+  ),
+  getMyOwnerOverview
+);
+
+
+/* ============================================================
+   SUPER ADMIN COMPANY MANAGEMENT
+============================================================ */
+
 router.post(
   "/",
-  requirePermission(PERMISSIONS.COMPANY_CREATE),
+  requirePermission(
+    PERMISSIONS.COMPANY_CREATE
+  ),
   createCompany
 );
 
+
 router.get(
   "/",
-  requirePermission(PERMISSIONS.COMPANY_READ),
+  requirePermission(
+    PERMISSIONS.COMPANY_READ
+  ),
   getCompanies
 );
 
+
 router.get(
   "/:id",
-  requirePermission(PERMISSIONS.COMPANY_READ),
+  requirePermission(
+    PERMISSIONS.COMPANY_READ
+  ),
   getCompanyById
 );
 
+
 router.patch(
   "/:id",
-  requirePermission(PERMISSIONS.COMPANY_UPDATE),
+  requirePermission(
+    PERMISSIONS.COMPANY_UPDATE
+  ),
   updateCompany
 );
 
+
 router.patch(
   "/:id/status",
-  requirePermission(PERMISSIONS.COMPANY_STATUS_UPDATE),
+  requirePermission(
+    PERMISSIONS.COMPANY_STATUS_UPDATE
+  ),
   updateCompanyStatus
 );
 
+
 router.delete(
   "/:id",
-  requirePermission(PERMISSIONS.COMPANY_DELETE),
+  requirePermission(
+    PERMISSIONS.COMPANY_DELETE
+  ),
   deleteCompany
 );
 
+
 router.post(
   "/:id/company-admin",
-  requirePermission(PERMISSIONS.COMPANY_ADMIN_CREATE),
+  requirePermission(
+    PERMISSIONS.COMPANY_ADMIN_CREATE
+  ),
   createCompanyAdmin
 );
+
 
 export default router;

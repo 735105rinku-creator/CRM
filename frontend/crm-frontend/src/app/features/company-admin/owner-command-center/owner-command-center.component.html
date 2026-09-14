@@ -1,0 +1,913 @@
+<section class="owner-command-center">
+
+    <!-- =========================================================
+         HEADER
+    ========================================================== -->
+  
+    <div class="owner-hero">
+  
+      <div class="owner-hero__content">
+  
+        <div class="owner-hero__eyebrow">
+          OWNER COMMAND CENTER
+        </div>
+  
+        <h1>
+          Company Financial Overview
+        </h1>
+  
+        <p>
+          Read-only consolidated financial monitoring powered by
+          existing Accounts reports.
+        </p>
+  
+        <div class="owner-hero__meta">
+  
+          <span>
+            Period:
+            <strong>
+              {{ periodLabel() }}
+            </strong>
+          </span>
+  
+          <span>
+            As of:
+            <strong>
+              {{ asOfLabel() }}
+            </strong>
+          </span>
+  
+          <span *ngIf="lastUpdated()">
+            Updated:
+            <strong>
+              {{ formatDateTime(lastUpdated()) }}
+            </strong>
+          </span>
+  
+        </div>
+  
+      </div>
+  
+  
+      <div class="owner-hero__actions">
+  
+        <button
+          type="button"
+          class="owner-btn owner-btn--secondary"
+          (click)="useToday()"
+          [disabled]="isLoading()">
+  
+          Today
+  
+        </button>
+  
+  
+        <button
+          type="button"
+          class="owner-btn owner-btn--secondary"
+          (click)="useCurrentMonth()"
+          [disabled]="isLoading()">
+  
+          This Month
+  
+        </button>
+  
+  
+        <button
+          type="button"
+          class="owner-btn owner-btn--secondary"
+          (click)="useCurrentFinancialYear()"
+          [disabled]="isLoading()">
+  
+          Current FY
+  
+        </button>
+  
+  
+        <button
+          type="button"
+          class="owner-btn owner-btn--primary"
+          (click)="loadOverview()"
+          [disabled]="isLoading()">
+  
+          <span
+            class="owner-refresh-dot"
+            [class.owner-refresh-dot--active]="isLoading()">
+          </span>
+  
+          {{ isLoading() ? 'Refreshing...' : 'Refresh' }}
+  
+        </button>
+  
+      </div>
+  
+    </div>
+  
+  
+    <!-- =========================================================
+         DATE FILTER
+    ========================================================== -->
+  
+    <div class="owner-panel owner-filter-panel">
+  
+      <div class="owner-filter-grid">
+  
+        <label class="owner-field">
+  
+          <span>
+            From Date
+          </span>
+  
+          <input
+            type="date"
+            [value]="fromDate()"
+            (change)="onFromDateChange($any($event.target).value)" />
+  
+        </label>
+  
+  
+        <label class="owner-field">
+  
+          <span>
+            To Date
+          </span>
+  
+          <input
+            type="date"
+            [value]="toDate()"
+            (change)="onToDateChange($any($event.target).value)" />
+  
+        </label>
+  
+  
+        <label class="owner-field">
+  
+          <span>
+            As Of Date
+          </span>
+  
+          <input
+            type="date"
+            [value]="asOfDate()"
+            (change)="onAsOfDateChange($any($event.target).value)" />
+  
+        </label>
+  
+  
+        <div class="owner-filter-action">
+  
+          <button
+            type="button"
+            class="owner-btn owner-btn--primary owner-btn--full"
+            (click)="applyDateFilter()"
+            [disabled]="isLoading()">
+  
+            Apply Filter
+  
+          </button>
+  
+        </div>
+  
+      </div>
+  
+    </div>
+  
+  
+    <!-- =========================================================
+         ERROR
+    ========================================================== -->
+  
+    <div
+      *ngIf="errorMessage()"
+      class="owner-alert owner-alert--danger">
+  
+      <strong>
+        Unable to load owner overview
+      </strong>
+  
+      <span>
+        {{ errorMessage() }}
+      </span>
+  
+    </div>
+  
+  
+    <!-- =========================================================
+         LOADING
+    ========================================================== -->
+  
+    <ng-container *ngIf="isLoading() && !overview()">
+  
+      <div class="owner-kpi-grid">
+  
+        <div
+          class="owner-kpi owner-skeleton"
+          *ngFor="let item of [1,2,3,4,5,6,7,8]">
+  
+          <div class="owner-skeleton-line owner-skeleton-line--small"></div>
+  
+          <div class="owner-skeleton-line owner-skeleton-line--large"></div>
+  
+          <div class="owner-skeleton-line"></div>
+  
+        </div>
+  
+      </div>
+  
+    </ng-container>
+  
+  
+    <!-- =========================================================
+         CONTENT
+    ========================================================== -->
+  
+    <ng-container *ngIf="overview()">
+  
+  
+      <!-- =======================================================
+           PRIMARY KPIs
+      ======================================================== -->
+  
+      <section class="owner-section">
+  
+        <div class="owner-section__header">
+  
+          <div>
+  
+            <span class="owner-section__eyebrow">
+              Financial Snapshot
+            </span>
+  
+            <h2>
+              Company Financial Health
+            </h2>
+  
+          </div>
+  
+  
+          <span
+            class="owner-status-pill"
+            [class.owner-status-pill--positive]="netProfit() > 0 && netLoss() === 0"
+            [class.owner-status-pill--negative]="netLoss() > 0"
+            [class.owner-status-pill--neutral]="netProfit() === 0 && netLoss() === 0">
+  
+            {{ resultLabel() }}
+  
+          </span>
+  
+        </div>
+  
+  
+        <div class="owner-kpi-grid">
+  
+          <article
+            class="owner-kpi"
+            *ngFor="
+              let item of primaryKpis();
+              trackBy: trackByKey
+            "
+            [class.owner-kpi--positive]="item.tone === 'positive'"
+            [class.owner-kpi--negative]="item.tone === 'negative'"
+            [class.owner-kpi--warning]="item.tone === 'warning'"
+            [class.owner-kpi--primary]="item.tone === 'primary'">
+  
+            <div class="owner-kpi__top">
+  
+              <span class="owner-kpi__label">
+                {{ item.label }}
+              </span>
+  
+              <span
+                class="owner-kpi__icon"
+                [attr.data-icon]="item.icon">
+  
+                {{ item.label.charAt(0) }}
+  
+              </span>
+  
+            </div>
+  
+  
+            <div class="owner-kpi__value">
+              {{ item.formattedValue }}
+            </div>
+  
+  
+            <div class="owner-kpi__meta">
+              {{ item.meta }}
+            </div>
+  
+          </article>
+  
+        </div>
+  
+      </section>
+  
+  
+      <!-- =======================================================
+           BALANCE SHEET KPIs
+      ======================================================== -->
+  
+      <section class="owner-section">
+  
+        <div class="owner-section__header">
+  
+          <div>
+  
+            <span class="owner-section__eyebrow">
+              Balance Sheet
+            </span>
+  
+            <h2>
+              Capital Position
+            </h2>
+  
+          </div>
+  
+  
+          <span
+            class="owner-status-pill"
+            [class.owner-status-pill--positive]="booksBalanced()"
+            [class.owner-status-pill--negative]="!booksBalanced()">
+  
+            {{
+              booksBalanced()
+                ? 'Books Balanced'
+                : 'Books Need Review'
+            }}
+  
+          </span>
+  
+        </div>
+  
+  
+        <div class="owner-balance-grid">
+  
+          <article
+            class="owner-kpi owner-kpi--large"
+            *ngFor="
+              let item of balanceSheetKpis();
+              trackBy: trackByKey
+            ">
+  
+            <span class="owner-kpi__label">
+              {{ item.label }}
+            </span>
+  
+            <div class="owner-kpi__value">
+              {{ item.formattedValue }}
+            </div>
+  
+            <span class="owner-kpi__meta">
+              {{ item.meta }}
+            </span>
+  
+          </article>
+  
+        </div>
+  
+      </section>
+  
+  
+      <!-- =======================================================
+           HEALTH + ALERTS
+      ======================================================== -->
+  
+      <div class="owner-two-column">
+  
+        <section class="owner-panel">
+  
+          <div class="owner-panel__header">
+  
+            <div>
+  
+              <span class="owner-section__eyebrow">
+                Health Check
+              </span>
+  
+              <h3>
+                Financial Health
+              </h3>
+  
+            </div>
+  
+          </div>
+  
+  
+          <div class="owner-health-list">
+  
+            <article
+              class="owner-health-card"
+              *ngFor="let item of financialHealthCards()"
+              [class.owner-health-card--good]="item.status === 'good'"
+              [class.owner-health-card--warning]="item.status === 'warning'"
+              [class.owner-health-card--danger]="item.status === 'danger'">
+  
+              <div>
+  
+                <span class="owner-health-card__label">
+                  {{ item.label }}
+                </span>
+  
+                <strong>
+                  {{ item.value }}
+                </strong>
+  
+              </div>
+  
+  
+              <small>
+                {{ item.meta }}
+              </small>
+  
+            </article>
+  
+          </div>
+  
+        </section>
+  
+  
+        <section class="owner-panel">
+  
+          <div class="owner-panel__header">
+  
+            <div>
+  
+              <span class="owner-section__eyebrow">
+                Risk Monitoring
+              </span>
+  
+              <h3>
+                Owner Alerts
+              </h3>
+  
+            </div>
+  
+  
+            <span class="owner-alert-count">
+              {{ ownerAlertCount() }}
+            </span>
+  
+          </div>
+  
+  
+          <div class="owner-alert-list">
+  
+            <article
+              class="owner-alert"
+              *ngFor="let alert of ownerAlerts()"
+              [class.owner-alert--danger]="alert.severity === 'danger'"
+              [class.owner-alert--warning]="alert.severity === 'warning'"
+              [class.owner-alert--info]="alert.severity === 'info'">
+  
+              <strong>
+                {{ alert.title }}
+              </strong>
+  
+              <span>
+                {{ alert.message }}
+              </span>
+  
+            </article>
+  
+          </div>
+  
+        </section>
+  
+      </div>
+  
+  
+      <!-- =======================================================
+           CASH & BANK
+      ======================================================== -->
+  
+      <section class="owner-panel">
+  
+        <div class="owner-panel__header">
+  
+          <div>
+  
+            <span class="owner-section__eyebrow">
+              Liquidity
+            </span>
+  
+            <h3>
+              Cash & Bank Position
+            </h3>
+  
+          </div>
+  
+  
+          <span class="owner-muted">
+            {{ totalCashBankAccounts() }}
+            accounts
+          </span>
+  
+        </div>
+  
+  
+        <div class="owner-mini-kpi-grid">
+  
+          <article class="owner-mini-kpi">
+  
+            <span>
+              Opening
+            </span>
+  
+            <strong>
+              {{ formatCurrency(totalCashBankOpening()) }}
+            </strong>
+  
+          </article>
+  
+  
+          <article class="owner-mini-kpi">
+  
+            <span>
+              Debit Movement
+            </span>
+  
+            <strong>
+              {{ formatCurrency(totalCashBankDebit()) }}
+            </strong>
+  
+          </article>
+  
+  
+          <article class="owner-mini-kpi">
+  
+            <span>
+              Credit Movement
+            </span>
+  
+            <strong>
+              {{ formatCurrency(totalCashBankCredit()) }}
+            </strong>
+  
+          </article>
+  
+  
+          <article class="owner-mini-kpi">
+  
+            <span>
+              Closing
+            </span>
+  
+            <strong>
+              {{ formatCurrency(cashBankBalance()) }}
+            </strong>
+  
+          </article>
+  
+        </div>
+  
+  
+        <div class="owner-table-wrap">
+  
+          <table class="owner-table">
+  
+            <thead>
+  
+              <tr>
+                <th>Account</th>
+                <th>Type</th>
+                <th>Opening</th>
+                <th>Debit</th>
+                <th>Credit</th>
+                <th>Closing</th>
+              </tr>
+  
+            </thead>
+  
+  
+            <tbody>
+  
+              <tr
+                *ngFor="
+                  let row of cashBankAccounts();
+                  trackBy: trackByKey
+                ">
+  
+                <td>
+  
+                  <div class="owner-table__primary">
+                    {{ row.accountName || '-' }}
+                  </div>
+  
+                  <div class="owner-table__secondary">
+                    {{ row.accountCode || '-' }}
+                  </div>
+  
+                </td>
+  
+                <td>
+                  {{ row.accountType || '-' }}
+                </td>
+  
+                <td>
+                  {{
+                    formatCurrency(
+                      row.openingBalance?.type === 'credit'
+                        ? -(row.openingBalance?.amount || 0)
+                        : (row.openingBalance?.amount || 0)
+                    )
+                  }}
+                </td>
+  
+                <td>
+                  {{ formatCurrency(row.totalDebit || 0) }}
+                </td>
+  
+                <td>
+                  {{ formatCurrency(row.totalCredit || 0) }}
+                </td>
+  
+                <td class="owner-table__amount">
+                  {{ cashBankClosing(row) }}
+                </td>
+  
+              </tr>
+  
+  
+              <tr *ngIf="!cashBankAccounts().length">
+  
+                <td
+                  colspan="6"
+                  class="owner-table__empty">
+  
+                  No Cash/Bank accounts found for this period.
+  
+                </td>
+  
+              </tr>
+  
+            </tbody>
+  
+          </table>
+  
+        </div>
+  
+      </section>
+  
+  
+      <!-- =======================================================
+           OUTSTANDING
+      ======================================================== -->
+  
+      <div class="owner-two-column owner-two-column--tables">
+  
+        <!-- RECEIVABLE -->
+  
+        <section class="owner-panel">
+  
+          <div class="owner-panel__header">
+  
+            <div>
+  
+              <span class="owner-section__eyebrow">
+                Customers
+              </span>
+  
+              <h3>
+                Top Receivables
+              </h3>
+  
+            </div>
+  
+  
+            <strong class="owner-panel__amount">
+              {{ formatCurrency(receivable()) }}
+            </strong>
+  
+          </div>
+  
+  
+          <div class="owner-table-wrap">
+  
+            <table class="owner-table owner-table--compact">
+  
+              <thead>
+  
+                <tr>
+                  <th>Account</th>
+                  <th>Closing</th>
+                  <th>Outstanding</th>
+                </tr>
+  
+              </thead>
+  
+  
+              <tbody>
+  
+                <tr
+                  *ngFor="
+                    let row of topReceivables();
+                    trackBy: trackByKey
+                  ">
+  
+                  <td>
+  
+                    <div class="owner-table__primary">
+                      {{ row.accountName || '-' }}
+                    </div>
+  
+                    <div class="owner-table__secondary">
+                      {{ row.accountCode || '-' }}
+                    </div>
+  
+                  </td>
+  
+                  <td>
+                    {{ accountClosingBalance(row) }}
+                  </td>
+  
+                  <td class="owner-table__amount">
+                    {{ accountOutstanding(row) }}
+                  </td>
+  
+                </tr>
+  
+  
+                <tr *ngIf="!topReceivables().length">
+  
+                  <td
+                    colspan="3"
+                    class="owner-table__empty">
+  
+                    No receivable outstanding found.
+  
+                  </td>
+  
+                </tr>
+  
+              </tbody>
+  
+            </table>
+  
+          </div>
+  
+        </section>
+  
+  
+        <!-- PAYABLE -->
+  
+        <section class="owner-panel">
+  
+          <div class="owner-panel__header">
+  
+            <div>
+  
+              <span class="owner-section__eyebrow">
+                Vendors
+              </span>
+  
+              <h3>
+                Top Payables
+              </h3>
+  
+            </div>
+  
+  
+            <strong class="owner-panel__amount">
+              {{ formatCurrency(payable()) }}
+            </strong>
+  
+          </div>
+  
+  
+          <div class="owner-table-wrap">
+  
+            <table class="owner-table owner-table--compact">
+  
+              <thead>
+  
+                <tr>
+                  <th>Account</th>
+                  <th>Closing</th>
+                  <th>Outstanding</th>
+                </tr>
+  
+              </thead>
+  
+  
+              <tbody>
+  
+                <tr
+                  *ngFor="
+                    let row of topPayables();
+                    trackBy: trackByKey
+                  ">
+  
+                  <td>
+  
+                    <div class="owner-table__primary">
+                      {{ row.accountName || '-' }}
+                    </div>
+  
+                    <div class="owner-table__secondary">
+                      {{ row.accountCode || '-' }}
+                    </div>
+  
+                  </td>
+  
+                  <td>
+                    {{ accountClosingBalance(row) }}
+                  </td>
+  
+                  <td class="owner-table__amount">
+                    {{ accountOutstanding(row) }}
+                  </td>
+  
+                </tr>
+  
+  
+                <tr *ngIf="!topPayables().length">
+  
+                  <td
+                    colspan="3"
+                    class="owner-table__empty">
+  
+                    No payable outstanding found.
+  
+                  </td>
+  
+                </tr>
+  
+              </tbody>
+  
+            </table>
+  
+          </div>
+  
+        </section>
+  
+      </div>
+  
+  
+      <!-- =======================================================
+           ACCOUNTING RESULT
+      ======================================================== -->
+  
+      <section class="owner-panel owner-result-panel">
+  
+        <div>
+  
+          <span class="owner-section__eyebrow">
+            Accounting Result
+          </span>
+  
+          <h3>
+            Current Period Result
+          </h3>
+  
+        </div>
+  
+  
+        <div class="owner-result-panel__value">
+  
+          <strong>
+            {{
+              balanceSheetReport()
+                ?.currentPeriodResult
+                ?.type || '-'
+            }}
+          </strong>
+  
+          <span>
+            {{
+              formatCurrency(
+                balanceSheetReport()
+                  ?.currentPeriodResult
+                  ?.amount || 0
+              )
+            }}
+          </span>
+  
+        </div>
+  
+      </section>
+  
+  
+      <!-- =======================================================
+           FOOTNOTE
+      ======================================================== -->
+  
+      <div class="owner-footnote">
+  
+        <strong>
+          Data source:
+        </strong>
+  
+        Existing Accounts P&amp;L, Balance Sheet,
+        Cash &amp; Bank Book and Outstanding reports.
+  
+        <span>
+          This dashboard is monitoring-only and does not post or modify
+          accounting transactions.
+        </span>
+  
+      </div>
+  
+    </ng-container>
+  
+  </section>

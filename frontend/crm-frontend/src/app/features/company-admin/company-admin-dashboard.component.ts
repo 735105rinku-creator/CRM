@@ -64,6 +64,9 @@ import {
 import {
   FinancialReportsHubComponent
 } from '../accounts/pages/financial-reports-hub/financial-reports-hub.component';
+import {
+  OwnerCommandCenterComponent
+} from './owner-command-center/owner-command-center.component';
 
 import {
   AccountsSettingsComponent
@@ -321,6 +324,9 @@ declare global {
   imports: [
     CommonModule,
     ReactiveFormsModule,
+
+    OwnerCommandCenterComponent,
+
     AccountsDashboardComponent,
     ChartOfAccountsComponent,
     CustomersComponent,
