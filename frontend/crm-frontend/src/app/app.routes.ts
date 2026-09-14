@@ -11,7 +11,6 @@ import { AboutComponent } from './features/about/about.component';
 import { CheckoutComponent } from './features/checkout/checkout.component';
 import { CompanyAdminDashboardComponent } from './features/company-admin/company-admin-dashboard.component';
 import { ContactComponent } from './features/contact/contact.component';
-import { DashboardComponent } from './features/dashboard/dashboard.component';
 import { EmployeeDashboardComponent } from './features/employee/employee-dashboard.component';
 import { HomeComponent } from './features/home/home.component';
 import { HrDashboardComponent } from './features/hr/hr-dashboard.component';
@@ -240,6 +239,78 @@ export const routes: Routes = [
 
 
   /* ========================================================
+     SALES WORKSPACE
+     IMPORTANT:
+     Sales is top-level so MainLayout does not wrap the
+     EmployeeDashboardComponent with another sidebar.
+  ======================================================== */
+
+  {
+    path: 'sales',
+
+    canActivate: [
+      authGuard
+    ],
+
+    children: [
+
+      {
+        path: '',
+        pathMatch: 'full',
+        redirectTo: 'dashboard'
+      },
+
+
+      {
+        path: 'dashboard',
+
+        component:
+          EmployeeDashboardComponent,
+
+        data: {
+          title:
+            'Sales Dashboard',
+
+          section:
+            'Sales'
+        }
+      },
+
+
+      {
+        path: 'employee',
+
+        component:
+          EmployeeDashboardComponent,
+
+        data: {
+          title:
+            'Sales Employee Workspace',
+
+          section:
+            'Sales'
+        }
+      }
+
+    ]
+  },
+
+
+  /* ========================================================
+     LEGACY SALES DASHBOARD URL
+  ======================================================== */
+
+  {
+    path: 'sales-dashboard',
+
+    pathMatch: 'full',
+
+    redirectTo:
+      '/sales/dashboard'
+  },
+
+
+  /* ========================================================
      MAIN CRM / HRM / COMPANY WORKSPACE
   ======================================================== */
 
@@ -303,27 +374,6 @@ export const routes: Routes = [
 
           permission:
             'manage_company'
-        }
-      },
-
-
-      /* ====================================================
-         SALES DASHBOARD
-      ==================================================== */
-
-      {
-        path:
-          'sales-dashboard',
-
-        component:
-          DashboardComponent,
-
-        data: {
-          title:
-            'Sales Dashboard',
-
-          section:
-            'Sales'
         }
       },
 
@@ -536,24 +586,15 @@ export const routes: Routes = [
 
         children: [
 
-          /* --------------------------------------------------
-             DASHBOARD
-          -------------------------------------------------- */
-
           {
             path: '',
-
-            pathMatch:
-              'full',
-
-            redirectTo:
-              'dashboard'
+            pathMatch: 'full',
+            redirectTo: 'dashboard'
           },
 
 
           {
-            path:
-              'dashboard',
+            path: 'dashboard',
 
             component:
               LogisticsDashboardComponent,
@@ -569,8 +610,7 @@ export const routes: Routes = [
 
 
           {
-            path:
-              'overview',
+            path: 'overview',
 
             component:
               LogisticsOverviewComponent,
@@ -586,8 +626,7 @@ export const routes: Routes = [
 
 
           {
-            path:
-              'employee',
+            path: 'employee',
 
             component:
               EmployeeDashboardComponent,
@@ -607,8 +646,7 @@ export const routes: Routes = [
           -------------------------------------------------- */
 
           {
-            path:
-              'air-cargo',
+            path: 'air-cargo',
 
             component:
               AirCargoListComponent,
@@ -624,8 +662,7 @@ export const routes: Routes = [
 
 
           {
-            path:
-              'air-cargo/new',
+            path: 'air-cargo/new',
 
             component:
               AirCargoNewComponent,
@@ -641,8 +678,7 @@ export const routes: Routes = [
 
 
           {
-            path:
-              'air-cargo/all',
+            path: 'air-cargo/all',
 
             component:
               AirCargoListComponent,
@@ -661,8 +697,7 @@ export const routes: Routes = [
 
 
           {
-            path:
-              'air-cargo/pending',
+            path: 'air-cargo/pending',
 
             component:
               AirCargoListComponent,
@@ -681,8 +716,7 @@ export const routes: Routes = [
 
 
           {
-            path:
-              'air-cargo/delivered',
+            path: 'air-cargo/delivered',
 
             component:
               AirCargoListComponent,
@@ -701,8 +735,7 @@ export const routes: Routes = [
 
 
           {
-            path:
-              'air-cargo/cancelled',
+            path: 'air-cargo/cancelled',
 
             component:
               AirCargoListComponent,
@@ -725,8 +758,7 @@ export const routes: Routes = [
           -------------------------------------------------- */
 
           {
-            path:
-              'sea-freight',
+            path: 'sea-freight',
 
             component:
               SeaFreightComponent,
@@ -746,8 +778,7 @@ export const routes: Routes = [
           -------------------------------------------------- */
 
           {
-            path:
-              'cha',
+            path: 'cha',
 
             component:
               ChaComponent,
@@ -763,8 +794,7 @@ export const routes: Routes = [
 
 
           {
-            path:
-              'cha/master',
+            path: 'cha/master',
 
             component:
               ChaMasterComponent,
@@ -780,8 +810,7 @@ export const routes: Routes = [
 
 
           {
-            path:
-              'cha/master/new',
+            path: 'cha/master/new',
 
             component:
               ChaMasterComponent,
@@ -797,8 +826,7 @@ export const routes: Routes = [
 
 
           {
-            path:
-              'cha/master/:id',
+            path: 'cha/master/:id',
 
             component:
               ChaMasterComponent,
@@ -814,8 +842,7 @@ export const routes: Routes = [
 
 
           {
-            path:
-              'cha/clearance/new',
+            path: 'cha/clearance/new',
 
             component:
               ChaComponent,
@@ -831,8 +858,7 @@ export const routes: Routes = [
 
 
           {
-            path:
-              'customs',
+            path: 'customs',
 
             redirectTo:
               'cha',
@@ -847,8 +873,7 @@ export const routes: Routes = [
           -------------------------------------------------- */
 
           {
-            path:
-              'transporters',
+            path: 'transporters',
 
             component:
               TransporterComponent,
@@ -868,8 +893,7 @@ export const routes: Routes = [
           -------------------------------------------------- */
 
           {
-            path:
-              'warehouse',
+            path: 'warehouse',
 
             component:
               WarehouseComponent,
@@ -885,8 +909,7 @@ export const routes: Routes = [
 
 
           {
-            path:
-              'warehouse/master',
+            path: 'warehouse/master',
 
             component:
               WarehouseMasterComponent,
@@ -902,8 +925,7 @@ export const routes: Routes = [
 
 
           {
-            path:
-              'warehouse/master/new',
+            path: 'warehouse/master/new',
 
             component:
               WarehouseMasterComponent,
@@ -919,8 +941,7 @@ export const routes: Routes = [
 
 
           {
-            path:
-              'warehouse/master/:id',
+            path: 'warehouse/master/:id',
 
             component:
               WarehouseMasterComponent,
@@ -936,8 +957,7 @@ export const routes: Routes = [
 
 
           {
-            path:
-              'warehouse/receipt/new',
+            path: 'warehouse/receipt/new',
 
             component:
               WarehouseComponent,
@@ -953,8 +973,7 @@ export const routes: Routes = [
 
 
           {
-            path:
-              'warehouse/stock',
+            path: 'warehouse/stock',
 
             component:
               WarehouseComponent,
@@ -970,8 +989,7 @@ export const routes: Routes = [
 
 
           {
-            path:
-              'warehouse/inspection',
+            path: 'warehouse/inspection',
 
             component:
               WarehouseComponent,
@@ -987,8 +1005,7 @@ export const routes: Routes = [
 
 
           {
-            path:
-              'warehouse/ready-dispatch',
+            path: 'warehouse/ready-dispatch',
 
             component:
               WarehouseComponent,
@@ -1004,8 +1021,7 @@ export const routes: Routes = [
 
 
           {
-            path:
-              'warehouse/dispatch-history',
+            path: 'warehouse/dispatch-history',
 
             component:
               WarehouseComponent,
@@ -1025,8 +1041,7 @@ export const routes: Routes = [
           -------------------------------------------------- */
 
           {
-            path:
-              'tracking',
+            path: 'tracking',
 
             component:
               TrackingComponent,
@@ -1046,8 +1061,7 @@ export const routes: Routes = [
           -------------------------------------------------- */
 
           {
-            path:
-              'documents',
+            path: 'documents',
 
             component:
               LogisticsDocumentsComponent,
@@ -1067,8 +1081,7 @@ export const routes: Routes = [
           -------------------------------------------------- */
 
           {
-            path:
-              'customers',
+            path: 'customers',
 
             component:
               LogisticsCustomersComponent,
@@ -1088,8 +1101,7 @@ export const routes: Routes = [
           -------------------------------------------------- */
 
           {
-            path:
-              'vendors',
+            path: 'vendors',
 
             component:
               LogisticsVendorsComponent,
@@ -1109,8 +1121,7 @@ export const routes: Routes = [
           -------------------------------------------------- */
 
           {
-            path:
-              'products-services',
+            path: 'products-services',
 
             component:
               ProductsServicesComponent,
@@ -1130,8 +1141,7 @@ export const routes: Routes = [
           -------------------------------------------------- */
 
           {
-            path:
-              'vendor-payments',
+            path: 'vendor-payments',
 
             component:
               VendorPaymentComponent,
@@ -1151,8 +1161,7 @@ export const routes: Routes = [
           -------------------------------------------------- */
 
           {
-            path:
-              'invoices/new',
+            path: 'invoices/new',
 
             component:
               LogisticsInvoiceNewComponent,
@@ -1168,8 +1177,7 @@ export const routes: Routes = [
 
 
           {
-            path:
-              'invoices',
+            path: 'invoices',
 
             component:
               LogisticsInvoiceListComponent,
@@ -1189,8 +1197,7 @@ export const routes: Routes = [
           -------------------------------------------------- */
 
           {
-            path:
-              'reports',
+            path: 'reports',
 
             component:
               LogisticsReportsComponent,
@@ -1206,8 +1213,7 @@ export const routes: Routes = [
 
 
           {
-            path:
-              'reports/shipment-performance',
+            path: 'reports/shipment-performance',
 
             component:
               LogisticsReportsComponent,
@@ -1226,8 +1232,7 @@ export const routes: Routes = [
 
 
           {
-            path:
-              'reports/sales',
+            path: 'reports/sales',
 
             component:
               LogisticsReportsComponent,
@@ -1246,8 +1251,7 @@ export const routes: Routes = [
 
 
           {
-            path:
-              'reports/outstanding',
+            path: 'reports/outstanding',
 
             component:
               LogisticsReportsComponent,
@@ -1266,8 +1270,7 @@ export const routes: Routes = [
 
 
           {
-            path:
-              'reports/gst',
+            path: 'reports/gst',
 
             component:
               LogisticsReportsComponent,
@@ -1286,8 +1289,7 @@ export const routes: Routes = [
 
 
           {
-            path:
-              'reports/vendor-payment',
+            path: 'reports/vendor-payment',
 
             component:
               LogisticsReportsComponent,
@@ -1305,13 +1307,8 @@ export const routes: Routes = [
           },
 
 
-          /* --------------------------------------------------
-             LOGISTICS FALLBACK
-          -------------------------------------------------- */
-
           {
-            path:
-              '**',
+            path: '**',
 
             redirectTo:
               'dashboard'
@@ -1325,8 +1322,7 @@ export const routes: Routes = [
       ==================================================== */
 
       {
-        path:
-          'leads',
+        path: 'leads',
 
         component:
           PlaceholderPageComponent,
@@ -1342,8 +1338,7 @@ export const routes: Routes = [
 
 
       {
-        path:
-          'contacts',
+        path: 'contacts',
 
         component:
           PlaceholderPageComponent,
@@ -1360,12 +1355,10 @@ export const routes: Routes = [
 
       /* ====================================================
          CRM ACCOUNTS
-         Old /accounts Sales route moved here.
       ==================================================== */
 
       {
-        path:
-          'crm/accounts',
+        path: 'crm/accounts',
 
         component:
           PlaceholderPageComponent,
@@ -1381,8 +1374,7 @@ export const routes: Routes = [
 
 
       {
-        path:
-          'deals',
+        path: 'deals',
 
         component:
           PlaceholderPageComponent,
@@ -1399,44 +1391,26 @@ export const routes: Routes = [
 
       /* ====================================================
          LEGACY FINANCE URL REDIRECTS
-
-         These routes preserve existing frontend links while
-         moving Finance into the dedicated Accounts workspace.
       ==================================================== */
 
       {
-        path:
-          'invoices',
-
-        pathMatch:
-          'full',
-
-        redirectTo:
-          '/accounts/invoices'
+        path: 'invoices',
+        pathMatch: 'full',
+        redirectTo: '/accounts/invoices'
       },
 
 
       {
-        path:
-          'payments',
-
-        pathMatch:
-          'full',
-
-        redirectTo:
-          '/accounts/payments'
+        path: 'payments',
+        pathMatch: 'full',
+        redirectTo: '/accounts/payments'
       },
 
 
       {
-        path:
-          'expenses',
-
-        pathMatch:
-          'full',
-
-        redirectTo:
-          '/accounts/expenses'
+        path: 'expenses',
+        pathMatch: 'full',
+        redirectTo: '/accounts/expenses'
       },
 
 
@@ -1445,8 +1419,7 @@ export const routes: Routes = [
       ==================================================== */
 
       {
-        path:
-          'quotations',
+        path: 'quotations',
 
         component:
           PlaceholderPageComponent,
@@ -1460,12 +1433,21 @@ export const routes: Routes = [
         }
       },
 
+
       {
         path: 'purchase',
-        canActivate: [authGuard],
+
+        canActivate: [
+          authGuard
+        ],
+
         loadChildren: () =>
-          import('./features/purchase/purchase.routes')
-            .then((module) => module.PURCHASE_ROUTES)
+          import(
+            './features/purchase/purchase.routes'
+          ).then(
+            (module) =>
+              module.PURCHASE_ROUTES
+          )
       },
 
 
@@ -1474,8 +1456,7 @@ export const routes: Routes = [
       ==================================================== */
 
       {
-        path:
-          'reports/sales',
+        path: 'reports/sales',
 
         component:
           PlaceholderPageComponent,
@@ -1491,8 +1472,7 @@ export const routes: Routes = [
 
 
       {
-        path:
-          'reports/financial',
+        path: 'reports/financial',
 
         pathMatch:
           'full',
@@ -1503,8 +1483,7 @@ export const routes: Routes = [
 
 
       {
-        path:
-          'reports/activity',
+        path: 'reports/activity',
 
         component:
           PlaceholderPageComponent,
@@ -1524,8 +1503,7 @@ export const routes: Routes = [
       ==================================================== */
 
       {
-        path:
-          'calendar',
+        path: 'calendar',
 
         component:
           PlaceholderPageComponent,
@@ -1545,8 +1523,7 @@ export const routes: Routes = [
       ==================================================== */
 
       {
-        path:
-          'settings/company',
+        path: 'settings/company',
 
         component:
           PlaceholderPageComponent,
@@ -1562,8 +1539,7 @@ export const routes: Routes = [
 
 
       {
-        path:
-          'settings/users',
+        path: 'settings/users',
 
         component:
           PlaceholderPageComponent,
@@ -1579,8 +1555,7 @@ export const routes: Routes = [
 
 
       {
-        path:
-          'settings/profile',
+        path: 'settings/profile',
 
         component:
           PlaceholderPageComponent,
@@ -1602,10 +1577,7 @@ export const routes: Routes = [
   ======================================================== */
 
   {
-    path:
-      '**',
-
-    redirectTo:
-      'dashboard'
+    path: '**',
+    redirectTo: 'dashboard'
   }
 ];

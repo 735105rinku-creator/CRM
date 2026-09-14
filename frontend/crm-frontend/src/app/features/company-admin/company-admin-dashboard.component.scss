@@ -2116,3 +2116,32 @@ justify-self: center;
   outline: 3px solid color-mix(in srgb, var(--neo-accent) 24%, transparent);
   outline-offset: 3px;
 }
+
+/* ============================================================
+   OWNER COMMAND CENTER INTEGRATION
+============================================================ */
+
+.company-owner-command-center {
+  display: block;
+  width: 100%;
+  margin: 0 0 32px;
+  border-radius: 28px;
+  overflow: visible;
+}
+
+.company-owner-command-center app-owner-command-center {
+  display: block;
+  width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .company-owner-command-center {
+    margin-bottom: 24px;
+  }
+}
+
+@media (max-width: 640px) {
+  .company-owner-command-center {
+    margin-bottom: 18px;
+  }
+}
