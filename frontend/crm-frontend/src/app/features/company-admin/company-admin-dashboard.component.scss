@@ -2281,3 +2281,54 @@ justify-self: center;
   box-shadow: none !important;
   color: #fff !important;
 }
+
+/* =========================================================
+   COMPANY ADMIN SIDEBAR ACCESSIBILITY + RESPONSIVE
+========================================================= */
+
+.company-admin-console .company-sidebar {
+  overflow: hidden;
+}
+
+.company-admin-console .company-nav {
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding:
+    0.15rem
+    0.35rem
+    0.35rem
+    0.1rem;
+  scrollbar-width: thin;
+}
+
+.company-admin-console .menu-group-toggle:focus-visible,
+.company-admin-console .menu-child:focus-visible,
+.company-admin-console .sidebar-footer button:focus-visible {
+  outline:
+    3px solid rgba(96, 165, 250, 0.55);
+  outline-offset: 2px;
+}
+
+@media (max-width: 900px) {
+  .company-admin-console .company-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .company-admin-console .company-sidebar {
+    max-height: none;
+    min-height: auto;
+    overflow: visible;
+    position: relative;
+    top: auto;
+  }
+
+  .company-admin-console .company-nav {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .company-admin-console .company-main {
+    padding: 1rem;
+  }
+}

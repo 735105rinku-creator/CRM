@@ -136,3 +136,33 @@ test(
     );
   }
 );
+
+test(
+  'Company Admin sidebar supports controlled scrolling and focus visibility',
+  () => {
+    assert.match(
+      adminScss,
+      /\.company-admin-console\s+\.company-nav[\s\S]*?min-height:\s*0/
+    );
+
+    assert.match(
+      adminScss,
+      /\.company-admin-console\s+\.company-nav[\s\S]*?overflow-y:\s*auto/
+    );
+
+    assert.match(
+      adminScss,
+      /\.company-admin-console\s+\.menu-group-toggle:focus-visible/
+    );
+
+    assert.match(
+      adminScss,
+      /\.company-admin-console\s+\.menu-child:focus-visible/
+    );
+
+    assert.match(
+      adminScss,
+      /@media\s*\(max-width:\s*900px\)/
+    );
+  }
+);
