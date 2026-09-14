@@ -24,6 +24,13 @@ const adminHtml = readFileSync(
   ),
   'utf8'
 );
+const adminScss = readFileSync(
+  resolve(
+    frontendRoot,
+    'src/app/features/company-admin/company-admin-dashboard.component.scss'
+  ),
+  'utf8'
+);
 
 test(
   'Company Admin sidebar exposes single-open accordion state',
@@ -91,6 +98,41 @@ test(
     assert.match(
       adminHtml,
       /\(click\)="setSection\(item\.id\)"/
+    );
+  }
+);
+
+test(
+  'Company Admin premium shell defines the approved visual tokens',
+  () => {
+    assert.match(
+      adminScss,
+      /--admin-navy:\s*#0b1f3a/i
+    );
+
+    assert.match(
+      adminScss,
+      /--admin-blue:\s*#2563eb/i
+    );
+
+    assert.match(
+      adminScss,
+      /--admin-canvas:\s*#f4f7fb/i
+    );
+
+    assert.match(
+      adminScss,
+      /\.company-admin-console[\s\S]*?\.company-sidebar[\s\S]*?var\(--admin-navy\)/
+    );
+
+    assert.match(
+      adminScss,
+      /\.menu-group-toggle/
+    );
+
+    assert.match(
+      adminScss,
+      /\.menu-child\.active/
     );
   }
 );
