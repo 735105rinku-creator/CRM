@@ -1,4 +1,4 @@
-﻿<section class="company-admin-console">
+<section class="company-admin-console company-premium-shell">
   <div class="company-shell">
     <aside class="company-sidebar" aria-label="Company admin menu">
       <div class="company-profile">
@@ -24,32 +24,66 @@
               [attr.aria-expanded]="isMenuGroupExpanded(group.title)"
               (click)="toggleMenuGroup(group.title)"
             >
-              <span class="menu-group-title">
-                {{ group.title }}
+              <span class="menu-group-leading">
+                <svg
+                  class="menu-group-icon"
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  focusable="false"
+                >
+                  <path [attr.d]="menuGroupIconPath(group.title)"></path>
+                </svg>
+
+                <span class="menu-group-title">
+                  {{ group.title }}
+                </span>
               </span>
 
               <span
                 class="menu-group-chevron"
                 aria-hidden="true"
               >
-                ›
+                <svg
+                  class="menu-group-chevron-icon"
+                  viewBox="0 0 24 24"
+                  focusable="false"
+                  aria-hidden="true"
+                >
+                  <path d="M9 6l6 6-6 6"></path>
+                </svg>
               </span>
             </button>
 
-            @if (isMenuGroupExpanded(group.title)) {
-              <div class="menu-group-items">
+            <div
+              class="menu-group-items"
+              [class.open]="isMenuGroupExpanded(group.title)"
+              [attr.aria-hidden]="!isMenuGroupExpanded(group.title)"
+            >
+              <div class="menu-group-items-inner">
                 @for (item of group.items; track item.id) {
                   <button
                     type="button"
                     class="menu-child"
                     [class.active]="activeSection() === item.id"
+                    [attr.tabindex]="isMenuGroupExpanded(group.title) ? 0 : -1"
                     (click)="setSection(item.id)"
                   >
-                    {{ item.label }}
+                                        <svg
+                      class="menu-child-icon"
+                      aria-hidden="true"
+                      viewBox="0 0 24 24"
+                      focusable="false"
+                    >
+                      <path [attr.d]="menuItemIconPath(item.id)"></path>
+                    </svg>
+
+                    <span class="menu-child-label">
+                      {{ item.label }}
+                    </span>
                   </button>
                 }
               </div>
-            }
+            </div>
           </div>
         }
       </nav>
@@ -67,7 +101,7 @@
            HEADER
       ====================================================== -->
 
-      <div class="hero-row company-hero">
+      <div class="hero-row company-hero company-premium-topbar">
         <div>
           <p class="eyebrow">
             {{ companyProfile()?.companyCode || 'Company' }}
@@ -155,17 +189,6 @@
             }
 
           </div>
-
-          <button
-            type="button"
-            class="header-back-btn company-header-back"
-            (click)="goBack()"
-          >
-            <span aria-hidden="true">
-              &lt;
-            </span>
-            Back
-          </button>
 
           <button
             type="button"
@@ -4023,7 +4046,51 @@
           </div>
 
 
-          <form
+                  <section class="premium-theme-studio">
+          <div class="premium-theme-studio__head">
+            <div>
+              <p class="eyebrow">Enterprise Appearance</p>
+              <h2>Premium Theme Presets</h2>
+              <span>Preview a preset, then Save Theme to keep it for the company.</span>
+            </div>
+          </div>
+
+          <div class="premium-theme-presets">
+            @for (preset of themePresets; track preset.id) {
+              <button
+                type="button"
+                class="premium-theme-preset"
+                (click)="applyThemePreset(preset.id)"
+              >
+                <span
+                  class="premium-theme-preset__swatch"
+                  [style.background]="preset.sidebarColor"
+                ></span>
+
+                <strong>{{ preset.name }}</strong>
+
+                <small>
+                  {{ preset.description }}
+                </small>
+
+                <span class="premium-theme-preset__colors">
+                  <i [style.background]="preset.primaryColor"></i>
+                  <i [style.background]="preset.accentColor"></i>
+                  <i [style.background]="preset.sidebarColor"></i>
+                </span>
+              </button>
+            }
+          </div>
+
+          <button
+            type="button"
+            class="premium-theme-reset"
+            (click)="resetThemePreview()"
+          >
+            Reset to OPAS BIZZ Default
+          </button>
+        </section>
+<form
             [formGroup]="themeForm"
             (ngSubmit)="saveTheme()"
             class="theme-grid"

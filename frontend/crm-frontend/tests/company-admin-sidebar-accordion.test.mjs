@@ -1,4 +1,4 @@
-﻿import test from 'node:test';
+import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
@@ -77,7 +77,17 @@ test(
 
     assert.match(
       adminHtml,
-      /@if\s*\(\s*isMenuGroupExpanded\(group\.title\)\s*\)/
+      /\[class\.open\]="isMenuGroupExpanded\(group\.title\)"/
+    );
+
+    assert.match(
+      adminHtml,
+      /\[attr\.aria-hidden\]="!isMenuGroupExpanded\(group\.title\)"/
+    );
+
+    assert.match(
+      adminHtml,
+      /\[attr\.tabindex\]="isMenuGroupExpanded\(group\.title\) \? 0 : -1"/
     );
   }
 );

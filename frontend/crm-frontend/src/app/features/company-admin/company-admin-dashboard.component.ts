@@ -1,4 +1,4 @@
-﻿import { CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, ElementRef, ViewChild, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -711,6 +711,136 @@ export class CompanyAdminDashboardComponent {
      SIDEBAR MENU
   ============================================================ */
 
+
+  protected menuGroupIconPath(groupTitle: string): string {
+    const icons: Record<string, string> = {
+      Dashboard:
+        'M4 4h6v6H4V4zm10 0h6v6h-6V4zM4 14h6v6H4v-6zm10 0h6v6h-6v-6z',
+
+      Logistics:
+        'M3 7h11v8H3V7zm11 3h4l3 3v2h-7v-5zM6 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm11 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4z',
+
+      CRM:
+        'M8 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm8-1a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 21v-2c0-3 2-5 6-5s6 2 6 5v2H2',
+
+      Accounts:
+        'M4 5h16v4H4V5zm2 6h12v9H6v-9zm3 3h6m-6 3h4',
+
+      HRM:
+        'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm8 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 21v-2c0-3 3-5 7-5s7 2 7 5v2',
+
+      Communication:
+        'M4 5h16v11H9l-5 4V5zm4 4h8m-8 3h6',
+
+      'Company Settings':
+        'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0-5v2m0 14v2M3 12h2m14 0h2M5.6 5.6 7 7m10 10 1.4 1.4M18.4 5.6 17 7M7 17l-1.4 1.4'
+    };
+
+    return (
+      icons[groupTitle] ??
+      'M5 5h14v14H5V5zm4 4h6v6H9V9z'
+    );
+  }
+
+
+  protected menuItemIconPath(itemId: string): string {
+    const id = String(itemId || '').toLowerCase();
+
+    if (id === 'overview' || id.includes('dashboard')) {
+      return 'M4 4h6v6H4V4zm10 0h6v6h-6V4zM4 14h6v6H4v-6zm10 0h6v6h-6v-6z';
+    }
+
+    if (
+      id.includes('invoice') ||
+      id.includes('bill') ||
+      id.includes('receipt') ||
+      id.includes('note')
+    ) {
+      return 'M7 3h8l3 3v15H7V3zm8 0v4h4M10 11h5m-5 4h5m-5 4h3';
+    }
+
+    if (
+      id.includes('payment') ||
+      id.includes('cash') ||
+      id.includes('bank')
+    ) {
+      return 'M3 7h18v11H3V7zm0 4h18M7 15h4';
+    }
+
+    if (
+      id.includes('report') ||
+      id.includes('performance')
+    ) {
+      return 'M5 20v-7h3v7H5zm6 0V5h3v15h-3zm6 0v-10h3v10h-3z';
+    }
+
+    if (
+      id.includes('customer') ||
+      id.includes('vendor') ||
+      id.includes('contact') ||
+      id.includes('employee') ||
+      id.includes('user')
+    ) {
+      return 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21v-2c0-3 3-5 7-5s7 2 7 5v2';
+    }
+
+    if (
+      id.includes('settings') ||
+      id.includes('roles') ||
+      id.includes('department') ||
+      id.includes('profile')
+    ) {
+      return 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0-5v2m0 14v2M3 12h2m14 0h2';
+    }
+
+    if (
+      id.includes('cargo') ||
+      id.includes('freight') ||
+      id.includes('transport') ||
+      id.includes('tracking') ||
+      id.includes('logistics')
+    ) {
+      return 'M3 7h11v8H3V7zm11 3h4l3 3v2h-7v-5zM6 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm11 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4z';
+    }
+
+    if (id.includes('warehouse')) {
+      return 'M3 9l9-6 9 6v12h-5v-7H8v7H3V9zm6 1h6';
+    }
+
+    if (
+      id.includes('document') ||
+      id.includes('export')
+    ) {
+      return 'M7 3h8l3 3v15H7V3zm8 0v4h4M10 11h5m-5 4h5';
+    }
+
+    if (
+      id.includes('ledger') ||
+      id.includes('accounts') ||
+      id.includes('journal') ||
+      id.includes('tax')
+    ) {
+      return 'M6 3h12v18H6V3zm3 5h6m-6 4h6m-6 4h4';
+    }
+
+    if (
+      id.includes('lead') ||
+      id.includes('deal') ||
+      id.includes('quotation')
+    ) {
+      return 'M5 5h14v14H5V5zm3 4h8m-8 4h6m-6 4h4';
+    }
+
+    if (
+      id.includes('task') ||
+      id.includes('follow')
+    ) {
+      return 'M6 4h12v16H6V4zm3 5 1.5 1.5L13 8m1 2h2m-7 5 1.5 1.5L13 14m1 2h2';
+    }
+
+    return 'M5 5h14v14H5V5zm4 4h6v6H9V9z';
+  }
+
   protected readonly menuGroups = [
 
     {
@@ -1249,6 +1379,88 @@ export class CompanyAdminDashboardComponent {
       ]
     });
 
+
+
+  protected readonly themePresets = [
+    {
+      id: 'midnight',
+      name: 'Midnight Executive',
+      description: 'Deep navy shell with confident Royal Blue actions.',
+      primaryColor: '#2563EB',
+      accentColor: '#3B82F6',
+      sidebarColor: '#0B1324'
+    },
+    {
+      id: 'graphite',
+      name: 'Graphite Pro',
+      description: 'Executive graphite shell with crisp cobalt accents.',
+      primaryColor: '#2563EB',
+      accentColor: '#475569',
+      sidebarColor: '#111827'
+    },
+    {
+      id: 'royal-slate',
+      name: 'Royal Slate',
+      description: 'Corporate slate navigation with polished blue focus.',
+      primaryColor: '#1D4ED8',
+      accentColor: '#64748B',
+      sidebarColor: '#1E293B'
+    },
+    {
+      id: 'emerald-navy',
+      name: 'Emerald Navy',
+      description: 'Midnight navy balanced with restrained emerald accents.',
+      primaryColor: '#0F766E',
+      accentColor: '#10B981',
+      sidebarColor: '#0F172A'
+    }
+  ] as const;
+
+  protected applyThemePreset(
+    presetId: string
+  ): void {
+    const preset =
+      this.themePresets.find(
+        (item) => item.id === presetId
+      );
+
+    if (!preset) {
+      return;
+    }
+
+    this.themeForm.patchValue({
+      primaryColor: preset.primaryColor,
+      accentColor: preset.accentColor,
+      sidebarColor: preset.sidebarColor
+    });
+
+    this.applyTheme(
+      this.themeForm.getRawValue()
+    );
+
+    this.message.set(
+      preset.name +
+      ' preview applied. Save Theme to keep it.'
+    );
+  }
+
+  protected resetThemePreview(): void {
+    const preset = this.themePresets[0];
+
+    this.themeForm.patchValue({
+      primaryColor: preset.primaryColor,
+      accentColor: preset.accentColor,
+      sidebarColor: preset.sidebarColor
+    });
+
+    this.applyTheme(
+      this.themeForm.getRawValue()
+    );
+
+    this.message.set(
+      'OPAS BIZZ default preview restored. Save Theme to keep it.'
+    );
+  }
 
   protected readonly departmentForm =
     this.fb.nonNullable.group({
