@@ -1604,468 +1604,6 @@ justify-self: center;
   min-width: 1680px;
 }
 
-/* =========================================================
-   COMPLETE NEOMORPHISM OVERRIDE
-   Preserves existing markup and functionality.
-========================================================= */
-
-.company-admin-console {
-  --neo-bg: #e9eef5;
-  --neo-surface: #edf2f8;
-  --neo-surface-soft: #f2f6fb;
-  --neo-dark: rgba(163, 177, 198, 0.52);
-  --neo-dark-soft: rgba(163, 177, 198, 0.28);
-  --neo-light: rgba(255, 255, 255, 0.94);
-  --neo-text: #1e293b;
-  --neo-muted: #64748b;
-  --neo-accent: var(--color-accent, #4f6fb3);
-  --neo-primary: var(--color-primary, #263a59);
-  --neo-success: var(--color-success, #15803d);
-  --neo-danger: var(--color-danger, #be123c);
-
-  min-height: 100dvh;
-  color: var(--neo-text);
-  background: var(--neo-bg) !important;
-}
-
-.company-admin-console .company-shell {
-  background: var(--neo-bg);
-}
-
-/* Sidebar */
-.company-admin-console .company-sidebar,
-.company-admin-console .hr-sidebar,
-.company-admin-console .employee-sidebar,
-.company-admin-console .platform-menu {
-  background: var(--neo-bg) !important;
-  border-right: 0 !important;
-  box-shadow:
-    10px 0 24px var(--neo-dark-soft),
-    -8px 0 18px var(--neo-light) !important;
-  color: var(--neo-text) !important;
-}
-
-.company-admin-console .company-profile,
-.company-admin-console .sidebar-profile,
-.company-admin-console .hr-card,
-.company-admin-console .employee-card,
-.company-admin-console .back-btn {
-  background: var(--neo-bg) !important;
-  border: 0 !important;
-  border-radius: 18px !important;
-  box-shadow:
-    7px 7px 15px var(--neo-dark-soft),
-    -7px -7px 15px var(--neo-light) !important;
-}
-
-.company-admin-console .company-profile img,
-.company-admin-console .profile-photo-editor img {
-  background: var(--neo-bg) !important;
-  border: 0 !important;
-  box-shadow:
-    5px 5px 12px var(--neo-dark-soft),
-    -5px -5px 12px var(--neo-light) !important;
-}
-
-.company-admin-console .company-profile strong,
-.company-admin-console .sidebar-footer strong,
-.company-admin-console .menu-head h1,
-.company-admin-console .workspace-logout strong,
-.company-admin-console .sidebar-profile strong {
-  color: var(--neo-text) !important;
-}
-
-.company-admin-console .company-profile span,
-.company-admin-console .sidebar-footer span,
-.company-admin-console .menu-group > span,
-.company-admin-console .workspace-logout span,
-.company-admin-console .sidebar-profile span {
-  color: var(--neo-muted) !important;
-}
-
-.company-admin-console .menu-group button,
-.company-admin-console .hr-nav button,
-.company-admin-console .employee-nav button {
-  background: var(--neo-bg) !important;
-  border: 0 !important;
-  border-radius: 14px !important;
-  color: #475569 !important;
-  box-shadow:
-    5px 5px 11px rgba(163, 177, 198, 0.22),
-    -5px -5px 11px rgba(255, 255, 255, 0.82) !important;
-  transition: transform .2s ease, box-shadow .2s ease, color .2s ease;
-}
-
-.company-admin-console .menu-group button:hover,
-.company-admin-console .menu-group button.active,
-.company-admin-console .hr-nav button:hover,
-.company-admin-console .hr-nav button.active,
-.company-admin-console .employee-nav button:hover,
-.company-admin-console .employee-nav button.active {
-  background: var(--neo-bg) !important;
-  border: 0 !important;
-  border-left: 3px solid var(--neo-accent) !important;
-  color: var(--neo-primary) !important;
-  text-shadow: none !important;
-  transform: translateY(-1px);
-  box-shadow:
-    inset 4px 4px 9px rgba(163, 177, 198, 0.28),
-    inset -4px -4px 9px rgba(255, 255, 255, 0.9) !important;
-}
-
-.company-admin-console .sidebar-footer {
-  border-top: 0 !important;
-}
-
-.company-admin-console .sidebar-footer button,
-.company-admin-console .workspace-logout button,
-.company-admin-console .platform-user button {
-  background: var(--neo-bg) !important;
-  border: 0 !important;
-  border-radius: 14px !important;
-  color: var(--neo-danger) !important;
-  box-shadow:
-    6px 6px 14px var(--neo-dark-soft),
-    -6px -6px 14px var(--neo-light) !important;
-}
-
-/* Main surface */
-.company-admin-console .company-main {
-  background: var(--neo-bg);
-}
-
-.company-admin-console .company-main > .panel,
-.company-admin-console .dashboard-grid > .panel,
-.company-admin-console .panel.span-2,
-.company-admin-console .compact-overview,
-.company-admin-console .billing-maximal,
-.company-admin-console .communication-maximal .panel,
-.company-admin-console .report-card-grid article,
-.company-admin-console .export-grid article,
-.company-admin-console .performance-board article {
-  background: var(--neo-bg) !important;
-  border: 0 !important;
-  border-radius: 20px !important;
-  box-shadow:
-    10px 10px 24px var(--neo-dark-soft),
-    -10px -10px 24px var(--neo-light) !important;
-}
-
-.company-admin-console .panel-heading h2,
-.company-admin-console .hero-copy h1,
-.company-admin-console .company-hero h1,
-.company-admin-console .billing-identity h2 {
-  color: var(--neo-primary) !important;
-}
-
-/* Hero */
-.company-admin-console .company-hero,
-.company-admin-console .report-hero,
-.company-admin-console .report-hero.crm,
-.company-admin-console .report-hero.performance,
-.company-admin-console .report-hero.exports {
-  background: var(--neo-bg) !important;
-  border: 0 !important;
-  border-radius: 22px !important;
-  color: var(--neo-text) !important;
-  box-shadow:
-    12px 12px 28px var(--neo-dark-soft),
-    -12px -12px 28px var(--neo-light) !important;
-}
-
-.company-admin-console .report-hero h2 {
-  color: var(--neo-primary) !important;
-}
-
-.company-admin-console .company-hero::after {
-  background: linear-gradient(90deg, transparent, var(--neo-accent), transparent) !important;
-  height: 3px;
-  opacity: .7;
-}
-
-.company-admin-console .hero-actions {
-  background: var(--neo-bg) !important;
-  border: 0 !important;
-  border-radius: 16px !important;
-  box-shadow:
-    inset 5px 5px 12px rgba(163, 177, 198, 0.22),
-    inset -5px -5px 12px rgba(255, 255, 255, 0.88) !important;
-}
-
-/* Buttons */
-.company-admin-console .submit-btn,
-.company-admin-console .primary-action,
-.company-admin-console .quick-actions button,
-.company-admin-console .table-action,
-.company-admin-console .upload-btn,
-.company-admin-console .eye-btn,
-.company-admin-console .foundation-link,
-.company-admin-console .hero-actions .ghost-btn,
-.company-admin-console .company-header-back,
-.company-admin-console .icon-btn.badge {
-  background: var(--neo-bg) !important;
-  border: 0 !important;
-  border-radius: 14px !important;
-  color: var(--neo-primary) !important;
-  box-shadow:
-    6px 6px 14px var(--neo-dark-soft),
-    -6px -6px 14px var(--neo-light) !important;
-  transition: transform .2s ease, box-shadow .2s ease, color .2s ease;
-}
-
-.company-admin-console .submit-btn:hover,
-.company-admin-console .primary-action:hover,
-.company-admin-console .quick-actions button:hover,
-.company-admin-console .table-action:hover,
-.company-admin-console .upload-btn:hover,
-.company-admin-console .eye-btn:hover,
-.company-admin-console .hero-actions .ghost-btn:hover,
-.company-admin-console .company-header-back:hover,
-.company-admin-console .icon-btn.badge:hover {
-  transform: translateY(-2px);
-  color: var(--neo-accent) !important;
-}
-
-.company-admin-console .submit-btn:active,
-.company-admin-console .primary-action:active,
-.company-admin-console .quick-actions button:active,
-.company-admin-console .table-action:active,
-.company-admin-console .upload-btn:active,
-.company-admin-console .eye-btn:active,
-.company-admin-console .hero-actions .ghost-btn:active,
-.company-admin-console .company-header-back:active,
-.company-admin-console .icon-btn.badge:active {
-  transform: translateY(0);
-  box-shadow:
-    inset 5px 5px 11px rgba(163, 177, 198, 0.28),
-    inset -5px -5px 11px rgba(255, 255, 255, 0.9) !important;
-}
-
-/* Cards and chips */
-.company-admin-console .summary-grid span,
-.company-admin-console .module-grid span,
-.company-admin-console .activity-feed span,
-.company-admin-console .chip-list span,
-.company-admin-console .org-node,
-.company-admin-console .empty-visual,
-.company-admin-console .profile-photo-editor,
-.company-admin-console .cropper-panel,
-.company-admin-console .invite-picker,
-.company-admin-console .announcement-grid article,
-.company-admin-console .notification-stream article,
-.company-admin-console .message-item,
-.company-admin-console .subscription-ribbon article,
-.company-admin-console .plan-showcase article,
-.company-admin-console .bar-list button,
-.company-admin-console .invite-picker label {
-  background: var(--neo-bg) !important;
-  border: 0 !important;
-  border-radius: 16px !important;
-  box-shadow:
-    7px 7px 16px rgba(163, 177, 198, 0.24),
-    -7px -7px 16px rgba(255, 255, 255, 0.88) !important;
-}
-
-.company-admin-console .summary-grid span:hover,
-.company-admin-console .module-grid span:hover,
-.company-admin-console .activity-feed span:hover,
-.company-admin-console .bar-list button:hover {
-  transform: translateY(-2px);
-}
-
-.company-admin-console .activity-feed i,
-.company-admin-console .phase-pill,
-.company-admin-console .status-pill,
-.company-admin-console .performance-board header span,
-.company-admin-console .limit-strip span,
-.company-admin-console .plan-showcase small {
-  background: var(--neo-bg) !important;
-  border: 0 !important;
-  color: var(--neo-accent) !important;
-  box-shadow:
-    inset 3px 3px 8px rgba(163, 177, 198, 0.22),
-    inset -3px -3px 8px rgba(255, 255, 255, 0.92) !important;
-}
-
-/* Forms */
-.company-admin-console input,
-.company-admin-console select,
-.company-admin-console textarea,
-.company-admin-console .password-input input {
-  background: var(--neo-bg) !important;
-  border: 0 !important;
-  border-radius: 12px !important;
-  color: var(--neo-text) !important;
-  outline: none;
-  box-shadow:
-    inset 5px 5px 11px rgba(163, 177, 198, 0.24),
-    inset -5px -5px 11px rgba(255, 255, 255, 0.92) !important;
-}
-
-.company-admin-console input:focus,
-.company-admin-console select:focus,
-.company-admin-console textarea:focus {
-  box-shadow:
-    inset 5px 5px 11px rgba(163, 177, 198, 0.26),
-    inset -5px -5px 11px rgba(255, 255, 255, 0.94),
-    0 0 0 3px color-mix(in srgb, var(--neo-accent) 16%, transparent) !important;
-}
-
-/* Tables */
-.company-admin-console .table-wrap,
-.company-admin-console .billing-section-only .table-wrap,
-.company-logistics-flow .table-wrap {
-  background: var(--neo-bg) !important;
-  border: 0 !important;
-  border-radius: 18px !important;
-  box-shadow:
-    inset 6px 6px 14px rgba(163, 177, 198, 0.22),
-    inset -6px -6px 14px rgba(255, 255, 255, 0.9) !important;
-  padding: 10px;
-}
-
-.company-admin-console table {
-  border-collapse: separate;
-  border-spacing: 0 8px;
-}
-
-.company-admin-console table thead {
-  background: transparent !important;
-  color: var(--neo-muted) !important;
-}
-
-.company-admin-console table tbody tr,
-.company-admin-console table tbody tr:nth-child(even),
-.company-admin-console table tbody tr:hover {
-  background: var(--neo-bg) !important;
-}
-
-.company-admin-console table tbody td {
-  background: var(--neo-bg) !important;
-  border: 0 !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.72);
-}
-
-.company-admin-console table tbody td:first-child {
-  border-radius: 12px 0 0 12px;
-}
-
-.company-admin-console table tbody td:last-child {
-  border-radius: 0 12px 12px 0;
-}
-
-/* Notifications */
-.company-admin-console .notification-panel {
-  background: var(--neo-bg) !important;
-  border: 0 !important;
-  border-radius: 18px !important;
-  box-shadow:
-    12px 12px 28px rgba(163, 177, 198, 0.34),
-    -8px -8px 22px rgba(255, 255, 255, 0.92) !important;
-}
-
-.company-admin-console .notification-list article,
-.company-admin-console .notification-list article.unread {
-  background: var(--neo-bg) !important;
-  border: 0 !important;
-  box-shadow:
-    5px 5px 12px rgba(163, 177, 198, 0.2),
-    -5px -5px 12px rgba(255, 255, 255, 0.85) !important;
-}
-
-/* Notices */
-.company-admin-console .notice,
-.company-admin-console .section-notice {
-  background: var(--neo-bg) !important;
-  border: 0 !important;
-  border-left: 4px solid var(--neo-success) !important;
-  color: #166534 !important;
-  box-shadow:
-    5px 5px 12px rgba(163, 177, 198, 0.2),
-    -5px -5px 12px rgba(255, 255, 255, 0.88) !important;
-}
-
-/* Billing */
-.company-admin-console .billing-identity img {
-  background: var(--neo-bg) !important;
-  border: 0 !important;
-  border-radius: 16px !important;
-  box-shadow:
-    6px 6px 14px var(--neo-dark-soft),
-    -6px -6px 14px var(--neo-light) !important;
-}
-
-.company-admin-console .plan-showcase article.featured,
-.company-admin-console .plan-showcase article.current {
-  transform: none !important;
-  box-shadow:
-    inset 5px 5px 12px rgba(163, 177, 198, 0.22),
-    inset -5px -5px 12px rgba(255, 255, 255, 0.92) !important;
-}
-
-.company-admin-console .plan-showcase article.current::after {
-  background: var(--neo-bg) !important;
-  color: var(--neo-accent) !important;
-  border-radius: 10px;
-  box-shadow:
-    4px 4px 9px rgba(163, 177, 198, 0.22),
-    -4px -4px 9px rgba(255, 255, 255, 0.9);
-}
-
-/* Reports */
-.company-admin-console .score-track {
-  background: var(--neo-bg) !important;
-  box-shadow:
-    inset 4px 4px 9px rgba(163, 177, 198, 0.24),
-    inset -4px -4px 9px rgba(255, 255, 255, 0.9) !important;
-}
-
-.company-admin-console .score-track i {
-  background: var(--neo-accent) !important;
-  border-radius: inherit;
-}
-
-.company-admin-console .performance-board footer span {
-  background: var(--neo-bg) !important;
-  box-shadow:
-    4px 4px 9px rgba(163, 177, 198, 0.18),
-    -4px -4px 9px rgba(255, 255, 255, 0.82) !important;
-}
-
-/* Theme preview */
-.company-admin-console .theme-preview {
-  background: var(--neo-bg) !important;
-  border: 0 !important;
-  border-radius: 18px !important;
-  box-shadow:
-    9px 9px 22px var(--neo-dark-soft),
-    -9px -9px 22px var(--neo-light) !important;
-}
-
-.company-admin-console .theme-preview aside,
-.company-admin-console .theme-preview main {
-  background: var(--neo-bg) !important;
-  color: var(--neo-text) !important;
-}
-
-.company-admin-console .theme-preview aside {
-  box-shadow: inset -6px 0 14px rgba(163, 177, 198, 0.18);
-}
-
-.company-admin-console .theme-preview aside span {
-  color: var(--neo-muted) !important;
-}
-
-.company-admin-console .theme-preview main button {
-  background: var(--neo-bg) !important;
-  border: 0 !important;
-  color: var(--neo-primary) !important;
-  box-shadow:
-    6px 6px 14px var(--neo-dark-soft),
-    -6px -6px 14px var(--neo-light) !important;
-}
-
 /* Logistics */
 .company-logistics-flow .logistics-flow-tabs button,
 .logistics-flow-view .panel,
@@ -2092,29 +1630,249 @@ justify-self: center;
     inset -3px -3px 7px rgba(255, 255, 255, 0.9) !important;
 }
 
-/* Cropper */
-.company-admin-console .cropper-preview {
-  background: var(--neo-bg) !important;
-  border: 0 !important;
-  box-shadow:
-    inset 8px 8px 18px rgba(163, 177, 198, 0.26),
-    inset -8px -8px 18px rgba(255, 255, 255, 0.92),
-    8px 8px 18px rgba(163, 177, 198, 0.18) !important;
+/* =========================================================
+   COMPANY ADMIN PREMIUM SHELL
+   Consolidated scoped overrides.
+========================================================= */
+
+.company-admin-console {
+  --admin-navy: #0b1f3a;
+  --admin-navy-soft: #102a4d;
+  --admin-blue: #2563eb;
+  --admin-blue-bright: #3b82f6;
+  --admin-canvas: #f4f7fb;
+  --admin-surface: #ffffff;
+  --admin-surface-soft: #eef3f9;
+  --admin-text: #172033;
+  --admin-muted: #64748b;
+  --admin-border: rgba(148, 163, 184, 0.22);
+  --admin-success: #15803d;
+  --admin-warning: #b45309;
+  --admin-danger: #be123c;
+
+  background: var(--admin-canvas) !important;
+  color: var(--admin-text);
 }
 
-/* Small interaction polish */
-.company-admin-console a,
-.company-admin-console button {
-  -webkit-tap-highlight-color: transparent;
+.company-admin-console .company-shell,
+.company-admin-console .company-main {
+  background: var(--admin-canvas) !important;
 }
 
-.company-admin-console button:focus-visible,
-.company-admin-console a:focus-visible,
-.company-admin-console input:focus-visible,
-.company-admin-console select:focus-visible,
-.company-admin-console textarea:focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--neo-accent) 24%, transparent);
-  outline-offset: 3px;
+.company-admin-console .company-sidebar {
+  background:
+    linear-gradient(
+      180deg,
+      var(--admin-navy),
+      var(--admin-navy-soft)
+    ) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 12px 0 28px rgba(15, 23, 42, 0.14) !important;
+  color: #fff !important;
+  overflow: hidden;
+}
+
+.company-admin-console .company-profile {
+  background: rgba(255, 255, 255, 0.07) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: none !important;
+}
+
+.company-admin-console .company-profile strong,
+.company-admin-console .menu-head h1,
+.company-admin-console .sidebar-footer strong {
+  color: #fff !important;
+}
+
+.company-admin-console .company-profile span,
+.company-admin-console .sidebar-footer span,
+.company-admin-console .company-sidebar .eyebrow {
+  color: rgba(226, 232, 240, 0.64) !important;
+}
+
+.company-admin-console .company-nav {
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.company-admin-console .menu-group-toggle {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.055) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 14px !important;
+  box-shadow: none !important;
+  color: rgba(255, 255, 255, 0.86) !important;
+  display: flex;
+  justify-content: space-between;
+  min-height: 44px;
+  width: 100%;
+}
+
+.company-admin-console .menu-group-toggle:hover,
+.company-admin-console .menu-group-toggle.open {
+  background: rgba(37, 99, 235, 0.18) !important;
+  border-color: rgba(96, 165, 250, 0.34) !important;
+  color: #fff !important;
+}
+
+.company-admin-console .menu-group-chevron {
+  transition: transform 180ms ease;
+}
+
+.company-admin-console .menu-group-toggle.open .menu-group-chevron {
+  transform: rotate(90deg);
+}
+
+.company-admin-console .menu-group-items {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.25rem 0 0.35rem 0.55rem;
+}
+
+.company-admin-console .menu-child {
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+  color: rgba(226, 232, 240, 0.72) !important;
+}
+
+.company-admin-console .menu-child:hover {
+  background: rgba(255, 255, 255, 0.07) !important;
+  color: #fff !important;
+}
+
+.company-admin-console .menu-child.active {
+  background: rgba(37, 99, 235, 0.22) !important;
+  border-color: rgba(96, 165, 250, 0.36) !important;
+  border-left: 3px solid var(--admin-blue-bright) !important;
+  color: #fff !important;
+}
+
+.company-admin-console .sidebar-footer {
+  border-top-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.company-admin-console .sidebar-footer button {
+  background: rgba(255, 255, 255, 0.07) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  box-shadow: none !important;
+  color: #fff !important;
+}
+
+.company-admin-console .menu-group-toggle:focus-visible,
+.company-admin-console .menu-child:focus-visible,
+.company-admin-console .sidebar-footer button:focus-visible {
+  outline: 3px solid rgba(96, 165, 250, 0.55);
+  outline-offset: 2px;
+}
+
+.company-admin-console .company-hero {
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: 22px;
+  box-shadow: 8px 8px 20px rgba(15, 23, 42, 0.07);
+}
+
+.company-admin-console .company-stats article {
+  background: var(--admin-surface) !important;
+  border: 1px solid var(--admin-border) !important;
+  border-radius: 18px !important;
+  box-shadow: 8px 8px 18px rgba(15, 23, 42, 0.065) !important;
+}
+
+.company-admin-console .panel {
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: 20px;
+  box-shadow: 8px 8px 20px rgba(15, 23, 42, 0.06);
+}
+
+.company-admin-console input,
+.company-admin-console select,
+.company-admin-console textarea {
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  color: var(--admin-text);
+}
+
+.company-admin-console input:focus,
+.company-admin-console select:focus,
+.company-admin-console textarea:focus {
+  border-color: rgba(37, 99, 235, 0.48);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  outline: none;
+}
+
+.company-admin-console table {
+  background: var(--admin-surface);
+  color: var(--admin-text);
+}
+
+.company-admin-console table thead th {
+  background: var(--admin-surface-soft);
+  color: var(--admin-navy);
+}
+
+.company-admin-console .notice {
+  background: var(--admin-surface);
+  border: 1px solid rgba(37, 99, 235, 0.18);
+  border-radius: 14px;
+  color: var(--admin-text);
+}
+
+.company-admin-console .primary-action {
+  background:
+    linear-gradient(
+      135deg,
+      var(--admin-blue),
+      var(--admin-blue-bright)
+    ) !important;
+  border-radius: 12px !important;
+  color: #fff !important;
+}
+
+.company-admin-console .quick-actions button {
+  background:
+    linear-gradient(
+      135deg,
+      var(--admin-blue),
+      var(--admin-blue-bright)
+    ) !important;
+  border-radius: 12px !important;
+}
+
+.company-admin-console .empty-visual {
+  background: var(--admin-surface-soft);
+  border-color: var(--admin-border);
+  border-radius: 16px;
+  color: var(--admin-muted);
+}
+
+@media (max-width: 900px) {
+  .company-admin-console .company-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .company-admin-console .company-sidebar {
+    max-height: none;
+    min-height: auto;
+    overflow: visible;
+    position: relative;
+    top: auto;
+  }
+
+  .company-admin-console .company-nav {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .company-admin-console .company-main {
+    padding: 1rem;
+  }
 }
 
 /* ============================================================

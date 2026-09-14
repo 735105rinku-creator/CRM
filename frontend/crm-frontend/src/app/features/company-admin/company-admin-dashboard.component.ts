@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, ElementRef, ViewChild, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -662,6 +662,50 @@ export class CompanyAdminDashboardComponent {
           .join('')
     );
 
+
+  protected readonly expandedMenuGroup =
+    signal<string | null>('Dashboard');
+
+
+  protected toggleMenuGroup(
+    groupTitle: string
+  ): void {
+
+    this.expandedMenuGroup.update(
+      current =>
+        current === groupTitle
+          ? null
+          : groupTitle
+    );
+  }
+
+
+  protected isMenuGroupExpanded(
+    groupTitle: string
+  ): boolean {
+
+    return (
+      this.expandedMenuGroup() ===
+      groupTitle
+    );
+  }
+
+
+  protected menuGroupForSection(
+    section: string
+  ): string {
+
+    return (
+      this.menuGroups.find(
+        group =>
+          group.items.some(
+            item =>
+              item.id === section
+          )
+      )?.title ??
+      'Dashboard'
+    );
+  }
 
   /* ============================================================
      SIDEBAR MENU
@@ -9269,6 +9313,13 @@ export class CompanyAdminDashboardComponent {
     );
 
 
+    this.expandedMenuGroup.set(
+      this.menuGroupForSection(
+        section
+      )
+    );
+
+
     this.message.set(
       ''
     );
@@ -10879,7 +10930,7 @@ if (
             `${user.name || user.email || 'User'} added`,
 
           meta:
-            `${this.roleLabel(user.role)} • ${user.department || 'No department'}`,
+            `${this.roleLabel(user.role)} â€¢ ${user.department || 'No department'}`,
 
           status:
             user.status ||
