@@ -190,47 +190,184 @@
 
   <div class="employee-main">
 
-    <header class="employee-topbar">
+    <header
+      class="employee-topbar"
+      [class.sales-premium-topbar]="isSalesDepartment()"
+    >
 
       @if (isSalesDepartment()) {
-        <div class="sales-topbar-context">
-          <span>
-            Sales Workspace
+
+        <div class="sales-header-title-block">
+          <span class="sales-header-breadcrumb">
+            {{ companyName() }} / Sales
           </span>
 
-          <strong>
-            {{ userName() }}
+          <strong class="sales-header-page-title">
+            Sales Dashboard
           </strong>
         </div>
-      }
 
-      <div class="notification-wrap">
+
+        <div class="sales-header-actions">
+
+          <button
+            type="button"
+            class="sales-header-icon-btn"
+            aria-label="Open lead search"
+            title="Open lead search"
+            (click)="setActiveSection('my-leads')"
+          >
+            <span aria-hidden="true">⌕</span>
+          </button>
+
+
+          <div class="notification-wrap sales-header-notification">
+            <button
+              type="button"
+              class="sales-header-icon-btn sales-header-bell"
+              (click)="toggleNotificationPanel()"
+              aria-label="Open notifications"
+            >
+              <span aria-hidden="true">◇</span>
+
+              @if (unreadCount() > 0) {
+                <small>
+                  {{ unreadCount() }}
+                </small>
+              }
+            </button>
+          </div>
+
+
+          <details class="sales-profile-menu">
+
+            <summary class="sales-profile-trigger">
+
+              <img
+                [src]="employeePhotoUrl()"
+                [alt]="userName() + ' profile photo'"
+              />
+
+              <span class="sales-profile-trigger-copy">
+                <strong>
+                  {{ userName() }}
+                </strong>
+
+                <small>
+                  {{ designationName() }}
+                </small>
+              </span>
+
+              <span
+                class="sales-profile-chevron"
+                aria-hidden="true"
+              >
+                ▾
+              </span>
+
+            </summary>
+
+
+            <div class="sales-profile-dropdown">
+
+              <div class="sales-profile-dropdown-user">
+
+                <img
+                  [src]="employeePhotoUrl()"
+                  [alt]="userName() + ' profile photo'"
+                />
+
+                <div>
+                  <strong>
+                    {{ userName() }}
+                  </strong>
+
+                  <span>
+                    {{ designationName() }}
+                  </span>
+                </div>
+
+              </div>
+
+
+              <button
+                type="button"
+                class="sales-profile-option sales-profile-option--active"
+                (click)="setActiveSection('profile')"
+              >
+                <span class="sales-profile-option-icon">P</span>
+
+                <span>
+                  <strong>My Profile</strong>
+                  <small>View personal details</small>
+                </span>
+              </button>
+
+
+              <button
+                type="button"
+                class="sales-profile-option"
+                (click)="setActiveSection('settings')"
+              >
+                <span class="sales-profile-option-icon">S</span>
+
+                <span>
+                  <strong>Settings</strong>
+                  <small>Account and password settings</small>
+                </span>
+              </button>
+
+
+              <button
+                type="button"
+                class="sales-profile-option sales-profile-option--logout"
+                (click)="logout()"
+              >
+                <span class="sales-profile-option-icon">↪</span>
+
+                <span>
+                  <strong>Logout</strong>
+                  <small>Sign out of CRM</small>
+                </span>
+              </button>
+
+            </div>
+
+          </details>
+
+        </div>
+
+      } @else {
+
+        <div class="notification-wrap">
+          <button
+            type="button"
+            class="notification-bell"
+            (click)="toggleNotificationPanel()"
+            aria-label="Open notifications"
+          >
+            <span>
+              🔔
+            </span>
+
+            @if (unreadCount() > 0) {
+              <small>
+                {{ unreadCount() }}
+              </small>
+            }
+          </button>
+        </div>
+
         <button
           type="button"
-          class="notification-bell"
-          (click)="toggleNotificationPanel()"
-          aria-label="Open notifications"
+          class="header-back-btn employee-header-back"
+          (click)="goBack()"
         >
-          <span>
-            🔔
-          </span>
-
-          @if (unreadCount() > 0) {
-            <small>
-              {{ unreadCount() }}
-            </small>
-          }
+          <span>←</span>
+          Back
         </button>
-      </div>
 
-      <button
-        type="button"
-        class="header-back-btn employee-header-back"
-        (click)="goBack()"
-      >
-        <span>←</span>
-        Back
-      </button>
+      }
 
     </header>
 
@@ -927,106 +1064,6 @@
 
           </div>
 
-
-          <!-- =================================================
-               SALES EMPLOYEE PROFILE SNAPSHOT
-          ================================================== -->
-
-          <article class="panel sales-employee-summary">
-
-            <div class="company-mini">
-
-              @if (companyLogo()) {
-                <img
-                  [src]="companyLogo()"
-                  [alt]="companyName() + ' logo'"
-                />
-              }
-
-              <div>
-                <span>
-                  Company
-                </span>
-
-                <strong>
-                  {{ companyName() }}
-                </strong>
-
-                <small>
-                  {{ dashboard()?.company?.companyCode || '-' }}
-                </small>
-              </div>
-
-            </div>
-
-
-            <div class="detail-grid">
-
-              <span>
-                <strong>
-                  Department
-                </strong>
-
-                {{ departmentName() }}
-              </span>
-
-
-              <span>
-                <strong>
-                  Designation
-                </strong>
-
-                {{ designationName() }}
-              </span>
-
-
-              <span>
-                <strong>
-                  Joining
-                </strong>
-
-                {{ formatDate(dashboard()?.employee?.joiningDate) }}
-              </span>
-
-
-              <span>
-                <strong>
-                  Manager
-                </strong>
-
-                {{
-                  dashboard()
-                    ?.employee
-                    ?.reportingManagerId
-                    ?.displayName || '-'
-                }}
-              </span>
-
-
-              <span>
-                <strong>
-                  Work mode
-                </strong>
-
-                {{ workModeLabel() }}
-              </span>
-
-
-              <span>
-                <strong>
-                  Status
-                </strong>
-
-                {{
-                  dashboard()?.employee?.employeeStatus ||
-                  dashboard()?.user?.status ||
-                  '-'
-                }}
-              </span>
-
-            </div>
-
-          </article>
 
         } @else {
 
@@ -3488,335 +3525,259 @@
 
         @if (activeSection() === 'my-deals') {
 
-          <article class="panel span-2 employee-crm-panel sales-crm-panel">
+          <article class="panel span-2 employee-crm-panel sales-crm-panel sales-deals-workspace">
 
-            <div class="panel-heading">
-
+            <div class="panel-heading sales-deals-heading">
               <div>
-
-                <p class="eyebrow">
-                  Sales Workspace
-                </p>
-
-                <h2>
-                  My Deals
-                </h2>
-
-                <p>
-                  Manage your own deal pipeline.
-                </p>
-
+                <p class="eyebrow">Sales Workspace</p>
+                <h2>My Deals</h2>
+                <p>Create, monitor and move your own deals through the sales pipeline.</p>
               </div>
 
               <div class="sales-deal-summary">
-
-                <span>
-                  Pipeline
-                  <strong>
-                    {{ formatCurrency(crmPipelineValue()) }}
-                  </strong>
-                </span>
-
-                <span>
-                  Won
-                  <strong>
-                    {{ formatCurrency(salesWonRevenue()) }}
-                  </strong>
-                </span>
-
+                <span>Pipeline <strong>{{ formatCurrency(crmPipelineValue()) }}</strong></span>
+                <span>Won <strong>{{ formatCurrency(salesWonRevenue()) }}</strong></span>
+                <span>Deals <strong>{{ crmDeals().length }}</strong></span>
               </div>
-
             </div>
 
+            <section class="sales-deal-editor">
+              <div class="sales-deal-editor-head">
+                <div>
+                  <span class="sales-deal-editor-kicker">New Opportunity</span>
+                  <h3>Add Deal</h3>
+                  <p>Capture the commercial opportunity and keep its pipeline stage up to date.</p>
+                </div>
+                <span class="sales-deal-editor-badge">SALES</span>
+              </div>
 
-            <form
-              [formGroup]="dealForm"
-              (ngSubmit)="createDeal()"
-              class="form-grid"
-            >
-
-              <label>
-                Linked lead
-
-                <select formControlName="leadId">
-
-                  <option value="">
-                    No linked lead
-                  </option>
-
-                  @for (
-                    lead of crmLeads();
-                    track lead.id || lead._id
-                  ) {
-                    <option [value]="lead.id || lead._id">
-                      {{ lead.name }}
-                      -
-                      {{ lead.company || 'Lead' }}
-                    </option>
-                  }
-
-                </select>
-              </label>
-
-
-              <label>
-                Client / Deal name
-
-                <input
-                  formControlName="clientName"
-                  type="text"
-                />
-              </label>
-
-
-              <label>
-                Value
-
-                <input
-                  formControlName="value"
-                  type="number"
-                  min="0"
-                />
-              </label>
-
-
-              <label>
-                Stage
-
-                <select formControlName="stage">
-                  <option>Proposal</option>
-                  <option>Negotiation</option>
-                  <option>Won</option>
-                  <option>Lost</option>
-                </select>
-              </label>
-
-
-              <label>
-                Business
-
-                <select formControlName="businessCategory">
-                  @for (
-                    item of businessCategories;
-                    track item
-                  ) {
-                    <option>
-                      {{ item }}
-                    </option>
-                  }
-                </select>
-              </label>
-
-
-              <label>
-                Trade
-
-                <select formControlName="tradeType">
-                  @for (
-                    item of tradeTypes;
-                    track item
-                  ) {
-                    <option>
-                      {{ item }}
-                    </option>
-                  }
-                </select>
-              </label>
-
-
-              <label>
-                Commodity
-
-                <input
-                  formControlName="commodity"
-                  type="text"
-                />
-              </label>
-
-
-              <label>
-                Quantity
-
-                <input
-                  formControlName="quantity"
-                  type="text"
-                />
-              </label>
-
-
-              <label>
-                Route
-
-                <select formControlName="routeType">
-                  @for (
-                    item of routeTypes;
-                    track item
-                  ) {
-                    <option>
-                      {{ item }}
-                    </option>
-                  }
-                </select>
-              </label>
-
-
-              <label>
-                Shipment
-
-                <select formControlName="shipmentMode">
-                  @for (
-                    item of shipmentModes;
-                    track item
-                  ) {
-                    <option>
-                      {{ item }}
-                    </option>
-                  }
-                </select>
-              </label>
-
-
-              <label class="checkbox-row">
-
-                <input
-                  formControlName="logisticsRequired"
-                  type="checkbox"
-                />
-
-                Logistics required
-
-              </label>
-
-
-              <label>
-                Expected close
-
-                <input
-                  formControlName="expectedClose"
-                  type="date"
-                />
-              </label>
-
-
-              <label class="full">
-                Notes
-
-                <input
-                  formControlName="notes"
-                  type="text"
-                />
-              </label>
-
-
-              <button
-                class="submit-btn"
-                type="submit"
-                [disabled]="dealForm.invalid"
+              <form
+                [formGroup]="dealForm"
+                (ngSubmit)="createDeal()"
+                class="form-grid sales-deal-form"
               >
-                Add Deal
-              </button>
+                <label>
+                  Linked lead
+                  <select formControlName="leadId">
+                    <option value="">No linked lead</option>
+                    @for (lead of crmLeads(); track lead.id || lead._id) {
+                      <option [value]="lead.id || lead._id">
+                        {{ lead.name }} - {{ lead.company || 'Lead' }}
+                      </option>
+                    }
+                  </select>
+                </label>
 
-            </form>
+                <label>
+                  Client / Deal name
+                  <input formControlName="clientName" type="text" placeholder="Enter client or deal name" />
+                </label>
 
+                <label>
+                  Deal value
+                  <input formControlName="value" type="number" min="0" placeholder="Enter deal value" />
+                </label>
 
-            <div class="table-wrap">
+                <label>
+                  Stage
+                  <select formControlName="stage">
+                    <option>Proposal</option>
+                    <option>Negotiation</option>
+                    <option>Won</option>
+                    <option>Lost</option>
+                  </select>
+                </label>
 
-              <table>
+                <label>
+                  Business
+                  <select formControlName="businessCategory">
+                    @for (item of businessCategories; track item) {
+                      <option>{{ item }}</option>
+                    }
+                  </select>
+                </label>
 
-                <thead>
-                  <tr>
-                    <th>Deal</th>
-                    <th>Lead</th>
-                    <th>Value</th>
-                    <th>Stage</th>
-                    <th>Expected Close</th>
-                  </tr>
-                </thead>
+                <label>
+                  Trade
+                  <select formControlName="tradeType">
+                    @for (item of tradeTypes; track item) {
+                      <option>{{ item }}</option>
+                    }
+                  </select>
+                </label>
 
-                <tbody>
+                <label>
+                  Commodity
+                  <input formControlName="commodity" type="text" placeholder="Product / commodity" />
+                </label>
 
-                  @for (
-                    deal of crmDeals();
-                    track deal.id || deal._id
-                  ) {
+                <label>
+                  Quantity
+                  <input formControlName="quantity" type="text" placeholder="Quantity" />
+                </label>
 
-                    <tr>
+                <label>
+                  Route
+                  <select formControlName="routeType">
+                    @for (item of routeTypes; track item) {
+                      <option>{{ item }}</option>
+                    }
+                  </select>
+                </label>
 
-                      <td>
+                <label>
+                  Shipment
+                  <select formControlName="shipmentMode">
+                    @for (item of shipmentModes; track item) {
+                      <option>{{ item }}</option>
+                    }
+                  </select>
+                </label>
 
-                        <strong>
-                          {{ deal.clientName }}
-                        </strong>
+                <label>
+                  Expected close
+                  <input formControlName="expectedClose" type="date" />
+                </label>
 
-                        <span>
-                          {{
-                            deal.tradeType ||
-                            'Sell'
-                          }}
-                          /
-                          {{
-                            deal.businessCategory ||
-                            'General'
-                          }}
-                          /
-                          {{
-                            deal.commodity ||
-                            deal.notes ||
-                            '-'
-                          }}
+                <label class="sales-deal-logistics-check">
+                  <input formControlName="logisticsRequired" type="checkbox" />
+                  <span>
+                    <strong>Logistics required</strong>
+                    <small>Mark when this deal will require Logistics support.</small>
+                  </span>
+                </label>
+
+                <label class="full sales-deal-notes">
+                  Notes
+                  <input
+                    formControlName="notes"
+                    type="text"
+                    placeholder="Commercial notes, requirements or next steps"
+                  />
+                </label>
+
+                <div class="full sales-deal-form-actions">
+                  <button
+                    class="submit-btn sales-deal-save-btn"
+                    type="submit"
+                    [disabled]="dealForm.invalid"
+                  >
+                    Add Deal
+                  </button>
+                </div>
+              </form>
+            </section>
+
+            <section class="sales-deal-list">
+              <div class="sales-deal-list-head">
+                <div>
+                  <span class="sales-deal-list-kicker">Deal Pipeline</span>
+                  <h3>Active Deal Register</h3>
+                  <p>Update the stage directly from each deal card.</p>
+                </div>
+
+                <span class="sales-deal-count-pill">
+                  {{ crmDeals().length }} Total
+                </span>
+              </div>
+
+              <div class="sales-deal-card-grid">
+                @for (deal of crmDeals(); track deal.id || deal._id) {
+
+                  <article class="sales-deal-card">
+                    <div class="sales-deal-card-head">
+                      <div class="sales-deal-identity">
+                        <span class="sales-deal-avatar">
+                          {{ (deal.clientName || 'D').charAt(0).toUpperCase() }}
                         </span>
 
-                      </td>
+                        <div>
+                          <strong>{{ deal.clientName || 'Unnamed Deal' }}</strong>
+                          <span>{{ leadName(deal.leadId) || 'No linked lead' }}</span>
+                        </div>
+                      </div>
 
-                      <td>
-                        {{ leadName(deal.leadId) }}
-                      </td>
-
-                      <td>
-                        {{ formatCurrency(deal.value) }}
-                      </td>
-
-                      <td>
-
+                      <div class="sales-deal-card-stage">
+                        <small>Stage</small>
                         <select
                           [value]="deal.stage"
-                          (change)="updateDealStage(
-                            deal,
-                            $any($event.target).value
-                          )"
+                          (change)="updateDealStage(deal, $any($event.target).value)"
                         >
                           <option>Proposal</option>
                           <option>Negotiation</option>
                           <option>Won</option>
                           <option>Lost</option>
                         </select>
+                      </div>
+                    </div>
 
-                      </td>
+                    <div class="sales-deal-value-row">
+                      <span>Deal Value</span>
+                      <strong>{{ formatCurrency(deal.value) }}</strong>
+                    </div>
 
-                      <td>
-                        {{ formatDate(deal.expectedClose) }}
-                      </td>
+                    <div class="sales-deal-info-grid">
+                      <span>
+                        <small>Business</small>
+                        <strong>{{ deal.businessCategory || 'General' }}</strong>
+                      </span>
+                      <span>
+                        <small>Trade</small>
+                        <strong>{{ deal.tradeType || 'Sell' }}</strong>
+                      </span>
+                      <span>
+                        <small>Commodity</small>
+                        <strong>{{ deal.commodity || '-' }}</strong>
+                      </span>
+                      <span>
+                        <small>Quantity</small>
+                        <strong>{{ deal.quantity || '-' }}</strong>
+                      </span>
+                    </div>
 
-                    </tr>
+                    <div class="sales-deal-chip-row">
+                      @if (deal.routeType) {
+                        <span>Route: {{ deal.routeType }}</span>
+                      }
+                      @if (deal.shipmentMode) {
+                        <span>Shipment: {{ deal.shipmentMode }}</span>
+                      }
+                      @if (deal.logisticsRequired) {
+                        <span class="sales-deal-logistics-chip">Logistics Required</span>
+                      }
+                    </div>
 
-                  } @empty {
+                    <div class="sales-deal-close-strip">
+                      <span>
+                        <small>Expected Close</small>
+                        <strong>{{ formatDate(deal.expectedClose) }}</strong>
+                      </span>
+                    </div>
 
-                    <tr>
-                      <td
-                        colspan="5"
-                        class="empty-state"
-                      >
-                        No deals added yet.
-                      </td>
-                    </tr>
+                    @if (deal.notes) {
+                      <div class="sales-deal-notes-card">
+                        <small>Notes</small>
+                        <p>{{ deal.notes }}</p>
+                      </div>
+                    }
 
-                  }
+                    <div class="sales-deal-card-footer">
+                      <span>Sales Opportunity</span>
+                      <strong>{{ deal.stage || 'Proposal' }}</strong>
+                    </div>
+                  </article>
 
-                </tbody>
+                } @empty {
 
-              </table>
+                  <div class="sales-deal-empty-state">
+                    <span class="sales-deal-empty-icon">D</span>
+                    <strong>No deals added yet</strong>
+                    <p>Use the form above to add your first Sales deal.</p>
+                  </div>
 
-            </div>
+                }
+              </div>
+            </section>
 
           </article>
 
@@ -3829,50 +3790,33 @@
 
         @if (activeSection() === 'my-tasks') {
 
-          <article class="panel span-2 employee-crm-panel sales-crm-panel">
+          <article
+            class="panel span-2 employee-crm-panel sales-crm-panel sales-tasks-workspace"
+          >
 
-            <div class="panel-heading">
+            <div class="panel-heading sales-tasks-heading">
 
               <div>
-
-                <p class="eyebrow">
-                  Sales Workspace
-                </p>
-
-                <h2>
-                  My Tasks / Follow-ups
-                </h2>
-
-                <p>
-                  Track calls, meetings and next actions.
-                </p>
-
+                <p class="eyebrow">Sales Workspace</p>
+                <h2>My Tasks / Follow-ups</h2>
+                <p>Track calls, meetings and every next Sales action from one place.</p>
               </div>
-
 
               <div class="sales-task-summary">
 
                 <span>
                   Open
-                  <strong>
-                    {{ openTaskCount() }}
-                  </strong>
+                  <strong>{{ openTaskCount() }}</strong>
                 </span>
 
                 <span>
                   Due today
-                  <strong>
-                    {{ salesDueTodayTaskCount() }}
-                  </strong>
+                  <strong>{{ salesDueTodayTaskCount() }}</strong>
                 </span>
 
-                <span
-                  [class.warning]="salesOverdueTaskCount() > 0"
-                >
+                <span [class.warning]="salesOverdueTaskCount() > 0">
                   Overdue
-                  <strong>
-                    {{ salesOverdueTaskCount() }}
-                  </strong>
+                  <strong>{{ salesOverdueTaskCount() }}</strong>
                 </span>
 
               </div>
@@ -3880,172 +3824,158 @@
             </div>
 
 
-            <form
-              [formGroup]="taskForm"
-              (ngSubmit)="createTask()"
-              class="form-grid"
-            >
+            <section class="sales-task-editor">
 
-              <label>
-                Task title
-                <input
-                  formControlName="title"
-                  type="text"
-                />
-              </label>
+              <div class="sales-task-editor-head">
 
-              <label>
-                Related to
-                <input
-                  formControlName="relatedTo"
-                  type="text"
-                />
-              </label>
+                <div>
+                  <span class="sales-task-editor-kicker">Follow-up Planner</span>
+                  <h3>Add Task</h3>
+                  <p>Create calls, meetings and follow-ups without leaving your Sales workspace.</p>
+                </div>
 
-              <label>
-                Task type
+                <span class="sales-task-editor-badge">TASK</span>
 
-                <select formControlName="taskType">
-                  @for (
-                    item of taskTypes;
-                    track item
-                  ) {
-                    <option>
-                      {{ item }}
-                    </option>
-                  }
-                </select>
-              </label>
-
-              <label>
-                Business
-
-                <select formControlName="businessCategory">
-                  @for (
-                    item of businessCategories;
-                    track item
-                  ) {
-                    <option>
-                      {{ item }}
-                    </option>
-                  }
-                </select>
-              </label>
-
-              <label>
-                Route
-
-                <select formControlName="routeType">
-                  @for (
-                    item of routeTypes;
-                    track item
-                  ) {
-                    <option>
-                      {{ item }}
-                    </option>
-                  }
-                </select>
-              </label>
-
-              <label>
-                Due date
-
-                <input
-                  formControlName="dueDate"
-                  type="date"
-                />
-              </label>
-
-              <label>
-                Priority
-
-                <select formControlName="priority">
-                  <option>Low</option>
-                  <option>Medium</option>
-                  <option>High</option>
-                </select>
-              </label>
-
-              <label>
-                Status
-
-                <select formControlName="status">
-                  <option>Open</option>
-                  <option>In Progress</option>
-                  <option>Done</option>
-                </select>
-              </label>
+              </div>
 
 
-              <button
-                class="submit-btn"
-                type="submit"
-                [disabled]="taskForm.invalid"
+              <form
+                [formGroup]="taskForm"
+                (ngSubmit)="createTask()"
+                class="form-grid sales-task-form"
               >
-                Add Task
-              </button>
 
-            </form>
+                <label>
+                  Task title
+                  <input
+                    formControlName="title"
+                    type="text"
+                    placeholder="Enter task / follow-up title"
+                  />
+                </label>
+
+                <label>
+                  Related to
+                  <input
+                    formControlName="relatedTo"
+                    type="text"
+                    placeholder="Lead, deal, customer or reference"
+                  />
+                </label>
+
+                <label>
+                  Task type
+                  <select formControlName="taskType">
+                    @for (item of taskTypes; track item) {
+                      <option>{{ item }}</option>
+                    }
+                  </select>
+                </label>
+
+                <label>
+                  Business
+                  <select formControlName="businessCategory">
+                    @for (item of businessCategories; track item) {
+                      <option>{{ item }}</option>
+                    }
+                  </select>
+                </label>
+
+                <label>
+                  Route
+                  <select formControlName="routeType">
+                    @for (item of routeTypes; track item) {
+                      <option>{{ item }}</option>
+                    }
+                  </select>
+                </label>
+
+                <label>
+                  Due date
+                  <input
+                    formControlName="dueDate"
+                    type="date"
+                  />
+                </label>
+
+                <label>
+                  Priority
+                  <select formControlName="priority">
+                    <option>Low</option>
+                    <option>Medium</option>
+                    <option>High</option>
+                  </select>
+                </label>
+
+                <label>
+                  Status
+                  <select formControlName="status">
+                    <option>Open</option>
+                    <option>In Progress</option>
+                    <option>Done</option>
+                  </select>
+                </label>
+
+                <div class="full sales-task-form-actions">
+                  <button
+                    class="submit-btn sales-task-save-btn"
+                    type="submit"
+                    [disabled]="taskForm.invalid"
+                  >
+                    Add Task
+                  </button>
+                </div>
+
+              </form>
+
+            </section>
 
 
-            <div class="table-wrap">
+            <section class="sales-task-list">
 
-              <table>
+              <div class="sales-task-list-head">
 
-                <thead>
-                  <tr>
-                    <th>Task</th>
-                    <th>Related</th>
-                    <th>Due</th>
-                    <th>Priority</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
+                <div>
+                  <span class="sales-task-list-kicker">Follow-up Queue</span>
+                  <h3>My Action Register</h3>
+                  <p>Review your task priority, due date and completion status.</p>
+                </div>
 
-                <tbody>
+                <span class="sales-task-count-pill">
+                  {{ crmTasks().length }} Total
+                </span>
 
-                  @for (
-                    task of crmTasks();
-                    track task.id || task._id
-                  ) {
+              </div>
 
-                    <tr>
 
-                      <td>
-                        <strong>
-                          {{ task.title }}
-                        </strong>
+              <div class="sales-task-card-grid">
 
-                        <span>
-                          {{ formatDate(task.createdAt) }}
+                @for (task of crmTasks(); track task.id || task._id) {
+
+                  <article
+                    class="sales-task-card"
+                    [class.sales-task-card--complete]="task.status === 'Done'"
+                  >
+
+                    <div class="sales-task-card-head">
+
+                      <div class="sales-task-identity">
+
+                        <span class="sales-task-icon">
+                          {{ (task.title || 'T').charAt(0).toUpperCase() }}
                         </span>
-                      </td>
 
-                      <td>
-                        {{ task.relatedTo || '-' }}
+                        <div>
+                          <strong>{{ task.title || 'Untitled Task' }}</strong>
+                          <span>{{ task.relatedTo || 'General follow-up' }}</span>
+                        </div>
 
-                        <span>
-                          {{
-                            task.taskType ||
-                            'Follow-up'
-                          }}
-                          /
-                          {{
-                            task.businessCategory ||
-                            'General'
-                          }}
-                        </span>
-                      </td>
+                      </div>
 
-                      <td>
-                        {{ formatDate(task.dueDate) }}
-                      </td>
 
-                      <td>
-                        {{ task.priority }}
-                      </td>
+                      <div class="sales-task-card-status">
 
-                      <td>
+                        <small>Status</small>
 
                         <select
                           [value]="task.status"
@@ -4059,28 +3989,94 @@
                           <option>Done</option>
                         </select>
 
-                      </td>
+                      </div>
 
-                    </tr>
+                    </div>
 
-                  } @empty {
 
-                    <tr>
-                      <td
-                        colspan="5"
-                        class="empty-state"
+                    <div class="sales-task-meta-grid">
+
+                      <span>
+                        <small>Task Type</small>
+                        <strong>{{ task.taskType || 'Follow-up' }}</strong>
+                      </span>
+
+                      <span>
+                        <small>Business</small>
+                        <strong>{{ task.businessCategory || 'General' }}</strong>
+                      </span>
+
+                      <span>
+                        <small>Route</small>
+                        <strong>{{ task.routeType || 'Domestic' }}</strong>
+                      </span>
+
+                      <span>
+                        <small>Due Date</small>
+                        <strong>{{ formatDate(task.dueDate) }}</strong>
+                      </span>
+
+                    </div>
+
+
+                    <div class="sales-task-chip-row">
+
+                      <span
+                        class="sales-task-priority-chip"
+                        [class.high]="task.priority === 'High'"
+                        [class.low]="task.priority === 'Low'"
                       >
-                        No follow-up tasks yet.
-                      </td>
-                    </tr>
+                        {{ task.priority || 'Medium' }} Priority
+                      </span>
 
-                  }
+                      @if (task.status === 'Done') {
+                        <span class="sales-task-complete-chip">
+                          Completed
+                        </span>
+                      } @else {
+                        <span class="sales-task-open-chip">
+                          {{ task.status || 'Open' }}
+                        </span>
+                      }
 
-                </tbody>
+                    </div>
 
-              </table>
 
-            </div>
+                    <div class="sales-task-card-footer">
+
+                      <span>
+                        Created {{ formatDate(task.createdAt) }}
+                      </span>
+
+                      <strong>
+                        {{ task.status || 'Open' }}
+                      </strong>
+
+                    </div>
+
+                  </article>
+
+                } @empty {
+
+                  <div class="sales-task-empty-state">
+
+                    <span class="sales-task-empty-icon">T</span>
+
+                    <strong>
+                      No follow-up tasks yet
+                    </strong>
+
+                    <p>
+                      Use the form above to create your first Sales task.
+                    </p>
+
+                  </div>
+
+                }
+
+              </div>
+
+            </section>
 
           </article>
 

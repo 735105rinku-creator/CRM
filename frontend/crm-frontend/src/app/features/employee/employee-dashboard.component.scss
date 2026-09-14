@@ -2850,25 +2850,24 @@ td:nth-child(10) {
 
 .sales-lead-avatar {
   align-items: center;
-  background:
-    linear-gradient(
-      135deg,
-      #173e68,
-      #0e7490
-    );
-  border: 2px solid rgba(255, 255, 255, 0.74);
+  background: #ffffff;
+  border: 1px solid #d6e1ec;
   border-radius: 14px;
   box-shadow:
-    5px 5px 12px rgba(100, 116, 139, 0.22),
-    -4px -4px 10px rgba(255, 255, 255, 0.82);
-  color: #ffffff;
+    5px 5px 12px rgba(100, 116, 139, 0.16),
+    -4px -4px 10px rgba(255, 255, 255, 0.95);
+  color: #0e7490;
   display: inline-flex;
   flex: 0 0 46px;
-  font-size: 0.88rem;
+  font-size: 0.92rem;
   font-weight: 950;
   height: 46px;
   justify-content: center;
-  letter-spacing: 0.03em;
+  letter-spacing: 0;
+  line-height: 1;
+  overflow: hidden;
+  padding: 0;
+  text-align: center;
   width: 46px;
 }
 
@@ -3256,5 +3255,1958 @@ td:nth-child(10) {
   .sales-lead-edit-btn {
     width: 100% !important;
   }
+}
+
+/* ==========================================================
+   SALES PREMIUM TOP HEADER
+   Purchase-style professional Neumorphism header
+========================================================== */
+
+.sales-premium-topbar {
+  align-items: center;
+  background:
+    linear-gradient(
+      145deg,
+      #f7faff 0%,
+      #edf3f9 100%
+    );
+  border-bottom: 1px solid rgba(205, 219, 236, 0.9);
+  box-shadow:
+    0 8px 22px rgba(148, 163, 184, 0.14),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.9);
+  display: flex;
+  gap: 18px;
+  justify-content: space-between;
+  min-height: 80px;
+  padding: 12px 18px 12px 28px;
+  position: sticky;
+  top: 0;
+  z-index: 1200;
+}
+
+.sales-header-title-block {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.sales-header-breadcrumb {
+  color: #7b8ba0;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+
+.sales-header-page-title {
+  color: #172033;
+  font-size: clamp(1.1rem, 1.8vw, 1.5rem);
+  font-weight: 950;
+  line-height: 1.15;
+}
+
+.sales-header-actions {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 10px;
+}
+
+.sales-header-icon-btn {
+  align-items: center;
+  background:
+    linear-gradient(
+      145deg,
+      #f8fbff,
+      #e7eef6
+    );
+  border: 1px solid #d7e2ed;
+  border-radius: 14px;
+  box-shadow:
+    6px 6px 14px rgba(148, 163, 184, 0.16),
+    -5px -5px 12px rgba(255, 255, 255, 0.95);
+  color: #172033;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 1rem;
+  font-weight: 950;
+  height: 44px;
+  justify-content: center;
+  min-width: 44px;
+  padding: 0;
+  position: relative;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.sales-header-icon-btn:hover {
+  border-color: rgba(14, 116, 144, 0.24);
+  box-shadow:
+    8px 8px 18px rgba(148, 163, 184, 0.2),
+    -6px -6px 14px rgba(255, 255, 255, 0.98);
+  transform: translateY(-1px);
+}
+
+.sales-header-icon-btn:active {
+  box-shadow:
+    inset 4px 4px 9px rgba(148, 163, 184, 0.18),
+    inset -4px -4px 9px rgba(255, 255, 255, 0.95);
+  transform: translateY(0);
+}
+
+.sales-header-notification {
+  position: relative;
+}
+
+.sales-header-bell small {
+  align-items: center;
+  background: #475569;
+  border: 2px solid #f7faff;
+  border-radius: 999px;
+  color: #ffffff;
+  display: inline-flex;
+  font-size: 0.58rem;
+  font-weight: 950;
+  height: 18px;
+  justify-content: center;
+  min-width: 18px;
+  padding: 0 4px;
+  position: absolute;
+  right: -5px;
+  top: -6px;
+}
+
+
+/* ==========================================================
+   SALES PROFILE MENU
+========================================================== */
+
+.sales-profile-menu {
+  position: relative;
+}
+
+.sales-profile-menu > summary {
+  list-style: none;
+}
+
+.sales-profile-menu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.sales-profile-trigger {
+  align-items: center;
+  background:
+    linear-gradient(
+      145deg,
+      #f8fbff,
+      #edf3f8
+    );
+  border: 1px solid #d6e1ec;
+  border-radius: 15px;
+  box-shadow:
+    7px 7px 16px rgba(148, 163, 184, 0.16),
+    -6px -6px 14px rgba(255, 255, 255, 0.95);
+  cursor: pointer;
+  display: grid;
+  gap: 10px;
+  grid-template-columns:
+    auto
+    minmax(0, 1fr)
+    auto;
+  min-height: 52px;
+  min-width: 245px;
+  padding: 6px 10px 6px 7px;
+  transition:
+    box-shadow 0.18s ease,
+    transform 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.sales-profile-trigger:hover {
+  border-color: rgba(14, 116, 144, 0.22);
+  box-shadow:
+    9px 9px 20px rgba(148, 163, 184, 0.2),
+    -7px -7px 16px rgba(255, 255, 255, 0.98);
+  transform: translateY(-1px);
+}
+
+.sales-profile-menu[open] .sales-profile-trigger {
+  border-color: rgba(14, 116, 144, 0.28);
+  box-shadow:
+    inset 4px 4px 10px rgba(148, 163, 184, 0.12),
+    inset -4px -4px 10px rgba(255, 255, 255, 0.96);
+}
+
+.sales-profile-trigger > img,
+.sales-profile-dropdown-user > img {
+  background: #eef4fa;
+  border: 1px solid #d5e0eb;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.sales-profile-trigger > img {
+  height: 38px;
+  width: 38px;
+}
+
+.sales-profile-trigger-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sales-profile-trigger-copy strong,
+.sales-profile-trigger-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sales-profile-trigger-copy strong {
+  color: #172033;
+  font-size: 0.78rem;
+  font-weight: 950;
+}
+
+.sales-profile-trigger-copy small {
+  color: #64748b;
+  font-size: 0.65rem;
+  font-weight: 750;
+}
+
+.sales-profile-chevron {
+  color: #a56f05;
+  font-size: 0.74rem;
+  font-weight: 950;
+  transition: transform 0.18s ease;
+}
+
+.sales-profile-menu[open] .sales-profile-chevron {
+  transform: rotate(180deg);
+}
+
+
+/* ==========================================================
+   SALES PROFILE DROPDOWN
+========================================================== */
+
+.sales-profile-dropdown {
+  background:
+    linear-gradient(
+      145deg,
+      #f7faff,
+      #eaf1f7
+    );
+  border: 1px solid rgba(205, 219, 236, 0.95);
+  border-radius: 18px;
+  box-shadow:
+    14px 16px 34px rgba(100, 116, 139, 0.24),
+    -8px -8px 20px rgba(255, 255, 255, 0.88);
+  display: grid;
+  gap: 8px;
+  min-width: 270px;
+  padding: 10px;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  z-index: 2400;
+}
+
+.sales-profile-dropdown::before {
+  background: #f2f6fa;
+  border-left: 1px solid #d6e1eb;
+  border-top: 1px solid #d6e1eb;
+  content: '';
+  height: 10px;
+  position: absolute;
+  right: 24px;
+  top: -6px;
+  transform: rotate(45deg);
+  width: 10px;
+}
+
+.sales-profile-dropdown-user {
+  align-items: center;
+  border-bottom: 1px solid rgba(203, 213, 225, 0.7);
+  display: grid;
+  gap: 10px;
+  grid-template-columns:
+    auto
+    minmax(0, 1fr);
+  padding: 5px 5px 11px;
+}
+
+.sales-profile-dropdown-user > img {
+  height: 40px;
+  width: 40px;
+}
+
+.sales-profile-dropdown-user > div {
+  min-width: 0;
+}
+
+.sales-profile-dropdown-user strong,
+.sales-profile-dropdown-user span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sales-profile-dropdown-user strong {
+  color: #172033;
+  font-size: 0.8rem;
+  font-weight: 950;
+}
+
+.sales-profile-dropdown-user span {
+  color: #64748b;
+  font-size: 0.66rem;
+  margin-top: 2px;
+}
+
+
+/* ==========================================================
+   SALES PROFILE OPTIONS
+========================================================== */
+
+.sales-profile-option {
+  align-items: center;
+  background:
+    linear-gradient(
+      145deg,
+      #f4f8fc,
+      #e7eef5
+    );
+  border: 1px solid rgba(211, 222, 234, 0.9);
+  border-radius: 13px;
+  box-shadow:
+    4px 4px 10px rgba(148, 163, 184, 0.12),
+    -4px -4px 10px rgba(255, 255, 255, 0.9);
+  color: #334155;
+  cursor: pointer;
+  display: grid;
+  gap: 10px;
+  grid-template-columns:
+    32px
+    minmax(0, 1fr);
+  min-height: 56px;
+  padding: 7px 10px;
+  text-align: left;
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease,
+    border-color 0.16s ease;
+  width: 100%;
+}
+
+.sales-profile-option:hover {
+  border-color: rgba(14, 116, 144, 0.22);
+  box-shadow:
+    6px 6px 13px rgba(148, 163, 184, 0.16),
+    -5px -5px 12px rgba(255, 255, 255, 0.95);
+  transform: translateX(2px);
+}
+
+.sales-profile-option--active {
+  background:
+    linear-gradient(
+      135deg,
+      #4f86e8,
+      #2f65d9
+    );
+  border-color: rgba(47, 101, 217, 0.7);
+  box-shadow:
+    7px 8px 17px rgba(47, 101, 217, 0.24),
+    -5px -5px 11px rgba(255, 255, 255, 0.72);
+  color: #ffffff;
+}
+
+.sales-profile-option--active:hover {
+  border-color: #2f65d9;
+}
+
+.sales-profile-option--logout {
+  margin-top: 2px;
+}
+
+.sales-profile-option-icon {
+  align-items: center;
+  background: rgba(14, 116, 144, 0.08);
+  border-radius: 9px;
+  color: #0e7490;
+  display: inline-flex;
+  font-size: 0.72rem;
+  font-weight: 950;
+  height: 30px;
+  justify-content: center;
+  width: 30px;
+}
+
+.sales-profile-option--active .sales-profile-option-icon {
+  background: rgba(255, 255, 255, 0.9);
+  color: #2f65d9;
+}
+
+.sales-profile-option--logout .sales-profile-option-icon {
+  background: rgba(225, 29, 72, 0.08);
+  color: #e11d48;
+}
+
+.sales-profile-option > span:last-child {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sales-profile-option strong,
+.sales-profile-option small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sales-profile-option strong {
+  color: inherit;
+  font-size: 0.76rem;
+  font-weight: 950;
+}
+
+.sales-profile-option small {
+  color: #8190a3;
+  font-size: 0.62rem;
+  font-weight: 700;
+}
+
+.sales-profile-option--active small {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+
+/* ==========================================================
+   SALES HEADER + NOTIFICATION TRAY ALIGNMENT
+========================================================== */
+
+.sales-premium-topbar + .notification-overlay-host .notification-tray {
+  top: 86px;
+}
+
+.sales-workspace .employee-main {
+  scroll-behavior: smooth;
+}
+
+
+/* ==========================================================
+   SALES PREMIUM HEADER RESPONSIVE
+========================================================== */
+
+@media (max-width: 980px) {
+  .sales-premium-topbar {
+    min-height: 72px;
+    padding:
+      10px
+      14px;
+  }
+
+  .sales-profile-trigger {
+    min-width: 210px;
+  }
+}
+
+@media (max-width: 760px) {
+  .sales-premium-topbar {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+    position: relative;
+  }
+
+  .sales-header-actions {
+    justify-content: flex-end;
+    width: 100%;
+  }
+
+  .sales-profile-menu {
+    flex: 1;
+  }
+
+  .sales-profile-trigger {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .sales-profile-dropdown {
+    left: 0;
+    min-width: 0;
+    right: 0;
+    width: 100%;
+  }
+}
+
+@media (max-width: 520px) {
+  .sales-header-actions {
+    display: grid;
+    gap: 8px;
+    grid-template-columns:
+      44px
+      44px
+      minmax(0, 1fr);
+  }
+
+  .sales-profile-trigger {
+    min-width: 0;
+  }
+
+  .sales-profile-trigger-copy strong {
+    font-size: 0.72rem;
+  }
+
+  .sales-profile-trigger-copy small {
+    font-size: 0.6rem;
+  }
+}
+
+/* ==========================================================
+   SALES > MY DEALS
+   Professional Neumorphism workspace
+========================================================== */
+
+.sales-deals-workspace {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.sales-deals-heading {
+  align-items: flex-start;
+  display: flex;
+  gap: 18px;
+  justify-content: space-between;
+}
+
+.sales-deal-summary {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(110px, 1fr));
+  min-width: min(100%, 390px);
+}
+
+.sales-deal-summary > span {
+  background:
+    linear-gradient(
+      145deg,
+      #f8fbff,
+      #e9f0f7
+    );
+  border: 1px solid #d8e3ef;
+  border-radius: 16px;
+  box-shadow:
+    7px 7px 16px rgba(148, 163, 184, 0.14),
+    -6px -6px 14px rgba(255, 255, 255, 0.92);
+  color: #6b7d92;
+  display: grid;
+  font-size: 0.67rem;
+  font-weight: 850;
+  gap: 4px;
+  padding: 10px 12px;
+}
+
+.sales-deal-summary strong {
+  color: #172033;
+  font-size: 0.86rem;
+  font-weight: 950;
+}
+
+
+/* ==========================================================
+   DEAL EDITOR
+========================================================== */
+
+.sales-deal-editor {
+  background:
+    linear-gradient(
+      145deg,
+      #f8fbff,
+      #edf3f9
+    );
+  border: 1px solid #d7e2ed;
+  border-radius: 22px;
+  box-shadow:
+    10px 10px 24px rgba(148, 163, 184, 0.16),
+    -8px -8px 20px rgba(255, 255, 255, 0.95);
+  margin-top: 18px;
+  padding: 18px;
+}
+
+.sales-deal-editor-head {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.sales-deal-editor-head > div {
+  min-width: 0;
+}
+
+.sales-deal-editor-kicker,
+.sales-deal-list-kicker {
+  color: #0e7490;
+  display: block;
+  font-size: 0.62rem;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.sales-deal-editor-head h3,
+.sales-deal-list-head h3 {
+  color: #172033;
+  font-size: 1rem;
+  font-weight: 950;
+  margin: 0;
+}
+
+.sales-deal-editor-head p,
+.sales-deal-list-head p {
+  color: #6b7d92;
+  font-size: 0.72rem;
+  line-height: 1.55;
+  margin: 4px 0 0;
+}
+
+.sales-deal-editor-badge {
+  background:
+    linear-gradient(
+      135deg,
+      #4f86e8,
+      #2f65d9
+    );
+  border-radius: 999px;
+  box-shadow:
+    5px 6px 13px rgba(47, 101, 217, 0.22),
+    -4px -4px 10px rgba(255, 255, 255, 0.75);
+  color: #fff;
+  flex: 0 0 auto;
+  font-size: 0.6rem;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  padding: 7px 10px;
+}
+
+
+/* ==========================================================
+   DEAL FORM
+========================================================== */
+
+.sales-deal-form {
+  align-items: end;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.sales-deal-form label {
+  color: #44566c;
+  display: grid;
+  font-size: 0.66rem;
+  font-weight: 850;
+  gap: 6px;
+  min-width: 0;
+}
+
+.sales-deal-form input,
+.sales-deal-form select {
+  background:
+    linear-gradient(
+      145deg,
+      #eef4fa,
+      #f8fbff
+    );
+  border: 1px solid #d6e1ec;
+  border-radius: 13px;
+  box-shadow:
+    inset 3px 3px 8px rgba(148, 163, 184, 0.12),
+    inset -3px -3px 8px rgba(255, 255, 255, 0.9);
+  color: #172033;
+  font-size: 0.74rem;
+  font-weight: 750;
+  min-height: 42px;
+  min-width: 0;
+  outline: none;
+  padding: 9px 11px;
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease;
+  width: 100%;
+}
+
+.sales-deal-form input:focus,
+.sales-deal-form select:focus {
+  border-color: rgba(47, 101, 217, 0.34);
+  box-shadow:
+    inset 3px 3px 8px rgba(148, 163, 184, 0.11),
+    inset -3px -3px 8px rgba(255, 255, 255, 0.92),
+    0 0 0 3px rgba(47, 101, 217, 0.08);
+}
+
+.sales-deal-form .full {
+  grid-column: 1 / -1;
+}
+
+.sales-deal-logistics-check {
+  align-items: center;
+  background:
+    linear-gradient(
+      145deg,
+      #f7faff,
+      #e9f0f6
+    );
+  border: 1px solid #d8e3ed;
+  border-radius: 14px;
+  box-shadow:
+    5px 5px 12px rgba(148, 163, 184, 0.12),
+    -4px -4px 10px rgba(255, 255, 255, 0.9);
+  display: grid !important;
+  gap: 10px !important;
+  grid-template-columns: auto minmax(0, 1fr);
+  min-height: 42px;
+  padding: 7px 10px;
+}
+
+.sales-deal-logistics-check input {
+  box-shadow: none;
+  height: 18px;
+  min-height: 0;
+  width: 18px;
+}
+
+.sales-deal-logistics-check span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sales-deal-logistics-check strong {
+  color: #334155;
+  font-size: 0.67rem;
+  font-weight: 900;
+}
+
+.sales-deal-logistics-check small {
+  color: #8090a3;
+  font-size: 0.58rem;
+  font-weight: 700;
+}
+
+.sales-deal-notes {
+  min-width: 0;
+}
+
+.sales-deal-form-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.sales-deal-save-btn {
+  background:
+    linear-gradient(
+      135deg,
+      #4f86e8,
+      #2f65d9
+    );
+  border: 1px solid rgba(47, 101, 217, 0.72);
+  border-radius: 13px;
+  box-shadow:
+    7px 8px 16px rgba(47, 101, 217, 0.23),
+    -5px -5px 12px rgba(255, 255, 255, 0.72);
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 950;
+  min-width: 128px;
+  padding: 11px 16px;
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.sales-deal-save-btn:hover:not(:disabled) {
+  box-shadow:
+    9px 10px 20px rgba(47, 101, 217, 0.28),
+    -6px -6px 14px rgba(255, 255, 255, 0.8);
+  transform: translateY(-1px);
+}
+
+.sales-deal-save-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.56;
+}
+
+
+/* ==========================================================
+   DEAL LIST
+========================================================== */
+
+.sales-deal-list {
+  margin-top: 20px;
+}
+
+.sales-deal-list-head {
+  align-items: center;
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.sales-deal-list-head > div {
+  min-width: 0;
+}
+
+.sales-deal-count-pill {
+  background:
+    linear-gradient(
+      145deg,
+      #eef4fb,
+      #f9fbfe
+    );
+  border: 1px solid #d8e3ee;
+  border-radius: 999px;
+  box-shadow:
+    4px 4px 10px rgba(148, 163, 184, 0.12),
+    -4px -4px 10px rgba(255, 255, 255, 0.94);
+  color: #475569;
+  flex: 0 0 auto;
+  font-size: 0.64rem;
+  font-weight: 900;
+  padding: 7px 10px;
+}
+
+.sales-deal-card-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-width: 0;
+}
+
+
+/* ==========================================================
+   DEAL CARD
+========================================================== */
+
+.sales-deal-card {
+  background:
+    linear-gradient(
+      145deg,
+      #f8fbff,
+      #eaf1f7
+    );
+  border: 1px solid #d8e3ee;
+  border-radius: 20px;
+  box-shadow:
+    9px 9px 20px rgba(148, 163, 184, 0.15),
+    -7px -7px 17px rgba(255, 255, 255, 0.94);
+  min-width: 0;
+  overflow: hidden;
+  padding: 15px;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.sales-deal-card:hover {
+  border-color: rgba(47, 101, 217, 0.2);
+  box-shadow:
+    11px 12px 24px rgba(148, 163, 184, 0.18),
+    -8px -8px 19px rgba(255, 255, 255, 0.97);
+  transform: translateY(-2px);
+}
+
+.sales-deal-card-head {
+  align-items: flex-start;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.sales-deal-identity {
+  align-items: center;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: auto minmax(0, 1fr);
+  min-width: 0;
+}
+
+.sales-deal-avatar {
+  align-items: center;
+  background:
+    linear-gradient(
+      135deg,
+      #5b8cf0,
+      #356bdc
+    );
+  border-radius: 13px;
+  box-shadow:
+    5px 6px 12px rgba(47, 101, 217, 0.23),
+    -4px -4px 10px rgba(255, 255, 255, 0.72);
+  color: #fff;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 0.82rem;
+  font-weight: 950;
+  height: 40px;
+  justify-content: center;
+  width: 40px;
+}
+
+.sales-deal-identity > div {
+  min-width: 0;
+}
+
+.sales-deal-identity strong,
+.sales-deal-identity span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sales-deal-identity strong {
+  color: #172033;
+  font-size: 0.82rem;
+  font-weight: 950;
+}
+
+.sales-deal-identity span {
+  color: #7b8ba0;
+  font-size: 0.63rem;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.sales-deal-card-stage {
+  display: grid;
+  flex: 0 0 auto;
+  gap: 4px;
+  min-width: 118px;
+}
+
+.sales-deal-card-stage small {
+  color: #7c8da1;
+  font-size: 0.57rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.sales-deal-card-stage select {
+  background:
+    linear-gradient(
+      145deg,
+      #eef4fa,
+      #f9fbfe
+    );
+  border: 1px solid #d6e1ec;
+  border-radius: 10px;
+  box-shadow:
+    inset 2px 2px 6px rgba(148, 163, 184, 0.1),
+    inset -2px -2px 6px rgba(255, 255, 255, 0.9);
+  color: #334155;
+  font-size: 0.65rem;
+  font-weight: 850;
+  min-height: 34px;
+  outline: none;
+  padding: 6px 8px;
+  width: 100%;
+}
+
+.sales-deal-value-row {
+  align-items: center;
+  background:
+    linear-gradient(
+      145deg,
+      #edf4fb,
+      #f8fbff
+    );
+  border: 1px solid #d8e4ef;
+  border-radius: 14px;
+  box-shadow:
+    inset 2px 2px 7px rgba(148, 163, 184, 0.1),
+    inset -2px -2px 7px rgba(255, 255, 255, 0.92);
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  margin-top: 14px;
+  padding: 10px 12px;
+}
+
+.sales-deal-value-row span {
+  color: #708196;
+  font-size: 0.64rem;
+  font-weight: 800;
+}
+
+.sales-deal-value-row strong {
+  color: #1e3a8a;
+  font-size: 0.9rem;
+  font-weight: 950;
+}
+
+.sales-deal-info-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-top: 13px;
+}
+
+.sales-deal-info-grid > span {
+  min-width: 0;
+}
+
+.sales-deal-info-grid small,
+.sales-deal-close-strip small,
+.sales-deal-notes-card small {
+  color: #8090a3;
+  display: block;
+  font-size: 0.56rem;
+  font-weight: 850;
+  margin-bottom: 3px;
+  text-transform: uppercase;
+}
+
+.sales-deal-info-grid strong,
+.sales-deal-close-strip strong {
+  color: #334155;
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 900;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sales-deal-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 13px;
+}
+
+.sales-deal-chip-row > span {
+  background: #edf4fa;
+  border: 1px solid #d7e2ed;
+  border-radius: 999px;
+  color: #536579;
+  font-size: 0.58rem;
+  font-weight: 850;
+  padding: 5px 8px;
+}
+
+.sales-deal-chip-row .sales-deal-logistics-chip {
+  background: rgba(14, 116, 144, 0.08);
+  border-color: rgba(14, 116, 144, 0.18);
+  color: #0e7490;
+}
+
+.sales-deal-close-strip {
+  background:
+    linear-gradient(
+      145deg,
+      #f7faff,
+      #ebf2f8
+    );
+  border: 1px solid #d9e4ee;
+  border-radius: 12px;
+  margin-top: 12px;
+  padding: 9px 10px;
+}
+
+.sales-deal-notes-card {
+  background: #f4f8fc;
+  border: 1px solid #dce6ef;
+  border-radius: 12px;
+  margin-top: 12px;
+  padding: 9px 10px;
+}
+
+.sales-deal-notes-card p {
+  color: #516174;
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1.5;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.sales-deal-card-footer {
+  align-items: center;
+  border-top: 1px solid rgba(203, 213, 225, 0.72);
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  margin-top: 13px;
+  padding-top: 11px;
+}
+
+.sales-deal-card-footer span {
+  color: #8190a3;
+  font-size: 0.59rem;
+  font-weight: 800;
+}
+
+.sales-deal-card-footer strong {
+  color: #2f65d9;
+  font-size: 0.63rem;
+  font-weight: 950;
+}
+
+
+/* ==========================================================
+   EMPTY STATE
+========================================================== */
+
+.sales-deal-empty-state {
+  align-items: center;
+  background:
+    linear-gradient(
+      145deg,
+      #f8fbff,
+      #eaf1f7
+    );
+  border: 1px dashed #cbd8e5;
+  border-radius: 18px;
+  box-shadow:
+    inset 3px 3px 9px rgba(148, 163, 184, 0.08),
+    inset -3px -3px 9px rgba(255, 255, 255, 0.9);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  grid-column: 1 / -1;
+  justify-content: center;
+  min-height: 180px;
+  padding: 24px;
+  text-align: center;
+}
+
+.sales-deal-empty-icon {
+  align-items: center;
+  background:
+    linear-gradient(
+      135deg,
+      #5b8cf0,
+      #356bdc
+    );
+  border-radius: 13px;
+  box-shadow:
+    5px 6px 12px rgba(47, 101, 217, 0.2);
+  color: #fff;
+  display: inline-flex;
+  font-size: 0.8rem;
+  font-weight: 950;
+  height: 38px;
+  justify-content: center;
+  width: 38px;
+}
+
+.sales-deal-empty-state strong {
+  color: #334155;
+  font-size: 0.8rem;
+  font-weight: 950;
+}
+
+.sales-deal-empty-state p {
+  color: #7b8ba0;
+  font-size: 0.66rem;
+  margin: 0;
+}
+
+
+/* ==========================================================
+   MY DEALS RESPONSIVE
+========================================================== */
+
+@media (max-width: 1180px) {
+  .sales-deal-form {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .sales-deal-card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .sales-deals-heading {
+    flex-direction: column;
+  }
+
+  .sales-deal-summary {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .sales-deal-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sales-deal-info-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .sales-deal-editor {
+    border-radius: 17px;
+    padding: 13px;
+  }
+
+  .sales-deal-editor-head,
+  .sales-deal-list-head,
+  .sales-deal-card-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .sales-deal-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .sales-deal-form {
+    grid-template-columns: 1fr;
+  }
+
+  .sales-deal-form .full {
+    grid-column: auto;
+  }
+
+  .sales-deal-form-actions {
+    justify-content: stretch;
+  }
+
+  .sales-deal-save-btn {
+    width: 100%;
+  }
+
+  .sales-deal-card-stage {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .sales-deal-info-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* ==========================================================
+   SALES > MY TASKS / FOLLOW-UPS
+   Professional Neumorphism workspace
+========================================================== */
+
+.sales-tasks-workspace {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.sales-tasks-heading {
+  align-items: flex-start;
+  display: flex;
+  gap: 18px;
+  justify-content: space-between;
+}
+
+.sales-task-summary {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(105px, 1fr));
+  min-width: min(100%, 360px);
+}
+
+.sales-task-summary > span {
+  background:
+    linear-gradient(
+      145deg,
+      #f8fbff,
+      #e9f0f7
+    );
+  border: 1px solid #d8e3ef;
+  border-radius: 16px;
+  box-shadow:
+    7px 7px 16px rgba(148, 163, 184, 0.14),
+    -6px -6px 14px rgba(255, 255, 255, 0.92);
+  color: #6b7d92;
+  display: grid;
+  font-size: 0.67rem;
+  font-weight: 850;
+  gap: 4px;
+  padding: 10px 12px;
+}
+
+.sales-task-summary strong {
+  color: #172033;
+  font-size: 0.9rem;
+  font-weight: 950;
+}
+
+.sales-task-summary > span.warning {
+  background:
+    linear-gradient(
+      145deg,
+      #fff8f0,
+      #fcefe5
+    );
+  border-color: rgba(234, 88, 12, 0.2);
+}
+
+.sales-task-summary > span.warning strong {
+  color: #c2410c;
+}
+
+
+/* ==========================================================
+   TASK EDITOR
+========================================================== */
+
+.sales-task-editor {
+  background:
+    linear-gradient(
+      145deg,
+      #f8fbff,
+      #edf3f9
+    );
+  border: 1px solid #d7e2ed;
+  border-radius: 22px;
+  box-shadow:
+    10px 10px 24px rgba(148, 163, 184, 0.16),
+    -8px -8px 20px rgba(255, 255, 255, 0.95);
+  margin-top: 18px;
+  padding: 18px;
+}
+
+.sales-task-editor-head {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.sales-task-editor-head > div {
+  min-width: 0;
+}
+
+.sales-task-editor-kicker,
+.sales-task-list-kicker {
+  color: #0e7490;
+  display: block;
+  font-size: 0.62rem;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.sales-task-editor-head h3,
+.sales-task-list-head h3 {
+  color: #172033;
+  font-size: 1rem;
+  font-weight: 950;
+  margin: 0;
+}
+
+.sales-task-editor-head p,
+.sales-task-list-head p {
+  color: #6b7d92;
+  font-size: 0.72rem;
+  line-height: 1.55;
+  margin: 4px 0 0;
+}
+
+.sales-task-editor-badge {
+  background:
+    linear-gradient(
+      135deg,
+      #7c3aed,
+      #5b21b6
+    );
+  border-radius: 999px;
+  box-shadow:
+    5px 6px 13px rgba(91, 33, 182, 0.22),
+    -4px -4px 10px rgba(255, 255, 255, 0.75);
+  color: #ffffff;
+  flex: 0 0 auto;
+  font-size: 0.6rem;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  padding: 7px 10px;
+}
+
+
+/* ==========================================================
+   TASK FORM
+========================================================== */
+
+.sales-task-form {
+  align-items: end;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.sales-task-form label {
+  color: #44566c;
+  display: grid;
+  font-size: 0.66rem;
+  font-weight: 850;
+  gap: 6px;
+  min-width: 0;
+}
+
+.sales-task-form input,
+.sales-task-form select {
+  background:
+    linear-gradient(
+      145deg,
+      #eef4fa,
+      #f8fbff
+    );
+  border: 1px solid #d6e1ec;
+  border-radius: 13px;
+  box-shadow:
+    inset 3px 3px 8px rgba(148, 163, 184, 0.12),
+    inset -3px -3px 8px rgba(255, 255, 255, 0.9);
+  color: #172033;
+  font-size: 0.74rem;
+  font-weight: 750;
+  min-height: 42px;
+  min-width: 0;
+  outline: none;
+  padding: 9px 11px;
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease;
+  width: 100%;
+}
+
+.sales-task-form input:focus,
+.sales-task-form select:focus {
+  border-color: rgba(91, 33, 182, 0.32);
+  box-shadow:
+    inset 3px 3px 8px rgba(148, 163, 184, 0.11),
+    inset -3px -3px 8px rgba(255, 255, 255, 0.92),
+    0 0 0 3px rgba(91, 33, 182, 0.08);
+}
+
+.sales-task-form .full {
+  grid-column: 1 / -1;
+}
+
+.sales-task-form-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.sales-task-save-btn {
+  background:
+    linear-gradient(
+      135deg,
+      #7c3aed,
+      #5b21b6
+    );
+  border: 1px solid rgba(91, 33, 182, 0.72);
+  border-radius: 13px;
+  box-shadow:
+    7px 8px 16px rgba(91, 33, 182, 0.22),
+    -5px -5px 12px rgba(255, 255, 255, 0.72);
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 950;
+  min-width: 128px;
+  padding: 11px 16px;
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.sales-task-save-btn:hover:not(:disabled) {
+  box-shadow:
+    9px 10px 20px rgba(91, 33, 182, 0.27),
+    -6px -6px 14px rgba(255, 255, 255, 0.8);
+  transform: translateY(-1px);
+}
+
+.sales-task-save-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.56;
+}
+
+
+/* ==========================================================
+   TASK LIST
+========================================================== */
+
+.sales-task-list {
+  margin-top: 20px;
+}
+
+.sales-task-list-head {
+  align-items: center;
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.sales-task-list-head > div {
+  min-width: 0;
+}
+
+.sales-task-count-pill {
+  background:
+    linear-gradient(
+      145deg,
+      #eef4fb,
+      #f9fbfe
+    );
+  border: 1px solid #d8e3ee;
+  border-radius: 999px;
+  box-shadow:
+    4px 4px 10px rgba(148, 163, 184, 0.12),
+    -4px -4px 10px rgba(255, 255, 255, 0.94);
+  color: #475569;
+  flex: 0 0 auto;
+  font-size: 0.64rem;
+  font-weight: 900;
+  padding: 7px 10px;
+}
+
+.sales-task-card-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-width: 0;
+}
+
+
+/* ==========================================================
+   TASK CARD
+========================================================== */
+
+.sales-task-card {
+  background:
+    linear-gradient(
+      145deg,
+      #f8fbff,
+      #eaf1f7
+    );
+  border: 1px solid #d8e3ee;
+  border-radius: 20px;
+  box-shadow:
+    9px 9px 20px rgba(148, 163, 184, 0.15),
+    -7px -7px 17px rgba(255, 255, 255, 0.94);
+  min-width: 0;
+  overflow: hidden;
+  padding: 15px;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.sales-task-card:hover {
+  border-color: rgba(91, 33, 182, 0.2);
+  box-shadow:
+    11px 12px 24px rgba(148, 163, 184, 0.18),
+    -8px -8px 19px rgba(255, 255, 255, 0.97);
+  transform: translateY(-2px);
+}
+
+.sales-task-card--complete {
+  border-color: rgba(22, 163, 74, 0.2);
+}
+
+.sales-task-card--complete .sales-task-icon {
+  background:
+    linear-gradient(
+      135deg,
+      #22c55e,
+      #15803d
+    );
+}
+
+.sales-task-card-head {
+  align-items: flex-start;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.sales-task-identity {
+  align-items: center;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: auto minmax(0, 1fr);
+  min-width: 0;
+}
+
+.sales-task-icon {
+  align-items: center;
+  background:
+    linear-gradient(
+      135deg,
+      #8b5cf6,
+      #6d28d9
+    );
+  border-radius: 13px;
+  box-shadow:
+    5px 6px 12px rgba(91, 33, 182, 0.22),
+    -4px -4px 10px rgba(255, 255, 255, 0.72);
+  color: #ffffff;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 0.82rem;
+  font-weight: 950;
+  height: 40px;
+  justify-content: center;
+  width: 40px;
+}
+
+.sales-task-identity > div {
+  min-width: 0;
+}
+
+.sales-task-identity strong,
+.sales-task-identity span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sales-task-identity strong {
+  color: #172033;
+  font-size: 0.82rem;
+  font-weight: 950;
+}
+
+.sales-task-identity span {
+  color: #7b8ba0;
+  font-size: 0.63rem;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.sales-task-card-status {
+  display: grid;
+  flex: 0 0 auto;
+  gap: 4px;
+  min-width: 118px;
+}
+
+.sales-task-card-status small {
+  color: #7c8da1;
+  font-size: 0.57rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.sales-task-card-status select {
+  background:
+    linear-gradient(
+      145deg,
+      #eef4fa,
+      #f9fbfe
+    );
+  border: 1px solid #d6e1ec;
+  border-radius: 10px;
+  box-shadow:
+    inset 2px 2px 6px rgba(148, 163, 184, 0.1),
+    inset -2px -2px 6px rgba(255, 255, 255, 0.9);
+  color: #334155;
+  font-size: 0.65rem;
+  font-weight: 850;
+  min-height: 34px;
+  outline: none;
+  padding: 6px 8px;
+  width: 100%;
+}
+
+.sales-task-meta-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-top: 14px;
+}
+
+.sales-task-meta-grid > span {
+  background:
+    linear-gradient(
+      145deg,
+      #f5f9fd,
+      #eaf1f7
+    );
+  border: 1px solid #dce5ee;
+  border-radius: 12px;
+  min-width: 0;
+  padding: 8px 9px;
+}
+
+.sales-task-meta-grid small {
+  color: #8090a3;
+  display: block;
+  font-size: 0.55rem;
+  font-weight: 850;
+  margin-bottom: 3px;
+  text-transform: uppercase;
+}
+
+.sales-task-meta-grid strong {
+  color: #334155;
+  display: block;
+  font-size: 0.66rem;
+  font-weight: 900;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sales-task-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 13px;
+}
+
+.sales-task-chip-row > span {
+  border-radius: 999px;
+  font-size: 0.58rem;
+  font-weight: 900;
+  padding: 5px 8px;
+}
+
+.sales-task-priority-chip {
+  background: rgba(245, 158, 11, 0.09);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  color: #b45309;
+}
+
+.sales-task-priority-chip.high {
+  background: rgba(225, 29, 72, 0.08);
+  border-color: rgba(225, 29, 72, 0.18);
+  color: #be123c;
+}
+
+.sales-task-priority-chip.low {
+  background: rgba(14, 116, 144, 0.08);
+  border-color: rgba(14, 116, 144, 0.18);
+  color: #0e7490;
+}
+
+.sales-task-open-chip {
+  background: rgba(47, 101, 217, 0.08);
+  border: 1px solid rgba(47, 101, 217, 0.18);
+  color: #2f65d9;
+}
+
+.sales-task-complete-chip {
+  background: rgba(22, 163, 74, 0.08);
+  border: 1px solid rgba(22, 163, 74, 0.18);
+  color: #15803d;
+}
+
+.sales-task-card-footer {
+  align-items: center;
+  border-top: 1px solid rgba(203, 213, 225, 0.72);
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  margin-top: 13px;
+  padding-top: 11px;
+}
+
+.sales-task-card-footer span {
+  color: #8190a3;
+  font-size: 0.59rem;
+  font-weight: 800;
+}
+
+.sales-task-card-footer strong {
+  color: #6d28d9;
+  font-size: 0.63rem;
+  font-weight: 950;
+}
+
+.sales-task-card--complete .sales-task-card-footer strong {
+  color: #15803d;
+}
+
+
+/* ==========================================================
+   EMPTY STATE
+========================================================== */
+
+.sales-task-empty-state {
+  align-items: center;
+  background:
+    linear-gradient(
+      145deg,
+      #f8fbff,
+      #eaf1f7
+    );
+  border: 1px dashed #cbd8e5;
+  border-radius: 18px;
+  box-shadow:
+    inset 3px 3px 9px rgba(148, 163, 184, 0.08),
+    inset -3px -3px 9px rgba(255, 255, 255, 0.9);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  grid-column: 1 / -1;
+  justify-content: center;
+  min-height: 180px;
+  padding: 24px;
+  text-align: center;
+}
+
+.sales-task-empty-icon {
+  align-items: center;
+  background:
+    linear-gradient(
+      135deg,
+      #8b5cf6,
+      #6d28d9
+    );
+  border-radius: 13px;
+  box-shadow:
+    5px 6px 12px rgba(91, 33, 182, 0.2);
+  color: #ffffff;
+  display: inline-flex;
+  font-size: 0.8rem;
+  font-weight: 950;
+  height: 38px;
+  justify-content: center;
+  width: 38px;
+}
+
+.sales-task-empty-state strong {
+  color: #334155;
+  font-size: 0.8rem;
+  font-weight: 950;
+}
+
+.sales-task-empty-state p {
+  color: #7b8ba0;
+  font-size: 0.66rem;
+  margin: 0;
+}
+
+
+/* ==========================================================
+   MY TASKS RESPONSIVE
+========================================================== */
+
+@media (max-width: 1180px) {
+  .sales-task-form {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .sales-task-card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .sales-tasks-heading {
+    flex-direction: column;
+  }
+
+  .sales-task-summary {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .sales-task-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sales-task-meta-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .sales-task-editor {
+    border-radius: 17px;
+    padding: 13px;
+  }
+
+  .sales-task-editor-head,
+  .sales-task-list-head,
+  .sales-task-card-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .sales-task-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .sales-task-form {
+    grid-template-columns: 1fr;
+  }
+
+  .sales-task-form .full {
+    grid-column: auto;
+  }
+
+  .sales-task-form-actions {
+    justify-content: stretch;
+  }
+
+  .sales-task-save-btn {
+    width: 100%;
+  }
+
+  .sales-task-card-status {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .sales-task-meta-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* ==========================================================
+   SALES LEAD AVATAR — FINAL CENTERING FIX
+   Keep after generic .sales-lead-identity span rules.
+========================================================== */
+
+.sales-lead-identity .sales-lead-avatar {
+  align-items: center;
+  background: #ffffff;
+  color: #0e7490;
+  display: inline-flex;
+  flex: 0 0 46px;
+  font-size: 0.84rem;
+  font-weight: 950;
+  height: 46px;
+  justify-content: center;
+  letter-spacing: 0;
+  line-height: 1;
+  margin: 0;
+  max-width: 46px;
+  min-width: 46px;
+  overflow: hidden;
+  padding: 0;
+  text-align: center;
+  text-overflow: clip;
+  white-space: nowrap;
+  width: 46px;
 }
 
