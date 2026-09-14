@@ -1,4 +1,4 @@
-<section class="company-admin-console">
+﻿<section class="company-admin-console">
   <div class="company-shell">
     <aside class="company-sidebar" aria-label="Company admin menu">
       <div class="company-profile">
@@ -17,16 +17,38 @@
       <nav class="company-nav">
         @for (group of menuGroups; track group.title) {
           <div class="menu-group">
-            <span>{{ group.title }}</span>
+            <button
+              type="button"
+              class="menu-group-toggle"
+              [class.open]="isMenuGroupExpanded(group.title)"
+              [attr.aria-expanded]="isMenuGroupExpanded(group.title)"
+              (click)="toggleMenuGroup(group.title)"
+            >
+              <span class="menu-group-title">
+                {{ group.title }}
+              </span>
 
-            @for (item of group.items; track item.id) {
-              <button
-                type="button"
-                [class.active]="activeSection() === item.id"
-                (click)="setSection(item.id)"
+              <span
+                class="menu-group-chevron"
+                aria-hidden="true"
               >
-                {{ item.label }}
-              </button>
+                ›
+              </span>
+            </button>
+
+            @if (isMenuGroupExpanded(group.title)) {
+              <div class="menu-group-items">
+                @for (item of group.items; track item.id) {
+                  <button
+                    type="button"
+                    class="menu-child"
+                    [class.active]="activeSection() === item.id"
+                    (click)="setSection(item.id)"
+                  >
+                    {{ item.label }}
+                  </button>
+                }
+              </div>
             }
           </div>
         }
