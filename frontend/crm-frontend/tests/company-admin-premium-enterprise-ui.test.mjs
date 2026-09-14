@@ -25,7 +25,7 @@ test('Company Admin exposes Midnight Executive theme preset and reset action', (
 
 test('Company Admin premium shell exposes enterprise styling hooks', () => {
   assert.match(html, /company-premium-shell/);
-  assert.match(html, /company-premium-topbar/);
+  assert.match(html, /company-shared-navbar/);
   assert.match(scss, /--admin-shell-bg/);
   assert.match(scss, /#0B1324/i);
   assert.match(scss, /#2563EB/i);

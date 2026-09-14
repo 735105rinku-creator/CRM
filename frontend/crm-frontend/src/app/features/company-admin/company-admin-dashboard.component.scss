@@ -2917,3 +2917,198 @@ justify-self: center;
 .company-premium-shell .menu-group-toggle.open .menu-group-chevron-icon {
   transform: rotate(90deg);
 }
+
+/* ============================================================
+   COMPANY ADMIN SHARED STICKY NAVBAR
+============================================================ */
+
+.company-premium-shell .company-main {
+  align-content: start;
+  padding-top: 0;
+}
+
+.company-premium-shell .company-shared-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 900;
+  margin: 0 calc(var(--space-xl) * -1);
+  padding: 14px var(--space-xl);
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+  backdrop-filter: blur(14px);
+}
+
+.company-premium-shell .company-navbar-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  min-height: 62px;
+}
+
+.company-premium-shell .company-navbar-identity {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.company-premium-shell .company-workspace-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 10px;
+  background: #0b1324;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.company-premium-shell .company-navbar-copy {
+  min-width: 0;
+}
+
+.company-premium-shell .company-navbar-title {
+  margin: 0;
+  color: #172033;
+  font-size: 21px;
+  font-weight: 750;
+  line-height: 1.2;
+}
+
+.company-premium-shell .company-navbar-subtitle {
+  margin: 4px 0 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.company-premium-shell .company-navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+.company-premium-shell .company-navbar-notification {
+  width: 42px;
+  height: 42px;
+  min-width: 42px !important;
+  min-height: 42px !important;
+}
+
+.company-premium-shell .company-navbar-refresh {
+  min-height: 42px;
+  padding: 0 16px;
+  border: 1px solid #2563eb;
+  border-radius: 10px;
+  background: #2563eb;
+  color: #ffffff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.company-premium-shell .company-navbar-user {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) 16px;
+  align-items: center;
+  gap: 9px;
+  min-width: 185px;
+  min-height: 50px;
+  padding: 6px 10px;
+  border: 1px solid #dbe4f0;
+  border-radius: 12px;
+  background: #f8fbff;
+  color: #172033;
+  cursor: pointer;
+  text-align: left;
+}
+
+.company-premium-shell .company-navbar-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #0b1324;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.company-premium-shell .company-navbar-user-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.company-premium-shell .company-navbar-user-copy strong,
+.company-premium-shell .company-navbar-user-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.company-premium-shell .company-navbar-user-copy strong {
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.company-premium-shell .company-navbar-user-copy small {
+  color: #64748b;
+  font-size: 11px;
+}
+
+.company-premium-shell .company-navbar-user-chevron {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: #64748b;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+@media (max-width: 767px) {
+  .company-premium-shell .company-shared-navbar {
+    margin: 0 calc(var(--space-xl) * -1);
+    padding: 10px 14px;
+  }
+
+  .company-premium-shell .company-navbar-main {
+    gap: 10px;
+  }
+
+  .company-premium-shell .company-workspace-badge,
+  .company-premium-shell .company-navbar-subtitle,
+  .company-premium-shell .company-navbar-refresh,
+  .company-premium-shell .company-navbar-user-copy,
+  .company-premium-shell .company-navbar-user-chevron {
+    display: none;
+  }
+
+  .company-premium-shell .company-navbar-title {
+    max-width: 44vw;
+    overflow: hidden;
+    font-size: 17px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .company-premium-shell .company-navbar-user {
+    display: flex;
+    min-width: 42px;
+    min-height: 42px;
+    padding: 3px;
+    justify-content: center;
+  }
+}
