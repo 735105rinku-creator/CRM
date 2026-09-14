@@ -166,3 +166,43 @@ test(
     );
   }
 );
+
+test(
+  'Company Admin premium content surfaces use scoped neumorphic treatment',
+  () => {
+    assert.match(
+      adminScss,
+      /\.company-admin-console\s+\.company-hero[\s\S]*?background:\s*var\(--admin-surface\)/
+    );
+
+    assert.match(
+      adminScss,
+      /\.company-admin-console\s+\.company-stats\s+article[\s\S]*?box-shadow:/
+    );
+
+    assert.match(
+      adminScss,
+      /\.company-admin-console\s+\.panel[\s\S]*?background:\s*var\(--admin-surface\)/
+    );
+
+    assert.match(
+      adminScss,
+      /\.company-admin-console\s+input[\s\S]*?border-radius:/
+    );
+
+    assert.match(
+      adminScss,
+      /\.company-admin-console\s+table[\s\S]*?background:\s*var\(--admin-surface\)/
+    );
+
+    assert.match(
+      adminScss,
+      /\.company-admin-console\s+\.notice[\s\S]*?border-radius:/
+    );
+
+    assert.match(
+      adminScss,
+      /\.company-admin-console\s+\.primary-action[\s\S]*?var\(--admin-blue\)/
+    );
+  }
+);

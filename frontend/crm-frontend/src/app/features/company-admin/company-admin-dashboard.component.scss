@@ -2332,3 +2332,145 @@ justify-self: center;
     padding: 1rem;
   }
 }
+
+/* =========================================================
+   COMPANY ADMIN PREMIUM CONTENT SURFACES
+========================================================= */
+
+.company-admin-console .company-hero {
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: 22px;
+  box-shadow:
+    10px 10px 24px rgba(15, 23, 42, 0.07),
+    -8px -8px 20px rgba(255, 255, 255, 0.9);
+  padding: clamp(1rem, 2vw, 1.5rem);
+}
+
+.company-admin-console .company-hero h1 {
+  color: var(--admin-text);
+}
+
+.company-admin-console .company-hero > div > span {
+  color: var(--admin-muted);
+}
+
+.company-admin-console .company-stats article {
+  background: var(--admin-surface) !important;
+  border: 1px solid var(--admin-border) !important;
+  border-radius: 18px !important;
+  box-shadow:
+    8px 8px 20px rgba(15, 23, 42, 0.07),
+    -7px -7px 18px rgba(255, 255, 255, 0.88) !important;
+  padding: 1rem;
+}
+
+.company-admin-console .company-stats article strong {
+  color: var(--admin-navy);
+}
+
+.company-admin-console .company-stats article small,
+.company-admin-console .company-stats article span {
+  color: var(--admin-muted);
+}
+
+.company-admin-console .panel {
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: 20px;
+  box-shadow:
+    8px 8px 22px rgba(15, 23, 42, 0.065),
+    -7px -7px 18px rgba(255, 255, 255, 0.86);
+}
+
+.company-admin-console .panel-heading h2 {
+  color: var(--admin-text);
+}
+
+.company-admin-console .panel-heading p {
+  color: var(--admin-muted);
+}
+
+.company-admin-console input,
+.company-admin-console select,
+.company-admin-console textarea {
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  color: var(--admin-text);
+  outline: none;
+}
+
+.company-admin-console input:focus,
+.company-admin-console select:focus,
+.company-admin-console textarea:focus {
+  border-color: rgba(37, 99, 235, 0.48);
+  box-shadow:
+    0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.company-admin-console table {
+  background: var(--admin-surface);
+  border-collapse: separate;
+  border-spacing: 0;
+  color: var(--admin-text);
+}
+
+.company-admin-console table thead th {
+  background: var(--admin-surface-soft);
+  color: var(--admin-navy);
+}
+
+.company-admin-console table th,
+.company-admin-console table td {
+  border-color: var(--admin-border);
+}
+
+.company-admin-console .notice {
+  background: var(--admin-surface);
+  border: 1px solid rgba(37, 99, 235, 0.18);
+  border-radius: 14px;
+  box-shadow:
+    6px 6px 16px rgba(15, 23, 42, 0.05),
+    -5px -5px 14px rgba(255, 255, 255, 0.78);
+  color: var(--admin-text);
+}
+
+.company-admin-console .primary-action {
+  background:
+    linear-gradient(
+      135deg,
+      var(--admin-blue),
+      var(--admin-blue-bright)
+    ) !important;
+  border: 1px solid rgba(37, 99, 235, 0.22) !important;
+  border-radius: 12px !important;
+  box-shadow:
+    0 8px 18px rgba(37, 99, 235, 0.18) !important;
+  color: #fff !important;
+}
+
+.company-admin-console .primary-action:hover {
+  box-shadow:
+    0 10px 22px rgba(37, 99, 235, 0.24) !important;
+  transform: translateY(-1px);
+}
+
+.company-admin-console .quick-actions button {
+  background:
+    linear-gradient(
+      135deg,
+      var(--admin-blue),
+      var(--admin-blue-bright)
+    ) !important;
+  border-radius: 12px !important;
+  box-shadow:
+    0 7px 16px rgba(37, 99, 235, 0.16) !important;
+}
+
+.company-admin-console .empty-visual {
+  background: var(--admin-surface-soft);
+  border: 1px dashed rgba(100, 116, 139, 0.28);
+  border-radius: 16px;
+  color: var(--admin-muted);
+}
