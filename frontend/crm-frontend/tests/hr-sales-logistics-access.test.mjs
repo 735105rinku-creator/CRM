@@ -103,3 +103,31 @@ test("HR dashboard remains reachable through the MainLayout parent", () => {
     "MainLayout parent must not run salesAccessGuard because it also owns the HR dashboard"
   );
 });
+
+test("HR refresh does not preload restricted Sales or Logistics operational data", () => {
+  const hrTsSource = read("src/app/features/hr/hr-dashboard.component.ts");
+  const refreshBlock = hrTsSource.match(/protected\s+refreshAll\s*\(\s*\)\s*:\s*void\s*\{[\s\S]*?(?=\n\s*protected\s+dashboardMetrics)/);
+  assert.ok(refreshBlock, "refreshAll block was not found");
+  assert.match(
+    refreshBlock[0],
+    /if\s*\(\s*!this\.isHrOnlyUser\(\)\s*\)\s*\{[\s\S]*?this\.loadCrm\(\);[\s\S]*?this\.loadLogisticsMonitor\(\);[\s\S]*?\}/,
+    "HR-only refresh must skip Sales CRM and Logistics operational preload"
+  );
+});
+
+test("HR-only users do not see the CRM Accounts section", () => {
+  assert.match(
+    hrHtmlSource,
+    /@if\s*\(\s*!isHrOnlyUser\(\)\s*\)\s*\{[\s\S]*?<p>\s*CRM\s*<\/p>[\s\S]*?setFeature\(['"]account-invoices['"]\)[\s\S]*?setFeature\(['"]account-payments['"]\)[\s\S]*?setFeature\(['"]account-expenses['"]\)[\s\S]*?\}/,
+    "The complete CRM section must be hidden from HR-only users"
+  );
+});
+
+test("HR blocks hidden account CRM features from query and setFeature access", () => {
+  const hrTsSource = read("src/app/features/hr/hr-dashboard.component.ts");
+  const restrictedBlock = hrTsSource.match(/private\s+isRestrictedHrOperationalFeature\s*\([\s\S]*?(?=\n\s*protected\s+readonly\s+companyName)/);
+  assert.ok(restrictedBlock, "restricted HR feature helper was not found");
+  assert.match(restrictedBlock[0], /feature\s*===\s*['"]account-invoices['"]/, "HR must restrict account-invoices");
+  assert.match(restrictedBlock[0], /feature\s*===\s*['"]account-payments['"]/, "HR must restrict account-payments");
+  assert.match(restrictedBlock[0], /feature\s*===\s*['"]account-expenses['"]/, "HR must restrict account-expenses");
+});
