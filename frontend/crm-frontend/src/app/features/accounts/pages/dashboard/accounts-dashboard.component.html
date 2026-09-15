@@ -40,61 +40,227 @@
 
 
   <!-- =====================================================
-       SUMMARY CARDS
+       FINANCIAL SUMMARY CARDS
   ====================================================== -->
 
   <div class="summary-grid">
 
     @for (
-    card of summaryCards();
-    track trackSummaryCard($index, card)
+      card of summaryCards();
+      track trackSummaryCard($index, card)
     ) {
 
-    <a class="summary-card" [routerLink]="card.route || '/accounts/dashboard'">
+      <a
+        class="summary-card"
+        [routerLink]="card.route || '/accounts/dashboard'"
+      >
 
-      <div class="summary-card-top">
+        <div class="summary-card-top">
 
-        <span class="summary-title">
-          {{ card.title }}
+          <span class="summary-title">
+            {{ card.title }}
+          </span>
+
+          <span class="summary-arrow">
+            →
+          </span>
+
+        </div>
+
+
+        <strong class="summary-value">
+
+          @if (
+            card.type === 'currency'
+          ) {
+
+            {{ formatCurrency(card.value) }}
+
+          } @else {
+
+            {{ card.value }}
+
+          }
+
+        </strong>
+
+
+        <span class="summary-subtitle">
+          {{ card.subtitle }}
         </span>
 
-        <span class="summary-arrow">
-          →
-        </span>
-
-      </div>
-
-
-      <strong class="summary-value">
-
-        @if (
-        card.type === 'currency'
-        ) {
-
-        {{ formatCurrency(card.value) }}
-
-        } @else {
-
-        {{ card.value }}
-
-        }
-
-      </strong>
-
-
-      <span class="summary-subtitle">
-        {{ card.subtitle }}
-      </span>
-
-    </a>
+      </a>
 
     }
 
   </div>
 
+
   <!-- =====================================================
-     CHART OF ACCOUNTS OVERVIEW
-====================================================== -->
+       INCOMING INVOICES OVERVIEW
+  ====================================================== -->
+
+  <section class="dashboard-section">
+
+    <div class="section-header">
+
+      <div>
+
+        <span class="section-eyebrow">
+          Department Handoffs
+        </span>
+
+        <h2>
+          Incoming Invoices
+        </h2>
+
+        <p>
+          Review Purchase and Logistics invoices submitted
+          to Accounts for verification and settlement.
+        </p>
+
+      </div>
+
+
+      <a
+        routerLink="/accounts/department-invoices"
+        class="foundation-link"
+      >
+        Open Register
+      </a>
+
+    </div>
+
+
+    @if (
+      isIncomingInvoicesLoading()
+    ) {
+
+      <div class="foundation-card">
+
+        <div class="foundation-content">
+
+          <span class="foundation-label">
+            Incoming Invoices
+          </span>
+
+          <p>
+            Loading Purchase and Logistics handoffs...
+          </p>
+
+        </div>
+
+      </div>
+
+    } @else if (
+      incomingInvoicesError()
+    ) {
+
+      <div class="foundation-card">
+
+        <div class="foundation-content">
+
+          <span class="foundation-label">
+            Incoming Invoice API
+          </span>
+
+          <p>
+            {{ incomingInvoicesError() }}
+          </p>
+
+        </div>
+
+
+        <a
+          routerLink="/accounts/department-invoices"
+          class="foundation-link"
+        >
+          Open Register
+        </a>
+
+      </div>
+
+    } @else {
+
+      <div class="summary-grid incoming-invoice-summary-grid">
+
+        @for (
+          card of incomingInvoiceCards();
+          track trackSummaryCard($index, card)
+        ) {
+
+          <a
+            class="summary-card incoming-invoice-summary-card"
+            [routerLink]="card.route || '/accounts/department-invoices'"
+          >
+
+            <div class="summary-card-top">
+
+              <span class="summary-title">
+                {{ card.title }}
+              </span>
+
+              <span class="summary-arrow">
+                →
+              </span>
+
+            </div>
+
+
+            <strong class="summary-value">
+              {{ card.value }}
+            </strong>
+
+
+            <span class="summary-subtitle">
+              {{ card.subtitle }}
+            </span>
+
+          </a>
+
+        }
+
+      </div>
+
+
+      <div class="incoming-invoice-quick-link">
+
+        <div>
+
+          <span class="foundation-label">
+            Accounts Clearance
+          </span>
+
+          <strong>
+            Purchase + Logistics Invoice Register
+          </strong>
+
+          <p>
+            Verify documents, review payment or receipt status,
+            record Logistics settlements and monitor Purchase
+            Payment Voucher allocation progress.
+          </p>
+
+        </div>
+
+
+        <a
+          routerLink="/accounts/department-invoices"
+          class="foundation-link"
+        >
+          Review Incoming Invoices
+        </a>
+
+      </div>
+
+    }
+
+  </section>
+
+
+  <!-- =====================================================
+       CHART OF ACCOUNTS OVERVIEW
+  ====================================================== -->
 
   <section class="dashboard-section">
 
@@ -120,83 +286,86 @@
 
 
     @if (
-    isChartSummaryLoading()
+      isChartSummaryLoading()
     ) {
 
-    <div class="foundation-card">
+      <div class="foundation-card">
 
-      <div class="foundation-content">
+        <div class="foundation-content">
 
-        <span class="foundation-label">
-          Loading
-        </span>
-
-        <p>
-          Loading Chart of Accounts summary...
-        </p>
-
-      </div>
-
-    </div>
-
-    } @else if (
-    chartSummaryError()
-    ) {
-
-    <div class="foundation-card">
-
-      <div class="foundation-content">
-
-        <span class="foundation-label">
-          Accounts API
-        </span>
-
-        <p>
-          {{ chartSummaryError() }}
-        </p>
-
-      </div>
-
-    </div>
-
-    } @else {
-
-    <div class="summary-grid">
-
-      @for (
-      card of chartSummaryCards();
-      track trackSummaryCard($index, card)
-      ) {
-
-      <a class="summary-card" [routerLink]="card.route || '/accounts/chart-of-accounts'">
-
-        <div class="summary-card-top">
-
-          <span class="summary-title">
-            {{ card.title }}
+          <span class="foundation-label">
+            Loading
           </span>
 
-          <span class="summary-arrow">
-            →
-          </span>
+          <p>
+            Loading Chart of Accounts summary...
+          </p>
 
         </div>
 
+      </div>
 
-        <strong class="summary-value">
-          {{ card.value }}
-        </strong>
+    } @else if (
+      chartSummaryError()
+    ) {
+
+      <div class="foundation-card">
+
+        <div class="foundation-content">
+
+          <span class="foundation-label">
+            Accounts API
+          </span>
+
+          <p>
+            {{ chartSummaryError() }}
+          </p>
+
+        </div>
+
+      </div>
+
+    } @else {
+
+      <div class="summary-grid">
+
+        @for (
+          card of chartSummaryCards();
+          track trackSummaryCard($index, card)
+        ) {
+
+          <a
+            class="summary-card"
+            [routerLink]="card.route || '/accounts/chart-of-accounts'"
+          >
+
+            <div class="summary-card-top">
+
+              <span class="summary-title">
+                {{ card.title }}
+              </span>
+
+              <span class="summary-arrow">
+                →
+              </span>
+
+            </div>
 
 
-        <span class="summary-subtitle">
-          {{ card.subtitle }}
-        </span>
+            <strong class="summary-value">
+              {{ card.value }}
+            </strong>
 
-      </a>
 
-      }
+            <span class="summary-subtitle">
+              {{ card.subtitle }}
+            </span>
 
-    </div>
+          </a>
+
+        }
+
+      </div>
 
     }
 
@@ -207,8 +376,12 @@
        PROFIT / LOSS
   ====================================================== -->
 
-  <div class="profit-card" [class.profit]="profitStatus() === 'profit'" [class.loss]="profitStatus() === 'loss'"
-    [class.neutral]="profitStatus() === 'neutral'">
+  <div
+    class="profit-card"
+    [class.profit]="profitStatus() === 'profit'"
+    [class.loss]="profitStatus() === 'loss'"
+    [class.neutral]="profitStatus() === 'neutral'"
+  >
 
     <div>
 
@@ -226,26 +399,32 @@
     <div class="profit-status">
 
       @switch (
-      profitStatus()
+        profitStatus()
       ) {
 
-      @case ('profit') {
-      <span>
-        Profit
-      </span>
-      }
+        @case ('profit') {
 
-      @case ('loss') {
-      <span>
-        Loss
-      </span>
-      }
+          <span>
+            Profit
+          </span>
 
-      @default {
-      <span>
-        No movement
-      </span>
-      }
+        }
+
+        @case ('loss') {
+
+          <span>
+            Loss
+          </span>
+
+        }
+
+        @default {
+
+          <span>
+            No movement
+          </span>
+
+        }
 
       }
 
@@ -280,35 +459,38 @@
     <div class="quick-actions-grid">
 
       @for (
-      action of quickActions;
-      track trackQuickAction($index, action)
+        action of quickActions;
+        track trackQuickAction($index, action)
       ) {
 
-      <a class="quick-action-card" [routerLink]="action.route">
+        <a
+          class="quick-action-card"
+          [routerLink]="action.route"
+        >
 
-        <div class="quick-action-icon">
-          {{ action.shortCode }}
-        </div>
-
-
-        <div class="quick-action-content">
-
-          <strong>
-            {{ action.label }}
-          </strong>
-
-          <p>
-            {{ action.description }}
-          </p>
-
-        </div>
+          <div class="quick-action-icon">
+            {{ action.shortCode }}
+          </div>
 
 
-        <span class="quick-action-arrow">
-          →
-        </span>
+          <div class="quick-action-content">
 
-      </a>
+            <strong>
+              {{ action.label }}
+            </strong>
+
+            <p>
+              {{ action.description }}
+            </p>
+
+          </div>
+
+
+          <span class="quick-action-arrow">
+            →
+          </span>
+
+        </a>
 
       }
 
@@ -343,35 +525,38 @@
     <div class="module-grid">
 
       @for (
-      module of moduleShortcuts;
-      track trackModuleShortcut($index, module)
+        module of moduleShortcuts;
+        track trackModuleShortcut($index, module)
       ) {
 
-      <a class="module-card" [routerLink]="module.route">
+        <a
+          class="module-card"
+          [routerLink]="module.route"
+        >
 
-        <div class="module-card-header">
+          <div class="module-card-header">
 
-          <div class="module-code">
-            {{ module.shortCode }}
+            <div class="module-code">
+              {{ module.shortCode }}
+            </div>
+
+            <span class="module-arrow">
+              →
+            </span>
+
           </div>
 
-          <span class="module-arrow">
-            →
-          </span>
 
-        </div>
-
-
-        <h3>
-          {{ module.title }}
-        </h3>
+          <h3>
+            {{ module.title }}
+          </h3>
 
 
-        <p>
-          {{ module.description }}
-        </p>
+          <p>
+            {{ module.description }}
+          </p>
 
-      </a>
+        </a>
 
       }
 
@@ -404,14 +589,18 @@
       <p>
         The dedicated Accounts routes, workspace shell and
         navigation are now in place. Chart of Accounts,
-        Journal and Ledger will provide the accounting engine
-        used by CRM, HRM and Logistics transactions.
+        Journal and Ledger provide the accounting foundation,
+        while Incoming Invoices handles Purchase and Logistics
+        department handoffs into Accounts.
       </p>
 
     </div>
 
 
-    <a routerLink="/accounts/chart-of-accounts" class="foundation-link">
+    <a
+      routerLink="/accounts/chart-of-accounts"
+      class="foundation-link"
+    >
       Chart of Accounts
     </a>
 

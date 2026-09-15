@@ -12,6 +12,9 @@ import LogisticsVendorPayment
 import LogisticsInvoice
   from "../models/LogisticsInvoice.js";
 
+import { Employee }
+  from "../models/Employee.js";
+
 import paymentAllocationService
   from "./paymentAllocation.service.js";
 
@@ -81,6 +84,50 @@ const SOURCE_DEPARTMENT_MAP =
 ============================================================ */
 
 class DepartmentInvoiceService {
+
+  assertSettlementApproved(row) {
+    if (row?.companyAdminApprovalStatus !== "approved") {
+      throw new ApiError(
+        409,
+        row?.companyAdminApprovalStatus === "rejected"
+          ? "Company Admin rejected this invoice. Settlement is blocked."
+          : "Company Admin approval is required before settlement."
+      );
+    }
+  }
+
+  async actorIdentity(
+    companyId,
+    user
+  ) {
+
+    let employee = null;
+
+    if (user?._id) {
+      employee = await Employee.findOne({
+        companyId,
+        $or: [
+          { userId: user._id },
+          ...(user.employeeCode ? [{ employeeCode: String(user.employeeCode).toUpperCase() }] : []),
+        ],
+      })
+        .select("_id displayName firstName lastName officialEmail employeeCode")
+        .lean();
+    }
+
+    return {
+      userId: user?._id || null,
+      employeeId: employee?._id || user?.employeeId || null,
+      name: String(
+        employee?.displayName ||
+        [employee?.firstName, employee?.lastName].filter(Boolean).join(" ") ||
+        nameOf(user) ||
+        employee?.officialEmail ||
+        employee?.employeeCode ||
+        ""
+      ).trim(),
+    };
+  }
 
 
   /* ==========================================================
@@ -322,6 +369,136 @@ class DepartmentInvoiceService {
 
 
   /* ==========================================================
+  GET DOCUMENT
+
+  Returns metadata/reference only.
+
+  Physical file resolution and streaming remain in the
+  controller so this service does not become HTTP-aware.
+
+  Document index is used because DepartmentInvoice document
+  subdocuments intentionally have _id disabled.
+========================================================== */
+
+async getDocument(
+ companyId,
+ id,
+ index
+) {
+
+ const documentIndex =
+   Number(
+     index
+   );
+
+
+ if (
+   !Number.isInteger(
+     documentIndex
+   ) ||
+   documentIndex <
+     0
+ ) {
+
+   throw new ApiError(
+     400,
+     "Invalid invoice document index."
+   );
+ }
+
+
+ const row =
+   await this.get(
+     companyId,
+     id
+   );
+
+
+ const documents =
+   Array.isArray(
+     row?.documents
+   )
+     ? row.documents
+     : [];
+
+
+ const document =
+   documents[
+     documentIndex
+   ];
+
+
+ if (
+   !document ||
+   (
+     !String(
+       document.fileUrl ||
+       ""
+     ).trim() &&
+     !String(
+       document.filePath ||
+       ""
+     ).trim()
+   )
+ ) {
+
+   throw new ApiError(
+     404,
+     "Invoice document was not found."
+   );
+ }
+
+
+ return {
+
+   index:
+     documentIndex,
+
+   sourceModule:
+     row.sourceModule,
+
+   sourceRecordId:
+     row.sourceRecordId,
+
+   label:
+     String(
+       document.label ||
+       "Invoice Document"
+     )
+       .trim(),
+
+   fileName:
+     String(
+       document.fileName ||
+       ""
+     )
+       .trim(),
+
+   fileUrl:
+     String(
+       document.fileUrl ||
+       ""
+     )
+       .trim(),
+
+   filePath:
+     String(
+       document.filePath ||
+       ""
+     )
+       .trim(),
+
+   mimeType:
+     String(
+       document.mimeType ||
+       ""
+     )
+       .trim(),
+
+ };
+}
+
+  /* ==========================================================
      VERIFY
   ========================================================== */
 
@@ -391,6 +568,24 @@ class DepartmentInvoiceService {
                       verifiedAt:
                         new Date(),
 
+                      companyAdminApprovalStatus:
+                        "pending",
+
+                      companyAdminApprovalBy:
+                        null,
+
+                      companyAdminApprovalByEmployeeId:
+                        null,
+
+                      companyAdminApprovalByName:
+                        "",
+
+                      companyAdminApprovalAt:
+                        null,
+
+                      companyAdminApprovalRemarks:
+                        "",
+
                       accountsRemarks:
                         String(
                           payload?.remarks ||
@@ -445,6 +640,74 @@ class DepartmentInvoiceService {
 
       await session
         .endSession();
+    }
+  }
+
+
+  async decideCompanyAdminApproval(
+    companyId,
+    id,
+    payload,
+    user
+  ) {
+
+    if (!user?._id) {
+      throw new ApiError(401, "Authenticated Company Admin is required.");
+    }
+
+    const decision = String(payload?.decision || "").trim();
+    const remarks = String(payload?.remarks || "").trim();
+    let current = await repository.findById(companyId, id);
+
+    if (!current) {
+      throw new ApiError(404, "Department invoice was not found.");
+    }
+
+    if (
+      current.companyAdminApprovalStatus === decision &&
+      String(current.companyAdminApprovalRemarks || "").trim() === remarks
+    ) {
+      return current;
+    }
+
+    if (current.companyAdminApprovalStatus !== "pending" || current.status !== "verified") {
+      throw new ApiError(409, "Invoice approval state has already changed.");
+    }
+
+    const identity = await this.actorIdentity(companyId, user);
+    const decidedAt = new Date();
+    const session = await mongoose.startSession();
+    let updated = null;
+
+    try {
+      await session.withTransaction(async () => {
+        updated = await repository.updateById(
+          companyId,
+          id,
+          { status: "verified", companyAdminApprovalStatus: "pending" },
+          {
+            $set: {
+              companyAdminApprovalStatus: decision,
+              companyAdminApprovalBy: identity.userId,
+              companyAdminApprovalByEmployeeId: identity.employeeId,
+              companyAdminApprovalByName: identity.name,
+              companyAdminApprovalAt: decidedAt,
+              companyAdminApprovalRemarks: remarks,
+            },
+          },
+          { session }
+        );
+
+        if (!updated) {
+          throw new ApiError(409, "Invoice approval state changed. Please refresh and retry.");
+        }
+
+        await this.syncSource(updated, session);
+      });
+
+      return updated;
+    } finally {
+      await session.endSession();
     }
   }
 
@@ -543,12 +806,14 @@ class DepartmentInvoiceService {
                       $in: [
                         "sent",
                         "under_review",
-                        "verified",
                       ],
                     },
 
                     paidAmount:
                       0,
+
+                    companyAdminApprovalStatus:
+                      "not_submitted",
 
                   },
                   {
@@ -747,6 +1012,8 @@ class DepartmentInvoiceService {
               );
             }
 
+            this.assertSettlementApproved(current);
+
 
             const amount =
               money(
@@ -943,6 +1210,135 @@ class DepartmentInvoiceService {
       await session
         .endSession();
     }
+  }
+
+
+  /* ==========================================================
+     REFRESH PURCHASE SETTLEMENTS FOR PAYMENT VOUCHER
+
+     Called after an Accounts Payment Voucher is posted or
+     voided.
+
+     Flow:
+
+       Payment Voucher
+            ↓
+       PaymentAllocation rows
+            ↓
+       affected Purchase Invoice IDs
+            ↓
+       DepartmentInvoice rows
+            ↓
+       recalculate posted settlement
+            ↓
+       sync Accounts state back to Purchase Invoice
+
+     Important:
+     - Only affected Purchase invoices are refreshed.
+     - PaymentAllocation settlement logic counts only posted
+       Payment Vouchers.
+     - Therefore voiding a Payment Voucher automatically removes
+       that voucher from the effective paid total.
+  ========================================================== */
+
+  async refreshPurchaseSettlementsForPayment(
+    companyId,
+    paymentVoucherId
+  ) {
+
+    if (
+      !companyId
+    ) {
+
+      throw new ApiError(
+        400,
+        "Company ID is required."
+      );
+    }
+
+
+    if (
+      !mongoose.isValidObjectId(
+        paymentVoucherId
+      )
+    ) {
+
+      throw new ApiError(
+        400,
+        "Invalid payment voucher ID."
+      );
+    }
+
+
+    const purchaseInvoiceIds =
+      await paymentAllocationService
+        .purchaseInvoiceIdsForPayment(
+          companyId,
+          paymentVoucherId
+        );
+
+
+    if (
+      !purchaseInvoiceIds.length
+    ) {
+
+      return [];
+    }
+
+
+    const sourceIds =
+      purchaseInvoiceIds
+        .filter(
+          id =>
+            mongoose.isValidObjectId(
+              id
+            )
+        )
+        .map(
+          id =>
+            new mongoose.Types.ObjectId(
+              id
+            )
+        );
+
+
+    if (
+      !sourceIds.length
+    ) {
+
+      return [];
+    }
+
+
+    /*
+     * We intentionally query the central register directly
+     * instead of calling list().
+     *
+     * list() is paginated and would also refresh unrelated
+     * Purchase invoices.
+     */
+    const rows =
+      await repository
+        .findBySources(
+          companyId,
+          "purchase_invoice",
+          sourceIds
+        );
+
+
+    if (
+      !rows.length
+    ) {
+
+      return [];
+    }
+
+
+    return this
+      .refreshPurchaseSettlements(
+        companyId,
+        rows
+      );
   }
 
 
@@ -1329,6 +1725,22 @@ class DepartmentInvoiceService {
 
       accountsPaidByName:
         row.lastPaidByName ||
+        "",
+
+      companyAdminApprovalStatus:
+        row.companyAdminApprovalStatus ||
+        "not_submitted",
+
+      companyAdminApprovalByName:
+        row.companyAdminApprovalByName ||
+        "",
+
+      companyAdminApprovalAt:
+        row.companyAdminApprovalAt ||
+        null,
+
+      companyAdminApprovalRemarks:
+        row.companyAdminApprovalRemarks ||
         "",
 
     };

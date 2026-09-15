@@ -17,6 +17,9 @@ import journalEntryService
 import purchaseInvoiceRepository
   from "../repositories/purchaseInvoice.repository.js";
 
+import paymentAllocationService
+  from "./paymentAllocation.service.js";
+
 import {
   safeRemoveAccountsProofFile,
   safeRemoveUploadedAccountsProofFiles,
@@ -64,6 +67,10 @@ export class VoucherService {
         purchaseInvoices =
           purchaseInvoiceRepository,
 
+      allocationService:
+        allocations =
+          null,
+
 
       sessionProvider:
         sessions =
@@ -85,6 +92,9 @@ export class VoucherService {
 
     this.purchaseInvoiceRepository =
       purchaseInvoices;
+
+    this.allocationService =
+      allocations;
 
 
     this.sessionProvider =
@@ -2018,6 +2028,16 @@ export class VoucherService {
             );
           }
 
+          if (
+            voucher.voucherType === "payment" &&
+            this.allocationService
+          ) {
+            await this.allocationService.assertApprovedForPosting(
+              companyId,
+              voucherId
+            );
+          }
+
 
           /* ==================================================
              MANDATORY POSTING PROOF
@@ -2742,7 +2762,9 @@ export class VoucherService {
 ============================================================ */
 
 const voucherService =
-  new VoucherService();
+  new VoucherService({
+    allocationService: paymentAllocationService,
+  });
 
 
 export default

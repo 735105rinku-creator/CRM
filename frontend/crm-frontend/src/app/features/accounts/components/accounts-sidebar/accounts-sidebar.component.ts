@@ -165,6 +165,12 @@ export class AccountsSidebarComponent {
 
         items: [
           {
+            label: 'Incoming Invoices',
+            route: '/accounts/department-invoices',
+            icon: 'invoice'
+          },
+
+          {
             label: 'Purchase Bills',
             route: '/accounts/bills',
             icon: 'bill'
@@ -233,6 +239,7 @@ export class AccountsSidebarComponent {
             route: '/accounts/day-book',
             icon: 'reports'
           },
+
           {
             label: 'General Ledger',
             route: '/accounts/ledger',
@@ -309,21 +316,25 @@ export class AccountsSidebarComponent {
             route: '/accounts/reports',
             icon: 'reports'
           },
+
           {
             label: 'Trial Balance',
             route: '/accounts/trial-balance',
             icon: 'reports'
           },
+
           {
             label: 'Profit & Loss',
             route: '/accounts/profit-and-loss',
             icon: 'reports'
           },
+
           {
             label: 'Balance Sheet',
             route: '/accounts/balance-sheet',
             icon: 'reports'
           },
+
           {
             label: 'Outstanding',
             route: '/accounts/outstanding',
@@ -344,85 +355,126 @@ export class AccountsSidebarComponent {
           {
             label: 'Personal Details',
             route: '/accounts/employee',
-            queryParams: { feature: 'profile' },
+            queryParams: {
+              feature: 'profile'
+            },
             icon: 'profile'
           },
+
           {
             label: 'Attendance',
             route: '/accounts/employee',
-            queryParams: { feature: 'attendance' },
+            queryParams: {
+              feature: 'attendance'
+            },
             icon: 'attendance'
           },
+
           {
             label: 'Attendance History',
             route: '/accounts/employee',
-            queryParams: { feature: 'attendance-history' },
+            queryParams: {
+              feature: 'attendance-history'
+            },
             icon: 'attendance'
           },
+
           {
             label: 'Leave',
             route: '/accounts/employee',
-            queryParams: { feature: 'apply-leave' },
+            queryParams: {
+              feature: 'apply-leave'
+            },
             icon: 'leave'
           },
+
           {
             label: 'Leave History',
             route: '/accounts/employee',
-            queryParams: { feature: 'leave-history' },
+            queryParams: {
+              feature: 'leave-history'
+            },
             icon: 'leave'
           },
+
           {
             label: 'Leave Balance',
             route: '/accounts/employee',
-            queryParams: { feature: 'leave-balance' },
+            queryParams: {
+              feature: 'leave-balance'
+            },
             icon: 'leave'
           },
+
           {
             label: 'Payslips',
             route: '/accounts/employee',
-            queryParams: { feature: 'payslip' },
+            queryParams: {
+              feature: 'payslip'
+            },
             icon: 'payslip'
           },
+
           {
             label: 'Documents',
             route: '/accounts/employee',
-            queryParams: { feature: 'documents' },
+            queryParams: {
+              feature: 'documents'
+            },
             icon: 'documents'
           },
+
           {
             label: 'Bank Details',
             route: '/accounts/employee',
-            queryParams: { feature: 'bank' },
+            queryParams: {
+              feature: 'bank'
+            },
             icon: 'bank'
           },
+
           {
             label: 'Company Events',
             route: '/accounts/employee',
-            queryParams: { feature: 'events' },
+            queryParams: {
+              feature: 'events'
+            },
             icon: 'events'
           },
+
           {
             label: 'Holidays',
             route: '/accounts/employee',
-            queryParams: { feature: 'holidays' },
+            queryParams: {
+              feature: 'holidays'
+            },
             icon: 'calendar'
           },
+
           {
             label: 'Meetings',
             route: '/accounts/employee',
-            queryParams: { feature: 'meetings' },
+            queryParams: {
+              feature: 'meetings'
+            },
             icon: 'meetings'
           },
+
           {
             label: 'Messages',
             route: '/accounts/employee',
-            queryParams: { feature: 'messages' },
+            queryParams: {
+              feature: 'messages'
+            },
             icon: 'messages'
           },
+
           {
             label: 'Change Password',
             route: '/accounts/employee',
-            queryParams: { feature: 'settings' },
+            queryParams: {
+              feature: 'settings'
+            },
             icon: 'settings'
           }
         ]

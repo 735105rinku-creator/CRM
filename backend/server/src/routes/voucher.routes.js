@@ -14,6 +14,7 @@ import {
 import {
   createPaymentAllocations,
   getPaymentAllocationOptions,
+  getPurchasePaymentContext,
 } from "../controllers/paymentAllocation.controller.js";
 
 import {
@@ -56,6 +57,13 @@ router.get(
 router.post(
   "/",
   createVoucher
+);
+
+
+
+router.get(
+  "/purchase-payment-context/:purchaseInvoiceId",
+  getPurchasePaymentContext
 );
 
 
@@ -121,12 +129,16 @@ router.post(
 );
 
 
+/* ============================================================
+   PURCHASE PAYMENT ALLOCATION
+============================================================ */
+
+
+
 router.get(
   "/:voucherId/purchase-allocation-options",
   getPaymentAllocationOptions
 );
-
-
 router.post(
   "/:voucherId/purchase-allocations",
   createPaymentAllocations
@@ -161,19 +173,5 @@ router.patch(
   "/:voucherId",
   updateVoucher
 );
-
-
-/* ============================================================
-   IMPORTANT
-
-   Physical DELETE route intentionally does not exist.
-
-   Accounting history is retained.
-
-   Posted Vouchers are immutable.
-
-   Void operations preserve the accounting audit trail.
-============================================================ */
-
 
 export default router;

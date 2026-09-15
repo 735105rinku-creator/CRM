@@ -452,21 +452,10 @@
               <div class="accounts-status-cell">
 
                 <span
-                  class="handoff-status"
-                  [class.handoff-pending]="
-                    row.handoffStatus === 'not_handed_off'
-                  "
-                  [class.handoff-processing]="
-                    row.handoffStatus === 'handing_off'
-                  "
-                  [class.handoff-success]="
-                    row.handoffStatus === 'handed_off'
-                  "
-                  [class.handoff-failed]="
-                    row.handoffStatus === 'failed'
-                  "
+                  class="accounts-register-status"
+                  [ngClass]="accountsStatusClass(row)"
                 >
-                  {{ handoffStatusLabel(row) }}
+                  {{ accountsStatusLabel(row) }}
                 </span>
 
 
@@ -474,7 +463,26 @@
                   class="accounts-voucher-number"
                   *ngIf="row.accountsVoucherNumber"
                 >
+                  Voucher:
                   {{ row.accountsVoucherNumber }}
+                </small>
+
+
+                <small
+                  class="accounts-payment-summary"
+                  *ngIf="hasAccountsSettlement(row)"
+                >
+                  Paid:
+                  &#8377;{{ accountsPaidAmount(row) | number:'1.2-2' }}
+                </small>
+
+
+                <small
+                  class="accounts-payment-summary"
+                  *ngIf="hasAccountsSettlement(row)"
+                >
+                  Balance:
+                  &#8377;{{ accountsRemainingAmount(row) | number:'1.2-2' }}
                 </small>
 
 
@@ -779,6 +787,201 @@
         </div>
 
       </div>
+
+
+      <!-- =====================================================
+           ACCOUNTS PAYMENT / SETTLEMENT STATUS
+      ====================================================== -->
+
+      <section
+        class="accounts-settlement-section"
+        *ngIf="hasAccountsHandoff(row)"
+      >
+
+        <div class="accounts-settlement-header">
+
+          <div>
+
+            <span class="accounts-settlement-eyebrow">
+              ACCOUNTS CLEARANCE
+            </span>
+
+            <h3>
+              Invoice Payment Status
+            </h3>
+
+            <p>
+              Read-only payment information synchronized from Accounts.
+            </p>
+
+          </div>
+
+
+          <span
+            class="accounts-register-status"
+            [ngClass]="accountsStatusClass(row)"
+          >
+            {{ accountsStatusLabel(row) }}
+          </span>
+
+        </div>
+
+
+        <div class="accounts-settlement-grid">
+
+          <div class="accounts-settlement-item">
+
+            <span>
+              Invoice Amount
+            </span>
+
+            <strong>
+              &#8377;{{ row.invoiceTotal | number:'1.2-2' }}
+            </strong>
+
+          </div>
+
+
+          <div class="accounts-settlement-item paid">
+
+            <span>
+              Paid by Accounts
+            </span>
+
+            <strong>
+              &#8377;{{ accountsPaidAmount(row) | number:'1.2-2' }}
+            </strong>
+
+          </div>
+
+
+          <div class="accounts-settlement-item outstanding">
+
+            <span>
+              Remaining
+            </span>
+
+            <strong>
+              &#8377;{{ accountsRemainingAmount(row) | number:'1.2-2' }}
+            </strong>
+
+          </div>
+
+
+          <div class="accounts-settlement-item">
+
+            <span>
+              Accounts Status
+            </span>
+
+            <strong>
+              {{ accountsStatusLabel(row) }}
+            </strong>
+
+          </div>
+
+        </div>
+
+
+        <div
+          class="accounts-payment-details"
+          *ngIf="hasAccountsSettlement(row)"
+        >
+
+          <div class="accounts-payment-detail">
+
+            <span>
+              Paid / Recorded By
+            </span>
+
+            <strong>
+              {{ accountsPaidByName(row) }}
+            </strong>
+
+          </div>
+
+
+          <div class="accounts-payment-detail">
+
+            <span>
+              Payment Date
+            </span>
+
+            <strong
+              *ngIf="accountsPaymentDate(row) as paymentDate"
+            >
+              {{ paymentDate | date:'dd MMM yyyy, hh:mm a' }}
+            </strong>
+
+            <strong
+              *ngIf="!accountsPaymentDate(row)"
+            >
+              —
+            </strong>
+
+          </div>
+
+
+          <div class="accounts-payment-detail">
+
+            <span>
+              Payment Reference
+            </span>
+
+            <strong>
+              {{ accountsPaymentReference(row) }}
+            </strong>
+
+          </div>
+
+
+          <div
+            class="accounts-payment-detail"
+            *ngIf="row.accountsVoucherNumber"
+          >
+
+            <span>
+              Accounts Voucher
+            </span>
+
+            <strong>
+              {{ row.accountsVoucherNumber }}
+            </strong>
+
+          </div>
+
+        </div>
+
+
+        <div
+          class="accounts-no-payment"
+          *ngIf="
+            !hasAccountsSettlement(row) &&
+            row.accountsStatus !== 'paid' &&
+            row.accountsStatus !== 'partially_paid'
+          "
+        >
+
+          <span class="accounts-no-payment-icon">
+            &#8377;
+          </span>
+
+          <div>
+
+            <strong>
+              Payment not recorded yet
+            </strong>
+
+            <p>
+              Accounts has received this invoice, but no posted payment
+              allocation has been reflected against it yet.
+            </p>
+
+          </div>
+
+        </div>
+
+      </section>
 
 
       <!-- =====================================================

@@ -787,7 +787,7 @@ td small {
   align-items: flex-start;
   gap: 5px;
 
-  min-width: 140px;
+  min-width: 150px;
 }
 
 .handoff-status {
@@ -826,10 +826,79 @@ td small {
   font-weight: 800;
 }
 
+.accounts-payment-summary {
+  color: #566b85 !important;
+
+  font-weight: 750;
+}
+
 .accounts-help-text {
   color: #956a19 !important;
 
   font-weight: 700;
+}
+
+
+/* ============================================================
+   CENTRAL ACCOUNTS REGISTER STATUS
+============================================================ */
+
+.accounts-register-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  max-width: 190px;
+
+  padding: 6px 10px;
+
+  border-radius: 999px;
+
+  text-align: center;
+
+  font-size: 9px;
+  font-weight: 900;
+  line-height: 1.25;
+
+  white-space: normal;
+
+  box-shadow:
+    inset 1px 1px 3px rgba(255, 255, 255, 0.35);
+}
+
+.accounts-status-none {
+  background: #e1e7ee;
+  color: #5c6c80;
+}
+
+.accounts-status-sent {
+  background: #e1e7ff;
+  color: #4059bd;
+}
+
+.accounts-status-review {
+  background: #e8e5f7;
+  color: #694fa8;
+}
+
+.accounts-status-verified {
+  background: #dcefe5;
+  color: #23724d;
+}
+
+.accounts-status-partial {
+  background: #fff0ce;
+  color: #93600d;
+}
+
+.accounts-status-paid {
+  background: #d7efdf;
+  color: #17613e;
+}
+
+.accounts-status-rejected {
+  background: #f8dfe2;
+  color: #9e3943;
 }
 
 
@@ -1503,6 +1572,263 @@ td small {
 
   font-size: 13px;
   font-weight: 900;
+}
+
+
+/* ============================================================
+   ACCOUNTS SETTLEMENT SECTION
+============================================================ */
+
+.accounts-settlement-section {
+  margin: 0 21px 18px;
+  padding: 18px;
+
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  border-radius: 17px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #edf2f7,
+      #e4ebf2
+    );
+
+  box-shadow:
+    6px 6px 15px rgba(176, 187, 201, 0.28),
+    -6px -6px 15px rgba(255, 255, 255, 0.82);
+}
+
+.accounts-settlement-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+
+  margin-bottom: 15px;
+}
+
+.accounts-settlement-header > div {
+  min-width: 0;
+}
+
+.accounts-settlement-eyebrow {
+  display: block;
+
+  margin-bottom: 4px;
+
+  color: #526985;
+
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.13em;
+}
+
+.accounts-settlement-header h3 {
+  margin: 0;
+
+  color: #20344d;
+
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.accounts-settlement-header p {
+  margin: 5px 0 0;
+
+  color: #7b899c;
+
+  font-size: 9px;
+  line-height: 1.55;
+}
+
+.accounts-settlement-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  gap: 10px;
+}
+
+.accounts-settlement-item {
+  position: relative;
+
+  min-height: 76px;
+
+  padding: 13px;
+
+  overflow: hidden;
+
+  border: 1px solid rgba(213, 222, 232, 0.75);
+  border-radius: 12px;
+
+  background: #e7edf3;
+
+  box-shadow:
+    inset 2px 2px 5px rgba(184, 195, 208, 0.34),
+    inset -2px -2px 5px rgba(255, 255, 255, 0.82);
+}
+
+.accounts-settlement-item::before {
+  content: '';
+
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  width: 3px;
+  height: 100%;
+
+  background: #667d9b;
+}
+
+.accounts-settlement-item.paid::before {
+  background: var(--pi-success);
+}
+
+.accounts-settlement-item.outstanding::before {
+  background: #d18b20;
+}
+
+.accounts-settlement-item span {
+  display: block;
+
+  margin-bottom: 6px;
+
+  color: #748399;
+
+  font-size: 8px;
+  font-weight: 850;
+}
+
+.accounts-settlement-item strong {
+  color: #21364f;
+
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.accounts-settlement-item.paid strong {
+  color: #23724d;
+}
+
+.accounts-settlement-item.outstanding strong {
+  color: #93600d;
+}
+
+
+/* ============================================================
+   ACCOUNTS PAYMENT DETAILS
+============================================================ */
+
+.accounts-payment-details {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 10px;
+
+  margin-top: 13px;
+}
+
+.accounts-payment-detail {
+  padding: 12px 13px;
+
+  border: 1px solid rgba(213, 222, 232, 0.72);
+  border-radius: 11px;
+
+  background: #e5ebf1;
+
+  box-shadow:
+    inset 2px 2px 5px rgba(186, 196, 208, 0.32),
+    inset -2px -2px 5px rgba(255, 255, 255, 0.82);
+}
+
+.accounts-payment-detail span {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: #768599;
+
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.accounts-payment-detail strong {
+  color: #2b4059;
+
+  font-size: 10px;
+  font-weight: 850;
+
+  word-break: break-word;
+}
+
+
+/* ============================================================
+   ACCOUNTS - NO PAYMENT YET
+============================================================ */
+
+.accounts-no-payment {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+
+  margin-top: 13px;
+  padding: 12px 13px;
+
+  border: 1px solid #d7e0ea;
+  border-radius: 12px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #e8eef4,
+      #e2e9f0
+    );
+}
+
+.accounts-no-payment-icon {
+  display: grid;
+  place-items: center;
+
+  width: 32px;
+  height: 32px;
+
+  flex: 0 0 auto;
+
+  border-radius: 9px;
+
+  background: #dde5ed;
+  color: #536b89;
+
+  font-size: 13px;
+  font-weight: 900;
+
+  box-shadow:
+    inset 2px 2px 4px rgba(183, 194, 207, 0.38),
+    inset -2px -2px 4px rgba(255, 255, 255, 0.8);
+}
+
+.accounts-no-payment strong {
+  display: block;
+
+  margin-bottom: 3px;
+
+  color: #40546e;
+
+  font-size: 9px;
+  font-weight: 850;
+}
+
+.accounts-no-payment p {
+  margin: 0;
+
+  color: #7a8799;
+
+  font-size: 8px;
+  line-height: 1.5;
 }
 
 
@@ -2508,6 +2834,11 @@ td small {
       repeat(2, minmax(0, 1fr));
   }
 
+  .accounts-settlement-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
 }
 
 
@@ -2618,6 +2949,26 @@ td small {
     margin-right: 14px;
   }
 
+  .accounts-settlement-section {
+    margin-left: 14px;
+    margin-right: 14px;
+
+    padding: 14px;
+  }
+
+  .accounts-settlement-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .accounts-settlement-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .accounts-payment-details {
+    grid-template-columns: 1fr;
+  }
+
   .invoice-documents-section {
     margin-left: 14px;
     margin-right: 14px;
@@ -2700,6 +3051,15 @@ td small {
   .filters-card,
   .table-card {
     border-radius: 15px;
+  }
+
+  .accounts-settlement-header .accounts-register-status {
+    width: 100%;
+    max-width: none;
+  }
+
+  .accounts-no-payment {
+    align-items: center;
   }
 
   .documents-section-header {

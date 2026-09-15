@@ -178,6 +178,26 @@ export const ACCOUNTS_ROUTES: Routes = [
       ====================================================== */
 
       {
+        path: 'department-invoices',
+
+        loadComponent: () =>
+          import(
+            './pages/department-invoices/department-invoices.component'
+          ).then(
+            (module) =>
+              module.DepartmentInvoicesComponent
+          ),
+
+        data: {
+          title: 'Incoming Invoices',
+          section: 'Accounts',
+          feature: 'department-invoices',
+          description:
+            'Purchase and Logistics invoices submitted to Accounts for review, verification and settlement.'
+        }
+      },
+
+      {
         path: 'bills',
 
         loadComponent: () =>
@@ -346,6 +366,7 @@ export const ACCOUNTS_ROUTES: Routes = [
             'Read-only chronological accounting voucher and journal register.'
         }
       },
+
       {
         path: 'ledger',
 
@@ -363,6 +384,7 @@ export const ACCOUNTS_ROUTES: Routes = [
           feature: 'ledger'
         }
       },
+
       {
         path: 'ledger/customers',
 
@@ -492,9 +514,11 @@ export const ACCOUNTS_ROUTES: Routes = [
             'GST reporting access and statutory accounting capability overview.'
         }
       },
+
       /* ======================================================
          REPORTS
       ====================================================== */
+
       {
         path: 'balance-sheet',
 
@@ -512,6 +536,7 @@ export const ACCOUNTS_ROUTES: Routes = [
           feature: 'balance-sheet'
         }
       },
+
       {
         path: 'profit-and-loss',
 
@@ -529,6 +554,7 @@ export const ACCOUNTS_ROUTES: Routes = [
           feature: 'profit-and-loss'
         }
       },
+
       {
         path: 'trial-balance',
 
@@ -566,6 +592,7 @@ export const ACCOUNTS_ROUTES: Routes = [
             'Central access to existing accounting and statutory reports.'
         }
       },
+
       /* ======================================================
          MY EMPLOYEE
       ====================================================== */

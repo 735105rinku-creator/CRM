@@ -1620,7 +1620,8 @@ class PurchaseInvoiceService {
   async handoff(
     companyId,
     invoiceId,
-    userId
+    userId,
+    identity = {}
   ) {
 
     let invoice =
@@ -1659,7 +1660,8 @@ class PurchaseInvoiceService {
       await this.registerWithAccounts(
         companyId,
         invoice,
-        userId
+        userId,
+        identity
       );
 
 
@@ -1810,7 +1812,8 @@ class PurchaseInvoiceService {
     await this.registerWithAccounts(
       companyId,
       invoice,
-      userId
+      userId,
+      identity
     );
 
 
@@ -1833,7 +1836,8 @@ class PurchaseInvoiceService {
   async registerWithAccounts(
     companyId,
     invoice,
-    userId
+    userId,
+    identity = {}
   ) {
 
     const documents =
@@ -1918,10 +1922,10 @@ class PurchaseInvoiceService {
             userId,
 
           sentToAccountsByEmployeeId:
-            null,
+            identity.employeeId || null,
 
           sentToAccountsByName:
-            ""
+            String(identity.userName || "").trim()
 
         });
 

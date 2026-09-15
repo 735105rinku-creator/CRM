@@ -1,0 +1,51 @@
+<section class="approval-workspace">
+  <header>
+    <div><span class="eyebrow">Final payment authorization</span><h2>Invoice Approvals</h2><p>Purchase and Logistics invoices verified by Accounts.</p></div>
+    <span class="count">{{ total() }} invoices</span>
+  </header>
+
+  <div class="filters">
+    <select [(ngModel)]="approvalStatus" (change)="load()">
+      <option value="pending">Pending Approval</option>
+      <option value="approved">Approved</option>
+      <option value="rejected">Rejected</option>
+    </select>
+    <select [(ngModel)]="sourceModule" (change)="load()">
+      <option value="">All sources</option>
+      <option value="purchase_invoice">Purchase Invoice</option>
+      <option value="logistics_invoice">Logistics Invoice</option>
+      <option value="logistics_vendor_payment">Logistics Vendor Payment</option>
+    </select>
+    <input [(ngModel)]="search" (keyup.enter)="load()" placeholder="Search invoice, vendor or sender" />
+    <button type="button" (click)="load()">Search</button>
+  </div>
+
+  @if (error()) { <p class="error">{{ error() }}</p> }
+  @if (loading()) { <p class="empty">Loading approvals…</p> }
+  @else if (!rows().length) { <p class="empty">No invoices match these filters.</p> }
+  @else {
+    <div class="table-wrap"><table><thead><tr><th>Source</th><th>Invoice</th><th>Party</th><th>Total</th><th>Sent by</th><th>Status</th><th></th></tr></thead>
+      <tbody>@for (row of rows(); track row._id) {<tr>
+        <td>{{ row.sourceDepartment | titlecase }}<small>{{ row.sourceModule.replaceAll('_', ' ') }}</small></td>
+        <td><strong>{{ row.invoiceNumber }}</strong><small>{{ formatDate(row.sentToAccountsAt) }}</small></td>
+        <td>{{ row.partyName }}</td><td>{{ row.totalAmount | currency:(row.currency || 'INR') }}</td>
+        <td>{{ row.sentToAccountsByName || '—' }}</td>
+        <td><span class="badge" [attr.data-status]="row.companyAdminApprovalStatus">{{ row.companyAdminApprovalStatus | titlecase }}</span></td>
+        <td><button type="button" (click)="open(row)">Review</button></td>
+      </tr>}</tbody></table></div>
+  }
+</section>
+
+@if (selected(); as invoice) {
+  <div class="modal-backdrop" (click)="close()"><article class="modal" (click)="$event.stopPropagation()">
+    <header><div><span class="eyebrow">{{ invoice.sourceDepartment | titlecase }}</span><h3>{{ invoice.invoiceNumber }}</h3></div><button type="button" class="close" (click)="close()">×</button></header>
+    <div class="facts"><div><small>Party</small><strong>{{ invoice.partyName }}</strong></div><div><small>Total</small><strong>{{ invoice.totalAmount | currency:(invoice.currency || 'INR') }}</strong></div><div><small>Accounts verified by</small><strong>{{ invoice.verifiedByName || '—' }}</strong></div><div><small>Verified at</small><strong>{{ formatDate(invoice.verifiedAt) }}</strong></div></div>
+    <section><h4>Documents</h4>@for (document of invoice.documents || []; track $index) {<button type="button" (click)="viewDocument(invoice, $index)">View {{ document.label || document.fileName || 'document' }}</button>} @if (!(invoice.documents || []).length) {<p>No documents attached.</p>}</section>
+    @if (invoice.companyAdminApprovalStatus === 'pending') {
+      <label>Remarks / rejection reason<textarea [(ngModel)]="remarks" rows="4"></textarea></label>
+      <div class="actions"><button type="button" class="reject" [disabled]="deciding()" (click)="decide('rejected')">Reject</button><button type="button" class="approve" [disabled]="deciding()" (click)="decide('approved')">Approve</button></div>
+    } @else {
+      <div class="decision"><strong>{{ invoice.companyAdminApprovalStatus | titlecase }}</strong><span>{{ invoice.companyAdminApprovalByName || '—' }} · {{ formatDate(invoice.companyAdminApprovalAt) }}</span><p>{{ invoice.companyAdminApprovalRemarks || 'No remarks' }}</p></div>
+    }
+  </article></div>
+}

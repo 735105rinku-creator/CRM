@@ -16,12 +16,17 @@ import {
 } from '@angular/router';
 
 import {
-  ChartOfAccountsSummary
+  ChartOfAccountsSummary,
+  DepartmentInvoice
 } from '../../models/accounts.models';
 
 import {
   ChartOfAccountsService
 } from '../../services/chart-of-accounts.service';
+
+import {
+  DepartmentInvoiceService
+} from '../../services/department-invoice.service';
 
 
 interface AccountsSummaryCard {
@@ -71,14 +76,23 @@ interface AccountsModuleShortcut {
     ChangeDetectionStrategy.OnPush
 })
 export class AccountsDashboardComponent
-  implements OnInit {
+implements OnInit {
 
   /* =========================================================
      SERVICES
   ========================================================= */
 
   private readonly chartOfAccountsService =
-  inject(ChartOfAccountsService);
+    inject(
+      ChartOfAccountsService
+    );
+
+
+  private readonly departmentInvoiceService =
+    inject(
+      DepartmentInvoiceService
+    );
+
 
   /* =========================================================
      FINANCIAL YEAR
@@ -121,12 +135,6 @@ export class AccountsDashboardComponent
       ''
     );
 
-
-  /*
-   * Always expose a safe zero-state object to the template.
-   *
-   * These are ACCOUNT COUNTS, not financial balances.
-   */
 
   readonly chartSummary =
     computed<ChartOfAccountsSummary>(
@@ -296,6 +304,207 @@ export class AccountsDashboardComponent
         ];
 
       }
+    );
+
+
+  /* =========================================================
+     INCOMING DEPARTMENT INVOICES
+  ========================================================= */
+
+  readonly incomingInvoices =
+    signal<DepartmentInvoice[]>([]);
+
+
+  readonly isIncomingInvoicesLoading =
+    signal(
+      false
+    );
+
+
+  readonly incomingInvoicesError =
+    signal(
+      ''
+    );
+
+
+  readonly incomingInvoiceTotal =
+    signal(
+      0
+    );
+
+
+  readonly incomingAwaitingReview =
+    computed(
+      () =>
+        this.incomingInvoices()
+          .filter(
+            invoice =>
+              invoice.status ===
+              'sent'
+          )
+          .length
+    );
+
+
+  readonly incomingVerified =
+    computed(
+      () =>
+        this.incomingInvoices()
+          .filter(
+            invoice =>
+              invoice.status ===
+              'verified'
+          )
+          .length
+    );
+
+
+  readonly incomingPartiallyPaid =
+    computed(
+      () =>
+        this.incomingInvoices()
+          .filter(
+            invoice =>
+              invoice.status ===
+              'partially_paid'
+          )
+          .length
+    );
+
+
+  readonly incomingPurchase =
+    computed(
+      () =>
+        this.incomingInvoices()
+          .filter(
+            invoice =>
+              invoice.sourceDepartment ===
+              'purchase'
+          )
+          .length
+    );
+
+
+  readonly incomingLogistics =
+    computed(
+      () =>
+        this.incomingInvoices()
+          .filter(
+            invoice =>
+              invoice.sourceDepartment ===
+              'logistics'
+          )
+          .length
+    );
+
+
+  readonly incomingInvoiceCards =
+    computed<AccountsSummaryCard[]>(
+      () => [
+
+        {
+          title:
+            'Incoming Invoices',
+
+          value:
+            this.incomingInvoiceTotal(),
+
+          type:
+            'number',
+
+          subtitle:
+            'Purchase and Logistics handoffs',
+
+          route:
+            '/accounts/department-invoices'
+        },
+
+        {
+          title:
+            'Awaiting Review',
+
+          value:
+            this.incomingAwaitingReview(),
+
+          type:
+            'number',
+
+          subtitle:
+            'Invoices waiting for Accounts review',
+
+          route:
+            '/accounts/department-invoices'
+        },
+
+        {
+          title:
+            'Verified',
+
+          value:
+            this.incomingVerified(),
+
+          type:
+            'number',
+
+          subtitle:
+            'Verified incoming invoices',
+
+          route:
+            '/accounts/department-invoices'
+        },
+
+        {
+          title:
+            'Partially Paid',
+
+          value:
+            this.incomingPartiallyPaid(),
+
+          type:
+            'number',
+
+          subtitle:
+            'Invoices with remaining balance',
+
+          route:
+            '/accounts/department-invoices'
+        },
+
+        {
+          title:
+            'Purchase',
+
+          value:
+            this.incomingPurchase(),
+
+          type:
+            'number',
+
+          subtitle:
+            'Purchase invoice handoffs',
+
+          route:
+            '/accounts/department-invoices'
+        },
+
+        {
+          title:
+            'Logistics',
+
+          value:
+            this.incomingLogistics(),
+
+          type:
+            'number',
+
+          subtitle:
+            'Logistics invoice handoffs',
+
+          route:
+            '/accounts/department-invoices'
+        }
+
+      ]
     );
 
 
@@ -526,6 +735,20 @@ export class AccountsDashboardComponent
 
     {
       label:
+        'Incoming Invoices',
+
+      description:
+        'Review Purchase and Logistics invoices sent to Accounts.',
+
+      route:
+        '/accounts/department-invoices',
+
+      shortCode:
+        'IN'
+    },
+
+    {
+      label:
         'Sales Invoice',
 
       description:
@@ -617,6 +840,20 @@ export class AccountsDashboardComponent
 
   readonly moduleShortcuts:
     AccountsModuleShortcut[] = [
+
+    {
+      title:
+        'Incoming Invoices',
+
+      description:
+        'Review Purchase and Logistics handoffs, documents, verification and settlement status.',
+
+      route:
+        '/accounts/department-invoices',
+
+      shortCode:
+        'IN'
+    },
 
     {
       title:
@@ -714,6 +951,8 @@ export class AccountsDashboardComponent
 
     this.loadChartOfAccountsSummary();
 
+    this.loadIncomingInvoices();
+
   }
 
 
@@ -785,6 +1024,113 @@ export class AccountsDashboardComponent
 
 
             this.isChartSummaryLoading.set(
+              false
+            );
+
+          }
+
+      });
+
+  }
+
+
+  /* =========================================================
+     LOAD INCOMING INVOICES
+
+     Dashboard preview only.
+
+     The API currently provides a paginated register rather
+     than a dedicated aggregate-summary endpoint.
+
+     We request up to 100 rows, which is the existing maximum
+     supported by the DepartmentInvoice query validator.
+  ========================================================= */
+
+  private loadIncomingInvoices():
+    void {
+
+    this.isIncomingInvoicesLoading.set(
+      true
+    );
+
+
+    this.incomingInvoicesError.set(
+      ''
+    );
+
+
+    this.departmentInvoiceService
+      .getDepartmentInvoices({
+        page:
+          1,
+
+        limit:
+          100
+      })
+      .subscribe({
+
+        next:
+          (
+            result
+          ) => {
+
+            this.incomingInvoices.set(
+              Array.isArray(
+                result?.rows
+              )
+                ? result.rows
+                : []
+            );
+
+
+            this.incomingInvoiceTotal.set(
+              Number(
+                result?.pagination
+                  ?.total ||
+                0
+              )
+            );
+
+
+            this.isIncomingInvoicesLoading.set(
+              false
+            );
+
+          },
+
+
+        error:
+          (
+            error: {
+              error?: {
+                message?: string;
+              };
+            }
+          ) => {
+
+            console.error(
+              'Unable to load incoming invoice dashboard summary',
+              error
+            );
+
+
+            this.incomingInvoices.set(
+              []
+            );
+
+
+            this.incomingInvoiceTotal.set(
+              0
+            );
+
+
+            this.incomingInvoicesError.set(
+              error?.error?.message ||
+              'Unable to load incoming invoice summary.'
+            );
+
+
+            this.isIncomingInvoicesLoading.set(
               false
             );
 

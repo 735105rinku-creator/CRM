@@ -32,6 +32,15 @@ export const LOGISTICS_VENDOR_PAYMENT_ACCOUNTS_STATUSES =
   ]);
 
 
+export const LOGISTICS_VENDOR_PAYMENT_COMPANY_ADMIN_APPROVAL_STATUSES =
+  Object.freeze([
+    "not_submitted",
+    "pending",
+    "approved",
+    "rejected",
+  ]);
+
+
 /* ============================================================
    PAYMENT HISTORY
 
@@ -524,6 +533,46 @@ const logisticsVendorPaymentSchema = new mongoose.Schema(
       type: String,
       trim: true,
       maxlength: 250,
+      default: "",
+    },
+
+
+    /* ========================================================
+       COMPANY ADMIN PAYMENT AUTHORIZATION
+
+       Mirrors the final payment-authorization state from the
+       central DepartmentInvoice workflow.
+
+       This does NOT give Company Admin Logistics operational
+       access. It records only the final authorization required
+       before Accounts can settle the handed-off record.
+
+       DepartmentInvoice remains the central source of truth.
+    ======================================================== */
+
+    companyAdminApprovalStatus: {
+      type: String,
+      enum:
+        LOGISTICS_VENDOR_PAYMENT_COMPANY_ADMIN_APPROVAL_STATUSES,
+      default: "not_submitted",
+    },
+
+    companyAdminApprovalByName: {
+      type: String,
+      trim: true,
+      maxlength: 250,
+      default: "",
+    },
+
+    companyAdminApprovalAt: {
+      type: Date,
+      default: null,
+    },
+
+    companyAdminApprovalRemarks: {
+      type: String,
+      trim: true,
+      maxlength: 1500,
       default: "",
     },
 

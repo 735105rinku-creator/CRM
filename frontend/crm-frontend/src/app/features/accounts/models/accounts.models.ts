@@ -1,7 +1,3 @@
-/* =========================================================
-   COMMON ACCOUNT TYPES
-========================================================= */
-
 export type AccountNature =
   | 'asset'
   | 'liability'
@@ -1343,4 +1339,223 @@ export interface PurchasePaymentAllocationOption {
   paidAmount: number;
   outstandingAmount: number;
   accountsVoucherNumber: string;
+  companyAdminApprovalStatus?: DepartmentInvoiceApprovalStatus;
+}
+
+
+export interface PurchasePaymentContext {
+  purchaseInvoiceId: string;
+
+  vendorName: string;
+
+  vendorInvoiceNumber: string;
+
+  invoiceDate: string;
+
+  poNumber?: string;
+
+  invoiceTotal: number;
+
+  paidAmount: number;
+
+  outstandingAmount: number;
+
+  accountsVoucherNumber?: string;
+
+  partyAccountId: string;
+
+  partyAccountCode?: string;
+
+  partyAccountName?: string;
+
+  companyAdminApprovalStatus: DepartmentInvoiceApprovalStatus;
+}
+
+/* =========================================================
+   DEPARTMENT INVOICES / ACCOUNTS INBOX
+========================================================= */
+
+export type DepartmentInvoiceSourceDepartment =
+  | 'purchase'
+  | 'logistics';
+
+
+export type DepartmentInvoiceSourceModule =
+  | 'purchase_invoice'
+  | 'logistics_vendor_payment'
+  | 'logistics_invoice';
+
+
+export type DepartmentInvoiceStatus =
+  | 'sent'
+  | 'under_review'
+  | 'verified'
+  | 'partially_paid'
+  | 'paid'
+  | 'rejected';
+
+export type DepartmentInvoiceApprovalStatus =
+  | 'not_submitted'
+  | 'pending'
+  | 'approved'
+  | 'rejected';
+
+
+export interface DepartmentInvoiceDocument {
+  label?: string;
+
+  fileName?: string;
+
+  fileUrl?: string;
+
+  filePath?: string;
+
+  mimeType?: string;
+}
+
+
+export interface DepartmentInvoicePayment {
+  _id?: string;
+
+  amount: number;
+
+  paymentDate: string;
+
+  paymentReference?: string;
+
+  paymentMode?: string;
+
+  remarks?: string;
+
+  recordedBy?: string;
+
+  recordedByName?: string;
+
+  recordedAt?: string;
+}
+
+
+export interface DepartmentInvoice {
+  _id: string;
+
+  companyId?: string;
+
+  sourceDepartment: DepartmentInvoiceSourceDepartment;
+
+  sourceModule: DepartmentInvoiceSourceModule;
+
+  sourceRecordId: string;
+
+  invoiceNumber: string;
+
+  partyName: string;
+
+  invoiceDate: string;
+
+  currency?: string;
+
+  totalAmount: number;
+
+  documents?: DepartmentInvoiceDocument[];
+
+  status: DepartmentInvoiceStatus;
+
+  sentToAccountsBy?: string;
+
+  sentToAccountsByEmployeeId?: string | null;
+
+  sentToAccountsByName?: string;
+
+  sentToAccountsAt?: string;
+
+  verifiedBy?: string | null;
+
+  verifiedByName?: string;
+
+  verifiedAt?: string | null;
+
+  companyAdminApprovalStatus?: DepartmentInvoiceApprovalStatus;
+
+  companyAdminApprovalBy?: string | null;
+
+  companyAdminApprovalByEmployeeId?: string | null;
+
+  companyAdminApprovalByName?: string;
+
+  companyAdminApprovalAt?: string | null;
+
+  companyAdminApprovalRemarks?: string;
+
+  rejectedBy?: string | null;
+
+  rejectedByName?: string;
+
+  rejectedAt?: string | null;
+
+  rejectionReason?: string;
+
+  payments?: DepartmentInvoicePayment[];
+
+  paidAmount: number;
+
+  remainingAmount: number;
+
+  lastPaymentAt?: string | null;
+
+  lastPaymentReference?: string;
+
+  lastPaidBy?: string | null;
+
+  lastPaidByName?: string;
+
+  accountsRemarks?: string;
+
+  createdAt?: string;
+
+  updatedAt?: string;
+}
+
+
+export interface DepartmentInvoiceQuery {
+  search?: string;
+
+  status?: DepartmentInvoiceStatus;
+
+  sourceDepartment?: DepartmentInvoiceSourceDepartment;
+
+  sourceModule?: DepartmentInvoiceSourceModule;
+
+  companyAdminApprovalStatus?: DepartmentInvoiceApprovalStatus;
+
+  page?: number;
+
+  limit?: number;
+}
+
+
+export interface VerifyDepartmentInvoicePayload {
+  remarks?: string;
+}
+
+
+export interface RejectDepartmentInvoicePayload {
+  reason: string;
+}
+
+
+export interface RecordDepartmentInvoicePaymentPayload {
+  amount: number;
+
+  paymentDate: string;
+
+  paymentReference?: string;
+
+  paymentMode?: string;
+
+  remarks?: string;
+}
+
+export interface CompanyAdminApprovalDecisionPayload {
+  decision: 'approved' | 'rejected';
+  remarks?: string;
 }

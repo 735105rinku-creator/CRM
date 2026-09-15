@@ -17,7 +17,8 @@ import {
   VoidVoucherPayload,
   Voucher,
   VoucherQuery,
-  PurchasePaymentAllocationOption
+  PurchasePaymentAllocationOption,
+  PurchasePaymentContext
 } from '../models/accounts.models';
 
 
@@ -59,6 +60,7 @@ export class VoucherService {
       payload
     );
   }
+
 
   /* =========================================================
      SALES VOUCHERS
@@ -109,6 +111,37 @@ export class VoucherService {
     );
   }
 
+
+  /* =========================================================
+     PURCHASE PAYMENT CONTEXT
+
+     Used before creating a Payment Voucher from an approved
+     Purchase Invoice.
+
+     Backend resolves the trusted:
+       - Purchase Invoice
+       - outstanding amount
+       - Purchase payable Voucher
+       - Vendor/AP account
+       - Company Admin approval
+
+     Frontend must not guess the payable account.
+  ========================================================= */
+
+  getPurchasePaymentContext(
+    purchaseInvoiceId: string
+  ): Observable<PurchasePaymentContext> {
+
+    return this.api.get<PurchasePaymentContext>(
+      `${this.basePath}/purchase-payment-context/${this.encodeId(purchaseInvoiceId)}`
+    );
+  }
+
+
+  /* =========================================================
+     SINGLE VOUCHER
+  ========================================================= */
+
   getVoucher(
     voucherId: string
   ): Observable<Voucher> {
@@ -118,6 +151,10 @@ export class VoucherService {
     );
   }
 
+
+  /* =========================================================
+     SALES VOUCHER CREATION
+  ========================================================= */
 
   createSalesVoucher(
     payload: Omit<CreateVoucherPayload, 'voucherType'>
@@ -133,6 +170,10 @@ export class VoucherService {
   }
 
 
+  /* =========================================================
+     UPDATE VOUCHER
+  ========================================================= */
+
   updateVoucher(
     voucherId: string,
     payload: UpdateVoucherPayload
@@ -145,6 +186,10 @@ export class VoucherService {
   }
 
 
+  /* =========================================================
+     POST VOUCHER
+  ========================================================= */
+
   postVoucher(
     voucherId: string
   ): Observable<Voucher> {
@@ -155,6 +200,10 @@ export class VoucherService {
     );
   }
 
+
+  /* =========================================================
+     VOID VOUCHER
+  ========================================================= */
 
   voidVoucher(
     voucherId: string,
@@ -168,6 +217,10 @@ export class VoucherService {
   }
 
 
+  /* =========================================================
+     VOUCHER ATTACHMENTS
+  ========================================================= */
+
   uploadAttachments(
     voucherId: string,
     files: File[]
@@ -179,12 +232,14 @@ export class VoucherService {
     for (
       const file of files
     ) {
+
       formData.append(
         'proofFiles',
         file,
         file.name
       );
     }
+
 
     return this.api.post<Voucher>(
       `${this.basePath}/${this.encodeId(voucherId)}/attachments`,
@@ -203,25 +258,50 @@ export class VoucherService {
     );
   }
 
+
+  /* =========================================================
+     PURCHASE PAYMENT ALLOCATION OPTIONS
+
+     Used after a draft Payment Voucher exists.
+
+     Backend re-validates Purchase Invoice eligibility before
+     returning allocation options.
+  ========================================================= */
+
   getPurchaseAllocationOptions(
     voucherId: string
   ): Observable<PurchasePaymentAllocationOption[]> {
+
     return this.api.get<PurchasePaymentAllocationOption[]>(
       `${this.basePath}/${this.encodeId(voucherId)}/purchase-allocation-options`
     );
   }
 
 
+  /* =========================================================
+     CREATE PURCHASE PAYMENT ALLOCATIONS
+  ========================================================= */
+
   createPurchaseAllocations(
     voucherId: string,
-    allocations: Array<{ purchaseInvoiceId: string; allocatedAmount: number }>
+    allocations: Array<{
+      purchaseInvoiceId: string;
+      allocatedAmount: number;
+    }>
   ): Observable<unknown[]> {
+
     return this.api.post<unknown[]>(
       `${this.basePath}/${this.encodeId(voucherId)}/purchase-allocations`,
-      { allocations }
+      {
+        allocations
+      }
     );
   }
 
+
+  /* =========================================================
+     ID ENCODING
+  ========================================================= */
 
   private encodeId(
     value: string

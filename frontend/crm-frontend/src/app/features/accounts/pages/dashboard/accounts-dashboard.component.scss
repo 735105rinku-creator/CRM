@@ -226,6 +226,69 @@ $nm-neutral-soft: #e9eef5;
 }
 
 /* =========================================================
+   INCOMING INVOICES OVERVIEW
+========================================================= */
+
+.incoming-invoice-summary-grid {
+  margin-top: 4px;
+}
+
+.incoming-invoice-summary-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.incoming-invoice-summary-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 18px;
+  right: 18px;
+  height: 3px;
+  border-radius: 0 0 8px 8px;
+  background: $nm-accent-soft;
+  box-shadow:
+    inset 2px 2px 4px rgba(197, 204, 255, 0.8),
+    inset -2px -2px 4px rgba(255, 255, 255, 0.9);
+}
+
+.incoming-invoice-summary-card .summary-value {
+  color: $nm-accent;
+}
+
+.incoming-invoice-quick-link {
+  margin-top: 18px;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+
+  @include neu-inset(18px);
+}
+
+.incoming-invoice-quick-link > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.incoming-invoice-quick-link strong {
+  display: block;
+  margin-top: 2px;
+  font-size: 14px;
+  line-height: 1.4;
+  color: $nm-text;
+}
+
+.incoming-invoice-quick-link p {
+  margin: 6px 0 0;
+  max-width: 760px;
+  font-size: 11px;
+  line-height: 1.55;
+  color: $nm-text-soft;
+}
+
+/* =========================================================
    PROFIT / LOSS
 ========================================================= */
 
@@ -308,6 +371,10 @@ $nm-neutral-soft: #e9eef5;
   margin-bottom: 16px;
 }
 
+.section-header > div {
+  min-width: 0;
+}
+
 .section-eyebrow {
   display: block;
   margin-bottom: 4px;
@@ -322,6 +389,14 @@ $nm-neutral-soft: #e9eef5;
   margin: 0;
   font-size: 18px;
   color: $nm-text;
+}
+
+.section-header p {
+  margin: 6px 0 0;
+  max-width: 720px;
+  font-size: 11px;
+  line-height: 1.55;
+  color: $nm-text-soft;
 }
 
 /* =========================================================
@@ -578,6 +653,7 @@ $nm-neutral-soft: #e9eef5;
 ========================================================= */
 
 @media (max-width: 1180px) {
+
   .summary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -589,6 +665,7 @@ $nm-neutral-soft: #e9eef5;
   .module-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
 }
 
 /* =========================================================
@@ -596,6 +673,7 @@ $nm-neutral-soft: #e9eef5;
 ========================================================= */
 
 @media (max-width: 800px) {
+
   .dashboard-header {
     align-items: flex-start;
   }
@@ -604,9 +682,18 @@ $nm-neutral-soft: #e9eef5;
     font-size: 21px;
   }
 
+  .section-header {
+    align-items: flex-start;
+  }
+
   .foundation-card {
     align-items: flex-start;
   }
+
+  .incoming-invoice-quick-link {
+    align-items: flex-start;
+  }
+
 }
 
 /* =========================================================
@@ -614,6 +701,7 @@ $nm-neutral-soft: #e9eef5;
 ========================================================= */
 
 @media (max-width: 650px) {
+
   .accounts-dashboard {
     gap: 15px;
   }
@@ -649,12 +737,31 @@ $nm-neutral-soft: #e9eef5;
     padding: 16px;
   }
 
+  .section-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .section-header .foundation-link {
+    width: 100%;
+  }
+
   .quick-actions-grid {
     grid-template-columns: 1fr;
   }
 
   .module-grid {
     grid-template-columns: 1fr;
+  }
+
+  .incoming-invoice-quick-link {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 16px;
+  }
+
+  .incoming-invoice-quick-link .foundation-link {
+    width: 100%;
   }
 
   .foundation-card {
@@ -666,6 +773,7 @@ $nm-neutral-soft: #e9eef5;
   .foundation-link {
     width: 100%;
   }
+
 }
 
 /* =========================================================
@@ -673,6 +781,7 @@ $nm-neutral-soft: #e9eef5;
 ========================================================= */
 
 @media (max-width: 420px) {
+
   .dashboard-header {
     padding: 15px;
   }
@@ -689,6 +798,10 @@ $nm-neutral-soft: #e9eef5;
     font-size: 20px;
   }
 
+  .incoming-invoice-quick-link {
+    padding: 14px;
+  }
+
   .quick-action-card {
     padding: 12px;
   }
@@ -696,4 +809,5 @@ $nm-neutral-soft: #e9eef5;
   .dashboard-section {
     padding: 14px;
   }
+
 }

@@ -49,6 +49,15 @@ export const LOGISTICS_INVOICE_ACCOUNTS_STATUS =
   });
 
 
+export const LOGISTICS_INVOICE_COMPANY_ADMIN_APPROVAL_STATUS =
+  Object.freeze({
+    NOT_SUBMITTED: "not_submitted",
+    PENDING: "pending",
+    APPROVED: "approved",
+    REJECTED: "rejected",
+  });
+
+
 /* ============================================================
    BANK DETAILS
 ============================================================ */
@@ -996,6 +1005,78 @@ const logisticsInvoiceSchema =
 
         maxlength:
           250,
+
+        default:
+          "",
+      },
+
+
+      /* ======================================================
+         COMPANY ADMIN PAYMENT AUTHORIZATION
+
+         This is a synchronized snapshot of the central
+         DepartmentInvoice authorization state.
+
+         Company Admin is NOT being given Logistics operational
+         access through these fields.
+
+         DepartmentInvoice remains the central source of truth.
+
+         Flow:
+         Logistics
+             ↓
+         Accounts verification
+             ↓
+         Company Admin authorization
+             ↓
+         Accounts settlement
+      ====================================================== */
+
+      companyAdminApprovalStatus: {
+        type:
+          String,
+
+        enum:
+          Object.values(
+            LOGISTICS_INVOICE_COMPANY_ADMIN_APPROVAL_STATUS
+          ),
+
+        default:
+          LOGISTICS_INVOICE_COMPANY_ADMIN_APPROVAL_STATUS
+            .NOT_SUBMITTED,
+      },
+
+      companyAdminApprovalByName: {
+        type:
+          String,
+
+        trim:
+          true,
+
+        maxlength:
+          250,
+
+        default:
+          "",
+      },
+
+      companyAdminApprovalAt: {
+        type:
+          Date,
+
+        default:
+          null,
+      },
+
+      companyAdminApprovalRemarks: {
+        type:
+          String,
+
+        trim:
+          true,
+
+        maxlength:
+          1500,
 
         default:
           "",

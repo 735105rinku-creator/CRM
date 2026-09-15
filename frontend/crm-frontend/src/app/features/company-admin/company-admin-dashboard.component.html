@@ -1834,6 +1834,11 @@
            CHART OF ACCOUNTS
       ====================================================== -->
 
+      } @else if (activeSection() === 'invoice-approvals') {
+        <section class="accounts-company-workspace span-2">
+          <app-invoice-approvals></app-invoice-approvals>
+        </section>
+
       } @else if (activeSection() === 'accounts-chart-of-accounts') {
 
         <section class="accounts-company-workspace span-2">

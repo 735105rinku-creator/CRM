@@ -71,6 +71,7 @@ import {
 import {
   AccountsSettingsComponent
 } from '../accounts/pages/accounts-settings/accounts-settings.component';
+import { InvoiceApprovalsComponent } from './invoice-approvals/invoice-approvals.component';
 
 interface UserRow {
   _id?: string;
@@ -341,7 +342,8 @@ declare global {
     CashBankBookComponent,
     TaxHubComponent,
     FinancialReportsHubComponent,
-    AccountsSettingsComponent
+    AccountsSettingsComponent,
+    InvoiceApprovalsComponent
   ],
 
   templateUrl:
@@ -847,6 +849,10 @@ export class CompanyAdminDashboardComponent {
       title: 'Dashboard',
 
       items: [
+        {
+          id: 'invoice-approvals',
+          label: 'Invoice Approvals'
+        },
         {
           id: 'overview',
           label: 'Overview'

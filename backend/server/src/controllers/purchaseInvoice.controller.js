@@ -713,7 +713,16 @@ export const verifyPurchaseInvoice =
             id,
             userId(
               req
-            )
+            ),
+            {
+              employeeId:
+                req.purchaseAccess?.employeeId ||
+                null,
+
+              userName:
+                req.purchaseAccess?.employeeName ||
+                ""
+            }
           );
 
 
@@ -749,6 +758,17 @@ export const handoffPurchaseInvoice =
         );
 
 
+      /*
+       * Pass the authenticated Purchase employee identity
+       * together with the user ID.
+       *
+       * This allows DepartmentInvoice to preserve the actual
+       * employee who handed the invoice to Accounts instead
+       * of displaying "Sent by —".
+       *
+       * Identity comes from the existing Purchase access
+       * middleware. Nothing is hardcoded here.
+       */
       const row =
         await purchaseInvoiceService
           .handoff(
@@ -758,7 +778,16 @@ export const handoffPurchaseInvoice =
             id,
             userId(
               req
-            )
+            ),
+            {
+              employeeId:
+                req.purchaseAccess?.employeeId ||
+                null,
+
+              userName:
+                req.purchaseAccess?.employeeName ||
+                ""
+            }
           );
 
 

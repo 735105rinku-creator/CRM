@@ -31,6 +31,13 @@ export const PURCHASE_INVOICE_ACCOUNTS_STATUSES = [
   "rejected",
 ];
 
+export const PURCHASE_INVOICE_COMPANY_ADMIN_APPROVAL_STATUSES = [
+  "not_submitted",
+  "pending",
+  "approved",
+  "rejected",
+];
+
 
 const purchaseInvoiceItemSchema = new mongoose.Schema(
   {
@@ -522,6 +529,58 @@ const purchaseInvoiceSchema = new mongoose.Schema(
       type: String,
       trim: true,
       maxlength: 250,
+      default: "",
+    },
+
+
+    /* ========================================================
+       COMPANY ADMIN PAYMENT AUTHORIZATION
+
+       Mirrors the final payment-authorization state from the
+       central DepartmentInvoice workflow.
+
+       This is separate from:
+       - Purchase Senior verification
+       - Accounts verification
+       - Purchase accounting voucher/posting logic
+
+       Flow:
+       Purchase → Accounts → Company Admin → Payment
+
+       "pending" means Accounts has verified the invoice and it
+       is waiting for Company Admin authorization.
+
+       "approved" allows the existing Accounts payment workflow
+       to continue.
+
+       "rejected" blocks settlement/payment.
+
+       These are mirror/audit fields only. DepartmentInvoice
+       remains the central source of truth for authorization.
+    ======================================================== */
+
+    companyAdminApprovalStatus: {
+      type: String,
+      enum: PURCHASE_INVOICE_COMPANY_ADMIN_APPROVAL_STATUSES,
+      default: "not_submitted",
+    },
+
+    companyAdminApprovalByName: {
+      type: String,
+      trim: true,
+      maxlength: 250,
+      default: "",
+    },
+
+    companyAdminApprovalAt: {
+      type: Date,
+      default: null,
+    },
+
+    companyAdminApprovalRemarks: {
+      type: String,
+      trim: true,
+      maxlength: 1500,
       default: "",
     },
 

@@ -55,8 +55,10 @@ import accountPartyRoutes
 import departmentInvoiceRoutes from "./departmentInvoice.routes.js";
 
 const router = Router();
+
 router.use(requireAuth);
 router.use(requireTenant);
+
 
 const models = {
   invoices: AccountInvoice,
@@ -64,452 +66,1546 @@ const models = {
   expenses: AccountExpense,
 };
 
-const companyIdOf = (user) => user.companyId?._id || user.companyId;
-const isCompanyScopeUser = (user) => [ROLES.SUPER_ADMIN, ROLES.COMPANY_ADMIN, ROLES.HR].includes(user.role) || Number(user.roleRef?.level) <= 2;
-const isAccountsDepartment = (department) => [department?.departmentName, department?.departmentCode]
-  .some((value) => /accounts?|finance/i.test(String(value || "")));
 
-const resolveAccountingAccess = asyncHandler(async (req, res, next) => {
-  const companyId = companyIdOf(req.user);
-  if (!companyId) throw new ApiError(403, "Company context missing.");
+const companyIdOf = (
+  user
+) =>
+  user.companyId?._id ||
+  user.companyId;
 
-  if (isCompanyScopeUser(req.user)) {
-    req.accountingAccess = { companyId, canManageCompanyAccounting: true };
-    return next();
-  }
 
-  const employee = await Employee.findOne({
-    companyId,
-    $or: [
-      { userId: req.user._id },
-      { employeeCode: String(req.user.employeeCode || "").toUpperCase() },
-    ],
-  }).populate("departmentId", "departmentName departmentCode");
+const isCompanyScopeUser = (
+  user
+) =>
+  [
+    ROLES.SUPER_ADMIN,
+    ROLES.COMPANY_ADMIN,
+    ROLES.HR,
+  ].includes(
+    user.role
+  ) ||
+  Number(
+    user.roleRef?.level
+  ) <=
+    2;
 
-  if (!employee || !isAccountsDepartment(employee.departmentId)) {
-    throw new ApiError(403, "Accounting access is allowed only for Accounts or Finance department employees.");
-  }
 
-  req.accountingAccess = {
-    companyId,
-    canManageCompanyAccounting: true,
-    employeeCode: employee.employeeCode,
-  };
-  next();
-});
+const isAccountsDepartment = (
+  department
+) =>
+  [
+    department?.departmentName,
+    department?.departmentCode,
+  ]
+    .some(
+      value =>
+        /accounts?|finance/i.test(
+          String(
+            value ||
+            ""
+          )
+        )
+    );
 
-router.use(resolveAccountingAccess);
+
+/* ============================================================
+   ACCOUNTING ACCESS
+
+   Company-scope users retain the existing company-wide
+   Accounting visibility/management context.
+
+   Important:
+   Department Invoice operational authority is intentionally
+   separate.
+
+   Company Admin / Super Admin / HR:
+     - existing Accounting company scope remains unchanged
+     - cannot perform Accounts invoice verification/rejection/
+       settlement operations
+
+   Accounts / Finance employee:
+     - existing Accounting access
+     - can perform Department Invoice operational actions
+
+   Company Admin final invoice authorization is protected
+   separately by the Department Invoice controller.
+============================================================ */
+
+const resolveAccountingAccess =
+  asyncHandler(
+    async (
+      req,
+      res,
+      next
+    ) => {
+
+      const companyId =
+        companyIdOf(
+          req.user
+        );
+
+
+      if (
+        !companyId
+      ) {
+
+        throw new ApiError(
+          403,
+          "Company context missing."
+        );
+      }
+
+
+      if (
+        isCompanyScopeUser(
+          req.user
+        )
+      ) {
+
+        req.accountingAccess = {
+
+          companyId,
+
+          canManageCompanyAccounting:
+            true,
+
+          /*
+           * Company-scope access is not the same as being an
+           * Accounts/Finance operational employee.
+           */
+          canOperateDepartmentInvoices:
+            false,
+
+        };
+
+
+        return next();
+      }
+
+
+      const employee =
+        await Employee
+          .findOne({
+
+            companyId,
+
+            $or: [
+
+              {
+                userId:
+                  req.user._id,
+              },
+
+              {
+                employeeCode:
+                  String(
+                    req.user.employeeCode ||
+                    ""
+                  )
+                    .toUpperCase(),
+              },
+
+            ],
+
+          })
+          .populate(
+            "departmentId",
+            "departmentName departmentCode"
+          );
+
+
+      if (
+        !employee ||
+        !isAccountsDepartment(
+          employee.departmentId
+        )
+      ) {
+
+        throw new ApiError(
+          403,
+          "Accounting access is allowed only for Accounts or Finance department employees."
+        );
+      }
+
+
+      req.accountingAccess = {
+
+        companyId,
+
+        canManageCompanyAccounting:
+          true,
+
+        employeeCode:
+          employee.employeeCode,
+
+        /*
+         * Only an actual Accounts/Finance employee receives
+         * operational authority over incoming Department
+         * Invoices.
+         */
+        canOperateDepartmentInvoices:
+          true,
+
+      };
+
+
+      next();
+    }
+  );
+
+
+router.use(
+  resolveAccountingAccess
+);
+
 
 router.use(
   "/chart-of-accounts",
   chartOfAccountRoutes
 );
 
+
 router.use(
   "/journal-entries",
   journalEntryRoutes
 );
+
 
 router.use(
   "/general-ledger",
   generalLedgerRoutes
 );
 
+
 router.use(
   "/day-book",
   dayBookRoutes
 );
+
 
 router.use(
   "/trial-balance",
   trialBalanceRoutes
 );
 
+
 router.use(
   "/profit-and-loss",
   profitLossRoutes
 );
+
 
 router.use(
   "/balance-sheet",
   balanceSheetRoutes
 );
 
+
 router.use(
   "/cash-bank-book",
   cashBankBookRoutes
 );
+
 
 router.use(
   "/outstanding",
   outstandingRoutes
 );
 
+
 router.use(
   "/gst-report",
   gstReportRoutes
 );
+
 
 router.use(
   "/vouchers",
   voucherRoutes
 );
 
-router.use("/department-invoices", departmentInvoiceRoutes);
+
+router.use(
+  "/department-invoices",
+  departmentInvoiceRoutes
+);
+
 
 router.use(
   accountPartyRoutes
 );
 
-const scopeFilter = (req) => ({ companyId: req.accountingAccess.companyId });
 
-const clean = (payload, allowed) => allowed.reduce((acc, key) => {
-  if (Object.prototype.hasOwnProperty.call(payload, key)) acc[key] = payload[key];
-  return acc;
-}, {});
-
-const assignment = (req, payload = {}, forceDefault = true) => {
-  const canAssign = Boolean(req.accountingAccess?.canManageCompanyAccounting);
-  if (canAssign) {
-    const hasExplicitAssignment = Object.prototype.hasOwnProperty.call(payload, "assignedUserId") || Object.prototype.hasOwnProperty.call(payload, "assignedEmployeeCode");
-    if (!forceDefault && !hasExplicitAssignment) return {};
-    return {
-      assignedUserId: payload.assignedUserId || req.user._id,
-      assignedEmployeeCode: String(payload.assignedEmployeeCode || req.user.employeeCode || "").toUpperCase(),
-    };
-  }
-  return {
-    assignedUserId: req.user._id,
-    assignedEmployeeCode: String(req.user.employeeCode || "").toUpperCase(),
-  };
-};
-
-const periodBounds = () => {
-  const now = new Date();
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const tomorrowStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-  return { todayStart, tomorrowStart, monthStart, nextMonthStart };
-};
-
-const rowAmount = (row) => Number(row.value ?? row.amount ?? 0) || 0;
-
-const enrichRows = async (companyId, rows) => {
-  const employeeCodes = Array.from(new Set(rows.map((row) => String(row.assignedEmployeeCode || "").toUpperCase()).filter(Boolean)));
-  const employees = employeeCodes.length
-    ? await Employee.find(await withVisibleEmployeeFilter({ companyId, employeeCode: { $in: employeeCodes } })).select("employeeCode displayName firstName lastName officialEmail").lean()
-    : [];
-  const employeesByCode = new Map(employees.map((employee) => [employee.employeeCode, employee]));
-  const { todayStart, tomorrowStart, monthStart, nextMonthStart } = periodBounds();
-
-  return rows.map((row) => {
-    const employee = employeesByCode.get(String(row.assignedEmployeeCode || "").toUpperCase());
-    const createdAt = row.createdAt ? new Date(row.createdAt) : null;
-    const isToday = Boolean(createdAt && createdAt >= todayStart && createdAt < tomorrowStart);
-    const isThisMonth = Boolean(createdAt && createdAt >= monthStart && createdAt < nextMonthStart);
-    return {
-      ...row,
-      assignedEmployeeName: employee?.displayName || [employee?.firstName, employee?.lastName].filter(Boolean).join(" ") || employee?.officialEmail || row.assignedEmployeeCode || "Unassigned",
-      createdDateStatus: isToday ? "Today" : isThisMonth ? "This month" : "Older",
-      isToday,
-      isThisMonth,
-    };
-  });
-};
-
-const buildSummary = (rows) => {
-  const summary = {
-    totalCount: rows.length,
-    todayCount: 0,
-    monthCount: 0,
-    totalAmount: 0,
-    todayAmount: 0,
-    monthAmount: 0,
-    statusCounts: {},
-    employeeCounts: [],
-  };
-  const employeeMap = new Map();
-
-  for (const row of rows) {
-    const amount = rowAmount(row);
-    const status = row.status || row.stage || "Open";
-    const employeeKey = row.assignedEmployeeCode || row.assignedEmployeeName || "Unassigned";
-    const employee = employeeMap.get(employeeKey) || { employeeCode: row.assignedEmployeeCode || "", employeeName: row.assignedEmployeeName || "Unassigned", total: 0, today: 0, month: 0, amount: 0 };
-
-    summary.totalAmount += amount;
-    summary.statusCounts[status] = (summary.statusCounts[status] || 0) + 1;
-    employee.total += 1;
-    employee.amount += amount;
-
-    if (row.isToday) {
-      summary.todayCount += 1;
-      summary.todayAmount += amount;
-      employee.today += 1;
-    }
-
-    if (row.isThisMonth) {
-      summary.monthCount += 1;
-      summary.monthAmount += amount;
-      employee.month += 1;
-    }
-
-    employeeMap.set(employeeKey, employee);
-  }
-
-  summary.employeeCounts = Array.from(employeeMap.values()).sort((a, b) => b.total - a.total || a.employeeName.localeCompare(b.employeeName));
-  return summary;
-};
-const searchableFields = {
-  invoices: ["invoiceNumber", "clientName", "transactionType", "businessCategory", "commodity", "routeType", "shipmentMode", "status", "notes"],
-  payments: ["payerName", "mode", "transactionType", "routeType", "status", "reference"],
-  expenses: ["title", "category", "expenseType", "businessCategory", "routeType", "status", "notes"],
-};
-
-const applySearchFilter = (filter, moduleName, search) => {
-  const q = String(search || "").trim();
-  if (!q) return filter;
-  const fields = searchableFields[moduleName] || [];
-  if (!fields.length) return filter;
-  return {
-    ...filter,
-    $or: fields.map((field) => ({ [field]: { $regex: q, $options: "i" } })),
-  };
-};
-
-const listRecords = (moduleName) => asyncHandler(async (req, res) => {
-  const Model = models[moduleName];
-  const page = Math.max(Number(req.query.page || 1), 1);
-  const limit = Math.min(Math.max(Number(req.query.limit || 25), 1), 200);
-  const filter = applySearchFilter(scopeFilter(req), moduleName, req.query.search);
-  const [rows, total] = await Promise.all([
-    Model.find(filter).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).lean(),
-    Model.countDocuments(filter),
-  ]);
-  const enrichedRows = await enrichRows(req.accountingAccess.companyId, rows);
-  const pagination = { total, page, limit, pages: Math.max(Math.ceil(total / limit), 1) };
-  res.json(new ApiResponse(200, { [moduleName]: enrichedRows, summary: buildSummary(enrichedRows), pagination }, `${moduleName} fetched.`));
+const scopeFilter = (
+  req
+) => ({
+  companyId:
+    req.accountingAccess.companyId,
 });
 
-const createRecord = (moduleName, allowed) => asyncHandler(async (req, res) => {
-  const Model = models[moduleName];
-  const row = await Model.create({
-    ...clean(req.body || {}, allowed),
-    ...assignment(req, req.body),
-    companyId: companyIdOf(req.user),
-    createdBy: req.user._id,
-    updatedBy: req.user._id,
-  });
-  res.status(201).json(new ApiResponse(201, row, `${moduleName.slice(0, -1)} created.`));
-});
 
-const updateRecord = (moduleName, allowed) => asyncHandler(async (req, res) => {
-  const Model = models[moduleName];
-  const row = await Model.findOneAndUpdate(
-    { _id: req.params.id, ...scopeFilter(req) },
-    { ...clean(req.body || {}, allowed), ...assignment(req, req.body, false), updatedBy: req.user._id },
-    { new: true, runValidators: true }
+const clean = (
+  payload,
+  allowed
+) =>
+  allowed.reduce(
+    (
+      acc,
+      key
+    ) => {
+
+      if (
+        Object.prototype.hasOwnProperty.call(
+          payload,
+          key
+        )
+      ) {
+
+        acc[key] =
+          payload[key];
+      }
+
+
+      return acc;
+
+    },
+    {}
   );
-  if (!row) throw new ApiError(404, `${moduleName.slice(0, -1)} not found.`);
-  res.json(new ApiResponse(200, row, `${moduleName.slice(0, -1)} updated.`));
-});
-
-router.get("/invoices", listRecords("invoices"));
-router.post("/invoices", createRecord("invoices", ["invoiceNumber", "clientName", "amount", "transactionType", "businessCategory", "commodity", "quantity", "routeType", "shipmentMode", "status", "dueDate", "notes", "assignedUserId", "assignedEmployeeCode"]));
-router.patch("/invoices/:id", updateRecord("invoices", ["invoiceNumber", "clientName", "amount", "transactionType", "businessCategory", "commodity", "quantity", "routeType", "shipmentMode", "status", "dueDate", "notes", "assignedUserId", "assignedEmployeeCode"]));
-
-router.get("/payments", listRecords("payments"));
-router.post("/payments", createRecord("payments", ["invoiceId", "payerName", "amount", "mode", "transactionType", "routeType", "status", "paymentDate", "reference", "assignedUserId", "assignedEmployeeCode"]));
-router.patch("/payments/:id", updateRecord("payments", ["invoiceId", "payerName", "amount", "mode", "transactionType", "routeType", "status", "paymentDate", "reference", "assignedUserId", "assignedEmployeeCode"]));
 
 
-const uploadExpenseAttachments = asyncHandler(
-  async (req, res) => {
+const assignment = (
+  req,
+  payload = {},
+  forceDefault = true
+) => {
 
-    const files =
-      Array.isArray(req.files)
-        ? req.files
-        : [];
+  const canAssign =
+    Boolean(
+      req.accountingAccess
+        ?.canManageCompanyAccounting
+    );
 
-    if (!files.length) {
-      throw new ApiError(
-        400,
-        "At least one proof file is required."
+
+  if (
+    canAssign
+  ) {
+
+    const hasExplicitAssignment =
+      Object.prototype.hasOwnProperty.call(
+        payload,
+        "assignedUserId"
+      ) ||
+      Object.prototype.hasOwnProperty.call(
+        payload,
+        "assignedEmployeeCode"
       );
-    }
 
-
-    try {
-
-    const companyId =
-      req.accountingAccess.companyId;
-
-    const expense =
-      await AccountExpense.findOne({
-        _id: req.params.id,
-        companyId,
-      });
-
-    if (!expense) {
-      throw new ApiError(
-        404,
-        "expense not found."
-      );
-    }
-
-    const existingCount =
-      Array.isArray(expense.attachments)
-        ? expense.attachments.length
-        : 0;
 
     if (
-      existingCount +
-        files.length >
-      5
+      !forceDefault &&
+      !hasExplicitAssignment
     ) {
-      throw new ApiError(
-        400,
-        "A maximum of 5 attachments is allowed per expense."
-      );
+
+      return {};
     }
 
-    const uploadedAt =
-      new Date();
 
-    const attachments =
-      files.map((file) => ({
-        originalName:
-          file.originalname,
+    return {
 
-        storedName:
-          file.filename,
+      assignedUserId:
+        payload.assignedUserId ||
+        req.user._id,
 
-        fileUrl:
-          toPublicAccountsProofUrl(
-            file
+      assignedEmployeeCode:
+        String(
+          payload.assignedEmployeeCode ||
+          req.user.employeeCode ||
+          ""
+        )
+          .toUpperCase(),
+
+    };
+  }
+
+
+  return {
+
+    assignedUserId:
+      req.user._id,
+
+    assignedEmployeeCode:
+      String(
+        req.user.employeeCode ||
+        ""
+      )
+        .toUpperCase(),
+
+  };
+};
+
+
+const periodBounds = () => {
+
+  const now =
+    new Date();
+
+
+  const todayStart =
+    new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate()
+    );
+
+
+  const tomorrowStart =
+    new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() +
+        1
+    );
+
+
+  const monthStart =
+    new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      1
+    );
+
+
+  const nextMonthStart =
+    new Date(
+      now.getFullYear(),
+      now.getMonth() +
+        1,
+      1
+    );
+
+
+  return {
+    todayStart,
+    tomorrowStart,
+    monthStart,
+    nextMonthStart,
+  };
+};
+
+
+const rowAmount = (
+  row
+) =>
+  Number(
+    row.value ??
+    row.amount ??
+    0
+  ) ||
+  0;
+
+
+const enrichRows =
+  async (
+    companyId,
+    rows
+  ) => {
+
+    const employeeCodes =
+      Array.from(
+        new Set(
+          rows
+            .map(
+              row =>
+                String(
+                  row.assignedEmployeeCode ||
+                  ""
+                )
+                  .toUpperCase()
+            )
+            .filter(
+              Boolean
+            )
+        )
+      );
+
+
+    const employees =
+      employeeCodes.length
+        ? await Employee
+            .find(
+              await withVisibleEmployeeFilter({
+                companyId,
+
+                employeeCode: {
+                  $in:
+                    employeeCodes,
+                },
+              })
+            )
+            .select(
+              "employeeCode displayName firstName lastName officialEmail"
+            )
+            .lean()
+        : [];
+
+
+    const employeesByCode =
+      new Map(
+        employees.map(
+          employee => [
+            employee.employeeCode,
+            employee,
+          ]
+        )
+      );
+
+
+    const {
+      todayStart,
+      tomorrowStart,
+      monthStart,
+      nextMonthStart,
+    } =
+      periodBounds();
+
+
+    return rows.map(
+      row => {
+
+        const employee =
+          employeesByCode.get(
+            String(
+              row.assignedEmployeeCode ||
+              ""
+            )
+              .toUpperCase()
+          );
+
+
+        const createdAt =
+          row.createdAt
+            ? new Date(
+                row.createdAt
+              )
+            : null;
+
+
+        const isToday =
+          Boolean(
+            createdAt &&
+            createdAt >=
+              todayStart &&
+            createdAt <
+              tomorrowStart
+          );
+
+
+        const isThisMonth =
+          Boolean(
+            createdAt &&
+            createdAt >=
+              monthStart &&
+            createdAt <
+              nextMonthStart
+          );
+
+
+        return {
+
+          ...row,
+
+          assignedEmployeeName:
+            employee?.displayName ||
+            [
+              employee?.firstName,
+              employee?.lastName,
+            ]
+              .filter(
+                Boolean
+              )
+              .join(
+                " "
+              ) ||
+            employee?.officialEmail ||
+            row.assignedEmployeeCode ||
+            "Unassigned",
+
+          createdDateStatus:
+            isToday
+              ? "Today"
+              : isThisMonth
+                ? "This month"
+                : "Older",
+
+          isToday,
+
+          isThisMonth,
+
+        };
+      }
+    );
+  };
+
+
+const buildSummary = (
+  rows
+) => {
+
+  const summary = {
+
+    totalCount:
+      rows.length,
+
+    todayCount:
+      0,
+
+    monthCount:
+      0,
+
+    totalAmount:
+      0,
+
+    todayAmount:
+      0,
+
+    monthAmount:
+      0,
+
+    statusCounts:
+      {},
+
+    employeeCounts:
+      [],
+
+  };
+
+
+  const employeeMap =
+    new Map();
+
+
+  for (
+    const row of
+    rows
+  ) {
+
+    const amount =
+      rowAmount(
+        row
+      );
+
+
+    const status =
+      row.status ||
+      row.stage ||
+      "Open";
+
+
+    const employeeKey =
+      row.assignedEmployeeCode ||
+      row.assignedEmployeeName ||
+      "Unassigned";
+
+
+    const employee =
+      employeeMap.get(
+        employeeKey
+      ) || {
+
+        employeeCode:
+          row.assignedEmployeeCode ||
+          "",
+
+        employeeName:
+          row.assignedEmployeeName ||
+          "Unassigned",
+
+        total:
+          0,
+
+        today:
+          0,
+
+        month:
+          0,
+
+        amount:
+          0,
+
+      };
+
+
+    summary.totalAmount +=
+      amount;
+
+
+    summary.statusCounts[
+      status
+    ] =
+      (
+        summary.statusCounts[
+          status
+        ] ||
+        0
+      ) +
+      1;
+
+
+    employee.total +=
+      1;
+
+
+    employee.amount +=
+      amount;
+
+
+    if (
+      row.isToday
+    ) {
+
+      summary.todayCount +=
+        1;
+
+      summary.todayAmount +=
+        amount;
+
+      employee.today +=
+        1;
+    }
+
+
+    if (
+      row.isThisMonth
+    ) {
+
+      summary.monthCount +=
+        1;
+
+      summary.monthAmount +=
+        amount;
+
+      employee.month +=
+        1;
+    }
+
+
+    employeeMap.set(
+      employeeKey,
+      employee
+    );
+  }
+
+
+  summary.employeeCounts =
+    Array.from(
+      employeeMap.values()
+    )
+      .sort(
+        (
+          a,
+          b
+        ) =>
+          b.total -
+            a.total ||
+          a.employeeName.localeCompare(
+            b.employeeName
+          )
+      );
+
+
+  return summary;
+};
+
+
+const searchableFields = {
+
+  invoices: [
+    "invoiceNumber",
+    "clientName",
+    "transactionType",
+    "businessCategory",
+    "commodity",
+    "routeType",
+    "shipmentMode",
+    "status",
+    "notes",
+  ],
+
+  payments: [
+    "payerName",
+    "mode",
+    "transactionType",
+    "routeType",
+    "status",
+    "reference",
+  ],
+
+  expenses: [
+    "title",
+    "category",
+    "expenseType",
+    "businessCategory",
+    "routeType",
+    "status",
+    "notes",
+  ],
+
+};
+
+
+const applySearchFilter = (
+  filter,
+  moduleName,
+  search
+) => {
+
+  const q =
+    String(
+      search ||
+      ""
+    )
+      .trim();
+
+
+  if (
+    !q
+  ) {
+
+    return filter;
+  }
+
+
+  const fields =
+    searchableFields[
+      moduleName
+    ] ||
+    [];
+
+
+  if (
+    !fields.length
+  ) {
+
+    return filter;
+  }
+
+
+  return {
+
+    ...filter,
+
+    $or:
+      fields.map(
+        field => ({
+          [field]: {
+            $regex:
+              q,
+
+            $options:
+              "i",
+          },
+        })
+      ),
+
+  };
+};
+
+
+const listRecords = (
+  moduleName
+) =>
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
+
+      const Model =
+        models[
+          moduleName
+        ];
+
+
+      const page =
+        Math.max(
+          Number(
+            req.query.page ||
+            1
+          ),
+          1
+        );
+
+
+      const limit =
+        Math.min(
+          Math.max(
+            Number(
+              req.query.limit ||
+              25
+            ),
+            1
+          ),
+          200
+        );
+
+
+      const filter =
+        applySearchFilter(
+          scopeFilter(
+            req
+          ),
+          moduleName,
+          req.query.search
+        );
+
+
+      const [
+        rows,
+        total,
+      ] =
+        await Promise.all([
+
+          Model
+            .find(
+              filter
+            )
+            .sort({
+              createdAt:
+                -1,
+            })
+            .skip(
+              (
+                page -
+                1
+              ) *
+                limit
+            )
+            .limit(
+              limit
+            )
+            .lean(),
+
+          Model
+            .countDocuments(
+              filter
+            ),
+
+        ]);
+
+
+      const enrichedRows =
+        await enrichRows(
+          req.accountingAccess
+            .companyId,
+          rows
+        );
+
+
+      const pagination = {
+
+        total,
+
+        page,
+
+        limit,
+
+        pages:
+          Math.max(
+            Math.ceil(
+              total /
+              limit
+            ),
+            1
           ),
 
-        storageKey:
-          `accounts-proofs/${file.filename}`,
+      };
 
-        mimeType:
-          file.mimetype,
 
-        fileSize:
-          Number(file.size || 0),
+      res.json(
+        new ApiResponse(
+          200,
+          {
+            [moduleName]:
+              enrichedRows,
 
-        uploadedBy:
-          req.user?._id || null,
+            summary:
+              buildSummary(
+                enrichedRows
+              ),
 
-        uploadedAt,
-      }));
-
-    expense.attachments.push(
-      ...attachments
-    );
-
-    expense.updatedBy =
-      req.user?._id || null;
-
-    await expense.save();
-
-    res.json(
-      new ApiResponse(
-        200,
-        expense,
-        "Expense proof uploaded successfully."
-      )
-    );
-
-    } catch (error) {
-
-      await safeRemoveUploadedAccountsProofFiles(
-        files
+            pagination,
+          },
+          `${moduleName} fetched.`
+        )
       );
-
-      throw error;
     }
-  }
+  );
+
+
+const createRecord = (
+  moduleName,
+  allowed
+) =>
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
+
+      const Model =
+        models[
+          moduleName
+        ];
+
+
+      const row =
+        await Model.create({
+
+          ...clean(
+            req.body ||
+              {},
+            allowed
+          ),
+
+          ...assignment(
+            req,
+            req.body
+          ),
+
+          companyId:
+            companyIdOf(
+              req.user
+            ),
+
+          createdBy:
+            req.user._id,
+
+          updatedBy:
+            req.user._id,
+
+        });
+
+
+      res
+        .status(
+          201
+        )
+        .json(
+          new ApiResponse(
+            201,
+            row,
+            `${moduleName.slice(
+              0,
+              -1
+            )} created.`
+          )
+        );
+    }
+  );
+
+
+const updateRecord = (
+  moduleName,
+  allowed
+) =>
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
+
+      const Model =
+        models[
+          moduleName
+        ];
+
+
+      const row =
+        await Model
+          .findOneAndUpdate(
+
+            {
+              _id:
+                req.params.id,
+
+              ...scopeFilter(
+                req
+              ),
+            },
+
+            {
+              ...clean(
+                req.body ||
+                  {},
+                allowed
+              ),
+
+              ...assignment(
+                req,
+                req.body,
+                false
+              ),
+
+              updatedBy:
+                req.user._id,
+            },
+
+            {
+              new:
+                true,
+
+              runValidators:
+                true,
+            }
+
+          );
+
+
+      if (
+        !row
+      ) {
+
+        throw new ApiError(
+          404,
+          `${moduleName.slice(
+            0,
+            -1
+          )} not found.`
+        );
+      }
+
+
+      res.json(
+        new ApiResponse(
+          200,
+          row,
+          `${moduleName.slice(
+            0,
+            -1
+          )} updated.`
+        )
+      );
+    }
+  );
+
+
+router.get(
+  "/invoices",
+  listRecords(
+    "invoices"
+  )
 );
 
 
-const removeExpenseAttachment = asyncHandler(
-  async (req, res) => {
+router.post(
+  "/invoices",
+  createRecord(
+    "invoices",
+    [
+      "invoiceNumber",
+      "clientName",
+      "amount",
+      "transactionType",
+      "businessCategory",
+      "commodity",
+      "quantity",
+      "routeType",
+      "shipmentMode",
+      "status",
+      "dueDate",
+      "notes",
+      "assignedUserId",
+      "assignedEmployeeCode",
+    ]
+  )
+);
 
-    const companyId =
-      req.accountingAccess.companyId;
 
-    const expense =
-      await AccountExpense.findOne({
-        _id: req.params.id,
-        companyId,
-      });
+router.patch(
+  "/invoices/:id",
+  updateRecord(
+    "invoices",
+    [
+      "invoiceNumber",
+      "clientName",
+      "amount",
+      "transactionType",
+      "businessCategory",
+      "commodity",
+      "quantity",
+      "routeType",
+      "shipmentMode",
+      "status",
+      "dueDate",
+      "notes",
+      "assignedUserId",
+      "assignedEmployeeCode",
+    ]
+  )
+);
 
-    if (!expense) {
-      throw new ApiError(
-        404,
-        "expense not found."
-      );
+
+router.get(
+  "/payments",
+  listRecords(
+    "payments"
+  )
+);
+
+
+router.post(
+  "/payments",
+  createRecord(
+    "payments",
+    [
+      "invoiceId",
+      "payerName",
+      "amount",
+      "mode",
+      "transactionType",
+      "routeType",
+      "status",
+      "paymentDate",
+      "reference",
+      "assignedUserId",
+      "assignedEmployeeCode",
+    ]
+  )
+);
+
+
+router.patch(
+  "/payments/:id",
+  updateRecord(
+    "payments",
+    [
+      "invoiceId",
+      "payerName",
+      "amount",
+      "mode",
+      "transactionType",
+      "routeType",
+      "status",
+      "paymentDate",
+      "reference",
+      "assignedUserId",
+      "assignedEmployeeCode",
+    ]
+  )
+);
+
+
+const uploadExpenseAttachments =
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
+
+      const files =
+        Array.isArray(
+          req.files
+        )
+          ? req.files
+          : [];
+
+
+      if (
+        !files.length
+      ) {
+
+        throw new ApiError(
+          400,
+          "At least one proof file is required."
+        );
+      }
+
+
+      try {
+
+        const companyId =
+          req.accountingAccess
+            .companyId;
+
+
+        const expense =
+          await AccountExpense
+            .findOne({
+
+              _id:
+                req.params.id,
+
+              companyId,
+
+            });
+
+
+        if (
+          !expense
+        ) {
+
+          throw new ApiError(
+            404,
+            "expense not found."
+          );
+        }
+
+
+        const existingCount =
+          Array.isArray(
+            expense.attachments
+          )
+            ? expense.attachments.length
+            : 0;
+
+
+        if (
+          existingCount +
+            files.length >
+          5
+        ) {
+
+          throw new ApiError(
+            400,
+            "A maximum of 5 attachments is allowed per expense."
+          );
+        }
+
+
+        const uploadedAt =
+          new Date();
+
+
+        const attachments =
+          files.map(
+            file => ({
+
+              originalName:
+                file.originalname,
+
+              storedName:
+                file.filename,
+
+              fileUrl:
+                toPublicAccountsProofUrl(
+                  file
+                ),
+
+              storageKey:
+                `accounts-proofs/${file.filename}`,
+
+              mimeType:
+                file.mimetype,
+
+              fileSize:
+                Number(
+                  file.size ||
+                  0
+                ),
+
+              uploadedBy:
+                req.user?._id ||
+                null,
+
+              uploadedAt,
+
+            })
+          );
+
+
+        expense.attachments.push(
+          ...attachments
+        );
+
+
+        expense.updatedBy =
+          req.user?._id ||
+          null;
+
+
+        await expense.save();
+
+
+        res.json(
+          new ApiResponse(
+            200,
+            expense,
+            "Expense proof uploaded successfully."
+          )
+        );
+
+      } catch (
+        error
+      ) {
+
+        await safeRemoveUploadedAccountsProofFiles(
+          files
+        );
+
+
+        throw error;
+      }
     }
+  );
 
-    const attachment =
-      expense.attachments.id(
+
+const removeExpenseAttachment =
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
+
+      const companyId =
+        req.accountingAccess
+          .companyId;
+
+
+      const expense =
+        await AccountExpense
+          .findOne({
+
+            _id:
+              req.params.id,
+
+            companyId,
+
+          });
+
+
+      if (
+        !expense
+      ) {
+
+        throw new ApiError(
+          404,
+          "expense not found."
+        );
+      }
+
+
+      const attachment =
+        expense.attachments.id(
+          req.params.attachmentId
+        );
+
+
+      if (
+        !attachment
+      ) {
+
+        throw new ApiError(
+          404,
+          "Expense attachment not found."
+        );
+      }
+
+
+      const attachmentFileUrl =
+        attachment.fileUrl ||
+        "";
+
+
+      expense.attachments.pull(
         req.params.attachmentId
       );
 
-    if (!attachment) {
-      throw new ApiError(
-        404,
-        "Expense attachment not found."
-      );
-    }
 
-    const attachmentFileUrl =
-      attachment.fileUrl || "";
+      expense.updatedBy =
+        req.user?._id ||
+        null;
 
-    expense.attachments.pull(
-      req.params.attachmentId
-    );
 
-    expense.updatedBy =
-      req.user?._id || null;
+      await expense.save();
 
-    await expense.save();
 
-    if (
-      attachmentFileUrl
-    ) {
-      await safeRemoveAccountsProofFile(
+      if (
         attachmentFileUrl
+      ) {
+
+        await safeRemoveAccountsProofFile(
+          attachmentFileUrl
+        );
+      }
+
+
+      res.json(
+        new ApiResponse(
+          200,
+          expense,
+          "Expense proof removed successfully."
+        )
       );
     }
+  );
 
-    res.json(
-      new ApiResponse(
-        200,
-        expense,
-        "Expense proof removed successfully."
-      )
-    );
-  }
+
+router.get(
+  "/expenses",
+  listRecords(
+    "expenses"
+  )
 );
 
-router.get("/expenses", listRecords("expenses"));
-router.post("/expenses", createRecord("expenses", ["title", "category", "expenseType", "businessCategory", "routeType", "amount", "expenseDate", "status", "notes", "assignedUserId", "assignedEmployeeCode"]));
-router.patch("/expenses/:id", updateRecord("expenses", ["title", "category", "expenseType", "businessCategory", "routeType", "amount", "expenseDate", "status", "notes", "assignedUserId", "assignedEmployeeCode"]));
+
+router.post(
+  "/expenses",
+  createRecord(
+    "expenses",
+    [
+      "title",
+      "category",
+      "expenseType",
+      "businessCategory",
+      "routeType",
+      "amount",
+      "expenseDate",
+      "status",
+      "notes",
+      "assignedUserId",
+      "assignedEmployeeCode",
+    ]
+  )
+);
+
+
+router.patch(
+  "/expenses/:id",
+  updateRecord(
+    "expenses",
+    [
+      "title",
+      "category",
+      "expenseType",
+      "businessCategory",
+      "routeType",
+      "amount",
+      "expenseDate",
+      "status",
+      "notes",
+      "assignedUserId",
+      "assignedEmployeeCode",
+    ]
+  )
+);
+
 
 router.post(
   "/expenses/:id/attachments",
+
   uploadAccountsProof.array(
     "proofFiles",
     5
   ),
+
   uploadExpenseAttachments
 );
+
 
 router.delete(
   "/expenses/:id/attachments/:attachmentId",
   removeExpenseAttachment
 );
+
 
 export default router;

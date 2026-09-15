@@ -256,20 +256,22 @@ export class PurchaseInvoicesComponent implements OnInit {
         next: result => {
 
           const rows: PurchaseInvoice[] =
-  (
-    result.rows.rows ||
-    []
-  ).map(
-    row => ({
-      ...row,
-      attachments:
-        Array.isArray(
-          row.attachments
-        )
-          ? row.attachments
-          : []
-    })
-  );
+            (
+              result.rows.rows ||
+              []
+            )
+              .map(
+                row => ({
+                  ...row,
+
+                  attachments:
+                    Array.isArray(
+                      row.attachments
+                    )
+                      ? row.attachments
+                      : []
+                })
+              );
 
 
           const visibleRows =
@@ -717,6 +719,387 @@ export class PurchaseInvoicesComponent implements OnInit {
 
 
     return 'Unpaid';
+
+  }
+
+
+  /* ============================================================
+     ACCOUNTS REGISTER STATUS
+
+     This is the central DepartmentInvoice status mirrored back
+     onto Purchase Invoice by the backend.
+
+     Older Purchase Invoices may not have accountsStatus yet.
+     For those invoices we safely fall back to handoffStatus.
+  ============================================================ */
+
+  accountsStatusLabel(
+    row: PurchaseInvoice
+  ): string {
+
+    switch (
+      row.accountsStatus
+    ) {
+
+      case 'sent':
+
+        return 'Sent to Accounts';
+
+
+      case 'under_review':
+
+        return 'Under Review';
+
+
+      case 'verified':
+
+        return 'Verified by Accounts';
+
+
+      case 'partially_paid':
+
+        return 'Partially Paid';
+
+
+      case 'paid':
+
+        return 'Paid';
+
+
+      case 'rejected':
+
+        return 'Rejected by Accounts';
+
+
+      default:
+
+        if (
+          row.handoffStatus ===
+          'handed_off'
+        ) {
+
+          return 'Sent to Accounts';
+
+        }
+
+
+        if (
+          row.handoffStatus ===
+          'handing_off'
+        ) {
+
+          return 'Sending to Accounts';
+
+        }
+
+
+        if (
+          row.handoffStatus ===
+          'failed'
+        ) {
+
+          return 'Handoff Failed';
+
+        }
+
+
+        return 'Not Sent';
+
+    }
+
+  }
+
+
+  /* ============================================================
+     ACCOUNTS STATUS CSS CLASS
+  ============================================================ */
+
+  accountsStatusClass(
+    row: PurchaseInvoice
+  ): string {
+
+    switch (
+      row.accountsStatus
+    ) {
+
+      case 'sent':
+
+        return 'accounts-status-sent';
+
+
+      case 'under_review':
+
+        return 'accounts-status-review';
+
+
+      case 'verified':
+
+        return 'accounts-status-verified';
+
+
+      case 'partially_paid':
+
+        return 'accounts-status-partial';
+
+
+      case 'paid':
+
+        return 'accounts-status-paid';
+
+
+      case 'rejected':
+
+        return 'accounts-status-rejected';
+
+
+      default:
+
+        if (
+          row.handoffStatus ===
+          'handed_off'
+        ) {
+
+          return 'accounts-status-sent';
+
+        }
+
+
+        if (
+          row.handoffStatus ===
+          'handing_off'
+        ) {
+
+          return 'accounts-status-review';
+
+        }
+
+
+        if (
+          row.handoffStatus ===
+          'failed'
+        ) {
+
+          return 'accounts-status-rejected';
+
+        }
+
+
+        return 'accounts-status-none';
+
+    }
+
+  }
+
+
+  /* ============================================================
+     ACCOUNTS PAID AMOUNT
+
+     Prefer the central Accounts snapshot. Older invoices fall
+     back to the existing Purchase settlement amount.
+  ============================================================ */
+
+  accountsPaidAmount(
+    row: PurchaseInvoice
+  ): number {
+
+    const value =
+      row.accountsPaidAmount ??
+      row.paidAmount ??
+      0;
+
+
+    const amount =
+      Number(
+        value
+      );
+
+
+    return Number.isFinite(
+      amount
+    )
+      ? Math.max(
+          amount,
+          0
+        )
+      : 0;
+
+  }
+
+
+  /* ============================================================
+     ACCOUNTS REMAINING AMOUNT
+
+     Prefer DepartmentInvoice remainingAmount when available.
+     Legacy Purchase invoices fall back to outstandingAmount.
+  ============================================================ */
+
+  accountsRemainingAmount(
+    row: PurchaseInvoice
+  ): number {
+
+    const directValue =
+      row.accountsRemainingAmount ??
+      row.outstandingAmount;
+
+
+    if (
+      directValue !==
+      undefined &&
+      directValue !==
+      null
+    ) {
+
+      const amount =
+        Number(
+          directValue
+        );
+
+
+      return Number.isFinite(
+        amount
+      )
+        ? Math.max(
+            amount,
+            0
+          )
+        : 0;
+
+    }
+
+
+    const invoiceTotal =
+      Number(
+        row.invoiceTotal ||
+        0
+      );
+
+
+    const paid =
+      this.accountsPaidAmount(
+        row
+      );
+
+
+    return Math.max(
+      invoiceTotal - paid,
+      0
+    );
+
+  }
+
+
+  /* ============================================================
+     ACCOUNTS PAYMENT DATE
+  ============================================================ */
+
+  accountsPaymentDate(
+    row: PurchaseInvoice
+  ): string | null {
+
+    const value =
+      String(
+        row.accountsPaymentDate ||
+        ''
+      )
+        .trim();
+
+
+    return value
+      ? value
+      : null;
+
+  }
+
+
+  /* ============================================================
+     ACCOUNTS PAYMENT REFERENCE
+  ============================================================ */
+
+  accountsPaymentReference(
+    row: PurchaseInvoice
+  ): string {
+
+    return (
+      String(
+        row.accountsPaymentReference ||
+        ''
+      )
+        .trim() ||
+      '—'
+    );
+
+  }
+
+
+  /* ============================================================
+     ACCOUNTANT / PAYMENT RECORDED BY
+  ============================================================ */
+
+  accountsPaidByName(
+    row: PurchaseInvoice
+  ): string {
+
+    return (
+      String(
+        row.accountsPaidByName ||
+        ''
+      )
+        .trim() ||
+      '—'
+    );
+
+  }
+
+
+  /* ============================================================
+     ACCOUNTS SETTLEMENT EXISTS
+  ============================================================ */
+
+  hasAccountsSettlement(
+    row: PurchaseInvoice
+  ): boolean {
+
+    return (
+      this.accountsPaidAmount(
+        row
+      ) > 0 ||
+      !!this.accountsPaymentDate(
+        row
+      ) ||
+      !!String(
+        row.accountsPaymentReference ||
+        ''
+      )
+        .trim() ||
+      !!String(
+        row.accountsPaidByName ||
+        ''
+      )
+        .trim()
+    );
+
+  }
+
+
+  /* ============================================================
+     ACCOUNTS REGISTER AVAILABLE
+
+     Used by HTML to decide whether the central Accounts block
+     should be shown for an invoice.
+  ============================================================ */
+
+  hasAccountsHandoff(
+    row: PurchaseInvoice
+  ): boolean {
+
+    return (
+      !!row.accountsHandoffId ||
+      !!row.accountsStatus ||
+      row.handoffStatus ===
+        'handed_off' ||
+      row.handoffStatus ===
+        'handing_off'
+    );
 
   }
 

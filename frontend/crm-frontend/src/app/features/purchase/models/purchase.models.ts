@@ -48,7 +48,11 @@ export type GoodsReceiptStatus =
   | 'rejected'
   | 'completed';
 
-export type GoodsReceiptApprovalStatus = 'pending_approval' | 'approved' | 'rejected';
+
+export type GoodsReceiptApprovalStatus =
+  | 'pending_approval'
+  | 'approved'
+  | 'rejected';
 
 
 /* ============================================================
@@ -746,10 +750,17 @@ export interface PurchaseOrderItem {
   lineTotal?: number;
 }
 
+
 export type PurchaseOrderDeliveryType =
-  | 'company_warehouse' | 'airport' | 'port' | 'customer_location'
-  | 'project_site' | 'factory_processing_unit' | 'third_party_warehouse'
-  | 'direct_delivery' | 'other';
+  | 'company_warehouse'
+  | 'airport'
+  | 'port'
+  | 'customer_location'
+  | 'project_site'
+  | 'factory_processing_unit'
+  | 'third_party_warehouse'
+  | 'direct_delivery'
+  | 'other';
 
 
 export interface PurchaseOrder {
@@ -795,12 +806,17 @@ export interface PurchaseOrder {
   deliveryAddress?: string;
 
   deliveryType?: PurchaseOrderDeliveryType;
+
   deliveryLocationName?: string;
+
   deliveryContactPerson?: string;
+
   deliveryContactNumber?: string;
+
   otherDeliveryType?: string;
 
   warehouseId?: string | null;
+
   warehouseName?: string;
 
   warehouse?:
@@ -868,9 +884,13 @@ export interface PurchaseOrderPayload {
   deliveryAddress?: string;
 
   deliveryType?: PurchaseOrderDeliveryType;
+
   deliveryLocationName?: string;
+
   deliveryContactPerson?: string;
+
   deliveryContactNumber?: string;
+
   otherDeliveryType?: string;
 
   warehouseId?: string | null;
@@ -984,10 +1004,15 @@ export interface GoodsReceipt {
   warehouseCode?: string;
 
   deliveryType?: PurchaseOrderDeliveryType;
+
   deliveryLocationName?: string;
+
   deliveryAddress?: string;
+
   deliveryContactPerson?: string;
+
   deliveryContactNumber?: string;
+
   otherDeliveryType?: string;
 
   deliveryChallanNumber?: string;
@@ -1005,17 +1030,38 @@ export interface GoodsReceipt {
   status: GoodsReceiptStatus;
 
   approvalStatus?: GoodsReceiptApprovalStatus;
+
   createdByEmployeeId?: string | null;
+
   createdByEmployeeName?: string;
+
   createdByEmployeeCode?: string;
+
   submittedAt?: string | null;
-  submittedBy?: PurchaseUserReference | string | null;
+
+  submittedBy?:
+    | PurchaseUserReference
+    | string
+    | null;
+
   approvedAt?: string | null;
-  approvedBy?: PurchaseUserReference | string | null;
+
+  approvedBy?:
+    | PurchaseUserReference
+    | string
+    | null;
+
   approvedByName?: string;
+
   rejectedAt?: string | null;
-  rejectedBy?: PurchaseUserReference | string | null;
+
+  rejectedBy?:
+    | PurchaseUserReference
+    | string
+    | null;
+
   rejectedByName?: string;
+
   approvalRejectionReason?: string;
 
   companyId?: string;
@@ -1064,6 +1110,7 @@ export interface GoodsReceiptFilters {
   status?: GoodsReceiptStatus | '';
 
   approvalStatus?: GoodsReceiptApprovalStatus | '';
+
   scope?: 'my' | 'team';
 
   vendorId?: string;
@@ -1232,8 +1279,33 @@ export interface PurchaseReportFilters {
     | string;
 }
 
-export type PurchaseInvoiceStatus = 'received' | 'matched' | 'exception' | 'verified';
-export type PurchaseInvoiceHandoffStatus = 'not_handed_off' | 'handing_off' | 'handed_off' | 'failed';
+
+/* ============================================================
+   PURCHASE INVOICE
+============================================================ */
+
+export type PurchaseInvoiceStatus =
+  | 'received'
+  | 'matched'
+  | 'exception'
+  | 'verified';
+
+
+export type PurchaseInvoiceHandoffStatus =
+  | 'not_handed_off'
+  | 'handing_off'
+  | 'handed_off'
+  | 'failed';
+
+
+export type PurchaseInvoiceAccountsStatus =
+  | 'sent'
+  | 'under_review'
+  | 'verified'
+  | 'partially_paid'
+  | 'paid'
+  | 'rejected';
+
 
 export type PurchaseInvoiceDocumentType =
   | 'vendor_invoice'
@@ -1246,7 +1318,8 @@ export type PurchaseInvoiceDocumentType =
 export interface PurchaseInvoiceAttachment {
   _id?: string;
 
-  documentType: PurchaseInvoiceDocumentType;
+  documentType:
+    PurchaseInvoiceDocumentType;
 
   otherDocumentType?: string;
 
@@ -1273,72 +1346,186 @@ export interface PurchaseInvoiceAttachment {
 
 export interface PurchaseInvoiceItem {
   _id?: string;
+
   purchaseOrderItemId: string;
+
   itemName: string;
+
   unit: string;
+
   invoicedQuantity: number;
+
   unitPrice: number;
+
   taxableAmount: number;
+
   taxPercent: number;
+
   taxAmount: number;
+
   lineTotal: number;
+
   poQuantity: number;
+
   receivedQuantity: number;
+
   poUnitPrice: number;
-  matchStatus: 'matched' | 'exception';
+
+  matchStatus:
+    | 'matched'
+    | 'exception';
+
   mismatchReasons: string[];
 }
+
 
 export interface PurchaseInvoice {
   _id: string;
-  vendorId: string;
-  vendorName: string;
-  vendorCode?: string;
-  purchaseOrderId: string;
-  poNumber: string;
-  goodsReceiptIds: string[];
-  grnNumbers: string[];
-  vendorInvoiceNumber: string;
-  invoiceDate: string;
-  receivedDate: string;
-  items: PurchaseInvoiceItem[];
-  taxableAmount: number;
-  taxTotal: number;
-  freightCharges: number;
-  otherCharges: number;
-  invoiceTotal: number;
-  declaredInvoiceTotal: number;
-  paidAmount: number;
-  outstandingAmount: number;
-  paymentStatus: 'unpaid' | 'partially_paid' | 'paid';
-  remarks?: string;
-  status: PurchaseInvoiceStatus;
-  matchStatus: 'matched' | 'exception';
-  mismatchReasons: string[];
-  verifiedBy?: PurchaseUserReference | string | null;
-  verifiedAt?: string | null;
-  handoffStatus: PurchaseInvoiceHandoffStatus;
-  accountsVoucherId?: string | null;
-  accountsVoucherNumber?: string;
-  handedOffAt?: string | null;
-  handoffError?: string;
 
-  attachments: PurchaseInvoiceAttachment[];
+  vendorId: string;
+
+  vendorName: string;
+
+  vendorCode?: string;
+
+  purchaseOrderId: string;
+
+  poNumber: string;
+
+  goodsReceiptIds: string[];
+
+  grnNumbers: string[];
+
+  vendorInvoiceNumber: string;
+
+  invoiceDate: string;
+
+  receivedDate: string;
+
+  items: PurchaseInvoiceItem[];
+
+  taxableAmount: number;
+
+  taxTotal: number;
+
+  freightCharges: number;
+
+  otherCharges: number;
+
+  invoiceTotal: number;
+
+  declaredInvoiceTotal: number;
+
+  paidAmount: number;
+
+  outstandingAmount: number;
+
+  paymentStatus:
+    | 'unpaid'
+    | 'partially_paid'
+    | 'paid';
+
+  remarks?: string;
+
+  status:
+    PurchaseInvoiceStatus;
+
+  matchStatus:
+    | 'matched'
+    | 'exception';
+
+  mismatchReasons: string[];
+
+  verifiedBy?:
+    | PurchaseUserReference
+    | string
+    | null;
+
+  verifiedAt?:
+    | string
+    | null;
+
+  handoffStatus:
+    PurchaseInvoiceHandoffStatus;
+
+  accountsVoucherId?:
+    | string
+    | null;
+
+  accountsVoucherNumber?:
+    string;
+
+  handedOffAt?:
+    | string
+    | null;
+
+  handoffError?:
+    string;
+
+
+  /* =========================================================
+     CENTRAL ACCOUNTS HANDOFF STATUS
+  ========================================================= */
+
+  accountsHandoffId?:
+    | string
+    | null;
+
+  accountsStatus?:
+    | PurchaseInvoiceAccountsStatus
+    | null;
+
+  accountsPaidAmount?:
+    number;
+
+  accountsRemainingAmount?:
+    number;
+
+  accountsPaymentDate?:
+    | string
+    | null;
+
+  accountsPaymentReference?:
+    string;
+
+  accountsPaidByName?:
+    string;
+
+
+  /* =========================================================
+     ATTACHMENTS
+  ========================================================= */
+
+  attachments:
+    PurchaseInvoiceAttachment[];
 }
+
 
 export interface PurchaseInvoiceMetrics {
   total: number;
+
   pendingVerification: number;
+
   matched: number;
+
   exceptions: number;
+
   verified: number;
+
   pendingHandoff: number;
+
   handedOff: number;
+
   invoiceTotal: number;
+
   paidAmount: number;
+
   outstandingAmount: number;
+
   unpaid: number;
+
   partiallyPaid: number;
+
   paid: number;
 }
 
@@ -1356,180 +1543,329 @@ export interface PurchaseStatusOption<
 
 
 export const PURCHASE_INVOICE_DOCUMENT_TYPE_OPTIONS:
-  PurchaseStatusOption<PurchaseInvoiceDocumentType>[] = [
+  PurchaseStatusOption<
+    PurchaseInvoiceDocumentType
+  >[] = [
+
     {
-      value: 'vendor_invoice',
-      label: 'Vendor Invoice'
+      value:
+        'vendor_invoice',
+
+      label:
+        'Vendor Invoice'
     },
+
     {
-      value: 'e_way_bill',
-      label: 'E-Way Bill'
+      value:
+        'e_way_bill',
+
+      label:
+        'E-Way Bill'
     },
+
     {
-      value: 'delivery_challan',
-      label: 'Delivery Challan'
+      value:
+        'delivery_challan',
+
+      label:
+        'Delivery Challan'
     },
+
     {
-      value: 'supporting_document',
-      label: 'Supporting Document'
+      value:
+        'supporting_document',
+
+      label:
+        'Supporting Document'
     },
+
     {
-      value: 'other',
-      label: 'Other'
+      value:
+        'other',
+
+      label:
+        'Other'
     }
+
   ];
 
 
 export const PURCHASE_PRIORITY_OPTIONS:
-  PurchaseStatusOption<PurchasePriority>[] = [
+  PurchaseStatusOption<
+    PurchasePriority
+  >[] = [
+
     {
       value: 'low',
       label: 'Low'
     },
+
     {
       value: 'medium',
       label: 'Medium'
     },
+
     {
       value: 'high',
       label: 'High'
     },
+
     {
       value: 'urgent',
       label: 'Urgent'
     }
+
   ];
 
 
 export const PURCHASE_REQUEST_STATUS_OPTIONS:
-  PurchaseStatusOption<PurchaseRequestStatus>[] = [
+  PurchaseStatusOption<
+    PurchaseRequestStatus
+  >[] = [
+
     {
       value: 'draft',
       label: 'Draft'
     },
+
     {
-      value: 'pending_approval',
-      label: 'Pending Approval'
+      value:
+        'pending_approval',
+
+      label:
+        'Pending Approval'
     },
+
     {
-      value: 'approved',
-      label: 'Approved'
+      value:
+        'approved',
+
+      label:
+        'Approved'
     },
+
     {
-      value: 'rejected',
-      label: 'Rejected'
+      value:
+        'rejected',
+
+      label:
+        'Rejected'
     }
+
   ];
 
 
 export const VENDOR_ENQUIRY_SOURCE_OPTIONS:
-  PurchaseStatusOption<VendorEnquirySource>[] = [
+  PurchaseStatusOption<
+    VendorEnquirySource
+  >[] = [
+
     {
-      value: 'indiamart',
-      label: 'IndiaMART'
+      value:
+        'indiamart',
+
+      label:
+        'IndiaMART'
     },
+
     {
-      value: 'direct_supplier',
-      label: 'Direct Supplier'
+      value:
+        'direct_supplier',
+
+      label:
+        'Direct Supplier'
     },
+
     {
-      value: 'other',
-      label: 'Other'
+      value:
+        'other',
+
+      label:
+        'Other'
     }
+
   ];
 
 
 export const VENDOR_ENQUIRY_STATUS_OPTIONS:
-  PurchaseStatusOption<VendorEnquiryStatus>[] = [
+  PurchaseStatusOption<
+    VendorEnquiryStatus
+  >[] = [
+
     {
-      value: 'draft',
-      label: 'Draft'
+      value:
+        'draft',
+
+      label:
+        'Draft'
     },
+
     {
-      value: 'requested',
-      label: 'Requested'
+      value:
+        'requested',
+
+      label:
+        'Requested'
     },
+
     {
-      value: 'received',
-      label: 'Received'
+      value:
+        'received',
+
+      label:
+        'Received'
     },
+
     {
-      value: 'closed',
-      label: 'Closed'
+      value:
+        'closed',
+
+      label:
+        'Closed'
     },
+
     {
-      value: 'cancelled',
-      label: 'Cancelled'
+      value:
+        'cancelled',
+
+      label:
+        'Cancelled'
     }
+
   ];
 
 
 export const PURCHASE_QUOTATION_STATUS_OPTIONS:
-  PurchaseStatusOption<PurchaseQuotationStatus>[] = [
+  PurchaseStatusOption<
+    PurchaseQuotationStatus
+  >[] = [
+
     {
-      value: 'requested',
-      label: 'Requested'
+      value:
+        'requested',
+
+      label:
+        'Requested'
     },
+
     {
-      value: 'received',
-      label: 'Received'
+      value:
+        'received',
+
+      label:
+        'Received'
     },
+
     {
-      value: 'selected',
-      label: 'Selected'
+      value:
+        'selected',
+
+      label:
+        'Selected'
     },
+
     {
-      value: 'rejected',
-      label: 'Rejected'
+      value:
+        'rejected',
+
+      label:
+        'Rejected'
     }
+
   ];
 
 
 export const PURCHASE_ORDER_STATUS_OPTIONS:
-  PurchaseStatusOption<PurchaseOrderStatus>[] = [
+  PurchaseStatusOption<
+    PurchaseOrderStatus
+  >[] = [
+
     {
-      value: 'draft',
-      label: 'Draft'
+      value:
+        'draft',
+
+      label:
+        'Draft'
     },
+
     {
-      value: 'approved',
-      label: 'Approved'
+      value:
+        'approved',
+
+      label:
+        'Approved'
     },
+
     {
-      value: 'sent',
-      label: 'Sent'
+      value:
+        'sent',
+
+      label:
+        'Sent'
     },
+
     {
-      value: 'partially_received',
-      label: 'Partially Received'
+      value:
+        'partially_received',
+
+      label:
+        'Partially Received'
     },
+
     {
-      value: 'received',
-      label: 'Received'
+      value:
+        'received',
+
+      label:
+        'Received'
     },
+
     {
-      value: 'cancelled',
-      label: 'Cancelled'
+      value:
+        'cancelled',
+
+      label:
+        'Cancelled'
     }
+
   ];
 
 
 export const GOODS_RECEIPT_STATUS_OPTIONS:
-  PurchaseStatusOption<GoodsReceiptStatus>[] = [
+  PurchaseStatusOption<
+    GoodsReceiptStatus
+  >[] = [
+
     {
-      value: 'received',
-      label: 'Received'
+      value:
+        'received',
+
+      label:
+        'Received'
     },
+
     {
-      value: 'partial',
-      label: 'Partial'
+      value:
+        'partial',
+
+      label:
+        'Partial'
     },
+
     {
-      value: 'rejected',
-      label: 'Rejected'
+      value:
+        'rejected',
+
+      label:
+        'Rejected'
     },
+
     {
-      value: 'completed',
-      label: 'Completed'
+      value:
+        'completed',
+
+      label:
+        'Completed'
     }
+
   ];

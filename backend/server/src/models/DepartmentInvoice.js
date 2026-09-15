@@ -261,6 +261,42 @@ const schema =
         default: null,
       },
 
+      companyAdminApprovalStatus: {
+        type: String,
+        enum: ["not_submitted", "pending", "approved", "rejected"],
+        default: "not_submitted",
+        index: true,
+      },
+
+      companyAdminApprovalBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        default: null,
+      },
+
+      companyAdminApprovalByEmployeeId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Employee",
+        default: null,
+      },
+
+      companyAdminApprovalByName: {
+        type: String,
+        trim: true,
+        default: "",
+      },
+
+      companyAdminApprovalAt: {
+        type: Date,
+        default: null,
+      },
+
+      companyAdminApprovalRemarks: {
+        type: String,
+        trim: true,
+        default: "",
+      },
+
 
       /* ========================================================
          REJECTION AUDIT

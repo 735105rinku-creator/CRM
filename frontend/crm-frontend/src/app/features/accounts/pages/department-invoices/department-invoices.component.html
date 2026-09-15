@@ -1,0 +1,2211 @@
+<section class="department-invoices-page">
+
+    <!-- =======================================================
+         PAGE HEADER
+    ======================================================== -->
+  
+    <header class="page-header">
+  
+      <div class="page-header__content">
+  
+        <div class="page-header__eyebrow">
+          Accounts Workspace
+        </div>
+  
+        <h1>
+          Incoming Invoices
+        </h1>
+  
+        <p>
+          Review Purchase and Logistics invoices submitted to Accounts,
+          verify documents and record payment or receipt progress.
+        </p>
+  
+      </div>
+  
+  
+      <button
+        type="button"
+        class="refresh-button"
+        [disabled]="loading()"
+        (click)="loadInvoices()"
+      >
+        <span class="material-symbols-rounded">
+          refresh
+        </span>
+  
+        Refresh
+      </button>
+  
+    </header>
+  
+  
+  
+    <!-- =======================================================
+         ALERTS
+    ======================================================== -->
+  
+    @if (message()) {
+  
+      <div class="page-alert page-alert--success">
+  
+        <span class="material-symbols-rounded">
+          check_circle
+        </span>
+  
+        <span>
+          {{ message() }}
+        </span>
+  
+      </div>
+  
+    }
+  
+  
+    @if (error()) {
+  
+      <div class="page-alert page-alert--error">
+  
+        <span class="material-symbols-rounded">
+          error
+        </span>
+  
+        <span>
+          {{ error() }}
+        </span>
+  
+      </div>
+  
+    }
+  
+  
+  
+    <!-- =======================================================
+         SUMMARY
+    ======================================================== -->
+  
+    <section class="summary-grid">
+  
+      <article class="summary-card">
+  
+        <div class="summary-card__icon">
+          <span class="material-symbols-rounded">
+            inbox
+          </span>
+        </div>
+  
+        <div>
+          <small>
+            Awaiting Review
+          </small>
+  
+          <strong>
+            {{ sentCount() }}
+          </strong>
+        </div>
+  
+      </article>
+  
+  
+      <article class="summary-card">
+  
+        <div class="summary-card__icon">
+          <span class="material-symbols-rounded">
+            verified
+          </span>
+        </div>
+  
+        <div>
+          <small>
+            Verified
+          </small>
+  
+          <strong>
+            {{ verifiedCount() }}
+          </strong>
+        </div>
+  
+      </article>
+  
+  
+      <article class="summary-card">
+  
+        <div class="summary-card__icon">
+          <span class="material-symbols-rounded">
+            pending_actions
+          </span>
+        </div>
+  
+        <div>
+          <small>
+            Partially Paid
+          </small>
+  
+          <strong>
+            {{ partialCount() }}
+          </strong>
+        </div>
+  
+      </article>
+  
+  
+      <article class="summary-card">
+  
+        <div class="summary-card__icon">
+          <span class="material-symbols-rounded">
+            paid
+          </span>
+        </div>
+  
+        <div>
+          <small>
+            Paid
+          </small>
+  
+          <strong>
+            {{ paidCount() }}
+          </strong>
+        </div>
+  
+      </article>
+  
+  
+      <article class="summary-card">
+  
+        <div class="summary-card__icon">
+          <span class="material-symbols-rounded">
+            shopping_cart
+          </span>
+        </div>
+  
+        <div>
+          <small>
+            Purchase
+          </small>
+  
+          <strong>
+            {{ purchaseCount() }}
+          </strong>
+        </div>
+  
+      </article>
+  
+  
+      <article class="summary-card">
+  
+        <div class="summary-card__icon">
+          <span class="material-symbols-rounded">
+            local_shipping
+          </span>
+        </div>
+  
+        <div>
+          <small>
+            Logistics
+          </small>
+  
+          <strong>
+            {{ logisticsCount() }}
+          </strong>
+        </div>
+  
+      </article>
+  
+    </section>
+  
+  
+  
+    <!-- =======================================================
+         FILTERS
+    ======================================================== -->
+  
+    <section class="filter-panel">
+  
+      <div class="filter-panel__header">
+  
+        <div>
+  
+          <h2>
+            Invoice Register
+          </h2>
+  
+          <p>
+            Search and filter invoices received from operational departments.
+          </p>
+  
+        </div>
+  
+  
+        <div class="register-count">
+          {{ total() }} record{{ total() === 1 ? '' : 's' }}
+        </div>
+  
+      </div>
+  
+  
+      <div class="filters-grid">
+  
+        <label class="form-field form-field--search">
+  
+          <span>
+            Search
+          </span>
+  
+          <div class="input-icon-wrap">
+  
+            <span class="material-symbols-rounded">
+              search
+            </span>
+  
+            <input
+              type="search"
+              placeholder="Invoice no., vendor, customer..."
+              [value]="search()"
+              (input)="onSearchChange($any($event.target).value)"
+              (keyup.enter)="applyFilters()"
+            />
+  
+          </div>
+  
+        </label>
+  
+  
+        <label class="form-field">
+  
+          <span>
+            Department
+          </span>
+  
+          <select
+            [value]="departmentFilter()"
+            (change)="onDepartmentChange($any($event.target).value)"
+          >
+            <option value="">
+              All Departments
+            </option>
+  
+            <option value="purchase">
+              Purchase
+            </option>
+  
+            <option value="logistics">
+              Logistics
+            </option>
+          </select>
+  
+        </label>
+  
+  
+        <label class="form-field">
+  
+          <span>
+            Source Type
+          </span>
+  
+          <select
+            [value]="moduleFilter()"
+            (change)="onModuleChange($any($event.target).value)"
+          >
+            <option value="">
+              All Sources
+            </option>
+  
+            <option value="purchase_invoice">
+              Purchase Invoice
+            </option>
+  
+            <option value="logistics_vendor_payment">
+              Logistics Vendor Payment
+            </option>
+  
+            <option value="logistics_invoice">
+              Logistics Invoice
+            </option>
+          </select>
+  
+        </label>
+  
+  
+        <label class="form-field">
+  
+          <span>
+            Status
+          </span>
+  
+          <select
+            [value]="statusFilter()"
+            (change)="onStatusChange($any($event.target).value)"
+          >
+            <option value="">
+              All Statuses
+            </option>
+  
+            <option value="sent">
+              Sent
+            </option>
+  
+            <option value="under_review">
+              Under Review
+            </option>
+  
+            <option value="verified">
+              Verified
+            </option>
+  
+            <option value="partially_paid">
+              Partially Paid
+            </option>
+  
+            <option value="paid">
+              Paid
+            </option>
+  
+            <option value="rejected">
+              Rejected
+            </option>
+          </select>
+  
+        </label>
+  
+  
+        <div class="filter-actions">
+  
+          <button
+            type="button"
+            class="button button--primary"
+            [disabled]="loading()"
+            (click)="applyFilters()"
+          >
+            <span class="material-symbols-rounded">
+              filter_alt
+            </span>
+  
+            Apply
+          </button>
+  
+  
+          <button
+            type="button"
+            class="button button--secondary"
+            [disabled]="loading()"
+            (click)="resetFilters()"
+          >
+            Reset
+          </button>
+  
+        </div>
+  
+      </div>
+  
+    </section>
+  
+  
+  
+    <!-- =======================================================
+         LOADING
+    ======================================================== -->
+  
+    @if (loading()) {
+  
+      <section class="loading-state">
+  
+        <div class="loader"></div>
+  
+        <strong>
+          Loading incoming invoices...
+        </strong>
+  
+        <span>
+          Fetching the latest Purchase and Logistics handoffs.
+        </span>
+  
+      </section>
+  
+    }
+  
+  
+  
+    <!-- =======================================================
+         EMPTY STATE
+    ======================================================== -->
+  
+    @if (!loading() && invoices().length === 0) {
+  
+      <section class="empty-state">
+  
+        <div class="empty-state__icon">
+  
+          <span class="material-symbols-rounded">
+            receipt_long
+          </span>
+  
+        </div>
+  
+        <h3>
+          No incoming invoices found
+        </h3>
+  
+        <p>
+          There are no invoices matching the current filters.
+        </p>
+  
+        <button
+          type="button"
+          class="button button--secondary"
+          (click)="resetFilters()"
+        >
+          Clear Filters
+        </button>
+  
+      </section>
+  
+    }
+  
+  
+  
+    <!-- =======================================================
+         INVOICE CARDS
+    ======================================================== -->
+  
+    @if (!loading() && invoices().length > 0) {
+  
+      <section class="invoice-grid">
+  
+        @for (invoice of invoices(); track invoice._id) {
+  
+          <article class="invoice-card">
+  
+            <div class="invoice-card__header">
+  
+              <div class="source-info">
+  
+                <div
+                  class="source-icon"
+                  [class.source-icon--purchase]="invoice.sourceDepartment === 'purchase'"
+                  [class.source-icon--logistics]="invoice.sourceDepartment === 'logistics'"
+                >
+  
+                  <span class="material-symbols-rounded">
+                    {{
+                      invoice.sourceDepartment === 'purchase'
+                        ? 'shopping_cart'
+                        : 'local_shipping'
+                    }}
+                  </span>
+  
+                </div>
+  
+  
+                <div>
+  
+                  <span class="source-department">
+                    {{ departmentLabel(invoice.sourceDepartment) }}
+                  </span>
+  
+                  <strong>
+                    {{ sourceModuleLabel(invoice.sourceModule) }}
+                  </strong>
+  
+                </div>
+  
+              </div>
+  
+  
+              <span
+                class="status-badge"
+                [ngClass]="statusClass(invoice.status)"
+              >
+                {{ statusLabel(invoice.status) }}
+              </span>
+  
+            </div>
+  
+  
+            <div class="invoice-identity">
+  
+              <div>
+  
+                <small>
+                  Invoice Number
+                </small>
+  
+                <h3>
+                  {{ invoice.invoiceNumber || '—' }}
+                </h3>
+  
+              </div>
+  
+  
+              <div class="invoice-date">
+  
+                <small>
+                  Invoice Date
+                </small>
+  
+                <strong>
+                  {{ formatDate(invoice.invoiceDate) }}
+                </strong>
+  
+              </div>
+  
+            </div>
+  
+  
+            <div class="party-card">
+  
+              <div class="party-avatar">
+                {{
+                  (invoice.partyName || 'P')
+                    .charAt(0)
+                    .toUpperCase()
+                }}
+              </div>
+  
+  
+              <div>
+  
+                <small>
+                  {{
+                    isLogisticsInvoice(invoice)
+                      ? 'Customer'
+                      : 'Vendor / Party'
+                  }}
+                </small>
+  
+                <strong>
+                  {{ invoice.partyName || '—' }}
+                </strong>
+  
+              </div>
+  
+            </div>
+  
+  
+            <div class="amount-grid">
+  
+              <div class="amount-item">
+  
+                <small>
+                  Total
+                </small>
+  
+                <strong>
+                  {{
+                    formatCurrency(
+                      invoice.totalAmount,
+                      invoice.currency
+                    )
+                  }}
+                </strong>
+  
+              </div>
+  
+  
+              <div class="amount-item">
+  
+                <small>
+                  {{
+                    isLogisticsInvoice(invoice)
+                      ? 'Received'
+                      : 'Paid'
+                  }}
+                </small>
+  
+                <strong>
+                  {{
+                    formatCurrency(
+                      invoice.paidAmount,
+                      invoice.currency
+                    )
+                  }}
+                </strong>
+  
+              </div>
+  
+  
+              <div class="amount-item amount-item--balance">
+  
+                <small>
+                  Remaining
+                </small>
+  
+                <strong>
+                  {{
+                    formatCurrency(
+                      invoice.remainingAmount,
+                      invoice.currency
+                    )
+                  }}
+                </strong>
+  
+              </div>
+  
+            </div>
+  
+  
+            <div class="handoff-info">
+  
+              <div>
+  
+                <span class="material-symbols-rounded">
+                  person
+                </span>
+  
+                <div>
+  
+                  <small>
+                    Sent by
+                  </small>
+  
+                  <strong>
+                    {{ invoice.sentToAccountsByName || '—' }}
+                  </strong>
+  
+                </div>
+  
+              </div>
+  
+  
+              <div>
+  
+                <span class="material-symbols-rounded">
+                  schedule
+                </span>
+  
+                <div>
+  
+                  <small>
+                    Sent on
+                  </small>
+  
+                  <strong>
+                    {{ formatDateTime(invoice.sentToAccountsAt) }}
+                  </strong>
+  
+                </div>
+  
+              </div>
+  
+            </div>
+  
+  
+            <div class="document-summary">
+  
+              <span class="material-symbols-rounded">
+                attach_file
+              </span>
+  
+              <span>
+                {{ documents(invoice).length }}
+                document{{ documents(invoice).length === 1 ? '' : 's' }}
+              </span>
+  
+            </div>
+  
+  
+            <div class="invoice-card__actions">
+  
+              <button
+                type="button"
+                class="button button--view"
+                (click)="openDetails(invoice)"
+              >
+                <span class="material-symbols-rounded">
+                  visibility
+                </span>
+  
+                View Details
+              </button>
+  
+  
+              @if (canVerify(invoice)) {
+  
+                <button
+                  type="button"
+                  class="icon-button icon-button--verify"
+                  title="Verify invoice"
+                  (click)="startVerify(invoice)"
+                >
+                  <span class="material-symbols-rounded">
+                    verified
+                  </span>
+                </button>
+  
+              }
+  
+  
+              @if (canSettle(invoice)) {
+  
+                <button
+                  type="button"
+                  class="icon-button icon-button--settle"
+                  [title]="settlementActionLabel(invoice)"
+                  (click)="startSettlement(invoice)"
+                >
+                  <span class="material-symbols-rounded">
+                    {{
+                      isLogisticsInvoice(invoice)
+                        ? 'payments'
+                        : 'account_balance_wallet'
+                    }}
+                  </span>
+                </button>
+  
+              }
+  
+            </div>
+  
+          </article>
+  
+        }
+  
+      </section>
+  
+  
+      <div class="pagination-bar">
+  
+        <button
+          type="button"
+          class="pagination-button"
+          [disabled]="page() <= 1 || loading()"
+          (click)="previousPage()"
+        >
+          <span class="material-symbols-rounded">
+            chevron_left
+          </span>
+  
+          Previous
+        </button>
+  
+  
+        <span class="pagination-status">
+          Page
+  
+          <strong>
+            {{ page() }}
+          </strong>
+  
+          of
+  
+          <strong>
+            {{ pages() }}
+          </strong>
+        </span>
+  
+  
+        <button
+          type="button"
+          class="pagination-button"
+          [disabled]="page() >= pages() || loading()"
+          (click)="nextPage()"
+        >
+          Next
+  
+          <span class="material-symbols-rounded">
+            chevron_right
+          </span>
+        </button>
+  
+      </div>
+  
+    }
+  
+  
+  
+    <!-- =======================================================
+         DETAILS MODAL
+    ======================================================== -->
+  
+    @if (selectedInvoice(); as invoice) {
+  
+      <div
+        class="modal-backdrop"
+        (click)="closeDetails()"
+      >
+  
+        <section
+          class="invoice-modal"
+          (click)="$event.stopPropagation()"
+        >
+  
+          <header class="invoice-modal__header">
+  
+            <div>
+  
+              <span class="modal-eyebrow">
+                {{ departmentLabel(invoice.sourceDepartment) }}
+                /
+                {{ sourceModuleLabel(invoice.sourceModule) }}
+              </span>
+  
+              <h2>
+                {{ invoice.invoiceNumber || 'Invoice Details' }}
+              </h2>
+  
+              <p>
+                {{ invoice.partyName || '—' }}
+              </p>
+  
+            </div>
+  
+  
+            <div class="modal-header-actions">
+  
+              <span
+                class="status-badge"
+                [ngClass]="statusClass(invoice.status)"
+              >
+                {{ statusLabel(invoice.status) }}
+              </span>
+  
+  
+              <button
+                type="button"
+                class="modal-close"
+                [disabled]="actionLoading()"
+                (click)="closeDetails()"
+              >
+                <span class="material-symbols-rounded">
+                  close
+                </span>
+              </button>
+  
+            </div>
+  
+          </header>
+  
+  
+          <div class="invoice-modal__body">
+  
+            <!-- =================================================
+                 FINANCIAL SUMMARY
+            ================================================== -->
+  
+            <section class="detail-section">
+  
+              <div class="detail-section__header">
+  
+                <h3>
+                  Financial Summary
+                </h3>
+  
+              </div>
+  
+  
+              <div class="detail-grid detail-grid--amounts">
+  
+                <div>
+  
+                  <small>
+                    Total Amount
+                  </small>
+  
+                  <strong>
+                    {{
+                      formatCurrency(
+                        invoice.totalAmount,
+                        invoice.currency
+                      )
+                    }}
+                  </strong>
+  
+                </div>
+  
+  
+                <div>
+  
+                  <small>
+                    {{
+                      isLogisticsInvoice(invoice)
+                        ? 'Amount Received'
+                        : 'Amount Paid'
+                    }}
+                  </small>
+  
+                  <strong>
+                    {{
+                      formatCurrency(
+                        invoice.paidAmount,
+                        invoice.currency
+                      )
+                    }}
+                  </strong>
+  
+                </div>
+  
+  
+                <div>
+  
+                  <small>
+                    Remaining Amount
+                  </small>
+  
+                  <strong>
+                    {{
+                      formatCurrency(
+                        invoice.remainingAmount,
+                        invoice.currency
+                      )
+                    }}
+                  </strong>
+  
+                </div>
+  
+              </div>
+  
+            </section>
+
+            <section class="detail-section approval-progress">
+              <div class="detail-section__header">
+                <h3>Company Admin Approval</h3>
+                <span class="status-badge" [attr.data-status]="invoice.companyAdminApprovalStatus || 'not_submitted'">
+                  {{ (invoice.companyAdminApprovalStatus || 'not_submitted').replace('_', ' ') | titlecase }}
+                </span>
+              </div>
+              <div class="detail-grid">
+                <div><small>Accounts Verified</small><strong>{{ invoice.verifiedAt ? 'Yes' : 'Pending' }}</strong></div>
+                <div><small>Decision by</small><strong>{{ invoice.companyAdminApprovalByName || '—' }}</strong></div>
+                <div><small>Decision at</small><strong>{{ formatDateTime(invoice.companyAdminApprovalAt) }}</strong></div>
+                <div><small>Remarks</small><strong>{{ invoice.companyAdminApprovalRemarks || '—' }}</strong></div>
+              </div>
+              @if (invoice.companyAdminApprovalStatus === 'approved') {
+                <p>Company Admin Approved ✓ · Ready for Payment</p>
+              } @else if (invoice.companyAdminApprovalStatus === 'rejected') {
+                <p>Company Admin Rejected · Settlement is blocked</p>
+              } @else if (invoice.verifiedAt) {
+                <p>Awaiting Company Admin Approval</p>
+              }
+            </section>
+  
+  
+            <!-- =================================================
+                 SOURCE DETAILS
+            ================================================== -->
+  
+            <section class="detail-section">
+  
+              <div class="detail-section__header">
+  
+                <h3>
+                  Source Details
+                </h3>
+  
+              </div>
+  
+  
+              <div class="detail-grid">
+  
+                <div>
+  
+                  <small>
+                    Department
+                  </small>
+  
+                  <strong>
+                    {{ departmentLabel(invoice.sourceDepartment) }}
+                  </strong>
+  
+                </div>
+  
+  
+                <div>
+  
+                  <small>
+                    Source Type
+                  </small>
+  
+                  <strong>
+                    {{ sourceModuleLabel(invoice.sourceModule) }}
+                  </strong>
+  
+                </div>
+  
+  
+                <div>
+  
+                  <small>
+                    Invoice Number
+                  </small>
+  
+                  <strong>
+                    {{ invoice.invoiceNumber || '—' }}
+                  </strong>
+  
+                </div>
+  
+  
+                <div>
+  
+                  <small>
+                    Invoice Date
+                  </small>
+  
+                  <strong>
+                    {{ formatDate(invoice.invoiceDate) }}
+                  </strong>
+  
+                </div>
+  
+  
+                <div>
+  
+                  <small>
+                    Party
+                  </small>
+  
+                  <strong>
+                    {{ invoice.partyName || '—' }}
+                  </strong>
+  
+                </div>
+  
+  
+                <div>
+  
+                  <small>
+                    Sent by
+                  </small>
+  
+                  <strong>
+                    {{ invoice.sentToAccountsByName || '—' }}
+                  </strong>
+  
+                </div>
+  
+  
+                <div>
+  
+                  <small>
+                    Sent at
+                  </small>
+  
+                  <strong>
+                    {{ formatDateTime(invoice.sentToAccountsAt) }}
+                  </strong>
+  
+                </div>
+  
+  
+                <div>
+  
+                  <small>
+                    Current Status
+                  </small>
+  
+                  <strong>
+                    {{ statusLabel(invoice.status) }}
+                  </strong>
+  
+                </div>
+  
+              </div>
+  
+            </section>
+  
+  
+            <!-- =================================================
+                 ACCOUNTS REVIEW
+            ================================================== -->
+  
+            <section class="detail-section">
+  
+              <div class="detail-section__header">
+  
+                <h3>
+                  Accounts Review
+                </h3>
+  
+              </div>
+  
+  
+              <div class="detail-grid">
+  
+                <div>
+  
+                  <small>
+                    Verified by
+                  </small>
+  
+                  <strong>
+                    {{ invoice.verifiedByName || '—' }}
+                  </strong>
+  
+                </div>
+  
+  
+                <div>
+  
+                  <small>
+                    Verified at
+                  </small>
+  
+                  <strong>
+                    {{ formatDateTime(invoice.verifiedAt) }}
+                  </strong>
+  
+                </div>
+  
+  
+                <div>
+  
+                  <small>
+                    Last
+                    {{
+                      isLogisticsInvoice(invoice)
+                        ? 'Receipt'
+                        : 'Payment'
+                    }}
+                    by
+                  </small>
+  
+                  <strong>
+                    {{ invoice.lastPaidByName || '—' }}
+                  </strong>
+  
+                </div>
+  
+  
+                <div>
+  
+                  <small>
+                    Last Settlement
+                  </small>
+  
+                  <strong>
+                    {{ formatDateTime(invoice.lastPaymentAt) }}
+                  </strong>
+  
+                </div>
+  
+  
+                <div>
+  
+                  <small>
+                    Reference
+                  </small>
+  
+                  <strong>
+                    {{ invoice.lastPaymentReference || '—' }}
+                  </strong>
+  
+                </div>
+  
+  
+                @if (invoice.status === 'rejected') {
+  
+                  <div class="detail-grid__full">
+  
+                    <small>
+                      Rejection Reason
+                    </small>
+  
+                    <strong class="text-danger">
+                      {{ invoice.rejectionReason || '—' }}
+                    </strong>
+  
+                  </div>
+  
+                }
+  
+              </div>
+  
+            </section>
+  
+  
+            <!-- =================================================
+                 DOCUMENTS
+            ================================================== -->
+  
+            <section class="detail-section">
+  
+              <div class="detail-section__header">
+  
+                <div>
+  
+                  <h3>
+                    Documents
+                  </h3>
+  
+                  <p>
+                    Supporting files submitted by the source department.
+                  </p>
+  
+                </div>
+  
+              </div>
+  
+  
+              @if (documents(invoice).length > 0) {
+  
+                <div class="document-list">
+  
+                  @for (
+                    document of documents(invoice);
+                    track $index
+                  ) {
+  
+                    <article class="document-item">
+  
+                      <div class="document-item__icon">
+  
+                        <span class="material-symbols-rounded">
+                          description
+                        </span>
+  
+                      </div>
+  
+  
+                      <div class="document-item__content">
+  
+                        <strong>
+                          {{ documentLabel(document, $index) }}
+                        </strong>
+  
+                        <small>
+                          {{ document.mimeType || 'Attachment' }}
+                        </small>
+  
+                      </div>
+  
+  
+                      <div class="document-item__actions">
+  
+                        <button
+                          type="button"
+                          class="document-button"
+                          (click)="viewDocument(invoice, document, $index)"
+                        >
+                          <span class="material-symbols-rounded">
+                            visibility
+                          </span>
+  
+                          View
+                        </button>
+  
+  
+                        <button
+                          type="button"
+                          class="document-button document-button--download"
+                          (click)="downloadDocument(invoice, document, $index)"
+                        >
+                          <span class="material-symbols-rounded">
+                            download
+                          </span>
+  
+                          Download
+                        </button>
+  
+                      </div>
+  
+                    </article>
+  
+                  }
+  
+                </div>
+  
+              } @else {
+  
+                <div class="inline-empty-state">
+  
+                  <span class="material-symbols-rounded">
+                    attach_file_off
+                  </span>
+  
+                  No supporting documents available.
+  
+                </div>
+  
+              }
+  
+            </section>
+  
+  
+            <!-- =================================================
+                 PAYMENT / RECEIPT HISTORY
+            ================================================== -->
+  
+            <section class="detail-section">
+  
+              <div class="detail-section__header">
+  
+                <div>
+  
+                  <h3>
+                    {{
+                      isLogisticsInvoice(invoice)
+                        ? 'Receipt History'
+                        : 'Payment History'
+                    }}
+                  </h3>
+  
+                  <p>
+                    Accounts settlement activity recorded against this invoice.
+                  </p>
+  
+                </div>
+  
+              </div>
+  
+  
+              @if (paymentHistory(invoice).length > 0) {
+  
+                <div class="history-list">
+  
+                  @for (
+                    payment of paymentHistory(invoice);
+                    track payment._id || $index
+                  ) {
+  
+                    <article class="history-item">
+  
+                      <div class="history-item__icon">
+  
+                        <span class="material-symbols-rounded">
+                          payments
+                        </span>
+  
+                      </div>
+  
+  
+                      <div class="history-item__main">
+  
+                        <strong>
+                          {{
+                            formatCurrency(
+                              payment.amount,
+                              invoice.currency
+                            )
+                          }}
+                        </strong>
+  
+                        <span>
+                          {{ formatDate(payment.paymentDate) }}
+                        </span>
+  
+                      </div>
+  
+  
+                      <div class="history-item__meta">
+  
+                        <span>
+                          {{
+                            payment.paymentMode ||
+                            'Mode not specified'
+                          }}
+                        </span>
+  
+                        <small>
+                          Ref:
+                          {{
+                            payment.paymentReference ||
+                            '—'
+                          }}
+                        </small>
+  
+                      </div>
+  
+  
+                      <div class="history-item__audit">
+  
+                        <small>
+                          Recorded by
+                        </small>
+  
+                        <strong>
+                          {{
+                            payment.recordedByName ||
+                            '—'
+                          }}
+                        </strong>
+  
+                      </div>
+  
+                    </article>
+  
+                  }
+  
+                </div>
+  
+              } @else {
+  
+                <div class="inline-empty-state">
+  
+                  <span class="material-symbols-rounded">
+                    history
+                  </span>
+  
+                  No settlement history recorded yet.
+  
+                </div>
+  
+              }
+  
+            </section>
+  
+  
+            <!-- =================================================
+                 PURCHASE NOTICE
+            ================================================== -->
+  
+            <!-- =================================================
+            PURCHASE PAYMENT WORKFLOW
+       ================================================== -->
+       
+       @if (isPurchaseInvoice(invoice)) {
+       
+         <section
+           class="purchase-settlement-notice"
+           [class.purchase-settlement-notice--ready]="
+             canCreatePurchasePaymentVoucher(invoice)
+           "
+         >
+       
+           <div class="purchase-settlement-notice__icon">
+       
+             <span class="material-symbols-rounded">
+               {{
+                 canCreatePurchasePaymentVoucher(invoice)
+                   ? 'verified'
+                   : 'account_balance'
+               }}
+             </span>
+       
+           </div>
+       
+       
+           <div class="purchase-settlement-notice__content">
+       
+             @if (canCreatePurchasePaymentVoucher(invoice)) {
+       
+               <span class="purchase-payment-eyebrow">
+                 Verified · Ready for Payment
+               </span>
+       
+               <strong>
+                 Purchase Invoice Ready for Payment
+               </strong>
+       
+       
+               <div class="purchase-payment-outstanding">
+       
+                 <span>
+                   Outstanding Amount
+                 </span>
+       
+                 <strong>
+                   {{
+                     formatCurrency(
+                       invoice.remainingAmount,
+                       invoice.currency
+                     )
+                   }}
+                 </strong>
+       
+               </div>
+       
+       
+               <p>
+                 This Purchase Invoice has been verified by Accounts.
+                 Create an Accounts Payment Voucher and allocate the payment
+                 against this invoice.
+               </p>
+       
+       
+               <button
+                 type="button"
+                 class="button purchase-payment-button"
+                 [disabled]="actionLoading()"
+                 (click)="openPurchasePaymentVoucher(invoice)"
+               >
+       
+                 <span class="material-symbols-rounded">
+                   payments
+                 </span>
+       
+                 Create Payment Voucher
+       
+                 <span class="material-symbols-rounded">
+                   arrow_forward
+                 </span>
+       
+               </button>
+       
+             } @else {
+       
+               <strong>
+                 Purchase Invoice Settlement
+               </strong>
+       
+               <p>
+                 Purchase invoices must be settled through the Accounts
+                 Payment Voucher and Purchase Payment Allocation workflow.
+               </p>
+       
+             }
+       
+           </div>
+       
+         </section>
+  
+          }
+  
+  
+            <!-- =================================================
+                 VERIFY FORM
+            ================================================== -->
+  
+            @if (selectedAction() === 'verify') {
+  
+              <section class="action-panel action-panel--verify">
+  
+                <div class="action-panel__header">
+  
+                  <div>
+  
+                    <h3>
+                      Verify Invoice
+                    </h3>
+  
+                    <p>
+                      Confirm that the invoice and submitted documents are valid.
+                    </p>
+  
+                  </div>
+  
+                </div>
+  
+  
+                <form
+                  [formGroup]="verifyForm"
+                  (ngSubmit)="submitVerify()"
+                >
+  
+                  <label class="form-field">
+  
+                    <span>
+                      Accounts Remarks
+                    </span>
+  
+                    <textarea
+                      rows="4"
+                      formControlName="remarks"
+                      placeholder="Optional verification remarks..."
+                    ></textarea>
+  
+                  </label>
+  
+  
+                  <div class="action-panel__buttons">
+  
+                    <button
+                      type="button"
+                      class="button button--secondary"
+                      [disabled]="actionLoading()"
+                      (click)="cancelAction()"
+                    >
+                      Cancel
+                    </button>
+  
+  
+                    <button
+                      type="submit"
+                      class="button button--success"
+                      [disabled]="actionLoading()"
+                    >
+                      @if (actionLoading()) {
+                        Processing...
+                      } @else {
+                        Verify Invoice
+                      }
+                    </button>
+  
+                  </div>
+  
+                </form>
+  
+              </section>
+  
+            }
+  
+  
+            <!-- =================================================
+                 REJECT FORM
+            ================================================== -->
+  
+            @if (selectedAction() === 'reject') {
+  
+              <section class="action-panel action-panel--reject">
+  
+                <div class="action-panel__header">
+  
+                  <div>
+  
+                    <h3>
+                      Reject Invoice
+                    </h3>
+  
+                    <p>
+                      Provide a clear reason so the source department can correct it.
+                    </p>
+  
+                  </div>
+  
+                </div>
+  
+  
+                <form
+                  [formGroup]="rejectForm"
+                  (ngSubmit)="submitReject()"
+                >
+  
+                  <label class="form-field">
+  
+                    <span>
+                      Rejection Reason *
+                    </span>
+  
+                    <textarea
+                      rows="4"
+                      formControlName="reason"
+                      placeholder="Enter rejection reason..."
+                    ></textarea>
+  
+  
+                    @if (
+                      rejectForm.controls.reason.touched &&
+                      rejectForm.controls.reason.invalid
+                    ) {
+  
+                      <small class="field-error">
+                        Rejection reason is required.
+                      </small>
+  
+                    }
+  
+                  </label>
+  
+  
+                  <div class="action-panel__buttons">
+  
+                    <button
+                      type="button"
+                      class="button button--secondary"
+                      [disabled]="actionLoading()"
+                      (click)="cancelAction()"
+                    >
+                      Cancel
+                    </button>
+  
+  
+                    <button
+                      type="submit"
+                      class="button button--danger"
+                      [disabled]="actionLoading()"
+                    >
+                      @if (actionLoading()) {
+                        Processing...
+                      } @else {
+                        Reject Invoice
+                      }
+                    </button>
+  
+                  </div>
+  
+                </form>
+  
+              </section>
+  
+            }
+  
+  
+            <!-- =================================================
+                 PAYMENT / RECEIPT FORM
+            ================================================== -->
+  
+            @if (
+              selectedAction() === 'payment' ||
+              selectedAction() === 'receipt'
+            ) {
+  
+              <section class="action-panel action-panel--settlement">
+  
+                <div class="action-panel__header">
+  
+                  <div>
+  
+                    <h3>
+                      {{ settlementTitle() }}
+                    </h3>
+  
+                    <p>
+                      Remaining amount:
+  
+                      <strong>
+                        {{
+                          formatCurrency(
+                            invoice.remainingAmount,
+                            invoice.currency
+                          )
+                        }}
+                      </strong>
+                    </p>
+  
+                  </div>
+  
+                </div>
+  
+  
+                <form
+                  [formGroup]="settlementForm"
+                  (ngSubmit)="submitSettlement()"
+                >
+  
+                  <div class="settlement-form-grid">
+  
+                    <label class="form-field">
+  
+                      <span>
+                        {{ settlementAmountLabel() }} *
+                      </span>
+  
+                      <input
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        formControlName="amount"
+                      />
+  
+                      @if (
+                        settlementForm.controls.amount.touched &&
+                        settlementForm.controls.amount.invalid
+                      ) {
+  
+                        <small class="field-error">
+                          Enter a valid amount greater than zero.
+                        </small>
+  
+                      }
+  
+                    </label>
+  
+  
+                    <label class="form-field">
+  
+                      <span>
+                        {{
+                          selectedAction() === 'receipt'
+                            ? 'Receipt Date'
+                            : 'Payment Date'
+                        }}
+                        *
+                      </span>
+  
+                      <input
+                        type="date"
+                        formControlName="paymentDate"
+                      />
+  
+                      @if (
+                        settlementForm.controls.paymentDate.touched &&
+                        settlementForm.controls.paymentDate.invalid
+                      ) {
+  
+                        <small class="field-error">
+                          Settlement date is required.
+                        </small>
+  
+                      }
+  
+                    </label>
+  
+  
+                    <!-- PAYMENT / RECEIPT MODE -->
+  
+                    <label class="form-field">
+  
+                      <span>
+                        {{
+                          selectedAction() === 'receipt'
+                            ? 'Receipt Mode'
+                            : 'Payment Mode'
+                        }}
+                      </span>
+  
+                      <select
+                        formControlName="paymentMode"
+                        (change)="onPaymentModeChange()"
+                      >
+  
+                        <option value="">
+                          Select Mode
+                        </option>
+  
+                        <option value="Bank Transfer">
+                          Bank Transfer
+                        </option>
+  
+                        <option value="NEFT">
+                          NEFT
+                        </option>
+  
+                        <option value="RTGS">
+                          RTGS
+                        </option>
+  
+                        <option value="IMPS">
+                          IMPS
+                        </option>
+  
+                        <option value="UPI">
+                          UPI
+                        </option>
+  
+                        <option value="Cheque">
+                          Cheque
+                        </option>
+  
+                        <option value="Cash">
+                          Cash
+                        </option>
+  
+                        <option value="Other">
+                          Other
+                        </option>
+  
+                      </select>
+  
+                    </label>
+  
+  
+                    <!-- OTHER PAYMENT MODE -->
+  
+                    @if (isOtherPaymentMode()) {
+  
+                      <label class="form-field">
+  
+                        <span>
+                          {{
+                            selectedAction() === 'receipt'
+                              ? 'Other Receipt Mode'
+                              : 'Other Payment Mode'
+                          }}
+                          *
+                        </span>
+  
+                        <input
+                          type="text"
+                          maxlength="100"
+                          formControlName="paymentModeOther"
+                          [placeholder]="
+                            selectedAction() === 'receipt'
+                              ? 'Enter receipt mode'
+                              : 'Enter payment mode'
+                          "
+                        />
+  
+  
+                        @if (
+                          settlementForm.controls.paymentModeOther.touched &&
+                          settlementForm.controls.paymentModeOther.invalid
+                        ) {
+  
+                          <small class="field-error">
+  
+                            @if (
+                              settlementForm.controls.paymentModeOther.errors?.['required']
+                            ) {
+  
+                              Please enter the custom
+  
+                              {{
+                                selectedAction() === 'receipt'
+                                  ? 'receipt'
+                                  : 'payment'
+                              }}
+  
+                              mode.
+  
+                            } @else {
+  
+                              Maximum 100 characters allowed.
+  
+                            }
+  
+                          </small>
+  
+                        }
+  
+                      </label>
+  
+                    }
+  
+  
+                    <label class="form-field">
+  
+                      <span>
+                        Reference
+                      </span>
+  
+                      <input
+                        type="text"
+                        formControlName="paymentReference"
+                        placeholder="UTR / cheque / transaction reference"
+                      />
+  
+                    </label>
+  
+  
+                    <label class="form-field settlement-form-grid__full">
+  
+                      <span>
+                        Remarks
+                      </span>
+  
+                      <textarea
+                        rows="3"
+                        formControlName="remarks"
+                        placeholder="Optional Accounts remarks..."
+                      ></textarea>
+  
+                    </label>
+  
+                  </div>
+  
+  
+                  <div class="action-panel__buttons">
+  
+                    <button
+                      type="button"
+                      class="button button--secondary"
+                      [disabled]="actionLoading()"
+                      (click)="cancelAction()"
+                    >
+                      Cancel
+                    </button>
+  
+  
+                    <button
+                      type="submit"
+                      class="button button--success"
+                      [disabled]="actionLoading()"
+                    >
+                      @if (actionLoading()) {
+                        Processing...
+                      } @else {
+                        {{ settlementTitle() }}
+                      }
+                    </button>
+  
+                  </div>
+  
+                </form>
+  
+              </section>
+  
+            }
+  
+          </div>
+  
+  
+          <!-- =================================================
+               MODAL FOOTER
+          ================================================== -->
+  
+          <footer class="invoice-modal__footer">
+  
+            <button
+              type="button"
+              class="button button--secondary"
+              [disabled]="actionLoading()"
+              (click)="refreshSelectedInvoice()"
+            >
+              <span class="material-symbols-rounded">
+                refresh
+              </span>
+  
+              Refresh
+            </button>
+  
+  
+            <div class="modal-primary-actions">
+  
+              @if (
+                canReject(invoice) &&
+                selectedAction() === null
+              ) {
+  
+                <button
+                  type="button"
+                  class="button button--danger-outline"
+                  [disabled]="actionLoading()"
+                  (click)="startReject(invoice)"
+                >
+                  <span class="material-symbols-rounded">
+                    cancel
+                  </span>
+  
+                  Reject
+                </button>
+  
+              }
+  
+  
+              @if (
+                canVerify(invoice) &&
+                selectedAction() === null
+              ) {
+  
+                <button
+                  type="button"
+                  class="button button--success"
+                  [disabled]="actionLoading()"
+                  (click)="startVerify(invoice)"
+                >
+                  <span class="material-symbols-rounded">
+                    verified
+                  </span>
+  
+                  Verify
+                </button>
+  
+              }
+  
+  
+              @if (
+                canSettle(invoice) &&
+                selectedAction() === null
+              ) {
+  
+                <button
+                  type="button"
+                  class="button button--primary"
+                  [disabled]="actionLoading()"
+                  (click)="startSettlement(invoice)"
+                >
+  
+                  <span class="material-symbols-rounded">
+                    payments
+                  </span>
+  
+                  {{ settlementActionLabel(invoice) }}
+  
+                </button>
+  
+              }
+  
+            </div>
+  
+          </footer>
+  
+        </section>
+  
+      </div>
+  
+    }
+  
+  
+  
+    <!-- =======================================================
+         GPAY-STYLE PAYMENT / RECEIPT SUCCESS
+    ======================================================== -->
+  
+    @if (settlementSuccessVisible()) {
+  
+      <div
+        class="settlement-success-overlay"
+        role="status"
+        aria-live="polite"
+        aria-label="Settlement successful"
+      >
+  
+        <section class="settlement-success-card">
+  
+          <!-- SUCCESS ANIMATION -->
+  
+          <div class="settlement-success-animation">
+  
+            <div
+              class="settlement-success-ring"
+              aria-hidden="true"
+            ></div>
+  
+  
+            <div
+              class="settlement-success-check"
+              aria-hidden="true"
+            >
+              ✓
+            </div>
+  
+          </div>
+  
+  
+          <!-- SUCCESS TITLE -->
+  
+          <h2 class="settlement-success-title">
+  
+            {{
+              settlementSuccessType() === 'receipt'
+                ? 'Receipt Recorded'
+                : 'Payment Successful'
+            }}
+  
+          </h2>
+  
+  
+          <!-- AMOUNT -->
+  
+          <strong class="settlement-success-amount">
+  
+            {{
+              formatCurrency(
+                settlementSuccessAmount(),
+                settlementSuccessCurrency()
+              )
+            }}
+  
+          </strong>
+  
+  
+          <!-- MESSAGE -->
+  
+          <p class="settlement-success-text">
+  
+            @if (settlementSuccessType() === 'receipt') {
+  
+              Customer receipt has been successfully
+              recorded in Accounts.
+  
+            } @else {
+  
+              Vendor payment has been successfully
+              recorded in Accounts.
+  
+            }
+  
+          </p>
+  
+  
+          <!-- INVOICE NUMBER -->
+  
+          @if (settlementSuccessInvoiceNumber()) {
+  
+            <span class="settlement-success-invoice">
+  
+              Invoice&nbsp;
+  
+              <strong>
+                {{ settlementSuccessInvoiceNumber() }}
+              </strong>
+  
+            </span>
+  
+          }
+  
+        </section>
+  
+      </div>
+  
+    }
+  
+  </section>

@@ -8,6 +8,10 @@ import {
 import voucherService
   from "../services/voucher.service.js";
 
+import departmentInvoiceService
+  from "../services/departmentInvoice.service.js";
+
+
 import { ApiResponse }
   from "../utils/apiResponse.js";
 
@@ -100,6 +104,42 @@ const validate = (
   return value;
 
 };
+
+
+/* ============================================================
+   REFRESH PURCHASE SETTLEMENT FOR PAYMENT VOUCHER
+
+   Important:
+   - Voucher accounting transaction is already complete before
+     this helper is called.
+   - Only Payment Vouchers require Purchase allocation refresh.
+   - Non-payment voucher types remain completely unchanged.
+============================================================ */
+
+const refreshPurchaseSettlementForPaymentVoucher =
+  async (
+    companyId,
+    voucher
+  ) => {
+
+    if (
+      !voucher ||
+      voucher.voucherType !==
+        "payment"
+    ) {
+
+      return;
+
+    }
+
+
+    await departmentInvoiceService
+      .refreshPurchaseSettlementsForPayment(
+        companyId,
+        voucher._id
+      );
+
+  };
 
 
 /* ============================================================
@@ -322,10 +362,23 @@ export const updateVoucher =
     }
   );
 
+
 /* ============================================================
    POST VOUCHER
 
    POST /accounting/vouchers/:voucherId/post
+
+   Payment Voucher flow:
+
+   post accounting transaction
+        ↓
+   posted Payment Voucher becomes effective
+        ↓
+   PaymentAllocation totals become effective
+        ↓
+   refresh linked DepartmentInvoice rows
+        ↓
+   sync PurchaseInvoice Accounts status
 ============================================================ */
 
 export const postVoucher =
@@ -342,14 +395,16 @@ export const postVoucher =
         );
 
 
+      const companyId =
+        companyIdForRequest(
+          req
+        );
+
       const voucher =
         await voucherService
           .postVoucher({
 
-            companyId:
-              companyIdForRequest(
-                req
-              ),
+            companyId,
 
             voucherId:
               params.voucherId,
@@ -360,6 +415,12 @@ export const postVoucher =
               ),
 
           });
+
+
+      await refreshPurchaseSettlementForPaymentVoucher(
+        companyId,
+        voucher
+      );
 
 
       return res
@@ -382,6 +443,23 @@ export const postVoucher =
    VOID VOUCHER
 
    POST /accounting/vouchers/:voucherId/void
+
+   Payment Voucher flow:
+
+   void accounting transaction
+        ↓
+   PaymentAllocation still exists historically
+        ↓
+   validTotalsByInvoices ignores void voucher
+        ↓
+   effective paid amount is recalculated
+        ↓
+   DepartmentInvoice may move:
+       paid -> partially_paid
+       paid -> verified
+       partially_paid -> verified
+        ↓
+   PurchaseInvoice is synchronized
 ============================================================ */
 
 export const voidVoucher =
@@ -398,14 +476,17 @@ export const voidVoucher =
         );
 
 
+      const companyId =
+        companyIdForRequest(
+          req
+        );
+
+
       const voucher =
         await voucherService
           .voidVoucher({
 
-            companyId:
-              companyIdForRequest(
-                req
-              ),
+            companyId,
 
             voucherId:
               params.voucherId,
@@ -419,6 +500,12 @@ export const voidVoucher =
               req.body?.reason,
 
           });
+
+
+      await refreshPurchaseSettlementForPaymentVoucher(
+        companyId,
+        voucher
+      );
 
 
       return res
@@ -435,6 +522,7 @@ export const voidVoucher =
 
     }
   );
+
 
 /* ============================================================
    ADD VOUCHER ATTACHMENTS

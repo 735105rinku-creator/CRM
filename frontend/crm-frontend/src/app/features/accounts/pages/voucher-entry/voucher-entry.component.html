@@ -39,6 +39,10 @@
   }
 
 
+  <!-- =====================================================
+       FILTERS
+  ====================================================== -->
+
   <section class="filter-card">
 
     <div class="filter-grid">
@@ -120,16 +124,23 @@
   </section>
 
 
+  <!-- =====================================================
+       VOUCHER REGISTER
+  ====================================================== -->
+
   <section class="register-card">
 
     <div class="section-heading">
+
       <div>
         <h2>Voucher Register</h2>
+
         <p>
           {{ vouchers().length }}
           voucher(s)
         </p>
       </div>
+
     </div>
 
 
@@ -152,19 +163,24 @@
         <table>
 
           <thead>
+
             <tr>
               <th>Voucher Number</th>
               <th>Voucher Date</th>
               <th>Reference</th>
               <th>Narration</th>
+
               <th class="number">
                 Amount
               </th>
+
               <th>Status</th>
               <th>Supporting Proof</th>
               <th>Actions</th>
             </tr>
+
           </thead>
+
 
           <tbody>
 
@@ -182,15 +198,24 @@
                 </td>
 
                 <td>
-                  {{ voucher.voucherDate | date:'dd MMM yyyy' }}
+                  {{
+                    voucher.voucherDate
+                      | date:'dd MMM yyyy'
+                  }}
                 </td>
 
                 <td>
-                  {{ voucher.referenceNo || '—' }}
+                  {{
+                    voucher.referenceNo ||
+                    '—'
+                  }}
                 </td>
 
                 <td>
-                  {{ voucher.narration || '—' }}
+                  {{
+                    voucher.narration ||
+                    '—'
+                  }}
                 </td>
 
                 <td class="number">
@@ -201,85 +226,169 @@
                 </td>
 
                 <td>
+
                   <span
                     class="status-pill"
                     [ngClass]="statusClass(voucher.status)">
-                    {{ voucher.status | titlecase }}
+
+                    {{
+                      voucher.status
+                        | titlecase
+                    }}
+
                   </span>
+
                 </td>
+
+
                 <td class="voucher-proof-cell">
 
                   @if (voucher.attachments?.length) {
+
                     @for (
                       attachment of voucher.attachments;
                       track attachment._id || attachment.fileUrl
                     ) {
+
                       <div class="proof-item">
+
                         <a
                           [href]="attachmentUrl(attachment)"
                           target="_blank"
                           rel="noopener noreferrer">
-                          {{ attachment.originalName }}
+
+                          {{
+                            attachment.originalName
+                          }}
+
                         </a>
 
-                        @if (voucher.status === 'draft') {
+
+                        @if (
+                          voucher.status === 'draft'
+                        ) {
+
                           <button
                             type="button"
                             class="text-button danger-text"
-                            [disabled]="uploadingVoucherId() === voucher._id"
-                            (click)="removeVoucherProof(voucher, attachment)">
+                            [disabled]="
+                              uploadingVoucherId() ===
+                              voucher._id
+                            "
+                            (click)="
+                              removeVoucherProof(
+                                voucher,
+                                attachment
+                              )
+                            ">
+
                             Remove
+
                           </button>
+
                         }
+
                       </div>
+
                     }
+
                   } @else {
-                    <span>No proof</span>
+
+                    <span>
+                      No proof
+                    </span>
+
                   }
 
-                  @if (voucher.status === 'draft') {
+
+                  @if (
+                    voucher.status === 'draft'
+                  ) {
+
                     <label class="proof-upload">
+
                       + Add Proof
+
                       <input
                         hidden
                         type="file"
                         multiple
                         accept=".pdf,.jpg,.jpeg,.png"
-                        [disabled]="uploadingVoucherId() === voucher._id"
-                        (change)="onVoucherProofSelected(voucher, $event)">
+                        [disabled]="
+                          uploadingVoucherId() ===
+                          voucher._id
+                        "
+                        (change)="
+                          onVoucherProofSelected(
+                            voucher,
+                            $event
+                          )
+                        ">
+
                     </label>
+
                   }
 
                 </td>
 
+
                 <td>
+
                   <div class="row-actions">
 
-                    @if (voucher.status === 'draft') {
+                    @if (
+                      voucher.status === 'draft'
+                    ) {
+
+                      @if (
+                        voucherType() === 'payment'
+                      ) {
+
+                        <button
+                          type="button"
+                          class="text-button"
+                          (click)="openAllocations(voucher)">
+
+                          Allocate Purchase Invoices
+
+                        </button>
+
+                      }
+
 
                       <button
                         type="button"
                         class="text-button"
                         (click)="editVoucher(voucher)">
+
                         Edit
+
                       </button>
+
 
                       <button
                         type="button"
                         class="text-button success-text"
                         (click)="postVoucher(voucher)">
+
                         Post Voucher
+
                       </button>
 
                     }
 
-                    @if (voucher.status === 'posted') {
+
+                    @if (
+                      voucher.status === 'posted'
+                    ) {
 
                       <button
                         type="button"
                         class="text-button danger-text"
                         (click)="voidVoucher(voucher)">
+
                         Void
+
                       </button>
 
                     }
@@ -289,6 +398,7 @@
                 </td>
 
               </tr>
+
             }
 
           </tbody>
@@ -296,263 +406,1530 @@
         </table>
 
       </div>
+
     }
 
   </section>
 
 
-  @if (formOpen()) {
+  <!-- =====================================================
+       PURCHASE PAYMENT ALLOCATION MODAL
+
+       Existing manual allocation workflow remains available.
+  ====================================================== -->
+
+  @if (allocationOpen()) {
 
     <div class="form-overlay">
 
-      <section class="voucher-form-card">
+      <section
+        class="voucher-form-card allocation-card">
 
         <header class="form-header">
 
           <div>
+
             <p class="eyebrow">
-              {{ voucherType() | uppercase }}
-              VOUCHER
+              PURCHASE PAYMENT
             </p>
 
             <h2>
-              {{
-                editingVoucherId()
-                  ? 'Edit Draft Voucher'
-                  : 'New Voucher'
-              }}
+              Allocate Purchase Invoices
             </h2>
+
+            <p class="allocation-subtitle">
+
+              Payment Voucher:
+
+              <strong>
+                {{
+                  allocationVoucher()
+                    ?.voucherNumber
+                }}
+              </strong>
+
+            </p>
+
           </div>
+
 
           <button
             type="button"
             class="close-button"
             aria-label="Close"
-            (click)="closeForm()">
+            [disabled]="saving()"
+            (click)="closeAllocations()">
+
             ×
+
           </button>
 
         </header>
 
 
-        <form
-          [formGroup]="voucherForm"
-          (ngSubmit)="saveDraft()">
+        <div class="allocation-summary">
 
-          <div class="form-grid">
+          <div class="allocation-summary-item">
 
-            <label>
-              <span>Voucher Date</span>
+            <span>
+              Payment Voucher Amount
+            </span>
 
-              <input
-                type="date"
-                formControlName="voucherDate">
-            </label>
-
-            <label>
-              <span>Reference No.</span>
-
-              <input
-                type="text"
-                formControlName="referenceNo"
-                placeholder="Optional reference">
-            </label>
-
-            <label>
-              <span>Reference Date</span>
-
-              <input
-                type="date"
-                formControlName="referenceDate">
-            </label>
-
-            <label class="full-width">
-              <span>Narration</span>
-
-              <textarea
-                rows="3"
-                formControlName="narration"
-                placeholder="Voucher narration">
-              </textarea>
-            </label>
-
-          </div>
-
-
-          <div class="lines-heading">
-
-            <div>
-              <h3>Accounting Lines</h3>
-              <p>
-                Every voucher must have
-                equal debit and credit totals.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              class="secondary-button"
-              (click)="addLine()">
-              + Add Line
-            </button>
-
-          </div>
-
-
-          <div
-            class="lines"
-            formArrayName="lines">
-
-            @for (
-              control of lines.controls;
-              track $index
-            ) {
-
-              <div
-                class="line-row"
-                [formGroupName]="$index">
-
-                <label class="account-field">
-                  <span>Account</span>
-
-                  <select
-                    formControlName="accountId">
-
-                    <option value="">
-                      Select account
-                    </option>
-
-                    @for (
-                      account of accounts();
-                      track trackAccount($index, account)
-                    ) {
-
-                      <option
-                        [value]="account._id">
-
-                        {{ account.accountCode }}
-                        ·
-                        {{ account.accountName }}
-
-                      </option>
-                    }
-
-                  </select>
-                </label>
-
-                <label class="description-field">
-                  <span>Description</span>
-
-                  <input
-                    type="text"
-                    formControlName="description"
-                    placeholder="Line description">
-                </label>
-
-                <label>
-                  <span>Debit</span>
-
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    formControlName="debit"
-                    (input)="onDebitInput($index)">
-                </label>
-
-                <label>
-                  <span>Credit</span>
-
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    formControlName="credit"
-                    (input)="onCreditInput($index)">
-                </label>
-
-                <button
-                  type="button"
-                  class="remove-line"
-                  aria-label="Remove line"
-                  [disabled]="lines.length <= 2"
-                  (click)="removeLine($index)">
-                  ×
-                </button>
-
-              </div>
-            }
-
-          </div>
-
-
-          <div class="totals-card">
-
-            <div>
-              <span>Total Debit</span>
-              <strong>
-                {{
-                  totalDebit()
-                    | number:'1.2-2'
-                }}
-              </strong>
-            </div>
-
-            <div>
-              <span>Total Credit</span>
-              <strong>
-                {{
-                  totalCredit()
-                    | number:'1.2-2'
-                }}
-              </strong>
-            </div>
-
-            <div
-              class="balance-state"
-              [class.balanced]="balanced()">
-
+            <strong>
               {{
-                balanced()
-                  ? 'Balanced'
-                  : 'Not Balanced'
+                allocationVoucherAmount()
+                  | number:'1.2-2'
               }}
-
-            </div>
+            </strong>
 
           </div>
 
 
-          <footer class="form-actions">
+          <div class="allocation-summary-item">
+
+            <span>
+              Allocated
+            </span>
+
+            <strong>
+              {{
+                allocationTotal()
+                  | number:'1.2-2'
+              }}
+            </strong>
+
+          </div>
+
+
+          <div class="allocation-summary-item">
+
+            <span>
+              Unallocated
+            </span>
+
+            <strong>
+              {{
+                allocationRemainingAmount()
+                  | number:'1.2-2'
+              }}
+            </strong>
+
+          </div>
+
+        </div>
+
+
+        <div class="allocation-note">
+
+          Select the Purchase Invoice amount
+          that this Payment Voucher is settling.
+
+          Payment will count against the
+          Purchase Invoice only after this
+          voucher is posted.
+
+        </div>
+
+
+        @if (
+          saving() &&
+          !allocationOptions().length
+        ) {
+
+          <div class="empty-state">
+            Loading outstanding Purchase Invoices...
+          </div>
+
+        } @else if (
+          !allocationOptions().length
+        ) {
+
+          <div class="empty-state">
+
+            No outstanding Purchase Invoices
+            are available for this Payment Voucher.
+
+          </div>
+
+        } @else {
+
+          <div class="table-wrap allocation-table-wrap">
+
+            <table class="allocation-table">
+
+              <thead>
+
+                <tr>
+
+                  <th>
+                    Vendor / Invoice
+                  </th>
+
+                  <th>
+                    Invoice Date
+                  </th>
+
+                  <th class="number">
+                    Invoice Total
+                  </th>
+
+                  <th class="number">
+                    Already Paid
+                  </th>
+
+                  <th class="number">
+                    Outstanding
+                  </th>
+
+                  <th class="number">
+                    Allocate
+                  </th>
+
+                </tr>
+
+              </thead>
+
+
+              <tbody>
+
+                @for (
+                  invoice of allocationOptions();
+                  track invoice.purchaseInvoiceId
+                ) {
+
+                  <tr>
+
+                    <td>
+
+                      <strong>
+                        {{
+                          invoice.vendorName ||
+                          'Vendor'
+                        }}
+                      </strong>
+
+                      <div class="allocation-invoice-meta">
+
+                        <span>
+                          Invoice:
+                          {{
+                            invoice.vendorInvoiceNumber ||
+                            '—'
+                          }}
+                        </span>
+
+                        <span>
+                          PO:
+                          {{
+                            invoice.poNumber ||
+                            '—'
+                          }}
+                        </span>
+
+                        @if (
+                          invoice.accountsVoucherNumber
+                        ) {
+
+                          <span>
+                            Purchase Voucher:
+                            {{
+                              invoice.accountsVoucherNumber
+                            }}
+                          </span>
+
+                        }
+
+                      </div>
+
+                    </td>
+
+
+                    <td>
+                      {{
+                        invoice.invoiceDate
+                          | date:'dd MMM yyyy'
+                      }}
+                    </td>
+
+
+                    <td class="number">
+                      {{
+                        invoice.invoiceTotal
+                          | number:'1.2-2'
+                      }}
+                    </td>
+
+
+                    <td class="number">
+                      {{
+                        invoice.paidAmount
+                          | number:'1.2-2'
+                      }}
+                    </td>
+
+
+                    <td class="number">
+
+                      <strong>
+                        {{
+                          invoice.outstandingAmount
+                            | number:'1.2-2'
+                        }}
+                      </strong>
+
+                    </td>
+
+
+                    <td class="number">
+
+                      <input
+                        class="allocation-input"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        [max]="invoice.outstandingAmount"
+                        [value]="
+                          allocationAmounts[
+                            invoice.purchaseInvoiceId
+                          ] || ''
+                        "
+                        [disabled]="saving()"
+                        (input)="
+                          setAllocation(
+                            invoice.purchaseInvoiceId,
+                            $any($event.target).value
+                          )
+                        "
+                        placeholder="0.00">
+
+                    </td>
+
+                  </tr>
+
+                }
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        }
+
+
+        <footer class="form-actions allocation-actions">
+
+          <div class="allocation-footer-total">
+
+            <span>
+              Allocation Total
+            </span>
+
+            <strong>
+              {{
+                allocationTotal()
+                  | number:'1.2-2'
+              }}
+            </strong>
+
+          </div>
+
+
+          <div class="allocation-footer-buttons">
 
             <button
               type="button"
               class="ghost-button"
               [disabled]="saving()"
-              (click)="closeForm()">
+              (click)="closeAllocations()">
+
               Cancel
+
             </button>
 
+
             <button
-              type="submit"
+              type="button"
               class="primary-button"
-              [disabled]="saving()">
+              [disabled]="!canSaveAllocations()"
+              (click)="saveAllocations()">
 
               {{
                 saving()
                   ? 'Saving...'
-                  : 'Save Draft'
+                  : 'Save Allocations'
               }}
 
             </button>
 
-          </footer>
+          </div>
 
-        </form>
+        </footer>
 
       </section>
 
     </div>
+
+  }
+
+
+  <!-- =====================================================
+       CREATE / EDIT VOUCHER MODAL
+  ====================================================== -->
+
+  @if (formOpen()) {
+
+    <div class="form-overlay">
+
+      <section
+        class="voucher-form-card"
+        [class.purchase-payment-card]="
+          isSimplifiedPurchasePaymentForm()
+        ">
+
+
+        <!-- =================================================
+             SIMPLIFIED PURCHASE PAYMENT
+        ================================================== -->
+
+        @if (
+          isSimplifiedPurchasePaymentForm()
+        ) {
+
+          <header class="form-header purchase-payment-header">
+
+            <div>
+
+              <p class="eyebrow">
+                ACCOUNTS / PURCHASE PAYMENT
+              </p>
+
+              <h2>
+                Payment Against Purchase Invoice
+              </h2>
+
+              <p class="purchase-payment-header-copy">
+                Create the payment draft using the approved
+                Purchase Invoice and its linked Vendor Payable account.
+              </p>
+
+            </div>
+
+
+            <button
+              type="button"
+              class="close-button"
+              aria-label="Close"
+              [disabled]="saving()"
+              (click)="closeForm()">
+
+              ×
+
+            </button>
+
+          </header>
+
+
+          @if (purchaseContextLoading()) {
+
+            <div class="purchase-context-loading">
+
+              <div class="purchase-context-loader"></div>
+
+              <div>
+
+                <strong>
+                  Loading payment details...
+                </strong>
+
+                <p>
+                  Verifying Accounts status,
+                  Company Admin approval,
+                  outstanding amount and payable account.
+                </p>
+
+              </div>
+
+            </div>
+
+          } @else if (purchasePaymentContext(); as context) {
+
+            <form
+              [formGroup]="voucherForm"
+              (ngSubmit)="saveDraft()">
+
+
+              <!-- ===========================================
+                   APPROVAL STATE
+              ============================================ -->
+
+              <div class="purchase-approval-banner">
+
+                <div class="purchase-approval-icon">
+                  ✓
+                </div>
+
+                <div>
+
+                  <strong>
+                    Approved for Payment
+                  </strong>
+
+                  <span>
+                    Accounts verified · Company Admin approved
+                  </span>
+
+                </div>
+
+              </div>
+
+
+              <!-- ===========================================
+                   INVOICE SUMMARY
+              ============================================ -->
+
+              <section class="purchase-payment-summary">
+
+                <div class="purchase-payment-summary-heading">
+
+                  <div>
+
+                    <span class="summary-kicker">
+                      PURCHASE INVOICE
+                    </span>
+
+                    <h3>
+                      {{
+                        context.vendorInvoiceNumber ||
+                        targetPurchaseInvoiceNumber() ||
+                        'Purchase Invoice'
+                      }}
+                    </h3>
+
+                  </div>
+
+
+                  <span class="approval-pill">
+                    Approved
+                  </span>
+
+                </div>
+
+
+                <div class="purchase-summary-grid">
+
+                  <div class="purchase-summary-item">
+
+                    <span>
+                      Vendor
+                    </span>
+
+                    <strong>
+                      {{
+                        context.vendorName ||
+                        '—'
+                      }}
+                    </strong>
+
+                  </div>
+
+
+                  <div class="purchase-summary-item">
+
+                    <span>
+                      Invoice Date
+                    </span>
+
+                    <strong>
+                      {{
+                        context.invoiceDate
+                          | date:'dd MMM yyyy'
+                      }}
+                    </strong>
+
+                  </div>
+
+
+                  <div class="purchase-summary-item">
+
+                    <span>
+                      Invoice Total
+                    </span>
+
+                    <strong>
+                      ₹{{
+                        context.invoiceTotal
+                          | number:'1.2-2'
+                      }}
+                    </strong>
+
+                  </div>
+
+
+                  <div class="purchase-summary-item">
+
+                    <span>
+                      Already Paid
+                    </span>
+
+                    <strong>
+                      ₹{{
+                        context.paidAmount
+                          | number:'1.2-2'
+                      }}
+                    </strong>
+
+                  </div>
+
+
+                  <div class="purchase-summary-item outstanding">
+
+                    <span>
+                      Outstanding
+                    </span>
+
+                    <strong>
+                      ₹{{
+                        context.outstandingAmount
+                          | number:'1.2-2'
+                      }}
+                    </strong>
+
+                  </div>
+
+
+                  @if (context.poNumber) {
+
+                    <div class="purchase-summary-item">
+
+                      <span>
+                        PO Number
+                      </span>
+
+                      <strong>
+                        {{ context.poNumber }}
+                      </strong>
+
+                    </div>
+
+                  }
+
+
+                  @if (context.accountsVoucherNumber) {
+
+                    <div class="purchase-summary-item">
+
+                      <span>
+                        Purchase Voucher
+                      </span>
+
+                      <strong>
+                        {{ context.accountsVoucherNumber }}
+                      </strong>
+
+                    </div>
+
+                  }
+
+                </div>
+
+              </section>
+
+
+              <!-- ===========================================
+                   PAYMENT DETAILS
+              ============================================ -->
+
+              <section class="purchase-payment-section">
+
+                <div class="purchase-section-heading">
+
+                  <div>
+
+                    <span class="section-step">
+                      PAYMENT DETAILS
+                    </span>
+
+                    <h3>
+                      Record Payment
+                    </h3>
+
+                  </div>
+
+                  <p>
+                    Full or partial payment can be recorded.
+                  </p>
+
+                </div>
+
+
+                <div class="purchase-payment-fields">
+
+
+                  <!-- PAYMENT DATE -->
+
+                  <label>
+
+                    <span>
+                      Payment Date
+                    </span>
+
+                    <input
+                      type="date"
+                      formControlName="voucherDate">
+
+                  </label>
+
+
+                  <!-- PAYMENT AMOUNT -->
+
+                  <div
+                    class="purchase-payment-control"
+                    [formGroup]="purchasePaymentForm">
+
+                    <label>
+
+                      <span>
+                        Payment Amount
+                      </span>
+
+                      <div class="money-input">
+
+                        <span class="currency-prefix">
+                          ₹
+                        </span>
+
+                        <input
+                          type="number"
+                          min="0.01"
+                          step="0.01"
+                          [max]="context.outstandingAmount"
+                          formControlName="paymentAmount"
+                          placeholder="0.00">
+
+                      </div>
+
+                    </label>
+
+                  </div>
+
+
+                  <!-- PAY FROM -->
+
+                  <div
+                    class="purchase-payment-control"
+                    [formGroup]="purchasePaymentForm">
+
+                    <label>
+
+                      <span>
+                        Pay From
+                      </span>
+
+                      <select
+                        formControlName="payFromAccountId">
+
+                        <option value="">
+                          Select Bank / Cash Account
+                        </option>
+
+                        @for (
+                          account of payFromAccounts();
+                          track trackAccount($index, account)
+                        ) {
+
+                          <option
+                            [value]="account._id">
+
+                            {{
+                              account.accountCode
+                            }}
+
+                            ·
+
+                            {{
+                              account.accountName
+                            }}
+
+                            ·
+
+                            {{
+                              account.accountType
+                                | titlecase
+                            }}
+
+                          </option>
+
+                        }
+
+                      </select>
+
+                    </label>
+
+                  </div>
+
+
+                  <!-- PAYABLE ACCOUNT -->
+
+                  <div class="purchase-readonly-field">
+
+                    <span>
+                      Payable Account
+                    </span>
+
+                    <strong>
+
+                      {{
+                        context.partyAccountCode ||
+                        ''
+                      }}
+
+                      @if (
+                        context.partyAccountCode &&
+                        context.partyAccountName
+                      ) {
+                        ·
+                      }
+
+                      {{
+                        context.partyAccountName ||
+                        'Vendor Payable'
+                      }}
+
+                    </strong>
+
+                    <small>
+                      Automatically linked from the Purchase Voucher.
+                    </small>
+
+                  </div>
+
+                </div>
+
+
+                @if (!payFromAccounts().length) {
+
+                  <div class="purchase-payment-warning">
+
+                    No active Bank or Cash account is available
+                    in Chart of Accounts. Create or activate a
+                    Bank/Cash ledger before recording payment.
+
+                  </div>
+
+                }
+
+
+                <!-- =========================================
+                     PAYMENT CALCULATION
+                ========================================== -->
+
+                <div class="purchase-payment-calculation">
+
+                  <div>
+
+                    <span>
+                      Current Outstanding
+                    </span>
+
+                    <strong>
+                      ₹{{
+                        purchaseOutstandingAmount()
+                          | number:'1.2-2'
+                      }}
+                    </strong>
+
+                  </div>
+
+
+                  <div class="calculation-minus">
+                    −
+                  </div>
+
+
+                  <div>
+
+                    <span>
+                      This Payment
+                    </span>
+
+                    <strong>
+                      ₹{{
+                        purchasePaymentAmount()
+                          | number:'1.2-2'
+                      }}
+                    </strong>
+
+                  </div>
+
+
+                  <div class="calculation-equals">
+                    =
+                  </div>
+
+
+                  <div class="remaining">
+
+                    <span>
+                      Remaining After Payment
+                    </span>
+
+                    <strong>
+                      ₹{{
+                        purchaseRemainingAfterPayment()
+                          | number:'1.2-2'
+                      }}
+                    </strong>
+
+                  </div>
+
+                </div>
+
+              </section>
+
+
+              <!-- ===========================================
+                   ACCOUNTING PREVIEW
+              ============================================ -->
+
+              <section class="purchase-accounting-preview">
+
+                <div class="purchase-section-heading">
+
+                  <div>
+
+                    <span class="section-step">
+                      ACCOUNTING PREVIEW
+                    </span>
+
+                    <h3>
+                      Entry Created Automatically
+                    </h3>
+
+                  </div>
+
+                  <p>
+                    You do not need to select debit and credit ledgers manually.
+                  </p>
+
+                </div>
+
+
+                <div class="accounting-preview-table">
+
+                  <div class="accounting-preview-head">
+
+                    <span>
+                      Account
+                    </span>
+
+                    <span>
+                      Debit
+                    </span>
+
+                    <span>
+                      Credit
+                    </span>
+
+                  </div>
+
+
+                  <div class="accounting-preview-row">
+
+                    <div>
+
+                      <strong>
+                        {{
+                          context.partyAccountName ||
+                          'Vendor Payable'
+                        }}
+                      </strong>
+
+                      <span>
+                        {{
+                          context.partyAccountCode ||
+                          'Accounts Payable'
+                        }}
+                      </span>
+
+                    </div>
+
+                    <strong class="debit-value">
+                      ₹{{
+                        purchasePaymentAmount()
+                          | number:'1.2-2'
+                      }}
+                    </strong>
+
+                    <span>
+                      —
+                    </span>
+
+                  </div>
+
+
+                  <div class="accounting-preview-row">
+
+                    <div>
+
+                      <strong>
+                        {{
+                          selectedPayFromAccount()
+                            ?.accountName ||
+                          'Select Bank / Cash'
+                        }}
+                      </strong>
+
+                      <span>
+                        {{
+                          selectedPayFromAccount()
+                            ?.accountCode ||
+                          'Payment source'
+                        }}
+                      </span>
+
+                    </div>
+
+                    <span>
+                      —
+                    </span>
+
+                    <strong class="credit-value">
+                      ₹{{
+                        purchasePaymentAmount()
+                          | number:'1.2-2'
+                      }}
+                    </strong>
+
+                  </div>
+
+                </div>
+
+              </section>
+
+
+              <!-- ===========================================
+                   AUTO NARRATION
+              ============================================ -->
+
+              <section class="purchase-auto-details">
+
+                <div>
+
+                  <span>
+                    Reference
+                  </span>
+
+                  <strong>
+                    {{
+                      context.vendorInvoiceNumber ||
+                      targetPurchaseInvoiceNumber() ||
+                      '—'
+                    }}
+                  </strong>
+
+                </div>
+
+
+                <div>
+
+                  <span>
+                    Narration
+                  </span>
+
+                  <strong>
+
+                    Payment against Purchase Invoice
+
+                    {{
+                      context.vendorInvoiceNumber ||
+                      targetPurchaseInvoiceNumber()
+                    }}
+
+                  </strong>
+
+                </div>
+
+              </section>
+
+
+              <!-- ===========================================
+                   IMPORTANT NOTE
+              ============================================ -->
+
+              <div class="purchase-draft-note">
+
+                <span class="draft-note-icon">
+                  i
+                </span>
+
+                <div>
+
+                  <strong>
+                    This action creates a Draft Payment Voucher.
+                  </strong>
+
+                  <p>
+                    The Purchase Invoice allocation will be linked
+                    automatically. Upload supporting payment proof
+                    and post the voucher afterward for the payment
+                    to count against the invoice.
+                  </p>
+
+                </div>
+
+              </div>
+
+
+              <footer class="form-actions purchase-payment-actions">
+
+                <button
+                  type="button"
+                  class="ghost-button"
+                  [disabled]="saving()"
+                  (click)="closeForm()">
+
+                  Cancel
+
+                </button>
+
+
+                <button
+                  type="submit"
+                  class="primary-button purchase-save-button"
+                  [disabled]="
+                    saving() ||
+                    purchaseContextLoading() ||
+                    !purchasePaymentContext() ||
+                    !payFromAccounts().length
+                  ">
+
+                  @if (saving()) {
+
+                    Creating Payment Draft...
+
+                  } @else {
+
+                    Save Draft & Continue
+
+                  }
+
+                </button>
+
+              </footer>
+
+            </form>
+
+          } @else {
+
+            <div class="purchase-context-error">
+
+              <div class="purchase-context-error-icon">
+                !
+              </div>
+
+              <div>
+
+                <strong>
+                  Payment cannot be started
+                </strong>
+
+                <p>
+                  The Purchase Invoice payment details could not
+                  be loaded. Check Accounts verification,
+                  Company Admin approval and Purchase payable
+                  voucher status.
+                </p>
+
+              </div>
+
+            </div>
+
+
+            <footer class="form-actions">
+
+              <button
+                type="button"
+                class="ghost-button"
+                (click)="closeForm()">
+
+                Close
+
+              </button>
+
+
+              <button
+                type="button"
+                class="secondary-button"
+                (click)="loadPurchasePaymentContext()">
+
+                Retry
+
+              </button>
+
+            </footer>
+
+          }
+
+        }
+
+
+        <!-- =================================================
+             NORMAL GENERIC VOUCHER FORM
+
+             Existing workflow is preserved for:
+             - Journal
+             - normal Payment
+             - Receipt
+             - Contra
+             - Credit Note
+             - Debit Note
+             - editing an existing draft
+        ================================================== -->
+
+        @else {
+
+          <header class="form-header">
+
+            <div>
+
+              <p class="eyebrow">
+
+                {{
+                  voucherType()
+                    | uppercase
+                }}
+
+                VOUCHER
+
+              </p>
+
+              <h2>
+
+                {{
+                  editingVoucherId()
+                    ? 'Edit Draft Voucher'
+                    : 'New Voucher'
+                }}
+
+              </h2>
+
+            </div>
+
+
+            <button
+              type="button"
+              class="close-button"
+              aria-label="Close"
+              [disabled]="saving()"
+              (click)="closeForm()">
+
+              ×
+
+            </button>
+
+          </header>
+
+
+          <form
+            [formGroup]="voucherForm"
+            (ngSubmit)="saveDraft()">
+
+
+            <div class="form-grid">
+
+              <label>
+
+                <span>
+                  Voucher Date
+                </span>
+
+                <input
+                  type="date"
+                  formControlName="voucherDate">
+
+              </label>
+
+
+              <label>
+
+                <span>
+                  Reference No.
+                </span>
+
+                <input
+                  type="text"
+                  formControlName="referenceNo"
+                  placeholder="Optional reference">
+
+              </label>
+
+
+              <label>
+
+                <span>
+                  Reference Date
+                </span>
+
+                <input
+                  type="date"
+                  formControlName="referenceDate">
+
+              </label>
+
+
+              <label class="full-width">
+
+                <span>
+                  Narration
+                </span>
+
+                <textarea
+                  rows="3"
+                  formControlName="narration"
+                  placeholder="Voucher narration">
+                </textarea>
+
+              </label>
+
+            </div>
+
+
+            <div class="lines-heading">
+
+              <div>
+
+                <h3>
+                  Accounting Lines
+                </h3>
+
+                <p>
+                  Every voucher must have
+                  equal debit and credit totals.
+                </p>
+
+              </div>
+
+
+              <button
+                type="button"
+                class="secondary-button"
+                (click)="addLine()">
+
+                + Add Line
+
+              </button>
+
+            </div>
+
+
+            <div
+              class="lines"
+              formArrayName="lines">
+
+
+              @for (
+                control of lines.controls;
+                track $index
+              ) {
+
+                <div
+                  class="line-row"
+                  [formGroupName]="$index">
+
+
+                  <label class="account-field">
+
+                    <span>
+                      Account
+                    </span>
+
+                    <select
+                      formControlName="accountId">
+
+                      <option value="">
+                        Select account
+                      </option>
+
+
+                      @for (
+                        account of accounts();
+                        track trackAccount($index, account)
+                      ) {
+
+                        <option
+                          [value]="account._id">
+
+                          {{
+                            account.accountCode
+                          }}
+
+                          ·
+
+                          {{
+                            account.accountName
+                          }}
+
+                        </option>
+
+                      }
+
+                    </select>
+
+                  </label>
+
+
+                  <label class="description-field">
+
+                    <span>
+                      Description
+                    </span>
+
+                    <input
+                      type="text"
+                      formControlName="description"
+                      placeholder="Line description">
+
+                  </label>
+
+
+                  <label>
+
+                    <span>
+                      Debit
+                    </span>
+
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      formControlName="debit"
+                      (input)="onDebitInput($index)">
+
+                  </label>
+
+
+                  <label>
+
+                    <span>
+                      Credit
+                    </span>
+
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      formControlName="credit"
+                      (input)="onCreditInput($index)">
+
+                  </label>
+
+
+                  <button
+                    type="button"
+                    class="remove-line"
+                    aria-label="Remove line"
+                    [disabled]="
+                      lines.length <= 2
+                    "
+                    (click)="removeLine($index)">
+
+                    ×
+
+                  </button>
+
+                </div>
+
+              }
+
+            </div>
+
+
+            <div class="totals-card">
+
+              <div>
+
+                <span>
+                  Total Debit
+                </span>
+
+                <strong>
+                  {{
+                    totalDebit()
+                      | number:'1.2-2'
+                  }}
+                </strong>
+
+              </div>
+
+
+              <div>
+
+                <span>
+                  Total Credit
+                </span>
+
+                <strong>
+                  {{
+                    totalCredit()
+                      | number:'1.2-2'
+                  }}
+                </strong>
+
+              </div>
+
+
+              <div
+                class="balance-state"
+                [class.balanced]="balanced()">
+
+                {{
+                  balanced()
+                    ? 'Balanced'
+                    : 'Not Balanced'
+                }}
+
+              </div>
+
+            </div>
+
+
+            <footer class="form-actions">
+
+              <button
+                type="button"
+                class="ghost-button"
+                [disabled]="saving()"
+                (click)="closeForm()">
+
+                Cancel
+
+              </button>
+
+
+              <button
+                type="submit"
+                class="primary-button"
+                [disabled]="saving()">
+
+                {{
+                  saving()
+                    ? 'Saving...'
+                    : 'Save Draft'
+                }}
+
+              </button>
+
+            </footer>
+
+          </form>
+
+        }
+
+      </section>
+
+    </div>
+
   }
 
 </section>

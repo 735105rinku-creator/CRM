@@ -52,6 +52,7 @@ class DepartmentInvoiceRepository {
           sourceModule,
 
           sourceRecordId,
+
         });
 
 
@@ -62,10 +63,88 @@ class DepartmentInvoiceRepository {
       query.session(
         options.session
       );
+
     }
 
 
     return query.lean();
+
+  }
+
+
+  /* ==========================================================
+     FIND MULTIPLE BY SOURCES
+
+     Used for targeted Purchase settlement synchronization
+     after a Payment Voucher is posted or voided.
+
+     Only DepartmentInvoice rows belonging to:
+     - the same company
+     - the requested source module
+     - the requested source record IDs
+
+     are returned.
+
+     This avoids using the paginated list() method and avoids
+     refreshing unrelated invoices.
+  ========================================================== */
+
+  findBySources(
+    companyId,
+    sourceModule,
+    sourceRecordIds = [],
+    options = {}
+  ) {
+
+    if (
+      !Array.isArray(
+        sourceRecordIds
+      ) ||
+      !sourceRecordIds.length
+    ) {
+
+      return Promise.resolve(
+        []
+      );
+
+    }
+
+
+    const query =
+      DepartmentInvoice
+        .find({
+
+          companyId,
+
+          sourceModule,
+
+          sourceRecordId: {
+            $in:
+              sourceRecordIds,
+          },
+
+        })
+        .sort({
+
+          sentToAccountsAt:
+            -1,
+
+        });
+
+
+    if (
+      options.session
+    ) {
+
+      query.session(
+        options.session
+      );
+
+    }
+
+
+    return query.lean();
+
   }
 
 
@@ -100,6 +179,7 @@ class DepartmentInvoiceRepository {
     ) {
 
       return existing;
+
     }
 
 
@@ -139,6 +219,7 @@ class DepartmentInvoiceRepository {
       ) {
 
         throw error;
+
       }
 
 
@@ -148,7 +229,9 @@ class DepartmentInvoiceRepository {
         data.sourceRecordId,
         options
       );
+
     }
+
   }
 
 
@@ -164,6 +247,7 @@ class DepartmentInvoiceRepository {
     const filter = {
 
       companyId,
+
     };
 
 
@@ -173,6 +257,7 @@ class DepartmentInvoiceRepository {
 
       filter.status =
         query.status;
+
     }
 
 
@@ -182,6 +267,7 @@ class DepartmentInvoiceRepository {
 
       filter.sourceDepartment =
         query.sourceDepartment;
+
     }
 
 
@@ -191,6 +277,16 @@ class DepartmentInvoiceRepository {
 
       filter.sourceModule =
         query.sourceModule;
+
+    }
+
+    if (
+      query.companyAdminApprovalStatus
+    ) {
+
+      filter.companyAdminApprovalStatus =
+        query.companyAdminApprovalStatus;
+
     }
 
 
@@ -224,7 +320,13 @@ class DepartmentInvoiceRepository {
             searchPattern,
         },
 
+        {
+          companyAdminApprovalByName:
+            searchPattern,
+        },
+
       ];
+
     }
 
 
@@ -270,8 +372,10 @@ class DepartmentInvoiceRepository {
             filter
           )
           .sort({
+
             sentToAccountsAt:
               -1,
+
           })
           .skip(
             skip
@@ -309,8 +413,11 @@ class DepartmentInvoiceRepository {
             ),
             1
           ),
+
       },
+
     };
+
   }
 
 
@@ -334,6 +441,7 @@ class DepartmentInvoiceRepository {
             id,
 
           companyId,
+
         });
 
 
@@ -344,10 +452,12 @@ class DepartmentInvoiceRepository {
       query.session(
         options.session
       );
+
     }
 
 
     return query.lean();
+
   }
 
 
@@ -355,6 +465,7 @@ class DepartmentInvoiceRepository {
      CONDITIONAL UPDATE
 
      Used for:
+
      - verification
      - rejection
      - payment
@@ -378,6 +489,7 @@ class DepartmentInvoiceRepository {
 
       runValidators:
         true,
+
     };
 
 
@@ -387,6 +499,7 @@ class DepartmentInvoiceRepository {
 
       updateOptions.session =
         options.session;
+
     }
 
 
@@ -400,13 +513,13 @@ class DepartmentInvoiceRepository {
             id,
 
           companyId,
+
         },
-
         update,
-
         updateOptions
       )
       .lean();
+
   }
 
 }
