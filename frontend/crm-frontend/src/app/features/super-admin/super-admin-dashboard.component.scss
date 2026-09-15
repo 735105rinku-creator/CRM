@@ -1195,3 +1195,134 @@
   border-color: rgba(37, 99, 235, 0.28);
   background: #fff;
 }
+
+/* SUPER ADMIN ENTERPRISE CONTENT SURFACES */
+.executive-content-panel {
+  min-width: 0;
+  border: 1px solid var(--super-border);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+}
+
+.executive-content-panel .panel-heading {
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.executive-content-panel .panel-heading h2 {
+  color: var(--super-text);
+  font-size: 1rem;
+  font-weight: 750;
+}
+
+.executive-content-panel .panel-heading p {
+  color: var(--super-muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.executive-filter-row {
+  align-items: end;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding: 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.executive-control,
+.super-admin-executive-shell input:not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+.super-admin-executive-shell select,
+.super-admin-executive-shell textarea {
+  min-height: 44px;
+  width: 100%;
+  border: 1px solid #dbe3ee;
+  border-radius: 10px;
+  background: #fff;
+  color: var(--super-text);
+  font: inherit;
+  transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+
+.super-admin-executive-shell input:not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+.super-admin-executive-shell select {
+  padding: 0 12px;
+}
+
+.super-admin-executive-shell textarea {
+  min-height: 96px;
+  padding: 11px 12px;
+  resize: vertical;
+}
+
+.super-admin-executive-shell input:focus,
+.super-admin-executive-shell select:focus,
+.super-admin-executive-shell textarea:focus {
+  outline: none;
+  border-color: rgba(37, 99, 235, 0.62);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.executive-table-wrap {
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.executive-table-wrap table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+}
+
+.executive-table-wrap thead {
+  background: #f8fafc;
+}
+
+.executive-table-wrap th {
+  padding: 12px 14px;
+  border-bottom: 1px solid #e2e8f0;
+  color: #475569;
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.025em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.executive-table-wrap td {
+  padding: 13px 14px;
+  border-bottom: 1px solid #eef2f7;
+  color: #334155;
+  font-size: 0.79rem;
+  vertical-align: middle;
+}
+
+.executive-table-wrap tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.executive-table-wrap tbody tr:hover {
+  background: #f8fafc;
+}
+
+.super-admin-executive-shell .table-action {
+  min-height: 34px;
+  padding: 0 11px;
+  border-radius: 8px;
+  font-size: 0.73rem;
+  font-weight: 680;
+}
+
+.super-admin-executive-shell .status-pill,
+.super-admin-executive-shell .phase-pill {
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
