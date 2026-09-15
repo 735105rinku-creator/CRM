@@ -1,4 +1,4 @@
-﻿<section class="company-admin-console">
+﻿<section class="company-admin-console company-premium-shell">
   <div class="company-shell">
     <aside class="company-sidebar" aria-label="Company admin menu">
       <div class="company-profile">
@@ -24,32 +24,66 @@
               [attr.aria-expanded]="isMenuGroupExpanded(group.title)"
               (click)="toggleMenuGroup(group.title)"
             >
-              <span class="menu-group-title">
-                {{ group.title }}
+              <span class="menu-group-leading">
+                <svg
+                  class="menu-group-icon"
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  focusable="false"
+                >
+                  <path [attr.d]="menuGroupIconPath(group.title)"></path>
+                </svg>
+
+                <span class="menu-group-title">
+                  {{ group.title }}
+                </span>
               </span>
 
               <span
                 class="menu-group-chevron"
                 aria-hidden="true"
               >
-                ›
+                <svg
+                  class="menu-group-chevron-icon"
+                  viewBox="0 0 24 24"
+                  focusable="false"
+                  aria-hidden="true"
+                >
+                  <path d="M9 6l6 6-6 6"></path>
+                </svg>
               </span>
             </button>
 
-            @if (isMenuGroupExpanded(group.title)) {
-              <div class="menu-group-items">
+            <div
+              class="menu-group-items"
+              [class.open]="isMenuGroupExpanded(group.title)"
+              [attr.aria-hidden]="!isMenuGroupExpanded(group.title)"
+            >
+              <div class="menu-group-items-inner">
                 @for (item of group.items; track item.id) {
                   <button
                     type="button"
                     class="menu-child"
                     [class.active]="activeSection() === item.id"
+                    [attr.tabindex]="isMenuGroupExpanded(group.title) ? 0 : -1"
                     (click)="setSection(item.id)"
                   >
-                    {{ item.label }}
+                                        <svg
+                      class="menu-child-icon"
+                      aria-hidden="true"
+                      viewBox="0 0 24 24"
+                      focusable="false"
+                    >
+                      <path [attr.d]="menuItemIconPath(item.id)"></path>
+                    </svg>
+
+                    <span class="menu-child-label">
+                      {{ item.label }}
+                    </span>
                   </button>
                 }
               </div>
-            }
+            </div>
           </div>
         }
       </nav>
@@ -64,129 +98,139 @@
     <main class="company-main">
 
       <!-- =====================================================
-           HEADER
+           SHARED COMPANY NAVBAR
       ====================================================== -->
 
-      <div class="hero-row company-hero">
-        <div>
-          <p class="eyebrow">
-            {{ companyProfile()?.companyCode || 'Company' }}
-          </p>
+      <header class="company-shared-navbar">
 
-          <h1>
-            {{ sectionTitle() }}
-          </h1>
+        <div class="company-navbar-main">
 
-          <span>
-            Company-scoped Logistics, CRM, Accounts and HRM control for sales,
-            finance, employees, attendance and operations.
-          </span>
-        </div>
+          <div class="company-navbar-identity">
 
-        <div class="hero-actions">
-          <div class="notification-menu">
+            <span class="company-workspace-badge">
+              Company Admin
+            </span>
+
+            <div class="company-navbar-copy">
+              <h1 class="company-navbar-title">
+                {{ sectionTitle() }}
+              </h1>
+
+              <p class="company-navbar-subtitle">
+                Company-wide operations, finance, CRM, logistics and workforce control
+              </p>
+            </div>
+
+          </div>
+
+          <div class="company-navbar-actions">
+
+            <div class="notification-menu">
+
+              <button
+                type="button"
+                class="icon-btn badge company-navbar-notification"
+                (click)="toggleNotificationPanel()"
+                aria-label="Open company notifications"
+              >
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  focusable="false"
+                >
+                  <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+
+                <small>
+                  {{ unreadCount() }}
+                </small>
+              </button>
+
+              @if (isNotificationPanelOpen()) {
+                <section
+                  class="notification-panel app-notification-popover"
+                  aria-label="Company notifications"
+                >
+                  <header>
+                    <strong>Notifications</strong>
+
+                    <button
+                      type="button"
+                      (click)="closeNotificationPanel()"
+                      aria-label="Close notifications"
+                    >
+                      X
+                    </button>
+                  </header>
+
+                  <div class="notification-list">
+                    @for (
+                      notification of notifications().slice(0, 4);
+                      track notification._id || notification.createdAt
+                    ) {
+                      <article [class.unread]="!notification.isRead">
+                        <strong>
+                          {{ notification.title || 'Company update' }}
+                        </strong>
+
+                        <p>
+                          {{ notification.message || '-' }}
+                        </p>
+
+                        <small>
+                          {{ formatDateTime(notification.createdAt) }}
+                        </small>
+                      </article>
+                    } @empty {
+                      <span class="empty">
+                        No notifications yet.
+                      </span>
+                    }
+                  </div>
+                </section>
+              }
+
+            </div>
 
             <button
               type="button"
-              class="icon-btn badge"
-              (click)="toggleNotificationPanel()"
-              aria-label="Open company notifications"
+              class="company-navbar-refresh"
+              (click)="refresh()"
             >
+              Refresh
+            </button>
+
+            <button
+              type="button"
+              class="company-navbar-user"
+              (click)="setSection('profile')"
+              aria-label="Open Company Admin profile"
+            >
+              <span class="company-navbar-avatar">
+                {{ userName().charAt(0).toUpperCase() || 'A' }}
+              </span>
+
+              <span class="company-navbar-user-copy">
+                <strong>{{ userName() }}</strong>
+                <small>Company Admin</small>
+              </span>
+
               <svg
+                class="company-navbar-user-chevron"
                 aria-hidden="true"
                 viewBox="0 0 24 24"
                 focusable="false"
               >
-                <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
-                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                <path d="M9 6l6 6-6 6"></path>
               </svg>
-
-              <small>
-                {{ unreadCount() }}
-              </small>
             </button>
-
-            @if (isNotificationPanelOpen()) {
-              <section
-                class="notification-panel app-notification-popover"
-                aria-label="Company notifications"
-              >
-                <header>
-                  <strong>
-                    Notifications
-                  </strong>
-
-                  <button
-                    type="button"
-                    (click)="closeNotificationPanel()"
-                    aria-label="Close notifications"
-                  >
-                    X
-                  </button>
-                </header>
-
-                <div class="notification-list">
-                  @for (
-                    notification of notifications().slice(0, 4);
-                    track notification._id || notification.createdAt
-                  ) {
-                    <article [class.unread]="!notification.isRead">
-
-                      <strong>
-                        {{ notification.title || 'Company update' }}
-                      </strong>
-
-                      <p>
-                        {{ notification.message || '-' }}
-                      </p>
-
-                      <small>
-                        {{ formatDateTime(notification.createdAt) }}
-                      </small>
-
-                    </article>
-                  } @empty {
-                    <span class="empty">
-                      No notifications yet.
-                    </span>
-                  }
-                </div>
-              </section>
-            }
 
           </div>
 
-          <button
-            type="button"
-            class="header-back-btn company-header-back"
-            (click)="goBack()"
-          >
-            <span aria-hidden="true">
-              &lt;
-            </span>
-            Back
-          </button>
-
-          <button
-            type="button"
-            class="primary-action"
-            (click)="refresh()"
-          >
-            Refresh
-          </button>
-
-          @if (activeSection() === 'overview') {
-            <button
-              type="button"
-              class="ghost-btn hr-dashboard-link"
-              (click)="openHrDashboard()"
-            >
-              HR Dashboard
-            </button>
-          }
         </div>
-      </div>
 
+      </header>
 
       <!-- =====================================================
            GLOBAL MESSAGE
@@ -4023,7 +4067,51 @@
           </div>
 
 
-          <form
+                  <section class="premium-theme-studio">
+          <div class="premium-theme-studio__head">
+            <div>
+              <p class="eyebrow">Enterprise Appearance</p>
+              <h2>Premium Theme Presets</h2>
+              <span>Preview a preset, then Save Theme to keep it for the company.</span>
+            </div>
+          </div>
+
+          <div class="premium-theme-presets">
+            @for (preset of themePresets; track preset.id) {
+              <button
+                type="button"
+                class="premium-theme-preset"
+                (click)="applyThemePreset(preset.id)"
+              >
+                <span
+                  class="premium-theme-preset__swatch"
+                  [style.background]="preset.sidebarColor"
+                ></span>
+
+                <strong>{{ preset.name }}</strong>
+
+                <small>
+                  {{ preset.description }}
+                </small>
+
+                <span class="premium-theme-preset__colors">
+                  <i [style.background]="preset.primaryColor"></i>
+                  <i [style.background]="preset.accentColor"></i>
+                  <i [style.background]="preset.sidebarColor"></i>
+                </span>
+              </button>
+            }
+          </div>
+
+          <button
+            type="button"
+            class="premium-theme-reset"
+            (click)="resetThemePreview()"
+          >
+            Reset to OPAS BIZZ Default
+          </button>
+        </section>
+<form
             [formGroup]="themeForm"
             (ngSubmit)="saveTheme()"
             class="theme-grid"

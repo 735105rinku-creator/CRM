@@ -1,4 +1,4 @@
-﻿import { Employee } from "../models/Employee.js";
+import { Employee } from "../models/Employee.js";
 import { User } from "../models/User.js";
 import { LogisticsShipment } from "../models/LogisticsShipment.js";
 import { ROLES } from "../constants/roles.js";
@@ -815,38 +815,7 @@ export const defaultLogisticsPermissionsForRole =
         );
     }
 
-
-    /* --------------------------------------------------------
-       HR
-    -------------------------------------------------------- */
-
-    if (
-      normalizedRole ===
-        ROLES.HR
-    ) {
-
-      return LOGISTICS_SUBMODULES
-        .map(
-          (
-            subModule
-          ) =>
-            buildLogisticsPermission(
-              {
-
-                subModule,
-
-                viewScope:
-                  "all",
-
-                allowed:
-                  viewOnly,
-              }
-            )
-        );
-    }
-
-
-    /* --------------------------------------------------------
+/* --------------------------------------------------------
        MANAGER / TEAM LEADER
     -------------------------------------------------------- */
 

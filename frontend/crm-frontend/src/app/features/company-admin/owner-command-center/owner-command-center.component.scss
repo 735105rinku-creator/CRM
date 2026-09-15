@@ -959,3 +959,173 @@
       border-radius: 18px;
     }
   }
+/* ============================================================
+   MIDNIGHT EXECUTIVE OVERRIDE
+============================================================ */
+
+.owner-command-center {
+  background: #F5F7FB !important;
+  color: #172033 !important;
+}
+
+.owner-hero {
+  background: linear-gradient(135deg, #0B1324 0%, #121E33 100%) !important;
+  border: 1px solid rgba(148, 163, 184, 0.16) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12) !important;
+  color: #FFFFFF !important;
+}
+
+.owner-panel,
+.owner-kpi,
+.owner-mini-kpi,
+.owner-health-card,
+.owner-filter-panel {
+  background: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05) !important;
+}
+
+.owner-btn {
+  background: #2563EB !important;
+  border: 1px solid #2563EB !important;
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.20) !important;
+  color: #FFFFFF !important;
+}
+
+.owner-btn:hover {
+  background: #1D4ED8 !important;
+}
+
+/* ============================================================
+   OWNER FINAL PREMIUM LOCKDOWN
+============================================================ */
+
+.owner-command-center {
+  --owner-bg: #F5F7FB;
+  --owner-surface: #FFFFFF;
+  --owner-surface-soft: #F8FAFC;
+  --owner-border: #E2E8F0;
+  --owner-shadow-dark: rgba(15, 23, 42, 0.06);
+  --owner-shadow-light: transparent;
+
+  background: #F5F7FB !important;
+  padding: 0 !important;
+}
+
+.owner-hero {
+  align-items: center !important;
+  background:
+    linear-gradient(
+      135deg,
+      #0B1324 0%,
+      #121E33 100%
+    ) !important;
+  border: 1px solid rgba(148, 163, 184, 0.16) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12) !important;
+  margin-bottom: 18px !important;
+  min-height: 0 !important;
+  padding: 26px 28px !important;
+}
+
+.owner-hero::after {
+  background: rgba(255, 255, 255, 0.045) !important;
+  height: 180px !important;
+  width: 180px !important;
+}
+
+.owner-hero h1 {
+  font-size: clamp(2rem, 3vw, 2.7rem) !important;
+  letter-spacing: -0.035em !important;
+}
+
+.owner-hero p {
+  color: #CBD5E1 !important;
+  line-height: 1.5 !important;
+  margin-top: 10px !important;
+}
+
+.owner-hero__eyebrow {
+  color: #94A3B8 !important;
+  opacity: 1 !important;
+}
+
+.owner-hero__meta {
+  color: #94A3B8 !important;
+  margin-top: 16px !important;
+}
+
+.owner-hero__actions {
+  gap: 8px !important;
+  max-width: 340px !important;
+}
+
+.owner-hero .owner-btn {
+  border-radius: 10px !important;
+  min-height: 40px !important;
+  padding: 0 14px !important;
+}
+
+.owner-hero .owner-btn--secondary {
+  background: rgba(255, 255, 255, 0.07) !important;
+  border: 1px solid rgba(255, 255, 255, 0.13) !important;
+  box-shadow: none !important;
+  color: #E2E8F0 !important;
+}
+
+.owner-hero .owner-btn--secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12) !important;
+}
+
+.owner-hero .owner-btn--primary {
+  background: #2563EB !important;
+  border: 1px solid #2563EB !important;
+  box-shadow: 0 7px 16px rgba(37, 99, 235, 0.24) !important;
+  color: #FFFFFF !important;
+}
+
+.owner-panel,
+.owner-kpi,
+.owner-mini-kpi,
+.owner-health-card,
+.owner-filter-panel {
+  background: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 14px !important;
+  box-shadow: 0 3px 14px rgba(15, 23, 42, 0.045) !important;
+}
+
+.owner-filter-panel {
+  margin-bottom: 18px !important;
+  padding: 18px !important;
+}
+
+.owner-field input {
+  background: #FFFFFF !important;
+  border: 1px solid #CBD5E1 !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+}
+
+.owner-kpi:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.07) !important;
+}
+
+.owner-table tbody tr {
+  background: #FFFFFF !important;
+}
+
+@media (max-width: 900px) {
+  .owner-hero {
+    align-items: flex-start !important;
+    flex-direction: column !important;
+  }
+
+  .owner-hero__actions {
+    justify-content: flex-start !important;
+    max-width: none !important;
+  }
+}
