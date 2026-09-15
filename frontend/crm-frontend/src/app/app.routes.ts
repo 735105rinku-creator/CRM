@@ -4,6 +4,7 @@ import { authGuard } from './core/auth/auth.guard';
 import { companyAdminGuard } from './core/auth/company-admin.guard';
 import { employeeDashboardGuard } from './core/auth/employee-dashboard.guard';
 import { logisticsGuard } from './core/auth/logistics.guard';
+import { salesAccessGuard } from './core/auth/sales-access.guard';
 import { permissionGuard } from './core/auth/permission.guard';
 import { superAdminGuard } from './core/auth/super-admin.guard';
 
@@ -249,7 +250,8 @@ export const routes: Routes = [
     path: 'sales',
 
     canActivate: [
-      authGuard
+      authGuard,
+      salesAccessGuard
     ],
 
     children: [
@@ -321,7 +323,8 @@ export const routes: Routes = [
       MainLayoutComponent,
 
     canActivate: [
-      authGuard
+      authGuard,
+      salesAccessGuard
     ],
 
     children: [

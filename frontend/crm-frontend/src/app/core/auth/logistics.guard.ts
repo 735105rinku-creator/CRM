@@ -127,7 +127,6 @@ export const logisticsGuard:
     
 
     const managementRoles = [
-      'hr',
       'super_admin',
       'manager',
       'department_head',
