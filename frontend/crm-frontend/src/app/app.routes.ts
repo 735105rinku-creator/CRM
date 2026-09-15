@@ -323,8 +323,7 @@ export const routes: Routes = [
       MainLayoutComponent,
 
     canActivate: [
-      authGuard,
-      salesAccessGuard
+      authGuard
     ],
 
     children: [
