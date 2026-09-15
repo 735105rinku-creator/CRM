@@ -21,6 +21,9 @@ import paymentAllocationService
 import { ApiError }
   from "../utils/apiError.js";
 
+import { emitDepartmentInvoiceUpdated }
+  from "../utils/departmentInvoiceRealtime.js";
+
 
 /* ============================================================
    HELPERS
@@ -296,9 +299,9 @@ class DepartmentInvoiceService {
         });
 
 
-    return this.refreshPurchaseSettlement(
-      row
-    );
+    const refreshed = await this.refreshPurchaseSettlement(row);
+    emitDepartmentInvoiceUpdated(refreshed, "handed_off");
+    return refreshed;
   }
 
 
@@ -1243,7 +1246,8 @@ async getDocument(
 
   async refreshPurchaseSettlementsForPayment(
     companyId,
-    paymentVoucherId
+    paymentVoucherId,
+    action = "payment_posted"
   ) {
 
     if (
@@ -1334,11 +1338,11 @@ async getDocument(
     }
 
 
-    return this
-      .refreshPurchaseSettlements(
-        companyId,
-        rows
-      );
+    const refreshed = await this.refreshPurchaseSettlements(companyId, rows);
+    for (const item of refreshed) {
+      emitDepartmentInvoiceUpdated(item, action);
+    }
+    return refreshed;
   }
 
 

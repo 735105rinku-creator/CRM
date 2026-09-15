@@ -119,7 +119,8 @@ const validate = (
 const refreshPurchaseSettlementForPaymentVoucher =
   async (
     companyId,
-    voucher
+    voucher,
+    action
   ) => {
 
     if (
@@ -136,7 +137,8 @@ const refreshPurchaseSettlementForPaymentVoucher =
     await departmentInvoiceService
       .refreshPurchaseSettlementsForPayment(
         companyId,
-        voucher._id
+        voucher._id,
+        action
       );
 
   };
@@ -419,7 +421,8 @@ export const postVoucher =
 
       await refreshPurchaseSettlementForPaymentVoucher(
         companyId,
-        voucher
+        voucher,
+        "payment_posted"
       );
 
 
@@ -504,7 +507,8 @@ export const voidVoucher =
 
       await refreshPurchaseSettlementForPaymentVoucher(
         companyId,
-        voucher
+        voucher,
+        "payment_voided"
       );
 
 

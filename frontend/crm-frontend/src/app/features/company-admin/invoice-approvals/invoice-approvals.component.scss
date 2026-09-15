@@ -1,1 +1,341 @@
-:host{display:block}.approval-workspace{padding:1.25rem;border-radius:24px;background:#eef3f8;box-shadow:10px 10px 24px #cbd2da,-10px -10px 24px #fff;color:#203047}.approval-workspace>header,.modal>header,.filters,.actions{display:flex;align-items:center;justify-content:space-between;gap:1rem}.eyebrow,small{display:block;color:#66758a;font-size:.76rem}.count,.badge{padding:.45rem .75rem;border-radius:999px;background:#e6ebf1;box-shadow:inset 2px 2px 5px #c7cdd4,inset -2px -2px 5px #fff}.filters{margin:1.25rem 0;justify-content:flex-start;flex-wrap:wrap}input,select,textarea,button{border:0;border-radius:12px;padding:.72rem .9rem;background:#eef3f8;box-shadow:4px 4px 10px #cbd2da,-4px -4px 10px #fff;color:inherit}input{min-width:240px}button{cursor:pointer;font-weight:700}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse}th,td{padding:.85rem;text-align:left;border-bottom:1px solid #dce3ea}.error{color:#a12626}.empty{text-align:center;padding:2rem}.modal-backdrop{position:fixed;inset:0;background:#17203399;display:grid;place-items:center;z-index:1000;padding:1rem}.modal{width:min(720px,100%);max-height:90vh;overflow:auto;padding:1.4rem;border-radius:24px;background:#eef3f8;box-shadow:18px 18px 45px #101826}.close{font-size:1.5rem}.facts{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;margin:1.25rem 0}.facts>div,.decision{padding:1rem;border-radius:16px;box-shadow:inset 3px 3px 8px #d1d7de,inset -3px -3px 8px #fff}label{display:grid;gap:.5rem;margin-top:1.25rem}.actions{justify-content:flex-end;margin-top:1rem}.approve{color:#087243}.reject{color:#a12626}.badge[data-status=approved]{color:#087243}.badge[data-status=rejected]{color:#a12626}@media(max-width:700px){.facts{grid-template-columns:1fr}.filters>*{width:100%}}
+:host {
+  display: block;
+  position: relative;
+  z-index: 1;
+}
+
+.approval-workspace {
+  padding: 1.25rem;
+  border-radius: 24px;
+  background: #eef3f8;
+  box-shadow:
+    10px 10px 24px #cbd2da,
+    -10px -10px 24px #fff;
+  color: #203047;
+}
+
+.approval-workspace > header,
+.modal > header,
+.filters,
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.eyebrow,
+small {
+  display: block;
+  color: #66758a;
+  font-size: 0.76rem;
+}
+
+.count,
+.badge {
+  padding: 0.45rem 0.75rem;
+  border-radius: 999px;
+  background: #e6ebf1;
+  box-shadow:
+    inset 2px 2px 5px #c7cdd4,
+    inset -2px -2px 5px #fff;
+}
+
+.filters {
+  margin: 1.25rem 0;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+input,
+select,
+textarea,
+button {
+  border: 0;
+  border-radius: 12px;
+  padding: 0.72rem 0.9rem;
+  background: #eef3f8;
+  box-shadow:
+    4px 4px 10px #cbd2da,
+    -4px -4px 10px #fff;
+  color: inherit;
+}
+
+input {
+  min-width: 240px;
+}
+
+textarea {
+  width: 100%;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+button {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.table-wrap {
+  overflow: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 0.85rem;
+  text-align: left;
+  border-bottom: 1px solid #dce3ea;
+}
+
+.error {
+  color: #a12626;
+}
+
+.empty {
+  text-align: center;
+  padding: 2rem;
+}
+
+/* ============================================================
+     REVIEW MODAL
+
+     Keep the modal above the Company Admin dashboard shell,
+     fixed header, sidebar and workspace stacking layers.
+  ============================================================ */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+
+  width: 100vw;
+  height: 100dvh;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 1.25rem;
+  box-sizing: border-box;
+
+  background: rgba(23, 32, 51, 0.62);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+
+  z-index: 2147483000;
+
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  isolation: isolate;
+}
+
+.modal {
+  position: relative;
+  z-index: 2147483001;
+
+  display: block;
+
+  width: min(720px, calc(100vw - 2.5rem));
+  max-height: calc(100dvh - 2.5rem);
+
+  margin: auto;
+  padding: 1.4rem;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  box-sizing: border-box;
+
+  border-radius: 24px;
+  background: #eef3f8;
+  color: #203047;
+
+  opacity: 1;
+  visibility: visible;
+
+  transform: none;
+
+  box-shadow:
+    18px 18px 45px rgba(16, 24, 38, 0.42),
+    -8px -8px 24px rgba(255, 255, 255, 0.2);
+}
+
+.modal > header {
+  position: sticky;
+  top: -1.4rem;
+
+  margin: -1.4rem -1.4rem 0;
+
+  padding: 1.4rem;
+
+  background: #eef3f8;
+
+  z-index: 2;
+
+  border-radius: 24px 24px 0 0;
+}
+
+.modal h3 {
+  margin: 0.2rem 0 0;
+  color: #17243a;
+}
+
+.close {
+  flex: 0 0 auto;
+
+  width: 42px;
+  height: 42px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border-radius: 50%;
+
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+
+  margin: 1.25rem 0;
+}
+
+.facts > div,
+.decision {
+  min-width: 0;
+
+  padding: 1rem;
+
+  border-radius: 16px;
+
+  box-shadow:
+    inset 3px 3px 8px #d1d7de,
+    inset -3px -3px 8px #fff;
+}
+
+.facts strong {
+  display: block;
+
+  margin-top: 0.3rem;
+
+  overflow-wrap: anywhere;
+}
+
+.modal section {
+  margin-top: 1.25rem;
+}
+
+.modal section h4 {
+  margin: 0 0 0.75rem;
+}
+
+.modal section button {
+  margin: 0 0.5rem 0.5rem 0;
+}
+
+label {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+}
+
+.actions {
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+.approve {
+  color: #087243;
+}
+
+.reject {
+  color: #a12626;
+}
+
+.badge[data-status='approved'] {
+  color: #087243;
+}
+
+.badge[data-status='rejected'] {
+  color: #a12626;
+}
+
+.decision {
+  display: grid;
+  gap: 0.4rem;
+
+  margin-top: 1.25rem;
+}
+
+.decision p {
+  margin: 0.4rem 0 0;
+}
+
+/* ============================================================
+     RESPONSIVE
+  ============================================================ */
+
+@media (max-width: 700px) {
+  .facts {
+    grid-template-columns: 1fr;
+  }
+
+  .filters > * {
+    width: 100%;
+  }
+
+  input {
+    min-width: 0;
+  }
+
+  .modal-backdrop {
+    align-items: flex-start;
+
+    padding: max(0.75rem, env(safe-area-inset-top)) 0.75rem
+      max(0.75rem, env(safe-area-inset-bottom));
+  }
+
+  .modal {
+    width: 100%;
+    max-height: calc(100dvh - 1.5rem - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+
+    padding: 1rem;
+
+    border-radius: 18px;
+  }
+
+  .modal > header {
+    top: -1rem;
+
+    margin: -1rem -1rem 0;
+
+    padding: 1rem;
+
+    border-radius: 18px 18px 0 0;
+  }
+
+  .actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .actions button {
+    width: 100%;
+  }
+}

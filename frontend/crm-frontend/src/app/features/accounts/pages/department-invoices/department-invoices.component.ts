@@ -1,6 +1,7 @@
 import {
     ChangeDetectionStrategy,
     Component,
+    DestroyRef,
     OnInit,
     computed,
     inject,
@@ -24,6 +25,8 @@ import {
   import {
     finalize
   } from 'rxjs/operators';
+  import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+  import { DepartmentInvoiceRealtimeService } from '../../../../core/services/department-invoice-realtime.service';
   
   import {
     DepartmentInvoice,
@@ -67,6 +70,8 @@ import {
       inject(FormBuilder);
     private readonly router =
       inject(Router);
+    private readonly destroyRef = inject(DestroyRef);
+    private readonly realtime = inject(DepartmentInvoiceRealtimeService);
   
     readonly departmentInvoiceService =
       inject(DepartmentInvoiceService);
@@ -354,6 +359,10 @@ import {
     ngOnInit(): void {
   
       this.loadInvoices();
+      this.realtime.connect();
+      this.realtime.updates$
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => this.loadInvoices());
     }
   
   

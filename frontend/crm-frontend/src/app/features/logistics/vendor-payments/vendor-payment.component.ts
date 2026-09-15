@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 
 import {
   Component,
+  DestroyRef,
   ElementRef,
   OnInit,
   ViewChild,
@@ -12,8 +13,10 @@ import {
 
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { ApiService } from '../../../core/services/api.service';
+import { DepartmentInvoiceRealtimeService } from '../../../core/services/department-invoice-realtime.service';
 
 /* ============================================================
    SELECT OPTION
@@ -224,6 +227,8 @@ interface VendorPaymentRow {
   styleUrl: './vendor-payment.component.scss'
 })
 export class VendorPaymentComponent implements OnInit {
+  private readonly realtime = inject(DepartmentInvoiceRealtimeService);
+  private readonly destroyRef = inject(DestroyRef);
 
   private readonly api =
     inject(ApiService);
@@ -442,6 +447,12 @@ export class VendorPaymentComponent implements OnInit {
     this.loadHandoffAccess();
     this.loadVendors();
     this.loadPayments();
+    this.realtime.connect();
+    this.realtime.updates$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(event => {
+        if (event.sourceModule === 'logistics_vendor_payment') this.loadPayments();
+      });
   }
 
   /* ============================================================

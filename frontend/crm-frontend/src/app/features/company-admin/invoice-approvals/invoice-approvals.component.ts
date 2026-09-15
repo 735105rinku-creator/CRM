@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 
@@ -9,6 +10,7 @@ import {
   DepartmentInvoiceSourceModule
 } from '../../accounts/models/accounts.models';
 import { DepartmentInvoiceService } from '../../accounts/services/department-invoice.service';
+import { DepartmentInvoiceRealtimeService } from '../../../core/services/department-invoice-realtime.service';
 
 @Component({
   selector: 'app-invoice-approvals',
@@ -19,6 +21,8 @@ import { DepartmentInvoiceService } from '../../accounts/services/department-inv
 })
 export class InvoiceApprovalsComponent implements OnInit {
   private readonly invoicesApi = inject(DepartmentInvoiceService);
+  private readonly realtime = inject(DepartmentInvoiceRealtimeService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly rows = signal<DepartmentInvoice[]>([]);
   readonly loading = signal(false);
@@ -34,6 +38,16 @@ export class InvoiceApprovalsComponent implements OnInit {
 
   ngOnInit(): void {
     this.load();
+    this.realtime.connect();
+    this.realtime.updates$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(event => {
+        this.load();
+        const selected = this.selected();
+        if (selected?._id === event.departmentInvoiceId) {
+          this.invoicesApi.getDepartmentInvoice(selected._id).subscribe(row => this.selected.set(row));
+        }
+      });
   }
 
   load(): void {

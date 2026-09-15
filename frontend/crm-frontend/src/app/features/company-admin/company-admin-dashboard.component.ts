@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, ViewChild, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, ElementRef, ViewChild, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, finalize, forkJoin, of } from 'rxjs';
@@ -8,6 +9,7 @@ import { AuthService } from '../../core/auth/auth.service';
 import { apiUrl } from '../../core/config/api.config';
 import { Company } from '../../core/models/company.model';
 import { ApiService } from '../../core/services/api.service';
+import { DepartmentInvoiceRealtimeService } from '../../core/services/department-invoice-realtime.service';
 
 import {
   AccountsDashboardComponent
@@ -367,6 +369,8 @@ export class CompanyAdminDashboardComponent {
 
   private readonly auth =
     inject(AuthService);
+  private readonly realtime = inject(DepartmentInvoiceRealtimeService);
+  private readonly destroyRef = inject(DestroyRef);
 
   private readonly route =
     inject(ActivatedRoute);
@@ -2367,6 +2371,10 @@ export class CompanyAdminDashboardComponent {
     );
 
     this.loadNotifications();
+    this.realtime.connect();
+    this.realtime.notifications$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.loadNotifications(true));
 
     this.patchProfileFormFromUser();
 

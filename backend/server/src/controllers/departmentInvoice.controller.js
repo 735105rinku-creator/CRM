@@ -26,6 +26,9 @@ import { ApiResponse }
 import { asyncHandler }
   from "../utils/asyncHandler.js";
 
+import { emitDepartmentInvoiceUpdated }
+  from "../utils/departmentInvoiceRealtime.js";
+
 
 /* ============================================================
    VALIDATION
@@ -565,6 +568,7 @@ export const decideCompanyAdminApproval =
     const { id } = validate(departmentInvoiceIdSchema, req.params);
     const payload = validate(companyAdminApprovalDecisionSchema, req.body || {});
     const data = await service.decideCompanyAdminApproval(company(req), id, payload, req.user);
+    emitDepartmentInvoiceUpdated(data, payload.decision === "approved" ? "admin_approved" : "admin_rejected");
     res.json(new ApiResponse(200, data, `Invoice ${payload.decision}.`));
   });
 
@@ -713,6 +717,8 @@ export const verifyDepartmentInvoice =
           req.user
         );
 
+      emitDepartmentInvoiceUpdated(data, "verified");
+
 
       res.json(
         new ApiResponse(
@@ -763,6 +769,8 @@ export const rejectDepartmentInvoice =
           req.user
         );
 
+      emitDepartmentInvoiceUpdated(data, "accounts_rejected");
+
 
       res.json(
         new ApiResponse(
@@ -812,6 +820,8 @@ export const payDepartmentInvoice =
           payload,
           req.user
         );
+
+      emitDepartmentInvoiceUpdated(data, data.status === "paid" ? "paid" : "partially_paid");
 
 
       res.json(

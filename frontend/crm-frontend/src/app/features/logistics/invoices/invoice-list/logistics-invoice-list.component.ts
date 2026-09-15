@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import {
   Component,
+  DestroyRef,
   OnInit,
   computed,
   inject,
@@ -10,9 +11,11 @@ import {
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { AuthService } from '../../../../core/auth/auth.service';
 import { ApiService } from '../../../../core/services/api.service';
+import { DepartmentInvoiceRealtimeService } from '../../../../core/services/department-invoice-realtime.service';
 
 
 /* ============================================================
@@ -241,6 +244,8 @@ interface InvoiceSummary {
     './logistics-invoice-list.component.scss'
 })
 export class LogisticsInvoiceListComponent implements OnInit {
+  private readonly realtime = inject(DepartmentInvoiceRealtimeService);
+  private readonly destroyRef = inject(DestroyRef);
 
   private readonly api =
     inject(ApiService);
@@ -412,6 +417,15 @@ export class LogisticsInvoiceListComponent implements OnInit {
   ============================================================ */
 
   ngOnInit(): void {
+    this.realtime.connect();
+    this.realtime.updates$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(event => {
+        if (event.sourceModule === 'logistics_invoice') {
+          this.loadInvoices();
+          this.loadSummary();
+        }
+      });
 
     /*
      * Backend is the final authority for workspace visibility.

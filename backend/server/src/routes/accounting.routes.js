@@ -1,4 +1,4 @@
-import { Router } from "express";
+﻿import { Router } from "express";
 
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { requireTenant } from "../middleware/tenant.middleware.js";
@@ -176,6 +176,15 @@ const resolveAccountingAccess =
           canOperateDepartmentInvoices:
             false,
 
+          /*
+           * Company Admin may authorize Department Invoices,
+           * but must not perform voucher/payment operations.
+           * Existing Super Admin / HR behaviour is preserved.
+           */
+          canOperateAccountingVouchers:
+            req.user.role !==
+              ROLES.COMPANY_ADMIN,
+
         };
 
 
@@ -244,6 +253,13 @@ const resolveAccountingAccess =
          * Invoices.
          */
         canOperateDepartmentInvoices:
+          true,
+
+        /*
+         * Accounts / Finance employees may perform
+         * accounting voucher/payment operations.
+         */
+        canOperateAccountingVouchers:
           true,
 
       };

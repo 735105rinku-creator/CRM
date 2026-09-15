@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   OnInit,
   inject,
   signal
@@ -9,6 +10,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { forkJoin, Observable } from 'rxjs';
 import { finalize } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { apiUrl } from '../../../../core/config/api.config';
 
@@ -23,6 +25,7 @@ import {
 
 import { PurchaseInvoiceService } from '../../services/purchase-invoice.service';
 import { PurchaseRequestService } from '../../services/purchase-request.service';
+import { DepartmentInvoiceRealtimeService } from '../../../../core/services/department-invoice-realtime.service';
 
 
 interface DraftItem {
@@ -53,6 +56,8 @@ export class PurchaseInvoicesComponent implements OnInit {
 
   private readonly requestService =
     inject(PurchaseRequestService);
+  private readonly realtime = inject(DepartmentInvoiceRealtimeService);
+  private readonly destroyRef = inject(DestroyRef);
 
 
   readonly invoices =
@@ -153,6 +158,12 @@ export class PurchaseInvoicesComponent implements OnInit {
   ngOnInit(): void {
 
     this.load();
+    this.realtime.connect();
+    this.realtime.updates$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(event => {
+        if (event.sourceModule === 'purchase_invoice') this.load();
+      });
 
 
     this.requestService
