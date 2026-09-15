@@ -93,3 +93,13 @@ test("HR setFeature blocks hidden Sales and Logistics operational features", () 
     "setFeature must refuse hidden Sales and Logistics operational features"
   );
 });
+
+test("HR dashboard remains reachable through the MainLayout parent", () => {
+  const mainLayoutBlock = routesSource.match(/component:\s*MainLayoutComponent,[\s\S]*?children:\s*\[/);
+  assert.ok(mainLayoutBlock, "MainLayout route block was not found");
+  assert.doesNotMatch(
+    mainLayoutBlock[0],
+    /canActivate\s*:\s*\[[\s\S]*?salesAccessGuard[\s\S]*?\]/,
+    "MainLayout parent must not run salesAccessGuard because it also owns the HR dashboard"
+  );
+});
