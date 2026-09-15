@@ -693,6 +693,28 @@ export class HrDashboardComponent implements OnDestroy {
     return user && 'company' in user ? (user.company as Company | undefined) : undefined;
   });
   protected readonly currentUser = computed(() => this.auth.currentUser() as User | null);
+
+  protected isHrOnlyUser(): boolean {
+    const role = String(this.currentUser()?.role || '')
+      .trim()
+      .toLowerCase();
+
+    return role === 'hr';
+  }
+
+  private isRestrictedHrOperationalFeature(feature: string | null | undefined): boolean {
+    if (!this.isHrOnlyUser() || !feature) {
+      return false;
+    }
+
+    return (
+      feature === 'crm-leads' ||
+      feature === 'crm-deals' ||
+      feature === 'crm-tasks' ||
+      feature === 'logistics' ||
+      feature.startsWith('logistics-')
+    );
+  }
   protected readonly companyName = computed(() => this.currentCompany()?.name || 'OPAS BIZZ PRIVATE LIMITED');
   protected readonly companyLogoUrl = computed(() => this.currentCompany()?.logoUrl || '/brand/opasbizz-crm.webp');
   protected readonly activeFeature = signal<HrFeature>('dashboard');
@@ -1157,7 +1179,10 @@ export class HrDashboardComponent implements OnDestroy {
   constructor() {
     this.selectedCompanyId.set(this.route.snapshot.queryParamMap.get('companyId'));
     const requestedFeature = this.route.snapshot.queryParamMap.get('feature');
-    if (this.isHrFeature(requestedFeature)) {
+    if (
+      this.isHrFeature(requestedFeature) &&
+      !this.isRestrictedHrOperationalFeature(requestedFeature)
+    ) {
       this.activeFeature.set(requestedFeature);
     }
     this.applyCompanyTheme((this.currentCompany() as any)?.settings?.theme);
@@ -1450,6 +1475,19 @@ export class HrDashboardComponent implements OnDestroy {
   }
 
   protected setFeature(feature: HrFeature): void {
+    if (this.isRestrictedHrOperationalFeature(feature)) {
+      this.activeFeature.set('dashboard');
+
+      void this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { feature: null },
+        queryParamsHandling: 'merge',
+        replaceUrl: true
+      });
+
+      return;
+    }
+
     this.activeFeature.set(feature);
 
     if (this.isLogisticsFeature(feature)) {

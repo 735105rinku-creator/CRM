@@ -1,4 +1,4 @@
-﻿import { Department } from "../models/Department.js";
+import { Department } from "../models/Department.js";
 
 import {
   Employee,
@@ -27,7 +27,6 @@ const MANAGEMENT_ROLES =
     [
       ROLES.SUPER_ADMIN,
       ROLES.COMPANY_ADMIN,
-      ROLES.HR,
     ]
       .map(
         (

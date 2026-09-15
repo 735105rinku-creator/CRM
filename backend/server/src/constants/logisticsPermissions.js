@@ -318,8 +318,6 @@ export const buildStructuredLogisticsPermissions = ({ viewScope = "own", access 
 
 export const DEFAULT_LOGISTICS_ROLE_PERMISSIONS = Object.freeze({
   company_admin: buildStructuredLogisticsPermissions({ viewScope: "all", access: "full" }),
-  hr: buildStructuredLogisticsPermissions({ viewScope: "all", access: "readonly" }),
-  hr_manager: buildStructuredLogisticsPermissions({ viewScope: "all", access: "readonly" }),
   manager: buildStructuredLogisticsPermissions({ viewScope: "team", access: "full" }),
   department_head: buildStructuredLogisticsPermissions({ viewScope: "team", access: "full" }),
   team_leader: buildStructuredLogisticsPermissions({ viewScope: "team", access: "full" }),

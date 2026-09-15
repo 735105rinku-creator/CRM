@@ -38,6 +38,14 @@ const getEmployeeCode = (user) => String(user?.employeeCode || "").trim().toUppe
 const isCompanyScopeUser = (user) => [ROLES.SUPER_ADMIN, ROLES.COMPANY_ADMIN, ROLES.HR].includes(user.role) || Number(user.roleRef?.level) <= 2;
 const canCreateEmployeeCrm = (user) => user.role === ROLES.EMPLOYEE || Number(user.roleRef?.level) >= 4;
 
+const requireNonHrOperationalCrm = (req, _res, next) => {
+  if (req.user?.role === ROLES.HR) {
+    throw new ApiError(403, "HR does not have access to Sales operational CRM.");
+  }
+
+  next();
+};
+
 const scopeFilter = (req) => {
   const companyId = companyIdOf(req.user, req.auth);
   if (!companyId) throw new ApiError(403, "Company context missing.");
@@ -277,17 +285,17 @@ const updateRecord = (moduleName, allowed) => asyncHandler(async (req, res) => {
   res.json(new ApiResponse(200, row, `${moduleName.slice(0, -1)} updated.`));
 });
 
-router.get("/leads", listRecords("leads"));
-router.post("/leads", createRecord("leads", ["name", "company", "phone", "email", "source", "businessCategory", "tradeType", "commodity", "quantity", "originLocation", "destinationLocation", "routeType", "logisticsRequired", "shipmentMode", "incoterm", "status", "notes"]));
-router.patch("/leads/:id", updateRecord("leads", ["name", "company", "phone", "email", "source", "businessCategory", "tradeType", "commodity", "quantity", "originLocation", "destinationLocation", "routeType", "logisticsRequired", "shipmentMode", "incoterm", "status", "notes", "assignedUserId", "assignedEmployeeCode"]));
+router.get("/leads", requireNonHrOperationalCrm, listRecords("leads"));
+router.post("/leads", requireNonHrOperationalCrm, createRecord("leads", ["name", "company", "phone", "email", "source", "businessCategory", "tradeType", "commodity", "quantity", "originLocation", "destinationLocation", "routeType", "logisticsRequired", "shipmentMode", "incoterm", "status", "notes"]));
+router.patch("/leads/:id", requireNonHrOperationalCrm, updateRecord("leads", ["name", "company", "phone", "email", "source", "businessCategory", "tradeType", "commodity", "quantity", "originLocation", "destinationLocation", "routeType", "logisticsRequired", "shipmentMode", "incoterm", "status", "notes", "assignedUserId", "assignedEmployeeCode"]));
 
-router.get("/deals", listRecords("deals"));
-router.post("/deals", createRecord("deals", ["leadId", "clientName", "value", "stage", "businessCategory", "tradeType", "commodity", "quantity", "originLocation", "destinationLocation", "routeType", "logisticsRequired", "shipmentMode", "incoterm", "expectedClose", "notes"]));
-router.patch("/deals/:id", updateRecord("deals", ["leadId", "clientName", "value", "stage", "businessCategory", "tradeType", "commodity", "quantity", "originLocation", "destinationLocation", "routeType", "logisticsRequired", "shipmentMode", "incoterm", "expectedClose", "notes", "assignedUserId", "assignedEmployeeCode"]));
+router.get("/deals", requireNonHrOperationalCrm, listRecords("deals"));
+router.post("/deals", requireNonHrOperationalCrm, createRecord("deals", ["leadId", "clientName", "value", "stage", "businessCategory", "tradeType", "commodity", "quantity", "originLocation", "destinationLocation", "routeType", "logisticsRequired", "shipmentMode", "incoterm", "expectedClose", "notes"]));
+router.patch("/deals/:id", requireNonHrOperationalCrm, updateRecord("deals", ["leadId", "clientName", "value", "stage", "businessCategory", "tradeType", "commodity", "quantity", "originLocation", "destinationLocation", "routeType", "logisticsRequired", "shipmentMode", "incoterm", "expectedClose", "notes", "assignedUserId", "assignedEmployeeCode"]));
 
-router.get("/tasks", listRecords("tasks"));
-router.post("/tasks", createRecord("tasks", ["title", "relatedTo", "taskType", "businessCategory", "routeType", "dueDate", "priority", "status"]));
-router.patch("/tasks/:id", updateRecord("tasks", ["title", "relatedTo", "taskType", "businessCategory", "routeType", "dueDate", "priority", "status", "assignedUserId", "assignedEmployeeCode"]));
+router.get("/tasks", requireNonHrOperationalCrm, listRecords("tasks"));
+router.post("/tasks", requireNonHrOperationalCrm, createRecord("tasks", ["title", "relatedTo", "taskType", "businessCategory", "routeType", "dueDate", "priority", "status"]));
+router.patch("/tasks/:id", requireNonHrOperationalCrm, updateRecord("tasks", ["title", "relatedTo", "taskType", "businessCategory", "routeType", "dueDate", "priority", "status", "assignedUserId", "assignedEmployeeCode"]));
 
 router.get("/contacts", asyncHandler(async (req, res) => {
   const companyId = companyIdOf(req.user);
@@ -413,9 +421,9 @@ router.patch("/daily-tasks/:id", asyncHandler(async (req, res) => {
   if (!row) throw new ApiError(404, "Daily CRM task not found.");
   res.json(new ApiResponse(200, row, "Daily CRM task updated."));
 }));
-router.get("/quotations", listRecords("quotations"));
-router.post("/quotations", createRecord("quotations", ["quotationNumber", "clientName", "amount", "businessCategory", "commodity", "quantity", "routeType", "shipmentMode", "validUntil", "status", "notes", "assignedUserId", "assignedEmployeeCode"]));
-router.patch("/quotations/:id", updateRecord("quotations", ["quotationNumber", "clientName", "amount", "businessCategory", "commodity", "quantity", "routeType", "shipmentMode", "validUntil", "status", "notes", "assignedUserId", "assignedEmployeeCode"]));
+router.get("/quotations", requireNonHrOperationalCrm, listRecords("quotations"));
+router.post("/quotations", requireNonHrOperationalCrm, createRecord("quotations", ["quotationNumber", "clientName", "amount", "businessCategory", "commodity", "quantity", "routeType", "shipmentMode", "validUntil", "status", "notes", "assignedUserId", "assignedEmployeeCode"]));
+router.patch("/quotations/:id", requireNonHrOperationalCrm, updateRecord("quotations", ["quotationNumber", "clientName", "amount", "businessCategory", "commodity", "quantity", "routeType", "shipmentMode", "validUntil", "status", "notes", "assignedUserId", "assignedEmployeeCode"]));
 
 router.get("/debug/context", asyncHandler(async (req, res) => {
   const companyId = companyIdOf(req.user, req.auth);
