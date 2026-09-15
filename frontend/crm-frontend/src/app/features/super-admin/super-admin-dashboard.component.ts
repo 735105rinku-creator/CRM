@@ -253,6 +253,7 @@ export class SuperAdminDashboardComponent {
     ticketsPending: 0
   });
   protected readonly activeSection = signal('overview');
+  protected readonly expandedMenuGroup = signal('Dashboard');
   protected readonly companySearch = signal('');
   protected readonly companyStatusFilter = signal('all');
   protected readonly companyPlanFilter = signal('all');
@@ -1191,6 +1192,11 @@ export class SuperAdminDashboardComponent {
   protected capacityPercent(company: CompanyRow): number {
     const max = Math.max(...this.topCompanies().map((item) => this.companyUsage(item)), 1);
     return Math.round((this.companyUsage(company) / max) * 100);
+  }
+  protected toggleMenuGroup(title: string): void {
+    this.expandedMenuGroup.update((current) =>
+      current === title ? '' : title
+    );
   }
 
   protected setSection(section: string): void {

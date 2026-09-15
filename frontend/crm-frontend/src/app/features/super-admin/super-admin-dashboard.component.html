@@ -9,9 +9,11 @@
         </div>
       </div>
 
-      <button type="button" class="back-btn" (click)="goBack()">
-        <span>â€¹</span>
-        Back
+            <button type="button" class="back-btn" (click)="goBack()">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true">
+          <path d="m12 5-5 5 5 5" />
+        </svg>
+        <span>Back</span>
       </button>
 
       <div class="menu-head">
@@ -19,23 +21,90 @@
         <h1>Super Admin</h1>
       </div>
 
-      <nav class="platform-nav">
+      <nav class="platform-nav" aria-label="Super Admin sections">
         @for (group of menuGroups; track group.title) {
-          <div class="menu-group">
-            <span>{{ group.title }}</span>
-            @for (item of group.items; track item.id) {
-              <button
-                type="button"
-                [class.active]="activeSection() === item.id"
-                (click)="setSection(item.id)"
+          <div class="menu-group super-admin-menu-group">
+            <button
+              type="button"
+              class="super-admin-menu-parent"
+              [attr.aria-expanded]="expandedMenuGroup() === group.title"
+              (click)="toggleMenuGroup(group.title)"
+            >
+              <span class="super-admin-menu-icon" aria-hidden="true">
+                @switch (group.title) {
+                  @case ('Dashboard') {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="M4 13h6V4H4v9Zm0 7h6v-5H4v5Zm10 0h6v-9h-6v9Zm0-16v5h6V4h-6Z" />
+                    </svg>
+                  }
+                  @case ('Companies') {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="M4 20V8l8-4 8 4v12M8 20v-5h8v5M8 10h.01M12 10h.01M16 10h.01" />
+                    </svg>
+                  }
+                  @case ('Subscriptions & Billing') {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <rect x="3" y="5" width="18" height="14" rx="2" />
+                      <path d="M3 10h18M7 15h4" />
+                    </svg>
+                  }
+                  @case ('Users Management') {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+                    </svg>
+                  }
+                  @case ('Reports & Analytics') {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="M4 19V9M10 19V5M16 19v-7M22 19H2" />
+                    </svg>
+                  }
+                  @case ('Support & Tickets') {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="M4 13a8 8 0 0 1 16 0M4 13v5h4v-5H4Zm12 0v5h4v-5h-4ZM12 21h3" />
+                    </svg>
+                  }
+                  @default {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="M12 15.5A3.5 3.5 0 1 0 12 8a3.5 3.5 0 0 0 0 7.5Z" />
+                      <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21H9.6v-.1A1.7 1.7 0 0 0 8 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 3.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H2V9.6h.1A1.7 1.7 0 0 0 3.6 8a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 8 3.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V2h4v.1A1.7 1.7 0 0 0 15 3.6a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 8c.16.37.4.7.7 1 .3.26.68.4 1.1.4h.1v4h-.1a1.7 1.7 0 0 0-1.8 1.6Z" />
+                    </svg>
+                  }
+                }
+              </span>
+
+              <span class="super-admin-menu-parent-label">
+                {{ group.title }}
+              </span>
+
+              <svg
+                class="super-admin-menu-chevron"
+                viewBox="0 0 20 20"
+                fill="none"
+                stroke="currentColor"
+                aria-hidden="true"
               >
-                {{ item.label }}
-              </button>
+                <path d="m6 8 4 4 4-4" />
+              </svg>
+            </button>
+
+            @if (expandedMenuGroup() === group.title) {
+              <div class="super-admin-menu-children">
+                @for (item of group.items; track item.id) {
+                  <button
+                    type="button"
+                    class="super-admin-menu-child"
+                    [class.active]="activeSection() === item.id"
+                    (click)="expandedMenuGroup.set(group.title); setSection(item.id)"
+                  >
+                    <span class="super-admin-menu-child-dot" aria-hidden="true"></span>
+                    <span>{{ item.label }}</span>
+                  </button>
+                }
+              </div>
             }
           </div>
         }
       </nav>
-
       <div class="platform-user">
         <button type="button" (click)="logout()">Log out</button>
       </div>
