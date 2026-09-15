@@ -197,41 +197,41 @@
       }
 
       @if (activeSection() === 'overview') {
-        <div class="metric-grid platform-stats">
-          <article>
+        <div class="metric-grid platform-stats executive-metric-grid">
+          <article class="executive-metric-card">
             <span>Total Companies</span>
             <strong>{{ stats().companies }}</strong>
             <small>{{ stats().active }} active â€¢ {{ stats().trial }} trial â€¢ {{ stats().suspended }} suspended</small>
           </article>
-          <article>
+          <article class="executive-metric-card">
             <span>Total Users</span>
             <strong>{{ stats().users }}</strong>
             <small>Across platform tenants</small>
           </article>
-          <article>
+          <article class="executive-metric-card">
             <span>New Signups</span>
             <strong>{{ stats().signups }}</strong>
             <small>This month</small>
           </article>
-          <article>
+          <article class="executive-metric-card">
             <span>MRR / Total Revenue</span>
             <strong>{{ formatCurrency(stats().mrr) }}</strong>
             <small>{{ formatCurrency(stats().revenue) }} total paid revenue</small>
           </article>
-          <article>
+          <article class="executive-metric-card">
             <span>Subscriptions</span>
             <strong>{{ stats().subscriptionsActive }}</strong>
             <small>{{ stats().subscriptionsExpired }} expired/suspended</small>
           </article>
-          <article>
+          <article class="executive-metric-card">
             <span>Support Tickets</span>
             <strong>{{ stats().ticketsOpen }}</strong>
             <small>{{ stats().ticketsPending }} pending</small>
           </article>
         </div>
 
-        <div class="analytics-grid">
-          <article class="panel">
+        <div class="analytics-grid executive-analytics-grid">
+          <article class="panel executive-analytics-panel">
             <div class="panel-heading">
               <div>
                 <h2>Company Signup Trend</h2>
@@ -245,7 +245,7 @@
             </div>
           </article>
 
-          <article class="panel">
+          <article class="panel executive-analytics-panel">
             <div class="panel-heading">
               <div>
                 <h2>Revenue Growth</h2>
@@ -259,7 +259,7 @@
             </div>
           </article>
 
-          <article class="panel">
+          <article class="panel executive-analytics-panel">
             <div class="panel-heading">
               <div>
                 <h2>Plan Distribution</h2>
