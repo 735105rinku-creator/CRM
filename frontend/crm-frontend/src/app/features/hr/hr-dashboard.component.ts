@@ -2240,8 +2240,11 @@ export class HrDashboardComponent implements OnDestroy {
     this.loadEvents();
     this.loadMeetings();
     this.loadAttendanceManagement();
-    this.loadCrm();
-    this.loadLogisticsMonitor();
+
+    if (!this.isHrOnlyUser()) {
+      this.loadCrm();
+      this.loadLogisticsMonitor();
+    }
   }
 
   protected dashboardMetrics(): Array<{ label: string; value: number; icon: string }> {

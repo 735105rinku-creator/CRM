@@ -103,3 +103,14 @@ test("HR dashboard remains reachable through the MainLayout parent", () => {
     "MainLayout parent must not run salesAccessGuard because it also owns the HR dashboard"
   );
 });
+
+test("HR refresh does not preload restricted Sales or Logistics operational data", () => {
+  const hrTsSource = read("src/app/features/hr/hr-dashboard.component.ts");
+  const refreshBlock = hrTsSource.match(/protected\s+refreshAll\s*\(\s*\)\s*:\s*void\s*\{[\s\S]*?(?=\n\s*protected\s+dashboardMetrics)/);
+  assert.ok(refreshBlock, "refreshAll block was not found");
+  assert.match(
+    refreshBlock[0],
+    /if\s*\(\s*!this\.isHrOnlyUser\(\)\s*\)\s*\{[\s\S]*?this\.loadCrm\(\);[\s\S]*?this\.loadLogisticsMonitor\(\);[\s\S]*?\}/,
+    "HR-only refresh must skip Sales CRM and Logistics operational preload"
+  );
+});
