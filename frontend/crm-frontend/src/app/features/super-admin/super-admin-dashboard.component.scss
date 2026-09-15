@@ -765,3 +765,155 @@
   color: #172033 !important;
 }
 
+/* SUPER ADMIN EXECUTIVE CONTROL CENTER */
+.super-admin-executive-shell {
+  --super-executive: #0b1220;
+  --super-graphite: #111827;
+  --super-primary: #2563eb;
+  --super-accent: #3b82f6;
+  --super-canvas: #f5f7fb;
+  --super-text: #111827;
+  --super-muted: #64748b;
+  --super-border: #e2e8f0;
+  font-family: Inter, "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.super-admin-executive-shell .platform-main {
+  align-content: start;
+  background: var(--super-canvas);
+  gap: 24px;
+  min-width: 0;
+  padding-top: 0;
+}
+
+.super-admin-executive-shell .super-admin-shared-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 900;
+  margin: 0 calc(var(--space-xl) * -1);
+  padding: 14px var(--space-xl);
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid var(--super-border);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+  backdrop-filter: blur(14px);
+}
+
+.super-admin-navbar-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  min-width: 0;
+}
+
+.super-admin-navbar-identity {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.super-admin-workspace-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 8px;
+  background: var(--super-executive);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.super-admin-navbar-copy {
+  min-width: 0;
+}
+
+.super-admin-navbar-copy h1 {
+  margin: 0;
+  color: var(--super-text);
+  font-size: 1.3rem;
+  font-weight: 750;
+  line-height: 1.2;
+}
+
+.super-admin-navbar-copy p {
+  margin: 4px 0 0;
+  color: var(--super-muted);
+  font-size: 0.8rem;
+  font-weight: 550;
+}
+
+.super-admin-navbar-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+.super-admin-refresh {
+  min-height: 42px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--super-primary);
+  color: #fff;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.super-admin-refresh:hover {
+  background: #1d4ed8;
+}
+
+.super-admin-navbar-user {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-width: 170px;
+  padding: 6px 10px;
+  border: 1px solid var(--super-border);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.super-admin-navbar-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--super-executive);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.super-admin-navbar-user-copy {
+  display: grid;
+  min-width: 0;
+}
+
+.super-admin-navbar-user-copy strong,
+.super-admin-navbar-user-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.super-admin-navbar-user-copy strong {
+  color: var(--super-text);
+  font-size: 0.82rem;
+  font-weight: 750;
+}
+
+.super-admin-navbar-user-copy small {
+  margin-top: 2px;
+  color: var(--super-muted);
+  font-size: 0.7rem;
+}
