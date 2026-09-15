@@ -711,6 +711,9 @@ export class HrDashboardComponent implements OnDestroy {
       feature === 'crm-leads' ||
       feature === 'crm-deals' ||
       feature === 'crm-tasks' ||
+      feature === 'account-invoices' ||
+      feature === 'account-payments' ||
+      feature === 'account-expenses' ||
       feature === 'logistics' ||
       feature.startsWith('logistics-')
     );

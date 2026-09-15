@@ -26,15 +26,15 @@
       <button type="button" [class.active]="activeFeature() === 'employee-profile'" (click)="setFeature('employee-profile')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('employee-profile')" aria-hidden="true"></span>Employee Profile</button>
       <button type="button" [class.active]="activeFeature() === 'departments'" (click)="setFeature('departments')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('departments')" aria-hidden="true"></span>Departments & Designations</button>
 
-      <p>CRM</p>
       @if (!isHrOnlyUser()) {
+      <p>CRM</p>
       <button type="button" [class.active]="activeFeature() === 'crm-leads'" (click)="setFeature('crm-leads')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('crm-leads')" aria-hidden="true"></span>CRM Leads</button>
       <button type="button" [class.active]="activeFeature() === 'crm-deals'" (click)="setFeature('crm-deals')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('crm-deals')" aria-hidden="true"></span>CRM Deals</button>
       <button type="button" [class.active]="activeFeature() === 'crm-tasks'" (click)="setFeature('crm-tasks')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('crm-tasks')" aria-hidden="true"></span>CRM Tasks</button>
-      }
       <button type="button" [class.active]="activeFeature() === 'account-invoices'" (click)="setFeature('account-invoices')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('account-invoices')" aria-hidden="true"></span>Invoices</button>
       <button type="button" [class.active]="activeFeature() === 'account-payments'" (click)="setFeature('account-payments')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('account-payments')" aria-hidden="true"></span>Payments</button>
       <button type="button" [class.active]="activeFeature() === 'account-expenses'" (click)="setFeature('account-expenses')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('account-expenses')" aria-hidden="true"></span>Expenses</button>
+      }
 
       @if (!isHrOnlyUser()) {
       <p>Logistics</p>
