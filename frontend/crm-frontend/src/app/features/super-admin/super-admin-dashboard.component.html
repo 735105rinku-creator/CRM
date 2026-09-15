@@ -1,24 +1,25 @@
 <section class="role-dashboard super-admin-console super-admin-executive-shell">
   <div class="platform-shell">
     <aside class="platform-menu" aria-label="Super admin menu">
-      <div class="sidebar-profile">
-        <img src="/brand/opasbizz-crm.webp" alt="OpasBizz logo" />
-        <div>
-          <strong>{{ userName() }}</strong>
-          <span>{{ userEmail() || 'super_admin' }}</span>
+      <div class="super-admin-executive-identity">
+        <div class="super-admin-executive-brand">
+          <span class="super-admin-executive-logo-wrap">
+            <img src="/brand/opasbizz-crm.webp" alt="OpasBizz logo" />
+          </span>
+          <div class="super-admin-executive-copy">
+            <span class="super-admin-executive-kicker">Executive Control</span>
+            <strong class="super-admin-executive-title">Super Admin</strong>
+            <span class="super-admin-executive-subtitle">Platform Command Center</span>
+          </div>
         </div>
-      </div>
 
-            <button type="button" class="back-btn" (click)="goBack()">
-        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true">
-          <path d="m12 5-5 5 5 5" />
-        </svg>
-        <span>Back</span>
-      </button>
-
-      <div class="menu-head">
-        <p class="eyebrow">Platform</p>
-        <h1>Super Admin</h1>
+        <div class="super-admin-executive-user">
+          <span class="super-admin-executive-avatar">{{ initials() || 'SA' }}</span>
+          <span class="super-admin-executive-user-copy">
+            <strong>{{ userName() }}</strong>
+            <small>{{ userEmail() || 'super_admin' }}</small>
+          </span>
+        </div>
       </div>
 
       <nav class="platform-nav" aria-label="Super Admin sections">
@@ -86,22 +87,24 @@
                 <path d="m6 8 4 4 4-4" />
               </svg>
             </button>
-
-            @if (expandedMenuGroup() === group.title) {
-              <div class="super-admin-menu-children">
-                @for (item of group.items; track item.id) {
-                  <button
-                    type="button"
-                    class="super-admin-menu-child"
-                    [class.active]="activeSection() === item.id"
-                    (click)="expandedMenuGroup.set(group.title); setSection(item.id)"
-                  >
-                    <span class="super-admin-menu-child-dot" aria-hidden="true"></span>
-                    <span>{{ item.label }}</span>
-                  </button>
-                }
-              </div>
-            }
+            <div
+              class="super-admin-menu-children"
+              [class.expanded]="expandedMenuGroup() === group.title"
+              [attr.aria-hidden]="expandedMenuGroup() !== group.title"
+            >
+              @for (item of group.items; track item.id) {
+                <button
+                  type="button"
+                  class="super-admin-menu-child"
+                  [class.active]="activeSection() === item.id"
+                  [attr.tabindex]="expandedMenuGroup() === group.title ? 0 : -1"
+                  (click)="expandedMenuGroup.set(group.title); setSection(item.id)"
+                >
+                  <span class="super-admin-menu-child-dot" aria-hidden="true"></span>
+                  <span>{{ item.label }}</span>
+                </button>
+              }
+            </div>
           </div>
         }
       </nav>
@@ -280,7 +283,7 @@
           </article>
         </div>
 
-        <div class="workspace-grid">
+        <div class="workspace-grid executive-overview-workspace">
           <article class="panel executive-content-panel span-2">
             <div class="panel-heading">
               <div>
@@ -301,7 +304,7 @@
             </div>
           </article>
 
-          <article class="panel executive-content-panel">
+          <article class="panel executive-content-panel span-2 executive-recent-activity">
             <div class="panel-heading">
               <div>
                 <h2>Recent Activity</h2>
