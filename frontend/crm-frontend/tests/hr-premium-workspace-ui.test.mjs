@@ -75,3 +75,27 @@ test("HR dashboard exposes premium command-center structure", () => {
     assert.match(html, new RegExp(hook));
   }
 });
+
+test("HR People workspace exposes premium employee layout hooks", () => {
+  for (const hook of [
+    "people-toolbar",
+    "employee-table-shell",
+    "employee-form-section",
+    "employee-profile-hero",
+    "department-structure-grid"
+  ]) {
+    assert.match(html, new RegExp(hook));
+  }
+});
+
+test("HR Attendance and Leave workspaces expose premium operation hooks", () => {
+  for (const hook of [
+    "attendance-toolbar",
+    "attendance-table-shell",
+    "leave-summary-grid",
+    "leave-approval-queue",
+    "leave-calendar-shell"
+  ]) {
+    assert.match(html, new RegExp(hook));
+  }
+});

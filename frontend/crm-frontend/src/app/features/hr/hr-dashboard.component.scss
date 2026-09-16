@@ -2491,3 +2491,98 @@ mark{background:#e9fff4;border:1px solid #98ecc2;border-radius:999px;color:#0478
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+
+/* Premium People, Attendance and Leave workspaces */
+.people-toolbar {
+  align-items: center;
+  border-bottom: 1px solid var(--hr-border);
+  gap: 16px;
+  padding-bottom: 16px;
+}
+
+.employee-directory-shell,
+.employee-profile-hero,
+.leave-approval-queue {
+  border-radius: var(--hr-radius-md);
+  box-shadow: var(--hr-shadow-soft);
+}
+
+.employee-table-shell,
+.attendance-table-shell {
+  border: 1px solid var(--hr-border);
+  border-radius: var(--hr-radius-sm);
+  overflow: auto;
+}
+
+.employee-table-shell table,
+.attendance-table-shell table {
+  margin: 0;
+}
+
+.employee-form-section {
+  background: var(--hr-surface);
+  border-radius: var(--hr-radius-md);
+  gap: 16px;
+}
+
+.employee-profile-hero .panel-title {
+  background: linear-gradient(135deg, var(--hr-surface), var(--hr-surface-soft));
+  border: 1px solid var(--hr-border);
+  border-radius: var(--hr-radius-sm);
+  padding: 16px;
+}
+
+.department-structure-grid {
+  align-items: start;
+  gap: 18px;
+}
+
+.attendance-toolbar {
+  background: var(--hr-surface);
+  border: 1px solid var(--hr-border);
+  border-radius: var(--hr-radius-md);
+  box-shadow: var(--hr-shadow-soft);
+  gap: 16px;
+  padding: 14px;
+}
+
+.attendance-summary-grid {
+  background: var(--hr-surface-soft);
+  border: 1px solid var(--hr-border);
+  border-radius: var(--hr-radius-sm);
+  padding: 12px;
+}
+
+.leave-summary-grid {
+  background: var(--hr-surface-soft);
+  border: 1px solid var(--hr-border);
+  border-radius: var(--hr-radius-sm);
+  padding: 14px;
+}
+
+.leave-approval-queue .table-wrap {
+  border: 1px solid var(--hr-border);
+  border-radius: var(--hr-radius-sm);
+  overflow: auto;
+}
+
+.leave-calendar-shell {
+  align-items: start;
+  gap: 18px;
+}
+
+.leave-calendar-shell .calendar-grid {
+  background: var(--hr-surface-soft);
+  border: 1px solid var(--hr-border);
+  border-radius: var(--hr-radius-sm);
+  padding: 12px;
+}
+
+.employee-directory-shell mark,
+.employee-profile-hero mark,
+.attendance-table-shell mark,
+.leave-approval-queue mark {
+  border-radius: 999px;
+  padding: 4px 9px;
+}
