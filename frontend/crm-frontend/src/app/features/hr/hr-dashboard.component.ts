@@ -721,6 +721,8 @@ export class HrDashboardComponent implements OnDestroy {
   protected readonly companyName = computed(() => this.currentCompany()?.name || 'OPAS BIZZ PRIVATE LIMITED');
   protected readonly companyLogoUrl = computed(() => this.currentCompany()?.logoUrl || '/brand/opasbizz-crm.webp');
   protected readonly activeFeature = signal<HrFeature>('dashboard');
+  protected readonly isSidebarCollapsed = signal(false);
+  protected readonly isMobileNavOpen = signal(false);
   protected readonly dashboard = signal<HrDashboardData | null>(null);
   protected readonly employees = signal<EmployeeRow[]>([]);
   protected readonly holidays = signal<HolidayRow[]>([]);
@@ -1477,7 +1479,20 @@ export class HrDashboardComponent implements OnDestroy {
     });
   }
 
+  protected toggleSidebar(): void {
+    this.isSidebarCollapsed.update((collapsed) => !collapsed);
+  }
+
+  protected toggleMobileNav(): void {
+    this.isMobileNavOpen.update((open) => !open);
+  }
+
+  protected closeMobileNav(): void {
+    this.isMobileNavOpen.set(false);
+  }
+
   protected setFeature(feature: HrFeature): void {
+    this.closeMobileNav();
     if (this.isRestrictedHrOperationalFeature(feature)) {
       this.activeFeature.set('dashboard');
 
