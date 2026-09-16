@@ -1,40 +1,313 @@
 <app-public-header />
 
 <main class="about-page">
+
+  <!-- =====================================================
+       ABOUT HERO
+       ===================================================== -->
   <section class="about-hero">
-    <div>
-      <p class="eyebrow">About Opas Bizz</p>
-      <h1>CRM and HRMS operations shaped for growing companies.</h1>
+    <div class="hero-grid-pattern" aria-hidden="true"></div>
+    <div class="hero-orb hero-orb-one" aria-hidden="true"></div>
+    <div class="hero-orb hero-orb-two" aria-hidden="true"></div>
+
+    <div class="about-hero-content">
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        <span>ABOUT OPAS BIZZ</span>
+        <span class="badge-divider"></span>
+        <span class="badge-soft">Connected Business Operations</span>
+      </div>
+
+      <h1>
+        CRM and HRMS operations
+        <span>shaped for growing companies.</span>
+      </h1>
+
       <p class="intro">
-        Opas Bizz Pvt. Ltd. brings sales, HR, attendance, leave, meetings, payroll records and role-based dashboards into one calm workspace.
+        Opas Bizz Pvt. Ltd. brings sales, HR, attendance, leave,
+        meetings, payroll records and role-based dashboards into one
+        calm workspace.
       </p>
-      <a class="primary-link" routerLink="/register-company">Register Company</a>
+
+      <div class="hero-actions">
+        <a class="primary-link" routerLink="/register-company">
+          <span>Register Company</span>
+          <span class="button-arrow" aria-hidden="true">→</span>
+        </a>
+
+        <a class="secondary-link" routerLink="/login">
+          <span>Login to Workspace</span>
+        </a>
+      </div>
+
+      <div class="hero-points">
+        <span>
+          <i>✓</i>
+          Unified operations
+        </span>
+
+        <span>
+          <i>✓</i>
+          Role-based access
+        </span>
+
+        <span>
+          <i>✓</i>
+          Responsive workspace
+        </span>
+      </div>
     </div>
-    <figure>
-      <img src="/assets/home/team-collaboration.jpg" alt="Team collaborating around business dashboards" />
-    </figure>
-  </section>
 
-  <section class="metric-band" aria-label="Platform facts">
-    @for (item of highlights; track item.label) {
-      <article>
-        <strong>{{ item.value }}</strong>
-        <span>{{ item.label }}</span>
-      </article>
-    }
-  </section>
+    <div class="about-hero-visual">
+      <div class="visual-shell">
+        <div class="visual-topbar">
+          <div class="window-dots" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
 
-  <section class="clay-grid" aria-label="Platform highlights">
-    @for (pillar of pillars; track pillar.title) {
-      <article>
-        <img [src]="pillar.image" [alt]="pillar.title" />
+          <span class="visual-label">Opas Bizz Workspace</span>
+
+          <span class="visual-status">
+            <i></i>
+            Connected
+          </span>
+        </div>
+
+        <figure>
+          <img
+            src="/assets/home/team-collaboration.jpg"
+            alt="Team collaborating around business dashboards"
+            loading="eager"
+          />
+        </figure>
+      </div>
+
+      <div class="floating-card floating-card-top">
+        <span class="floating-icon">∞</span>
+
         <div>
-          <h2>{{ pillar.title }}</h2>
-          <p>{{ pillar.copy }}</p>
+          <strong>One Platform</strong>
+          <span>CRM + HRMS</span>
+        </div>
+      </div>
+
+      <div class="floating-card floating-card-bottom">
+        <span class="floating-icon teal">✓</span>
+
+        <div>
+          <strong>Connected Teams</strong>
+          <span>Role-based workspace</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       PLATFORM FACTS
+       ===================================================== -->
+  <section
+    class="metric-shell"
+    aria-label="Platform facts"
+  >
+    <div class="metric-band">
+      @for (item of highlights; track item.label) {
+        <article>
+          <span class="metric-dot" aria-hidden="true"></span>
+
+          <div>
+            <strong>{{ item.value }}</strong>
+            <span>{{ item.label }}</span>
+          </div>
+        </article>
+      }
+    </div>
+  </section>
+
+  <!-- =====================================================
+       WHO WE ARE
+       ===================================================== -->
+  <section class="story-section">
+    <div class="story-heading">
+      <p class="eyebrow">WHO WE ARE</p>
+
+      <h2>
+        One connected workspace for
+        <span>everyday business operations.</span>
+      </h2>
+    </div>
+
+    <div class="story-grid">
+      <article class="story-main">
+        <span class="story-number">01</span>
+
+        <div>
+          <h3>Built around real company workflows</h3>
+
+          <p>
+            Opas Bizz connects the everyday work of company administrators,
+            HR teams, employees and business departments through dedicated
+            dashboards inside one company workspace.
+          </p>
         </div>
       </article>
-    }
+
+      <article class="story-card">
+        <span class="story-icon">◎</span>
+
+        <div>
+          <h3>Connected</h3>
+
+          <p>
+            Business information stays organized across the same company
+            ecosystem instead of being scattered across disconnected tools.
+          </p>
+        </div>
+      </article>
+
+      <article class="story-card">
+        <span class="story-icon">◇</span>
+
+        <div>
+          <h3>Structured</h3>
+
+          <p>
+            Each role gets a workspace aligned with its responsibilities,
+            keeping daily operations clear and easier to manage.
+          </p>
+        </div>
+      </article>
+    </div>
   </section>
+
+  <!-- =====================================================
+       PLATFORM PILLARS
+       ===================================================== -->
+  <section class="pillars-section">
+    <div class="section-heading">
+      <p class="eyebrow">OUR PLATFORM</p>
+
+      <h2>
+        Designed around the teams
+        <span>that keep your company moving.</span>
+      </h2>
+
+      <p>
+        Sales, employee operations and access control work together as
+        parts of one business workspace.
+      </p>
+    </div>
+
+    <div
+      class="clay-grid"
+      aria-label="Platform highlights"
+    >
+      @for (pillar of pillars; track pillar.title; let index = $index) {
+        <article>
+          <div class="pillar-media">
+            <img
+              [src]="pillar.image"
+              [alt]="pillar.title"
+              loading="lazy"
+            />
+
+            <span class="pillar-number">
+              0{{ index + 1 }}
+            </span>
+          </div>
+
+          <div class="pillar-content">
+            <span class="pillar-accent"></span>
+
+            <h3>{{ pillar.title }}</h3>
+
+            <p>{{ pillar.copy }}</p>
+          </div>
+        </article>
+      }
+    </div>
+  </section>
+
+  <!-- =====================================================
+       APPROACH
+       ===================================================== -->
+  <section class="approach-section">
+    <div class="approach-card">
+      <div class="approach-copy">
+        <p class="eyebrow light">OUR APPROACH</p>
+
+        <h2>
+          Different roles.
+          <span>One company ecosystem.</span>
+        </h2>
+
+        <p>
+          Opas Bizz is structured so teams can focus on the work relevant
+          to them while remaining connected to the same company workspace.
+        </p>
+      </div>
+
+      <div class="role-flow" aria-label="Role based workspace">
+        <div>
+          <span>01</span>
+          <strong>Company</strong>
+        </div>
+
+        <i aria-hidden="true">→</i>
+
+        <div>
+          <span>02</span>
+          <strong>Admin</strong>
+        </div>
+
+        <i aria-hidden="true">→</i>
+
+        <div>
+          <span>03</span>
+          <strong>HR</strong>
+        </div>
+
+        <i aria-hidden="true">→</i>
+
+        <div>
+          <span>04</span>
+          <strong>Employee</strong>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       FINAL CTA
+       ===================================================== -->
+  <section class="about-cta">
+    <div>
+      <p class="eyebrow light">START YOUR WORKSPACE</p>
+
+      <h2>
+        Bring your teams into one
+        connected business platform.
+      </h2>
+
+      <p>
+        Register your company and create a structured CRM and HRMS
+        workspace for your organization.
+      </p>
+    </div>
+
+    <div class="cta-actions">
+      <a class="cta-primary" routerLink="/register-company">
+        <span>Register Company</span>
+        <span aria-hidden="true">→</span>
+      </a>
+
+      <a class="cta-secondary" routerLink="/login">
+        Login
+      </a>
+    </div>
+  </section>
+
 </main>
 
 <app-public-footer />

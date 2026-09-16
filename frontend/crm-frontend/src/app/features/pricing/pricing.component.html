@@ -1,37 +1,466 @@
 <app-public-header />
 
 <main class="pricing-page">
+
+  <!-- =====================================================
+       PRICING HERO
+       ===================================================== -->
   <section class="pricing-hero">
-    <img src="/brand/opasbizz-crm.webp" alt="Opas Bizz Pvt. Ltd. logo" />
-    <p>Opas Bizz Pvt. Ltd.</p>
-    <h1>Pricing that unlocks the exact company workspace you paid for.</h1>
-    <span>Company Admins can purchase with Razorpay, and Super Admin offers apply automatically while active.</span>
+    <div class="hero-grid-pattern" aria-hidden="true"></div>
+    <div class="hero-orb hero-orb-one" aria-hidden="true"></div>
+    <div class="hero-orb hero-orb-two" aria-hidden="true"></div>
+
+    <div class="pricing-hero-content">
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        <span>OPAS BIZZ PRICING</span>
+        <span class="badge-divider"></span>
+        <span class="badge-soft">Simple Company Plans</span>
+      </div>
+
+      <div class="brand-mark">
+        <div class="brand-logo-shell">
+          <img
+            src="/brand/opasbizz-crm.webp"
+            alt="Opas Bizz Pvt. Ltd. logo"
+          />
+        </div>
+
+        <span>Opas Bizz Pvt. Ltd.</span>
+      </div>
+
+      <h1>
+        Choose the workspace
+        <span>that fits your company.</span>
+      </h1>
+
+      <p class="hero-description">
+        Start with the plan that matches your team today and unlock
+        the CRM and HRMS workspace included with your company subscription.
+      </p>
+
+      <div class="hero-points">
+        <span>
+          <i>✓</i>
+          Secure Razorpay checkout
+        </span>
+
+        <span>
+          <i>✓</i>
+          Active offers applied automatically
+        </span>
+
+        <span>
+          <i>✓</i>
+          Role-based company workspace
+        </span>
+      </div>
+    </div>
+
+    <div class="pricing-summary">
+      <div class="summary-shell">
+        <div class="summary-topbar">
+          <div class="window-dots" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+
+          <span class="summary-label">Subscription Overview</span>
+
+          <span class="summary-status">
+            <i></i>
+            Plans Active
+          </span>
+        </div>
+
+        <div class="summary-content">
+          <div class="summary-heading">
+            <span class="summary-kicker">ONE PLATFORM</span>
+
+            <strong>
+              CRM + HRMS
+              <span>for your entire company</span>
+            </strong>
+          </div>
+
+          <div class="summary-features">
+            <div>
+              <span class="summary-icon">01</span>
+
+              <div>
+                <strong>CRM Workspace</strong>
+                <span>Sales and customer operations</span>
+              </div>
+            </div>
+
+            <div>
+              <span class="summary-icon">02</span>
+
+              <div>
+                <strong>HRMS Workspace</strong>
+                <span>Employees and HR operations</span>
+              </div>
+            </div>
+
+            <div>
+              <span class="summary-icon">03</span>
+
+              <div>
+                <strong>Role Access</strong>
+                <span>Structured company dashboards</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="summary-footer">
+            <span>
+              <i>✓</i>
+              Select
+            </span>
+
+            <b aria-hidden="true">→</b>
+
+            <span>
+              <i>✓</i>
+              Register
+            </span>
+
+            <b aria-hidden="true">→</b>
+
+            <span>
+              <i>✓</i>
+              Activate
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="floating-plan-card">
+        <span class="floating-icon">₹</span>
+
+        <div>
+          <strong>Flexible Plans</strong>
+          <span>Built for growing teams</span>
+        </div>
+      </div>
+
+      <div class="floating-secure-card">
+        <span class="floating-icon teal">✓</span>
+
+        <div>
+          <strong>Secure Checkout</strong>
+          <span>Powered through Razorpay</span>
+        </div>
+      </div>
+    </div>
   </section>
 
-  <section class="plan-grid" aria-label="Pricing plans">
-    @for (plan of plans(); track plan.code) {
-      <article [class.featured]="plan.code === 'standard'" [class.business]="plan.code === 'business'">
-        <small>{{ plan.code === 'standard' ? 'Most selected' : plan.code === 'business' ? 'Unlimited scale' : 'Start focused' }}</small>
-        <h2>{{ plan.name }}</h2>
-        <strong>{{ formatCurrency(plan.payableInr ?? plan.priceInr) }}</strong>
-        @if ((plan.discountInr || 0) > 0) {
-          <em><s>{{ formatCurrency(plan.priceInr) }}</s> {{ offerLabel(plan) }}</em>
-        } @else {
-          <em>{{ plan.durationMonths }} month access</em>
-        }
-        <div class="limits">
-          <span>{{ limitLabel(plan.employeeLimit) }} employees</span>
-          <span>{{ limitLabel(plan.hrAccountLimit) }} HR account</span>
-        </div>
-        <ul>
-          @for (point of plan.features || []; track point) {
-            <li>{{ point }}</li>
+  <!-- =====================================================
+       PRICING INTRO
+       ===================================================== -->
+  <section class="plans-section">
+    <div class="section-heading">
+      <p class="eyebrow">CHOOSE YOUR PLAN</p>
+
+      <h2>
+        Simple plans for
+        <span>different stages of growth.</span>
+      </h2>
+
+      <p>
+        Compare employee capacity, HR access and included features,
+        then select the plan that matches your company requirements.
+      </p>
+    </div>
+
+    <!-- ===================================================
+         DYNAMIC PRICING CARDS
+         =================================================== -->
+    <div
+      class="plan-grid"
+      aria-label="Pricing plans"
+    >
+      @for (plan of plans(); track plan.code; let index = $index) {
+        <article
+          class="plan-card"
+          [class.featured]="plan.code === 'standard'"
+          [class.business]="plan.code === 'business'"
+        >
+          @if (plan.code === 'standard') {
+            <div class="recommended-ribbon">
+              Most Selected
+            </div>
           }
-        </ul>
-        <a routerLink="/register-company" [queryParams]="{ plan: plan.code }">Select Plan & Register</a>
-      </article>
-    }
+
+          <div class="plan-card-header">
+            <div class="plan-number">
+              0{{ index + 1 }}
+            </div>
+
+            <small>
+              {{
+                plan.code === 'standard'
+                  ? 'Most selected'
+                  : plan.code === 'business'
+                    ? 'Unlimited scale'
+                    : 'Start focused'
+              }}
+            </small>
+
+            <h3>{{ plan.name }}</h3>
+
+            @if (plan.description) {
+              <p>{{ plan.description }}</p>
+            }
+          </div>
+
+          <div class="price-block">
+            <span class="price-label">Starting at</span>
+
+            <strong>
+              {{ formatCurrency(plan.payableInr ?? plan.priceInr) }}
+            </strong>
+
+            @if ((plan.discountInr || 0) > 0) {
+              <div class="offer-row">
+                <s>{{ formatCurrency(plan.priceInr) }}</s>
+
+                <span class="offer-badge">
+                  {{ offerLabel(plan) }}
+                </span>
+              </div>
+            } @else {
+              <span class="duration">
+                {{ plan.durationMonths }}
+                {{ plan.durationMonths === 1 ? 'month' : 'months' }}
+                access
+              </span>
+            }
+          </div>
+
+          <div class="plan-limits">
+            <div>
+              <span class="limit-icon">EMP</span>
+
+              <div>
+                <strong>{{ limitLabel(plan.employeeLimit) }}</strong>
+                <span>Employees</span>
+              </div>
+            </div>
+
+            <div>
+              <span class="limit-icon">HR</span>
+
+              <div>
+                <strong>{{ limitLabel(plan.hrAccountLimit) }}</strong>
+                <span>
+                  {{ plan.hrAccountLimit === 1 ? 'HR Account' : 'HR Accounts' }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="feature-list">
+            <span class="feature-title">Plan includes</span>
+
+            <ul>
+              @for (point of plan.features || []; track point) {
+                <li>
+                  <span class="check-icon">✓</span>
+                  <span>{{ point }}</span>
+                </li>
+              }
+            </ul>
+          </div>
+
+          <a
+            class="select-plan"
+            routerLink="/register-company"
+            [queryParams]="{ plan: plan.code }"
+          >
+            <span>Select {{ plan.name }}</span>
+            <span class="button-arrow" aria-hidden="true">→</span>
+          </a>
+
+          <span class="card-accent" aria-hidden="true"></span>
+        </article>
+      }
+    </div>
   </section>
+
+  <!-- =====================================================
+       HOW SUBSCRIPTION WORKS
+       ===================================================== -->
+  <section class="subscription-section">
+    <div class="section-heading">
+      <p class="eyebrow">GET STARTED</p>
+
+      <h2>
+        From plan selection to
+        <span>your company workspace.</span>
+      </h2>
+
+      <p>
+        A simple path takes your company from selecting a subscription
+        to accessing the workspace included in the chosen plan.
+      </p>
+    </div>
+
+    <div class="subscription-flow">
+      <article>
+        <span class="step-number">01</span>
+
+        <div class="step-icon">◇</div>
+
+        <h3>Select a Plan</h3>
+
+        <p>
+          Compare the available plans and choose the option that fits
+          your employee and HR requirements.
+        </p>
+      </article>
+
+      <span class="flow-arrow" aria-hidden="true">→</span>
+
+      <article>
+        <span class="step-number">02</span>
+
+        <div class="step-icon">◎</div>
+
+        <h3>Register Company</h3>
+
+        <p>
+          Continue with your selected plan and create your company
+          registration in Opas Bizz.
+        </p>
+      </article>
+
+      <span class="flow-arrow" aria-hidden="true">→</span>
+
+      <article>
+        <span class="step-number">03</span>
+
+        <div class="step-icon">₹</div>
+
+        <h3>Complete Payment</h3>
+
+        <p>
+          Company Admin can complete the applicable subscription payment
+          through the supported Razorpay checkout.
+        </p>
+      </article>
+
+      <span class="flow-arrow" aria-hidden="true">→</span>
+
+      <article>
+        <span class="step-number">04</span>
+
+        <div class="step-icon">✓</div>
+
+        <h3>Access Workspace</h3>
+
+        <p>
+          Use the company workspace and plan limits available with the
+          activated subscription.
+        </p>
+      </article>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       PLAN INFORMATION
+       ===================================================== -->
+  <section class="pricing-info">
+    <div class="info-copy">
+      <p class="eyebrow light">BUILT TO SCALE</p>
+
+      <h2>
+        Start focused.
+        <span>Scale when your company grows.</span>
+      </h2>
+
+      <p>
+        Your subscription determines the employee and HR account capacity
+        available to your company, while active offers are reflected in the
+        payable amount automatically.
+      </p>
+    </div>
+
+    <div class="info-points">
+      <div>
+        <span>01</span>
+
+        <div>
+          <strong>Transparent Limits</strong>
+          <p>
+            Employee and HR account limits are displayed directly on
+            every available plan.
+          </p>
+        </div>
+      </div>
+
+      <div>
+        <span>02</span>
+
+        <div>
+          <strong>Automatic Offers</strong>
+          <p>
+            When an eligible Super Admin offer is active, the updated
+            payable amount is shown automatically.
+          </p>
+        </div>
+      </div>
+
+      <div>
+        <span>03</span>
+
+        <div>
+          <strong>Company Workspace</strong>
+          <p>
+            The selected subscription controls the workspace capacity
+            available to the registered company.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       FINAL CTA
+       ===================================================== -->
+  <section class="pricing-cta">
+    <div>
+      <p class="eyebrow light">READY TO START?</p>
+
+      <h2>
+        Choose your plan and create
+        your company workspace.
+      </h2>
+
+      <p>
+        Register your company with the plan that fits your team today.
+      </p>
+    </div>
+
+    <div class="cta-actions">
+      <a
+        class="cta-primary"
+        routerLink="/register-company"
+      >
+        <span>Register Company</span>
+        <span aria-hidden="true">→</span>
+      </a>
+
+      <a
+        class="cta-secondary"
+        routerLink="/contact"
+      >
+        Contact Us
+      </a>
+    </div>
+  </section>
+
 </main>
 
 <app-public-footer />

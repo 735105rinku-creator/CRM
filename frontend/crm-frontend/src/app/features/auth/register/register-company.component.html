@@ -1,169 +1,683 @@
 <main class="register-page">
-  <section class="register-card">
-    <a class="brand" routerLink="/">
-      <img src="/brand/opasbizz-crm.webp" alt="Opas Bizz Pvt Ltd logo" />
+  <div class="ambient-background" aria-hidden="true">
+    <span class="ambient-orb orb-one"></span>
+    <span class="ambient-orb orb-two"></span>
+    <span class="ambient-orb orb-three"></span>
+    <span class="ambient-ring ring-one"></span>
+    <span class="ambient-ring ring-two"></span>
+    <span class="grid-layer"></span>
+  </div>
+
+  <header class="register-header">
+    <a class="brand" routerLink="/" aria-label="Opas Bizz CRM home">
+      <span class="brand-logo-shell">
+        <img
+          src="/brand/opasbizz-crm.webp"
+          alt="Opas Bizz Pvt Ltd logo"
+        />
+      </span>
     </a>
-    <p class="eyebrow">Start your CRM</p>
-    <h1>Register your company</h1>
-    <p class="intro">Create the first company admin account. Admin can create HR users, HR can create employees.</p>
-    <div class="selected-plan-banner">
-      <span>Selected Plan</span>
-      <strong>{{ selectedPlanCode() | uppercase }}</strong>
-      <a routerLink="/pricing">Change plan</a>
+
+    <div class="header-actions">
+      <span>Already registered?</span>
+      <a routerLink="/login">
+        Sign in
+        <span aria-hidden="true">→</span>
+      </a>
     </div>
+  </header>
 
-    @if (errorMessage()) {
-      <div class="alert alert-danger">{{ errorMessage() }}</div>
-    }
-    @if (successMessage()) {
-      <div class="alert alert-success">{{ successMessage() }}</div>
-    }
+  <section class="registration-shell">
+    <aside class="registration-intro">
+      <div class="intro-content">
+        <div class="intro-badge">
+          <span class="live-dot"></span>
+          <span>OPAS BIZZ CRM + HRMS</span>
+        </div>
 
-    <form [formGroup]="registerForm" (ngSubmit)="submit()">
-      <div class="form-grid">
-        <label>
-          Full Name
-          <input class="form-control" formControlName="fullName" placeholder="Admin full name" />
-          @if (registerForm.controls.fullName.touched && registerForm.controls.fullName.invalid) {
-            <span class="field-error">Full name is required.</span>
-          }
-        </label>
-        <label>
-          Admin Email
-          <input class="form-control" type="email" formControlName="email" placeholder="admin@company.com" />
-          @if (registerForm.controls.email.touched && registerForm.controls.email.invalid) {
-            <span class="field-error">Enter a valid admin email.</span>
-          }
-        </label>
-        <label>
-          Mobile No
-          <span class="phone-field">
-            <select class="form-select" formControlName="adminCountryCode">
-              @for (countryCode of countryCodes; track countryCode.code) {
-                <option [value]="countryCode.code">{{ countryCode.label }}</option>
-              }
-            </select>
-            <input class="form-control" formControlName="mobileNo" placeholder="9111001049" />
-          </span>
-          @if (registerForm.controls.mobileNo.touched && registerForm.controls.mobileNo.invalid) {
-            <span class="field-error">Enter a valid mobile number.</span>
-          }
-        </label>
-        <label>
-          Password
-          <input class="form-control" type="password" formControlName="password" placeholder="Admin@12345" />
-          @if (registerForm.controls.password.touched && registerForm.controls.password.invalid) {
-            <span class="field-error">Use 8-32 chars with uppercase, lowercase, number and special character.</span>
-          }
-        </label>
-        <label>
-          Confirm Password
-          <input class="form-control" type="password" formControlName="confirmPassword" placeholder="Re-enter password" />
-          @if (registerForm.errors?.['passwordMismatch'] && registerForm.controls.confirmPassword.touched) {
-            <span class="field-error">Password and confirm password must match.</span>
-          }
-        </label>
-        <label>
-          Company Name
-          <input class="form-control" formControlName="companyName" placeholder="Your company name" />
-          @if (registerForm.controls.companyName.touched && registerForm.controls.companyName.invalid) {
-            <span class="field-error">Company name is required.</span>
-          }
-        </label>
-        <label>
-          Company Logo <small>(optional)</small>
-          <input class="form-control" type="file" accept="image/*" (change)="onLogoSelected($event)" />
-          @if (logoPreview()) {
-            <span class="logo-preview">
-              <img [src]="logoPreview()" alt="Selected company logo preview" />
-              <span>Logo selected</span>
-            </span>
-          }
-        </label>
-        <label>
-          Company Code
-          <input class="form-control" formControlName="companyCode" placeholder="Auto generated" readonly />
-          @if (registerForm.controls.companyCode.touched && registerForm.controls.companyCode.invalid) {
-            <span class="field-error">Use 3-20 uppercase letters, numbers, dash or underscore.</span>
-          }
-        </label>
-        <label>
-          Company PAN Number <small>(optional)</small>
-          <input class="form-control" formControlName="companyPan" placeholder="ABCDE1234F" />
-          @if (registerForm.controls.companyPan.touched && registerForm.controls.companyPan.invalid) {
-            <span class="field-error">Enter a valid PAN number.</span>
-          }
-        </label>
-        <label>
-          Company GST Number <small>(optional)</small>
-          <input class="form-control" formControlName="companyGst" placeholder="22AAAAA0000A1Z5" />
-          @if (registerForm.controls.companyGst.touched && registerForm.controls.companyGst.invalid) {
-            <span class="field-error">Enter a valid GST number.</span>
-          }
-        </label>
-        <label>
-          Industry
-          <input class="form-control" formControlName="industry" placeholder="IT Services, Manufacturing..." />
-        </label>
-        <label>
-          Employee Count
-          <select class="form-select" formControlName="employeeCount">
-            <option value="">Select team size</option>
-            <option value="1-10">1-10</option>
-            <option value="11-50">11-50</option>
-            <option value="51-200">51-200</option>
-            <option value="200+">200+</option>
-          </select>
-        </label>
-        <label>
-          Company Email
-          <input class="form-control" type="email" formControlName="companyEmail" placeholder="info@company.com" />
-        </label>
-        <label>
-          Company Phone
-          <span class="phone-field">
-            <select class="form-select" formControlName="companyCountryCode">
-              @for (countryCode of countryCodes; track countryCode.code) {
-                <option [value]="countryCode.code">{{ countryCode.label }}</option>
-              }
-            </select>
-            <input class="form-control" formControlName="companyPhone" placeholder="Office phone" />
-          </span>
-          @if (registerForm.controls.companyPhone.touched && registerForm.controls.companyPhone.invalid) {
-            <span class="field-error">Enter a valid company phone number.</span>
-          }
-        </label>
-        <label>
-          Country
-          <input class="form-control" formControlName="country" placeholder="India" />
-        </label>
-        <label class="full">
-          Registered Address
-          <textarea class="form-control" formControlName="registeredAddress" rows="3" placeholder="Full company address"></textarea>
-          @if (registerForm.controls.registeredAddress.touched && registerForm.controls.registeredAddress.invalid) {
-            <span class="field-error">Registered address is required.</span>
-          }
-        </label>
-        <label class="full">
-          Website <small>(optional)</small>
-          <input class="form-control" formControlName="website" placeholder="https://company.com" />
-          @if (registerForm.controls.website.touched && registerForm.controls.website.invalid) {
-            <span class="field-error">Enter a valid website URL.</span>
-          }
-        </label>
+        <p class="eyebrow">COMPANY REGISTRATION</p>
+
+        <h1>
+          Create your company
+          <span>workspace.</span>
+        </h1>
+
+        <p class="intro">
+          Register your organization and create the first Company Admin
+          account for your Opas Bizz CRM and HRMS workspace.
+        </p>
+
+        <div class="selected-plan-card">
+          <div class="plan-card-heading">
+            <div>
+              <small>SELECTED PLAN</small>
+              <strong>{{ selectedPlanCode() | uppercase }}</strong>
+            </div>
+
+            <span class="plan-check">✓</span>
+          </div>
+
+          <p>
+            Your selected subscription will continue with the company
+            registration to checkout.
+          </p>
+
+          <a routerLink="/pricing">
+            Change plan
+            <span aria-hidden="true">→</span>
+          </a>
+        </div>
+
+        <div class="registration-flow">
+          <article class="active">
+            <span>01</span>
+            <div>
+              <strong>Company Details</strong>
+              <small>Organization information</small>
+            </div>
+          </article>
+
+          <i aria-hidden="true"></i>
+
+          <article>
+            <span>02</span>
+            <div>
+              <strong>Admin Account</strong>
+              <small>First company administrator</small>
+            </div>
+          </article>
+
+          <i aria-hidden="true"></i>
+
+          <article>
+            <span>03</span>
+            <div>
+              <strong>Checkout</strong>
+              <small>Activate selected plan</small>
+            </div>
+          </article>
+        </div>
+
+        <div class="security-note">
+          <span class="security-icon">✓</span>
+
+          <div>
+            <strong>Structured company access</strong>
+            <p>
+              Company Admin can create HR users, and HR users can manage
+              employees within the registered company workspace.
+            </p>
+          </div>
+        </div>
       </div>
-      <label class="terms">
-        <input type="checkbox" formControlName="acceptTerms" />
-        <span>I accept the <a routerLink="/terms">terms and conditions</a>.</span>
-      </label>
-      @if (registerForm.controls.acceptTerms.touched && registerForm.controls.acceptTerms.invalid) {
-        <span class="field-error terms-error">Please accept terms and conditions.</span>
-      }
-      <button class="btn btn-primary w-100" type="submit" [disabled]="registerForm.invalid || isLoading()">
-        {{ isLoading() ? 'Creating workspace...' : 'Create Company CRM' }}
-      </button>
-      <p class="signin-link">Already registered? <a routerLink="/login">Sign in</a></p>
-    </form>
-  </section>
-</main>
+    </aside>
 
+    <section class="form-panel">
+      <div class="register-card">
+        <div class="card-heading">
+          <div class="heading-icon" aria-hidden="true">+</div>
+
+          <div>
+            <p class="eyebrow">GET STARTED</p>
+            <h2>Register your company</h2>
+            <p>
+              Complete the information below to create your company workspace.
+            </p>
+          </div>
+        </div>
+
+        @if (errorMessage()) {
+          <div class="alert alert-danger" role="alert">
+            <span class="alert-icon">!</span>
+            <span>{{ errorMessage() }}</span>
+          </div>
+        }
+
+        @if (successMessage()) {
+          <div class="alert alert-success" role="status">
+            <span class="alert-icon">✓</span>
+            <span>{{ successMessage() }}</span>
+          </div>
+        }
+
+        <form [formGroup]="registerForm" (ngSubmit)="submit()" novalidate>
+          <!-- =====================================================
+               ADMIN ACCOUNT
+               ===================================================== -->
+
+          <section class="form-section">
+            <div class="section-heading">
+              <span class="section-number">01</span>
+
+              <div>
+                <h3>Admin Account</h3>
+                <p>
+                  Create the first administrator who will manage this company.
+                </p>
+              </div>
+            </div>
+
+            <div class="form-grid">
+              <label class="field">
+                <span class="field-label">
+                  Full Name
+                  <small>Required</small>
+                </span>
+
+                <input
+                  class="form-control"
+                  formControlName="fullName"
+                  placeholder="Admin full name"
+                  autocomplete="name"
+                />
+
+                @if (registerForm.controls.fullName.touched && registerForm.controls.fullName.invalid) {
+                  <span class="field-error">
+                    <i>!</i>
+                    Full name is required.
+                  </span>
+                }
+              </label>
+
+              <label class="field">
+                <span class="field-label">
+                  Admin Email
+                  <small>Required</small>
+                </span>
+
+                <input
+                  class="form-control"
+                  type="email"
+                  formControlName="email"
+                  placeholder="admin@company.com"
+                  autocomplete="email"
+                />
+
+                @if (registerForm.controls.email.touched && registerForm.controls.email.invalid) {
+                  <span class="field-error">
+                    <i>!</i>
+                    Enter a valid admin email.
+                  </span>
+                }
+              </label>
+
+              <label class="field">
+                <span class="field-label">
+                  Mobile No
+                  <small>Required</small>
+                </span>
+
+                <span class="phone-field">
+                  <select
+                    class="form-select country-code-select"
+                    formControlName="adminCountryCode"
+                    aria-label="Admin mobile country code"
+                  >
+                    @for (countryCode of countryCodes; track countryCode.code) {
+                      <option [value]="countryCode.code">
+                        {{ countryCode.label }}
+                      </option>
+                    }
+                  </select>
+
+                  <input
+                    class="form-control"
+                    formControlName="mobileNo"
+                    placeholder="9111001049"
+                    autocomplete="tel"
+                  />
+                </span>
+
+                @if (registerForm.controls.mobileNo.touched && registerForm.controls.mobileNo.invalid) {
+                  <span class="field-error">
+                    <i>!</i>
+                    Enter a valid mobile number.
+                  </span>
+                }
+              </label>
+
+              <div class="field field-placeholder" aria-hidden="true"></div>
+
+              <label class="field">
+                <span class="field-label">
+                  Password
+                  <small>Required</small>
+                </span>
+
+                <input
+                  class="form-control"
+                  type="password"
+                  formControlName="password"
+                  placeholder="Create secure password"
+                  autocomplete="new-password"
+                />
+
+                @if (registerForm.controls.password.touched && registerForm.controls.password.invalid) {
+                  <span class="field-error">
+                    <i>!</i>
+                    Use 8-32 chars with uppercase, lowercase, number and special
+                    character.
+                  </span>
+                }
+              </label>
+
+              <label class="field">
+                <span class="field-label">
+                  Confirm Password
+                  <small>Required</small>
+                </span>
+
+                <input
+                  class="form-control"
+                  type="password"
+                  formControlName="confirmPassword"
+                  placeholder="Re-enter password"
+                  autocomplete="new-password"
+                />
+
+                @if (registerForm.errors?.['passwordMismatch'] && registerForm.controls.confirmPassword.touched) {
+                  <span class="field-error">
+                    <i>!</i>
+                    Password and confirm password must match.
+                  </span>
+                }
+              </label>
+            </div>
+          </section>
+
+          <!-- =====================================================
+               COMPANY DETAILS
+               ===================================================== -->
+
+          <section class="form-section">
+            <div class="section-heading">
+              <span class="section-number">02</span>
+
+              <div>
+                <h3>Company Details</h3>
+                <p>
+                  Add the primary information for your organization.
+                </p>
+              </div>
+            </div>
+
+            <div class="form-grid">
+              <label class="field">
+                <span class="field-label">
+                  Company Name
+                  <small>Required</small>
+                </span>
+
+                <input
+                  class="form-control"
+                  formControlName="companyName"
+                  placeholder="Your company name"
+                  autocomplete="organization"
+                />
+
+                @if (registerForm.controls.companyName.touched && registerForm.controls.companyName.invalid) {
+                  <span class="field-error">
+                    <i>!</i>
+                    Company name is required.
+                  </span>
+                }
+              </label>
+
+              <label class="field">
+                <span class="field-label">
+                  Company Code
+                  <small>Auto generated</small>
+                </span>
+
+                <input
+                  class="form-control readonly-control"
+                  formControlName="companyCode"
+                  placeholder="Auto generated"
+                  readonly
+                />
+
+                @if (registerForm.controls.companyCode.touched && registerForm.controls.companyCode.invalid) {
+                  <span class="field-error">
+                    <i>!</i>
+                    Use 3-20 uppercase letters, numbers, dash or underscore.
+                  </span>
+                }
+              </label>
+
+              <label class="field">
+                <span class="field-label">
+                  Industry
+                  <small>Required</small>
+                </span>
+
+                <input
+                  class="form-control"
+                  formControlName="industry"
+                  placeholder="IT Services, Manufacturing..."
+                />
+              </label>
+
+              <label class="field">
+                <span class="field-label">
+                  Employee Count
+                  <small>Required</small>
+                </span>
+
+                <select
+                  class="form-select"
+                  formControlName="employeeCount"
+                >
+                  <option value="">Select team size</option>
+                  <option value="1-10">1-10</option>
+                  <option value="11-50">11-50</option>
+                  <option value="51-200">51-200</option>
+                  <option value="200+">200+</option>
+                </select>
+              </label>
+
+              <label class="field">
+                <span class="field-label">
+                  Company Email
+                  <small>Required</small>
+                </span>
+
+                <input
+                  class="form-control"
+                  type="email"
+                  formControlName="companyEmail"
+                  placeholder="info@company.com"
+                  autocomplete="email"
+                />
+              </label>
+
+              <label class="field">
+                <span class="field-label">
+                  Company Phone
+                  <small>Required</small>
+                </span>
+
+                <span class="phone-field">
+                  <select
+                    class="form-select country-code-select"
+                    formControlName="companyCountryCode"
+                    aria-label="Company phone country code"
+                  >
+                    @for (countryCode of countryCodes; track countryCode.code) {
+                      <option [value]="countryCode.code">
+                        {{ countryCode.label }}
+                      </option>
+                    }
+                  </select>
+
+                  <input
+                    class="form-control"
+                    formControlName="companyPhone"
+                    placeholder="Office phone"
+                    autocomplete="tel"
+                  />
+                </span>
+
+                @if (registerForm.controls.companyPhone.touched && registerForm.controls.companyPhone.invalid) {
+                  <span class="field-error">
+                    <i>!</i>
+                    Enter a valid company phone number.
+                  </span>
+                }
+              </label>
+
+              <label class="field">
+                <span class="field-label">
+                  Country
+                  <small>Required</small>
+                </span>
+
+                <input
+                  class="form-control"
+                  formControlName="country"
+                  placeholder="India"
+                  autocomplete="country-name"
+                />
+              </label>
+
+              <label class="field">
+                <span class="field-label">
+                  Website
+                  <small>Optional</small>
+                </span>
+
+                <input
+                  class="form-control"
+                  formControlName="website"
+                  placeholder="https://company.com"
+                  autocomplete="url"
+                />
+
+                @if (registerForm.controls.website.touched && registerForm.controls.website.invalid) {
+                  <span class="field-error">
+                    <i>!</i>
+                    Enter a valid website URL.
+                  </span>
+                }
+              </label>
+
+              <label class="field full">
+                <span class="field-label">
+                  Registered Address
+                  <small>Required</small>
+                </span>
+
+                <textarea
+                  class="form-control"
+                  formControlName="registeredAddress"
+                  rows="3"
+                  placeholder="Full company registered address"
+                  autocomplete="street-address"
+                ></textarea>
+
+                @if (registerForm.controls.registeredAddress.touched && registerForm.controls.registeredAddress.invalid) {
+                  <span class="field-error">
+                    <i>!</i>
+                    Registered address is required.
+                  </span>
+                }
+              </label>
+            </div>
+          </section>
+
+          <!-- =====================================================
+               TAX & COMPANY IDENTITY
+               ===================================================== -->
+
+          <section class="form-section">
+            <div class="section-heading">
+              <span class="section-number">03</span>
+
+              <div>
+                <h3>Tax & Company Identity</h3>
+                <p>
+                  Add optional tax information and your company logo.
+                </p>
+              </div>
+            </div>
+
+            <div class="form-grid">
+              <label class="field">
+                <span class="field-label">
+                  Company PAN Number
+                  <small>Optional</small>
+                </span>
+
+                <input
+                  class="form-control uppercase-control"
+                  formControlName="companyPan"
+                  placeholder="ABCDE1234F"
+                />
+
+                @if (registerForm.controls.companyPan.touched && registerForm.controls.companyPan.invalid) {
+                  <span class="field-error">
+                    <i>!</i>
+                    Enter a valid PAN number.
+                  </span>
+                }
+              </label>
+
+              <label class="field">
+                <span class="field-label">
+                  Company GST Number
+                  <small>Optional</small>
+                </span>
+
+                <input
+                  class="form-control uppercase-control"
+                  formControlName="companyGst"
+                  placeholder="22AAAAA0000A1Z5"
+                />
+
+                @if (registerForm.controls.companyGst.touched && registerForm.controls.companyGst.invalid) {
+                  <span class="field-error">
+                    <i>!</i>
+                    Enter a valid GST number.
+                  </span>
+                }
+              </label>
+
+              <div class="field full logo-field">
+                <span class="field-label">
+                  Company Logo
+                  <small>Optional</small>
+                </span>
+
+                <label class="logo-upload">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    (change)="onLogoSelected($event)"
+                  />
+
+                  <span class="upload-icon" aria-hidden="true">+</span>
+
+                  <span class="upload-copy">
+                    <strong>
+                      {{ logoPreview() ? 'Change company logo' : 'Upload company logo' }}
+                    </strong>
+
+                    <small>
+                      Select an image and crop it before upload. Source image can
+                      be up to 10 MB.
+                    </small>
+                  </span>
+
+                  <span class="upload-action">
+                    {{ logoPreview() ? 'Change' : 'Browse' }}
+                  </span>
+                </label>
+
+                @if (logoPreview()) {
+                  <div class="logo-preview">
+                    <span class="preview-image">
+                      <img
+                        [src]="logoPreview()"
+                        alt="Selected company logo preview"
+                      />
+                    </span>
+
+                    <div>
+                      <strong>Company logo ready</strong>
+                      <span>
+                        Cropped image will be uploaded with registration.
+                      </span>
+                    </div>
+
+                    <span class="preview-check">✓</span>
+                  </div>
+                }
+              </div>
+            </div>
+          </section>
+
+          <!-- =====================================================
+               TERMS & SUBMIT
+               ===================================================== -->
+
+          <section class="registration-submit">
+            <label class="terms">
+              <input
+                class="terms-checkbox"
+                type="checkbox"
+                formControlName="acceptTerms"
+              />
+
+              <span class="custom-check" aria-hidden="true">
+                <i>✓</i>
+              </span>
+
+              <span>
+                I accept the
+                <a routerLink="/terms">terms and conditions</a>
+                for creating an Opas Bizz company workspace.
+              </span>
+            </label>
+
+            @if (registerForm.controls.acceptTerms.touched && registerForm.controls.acceptTerms.invalid) {
+              <span class="field-error terms-error">
+                <i>!</i>
+                Please accept terms and conditions.
+              </span>
+            }
+
+            <div class="checkout-summary">
+              <div>
+                <small>YOU ARE REGISTERING WITH</small>
+                <strong>{{ selectedPlanCode() | uppercase }} PLAN</strong>
+              </div>
+
+              <a routerLink="/pricing">Change plan</a>
+            </div>
+
+            <button
+              class="btn btn-primary w-100"
+              type="submit"
+              [disabled]="registerForm.invalid || isLoading()"
+            >
+              <span class="button-shine" aria-hidden="true"></span>
+
+              @if (isLoading()) {
+                <span
+                  class="spinner-border spinner-border-sm"
+                  aria-hidden="true"
+                ></span>
+                <span>Creating workspace...</span>
+              } @else {
+                <span>Create Company CRM</span>
+                <span class="button-arrow" aria-hidden="true">→</span>
+              }
+            </button>
+
+            <p class="submit-note">
+              After registration, you will continue to checkout for the
+              <strong>{{ selectedPlanCode() | uppercase }}</strong> plan.
+            </p>
+
+            <p class="signin-link">
+              Already registered?
+              <a routerLink="/login">
+                Sign in
+                <span aria-hidden="true">→</span>
+              </a>
+            </p>
+          </section>
+        </form>
+      </div>
+    </section>
+  </section>
+
+  <footer class="register-footer">
+    <a routerLink="/">← Back to website</a>
+
+    <div>
+      <span>Opas Bizz Pvt. Ltd.</span>
+      <i></i>
+      <span>CRM + HRMS Workspace</span>
+    </div>
+  </footer>
+</main>

@@ -1,22 +1,94 @@
 <header class="site-header">
-  <a class="brand" routerLink="/" aria-label="Opas Bizz CRM home" (click)="closeMenu()">
-    <img src="/brand/opasbizz-crm.webp" alt="Opas Bizz Pvt. Ltd. logo" width="176" height="44" />
-  </a>
+  <div class="header-shell">
+    <a
+      class="brand"
+      routerLink="/"
+      aria-label="Opas Bizz CRM home"
+      (click)="closeMenu()"
+    >
+      <span class="brand-logo">
+        <img
+          src="/brand/opasbizz-crm.webp"
+          alt="Opas Bizz Pvt. Ltd. logo"
+          width="176"
+          height="44"
+        />
+      </span>
+    </a>
 
-  <button class="menu-toggle" type="button" (click)="toggleMenu()" aria-label="Toggle navigation">
-    <span></span>
-    <span></span>
-    <span></span>
-  </button>
+    <button
+      class="menu-toggle"
+      type="button"
+      (click)="toggleMenu()"
+      [attr.aria-expanded]="isMenuOpen()"
+      aria-controls="public-navigation"
+      aria-label="Toggle navigation"
+      [class.active]="isMenuOpen()"
+    >
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
 
-  <nav class="nav-links" [class.open]="isMenuOpen()" aria-label="Company navigation">
-    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">Home</a>
-    <a routerLink="/about" routerLinkActive="active" (click)="closeMenu()">About</a>
-    <a routerLink="/pricing" routerLinkActive="active" (click)="closeMenu()">Pricing</a>
-    <a routerLink="/contact" routerLinkActive="active" (click)="closeMenu()">Contact</a>
-    <div class="auth-actions">
-      <a class="auth-btn" routerLink="/login" (click)="closeMenu()">Login</a>
-      <a class="auth-btn primary" routerLink="/register-company" (click)="closeMenu()">Register</a>
-    </div>
-  </nav>
+    <nav
+      id="public-navigation"
+      class="nav-links"
+      [class.open]="isMenuOpen()"
+      aria-label="Company navigation"
+    >
+      <div class="primary-navigation">
+        <a
+          routerLink="/"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          (click)="closeMenu()"
+        >
+          Home
+        </a>
+
+        <a
+          routerLink="/about"
+          routerLinkActive="active"
+          (click)="closeMenu()"
+        >
+          About
+        </a>
+
+        <a
+          routerLink="/pricing"
+          routerLinkActive="active"
+          (click)="closeMenu()"
+        >
+          Pricing
+        </a>
+
+        <a
+          routerLink="/contact"
+          routerLinkActive="active"
+          (click)="closeMenu()"
+        >
+          Contact
+        </a>
+      </div>
+
+      <div class="auth-actions">
+        <a
+          class="auth-btn login"
+          routerLink="/login"
+          (click)="closeMenu()"
+        >
+          Login
+        </a>
+
+        <a
+          class="auth-btn primary"
+          routerLink="/register-company"
+          (click)="closeMenu()"
+        >
+          <span>Register</span>
+          <span class="button-arrow" aria-hidden="true">→</span>
+        </a>
+      </div>
+    </nav>
+  </div>
 </header>

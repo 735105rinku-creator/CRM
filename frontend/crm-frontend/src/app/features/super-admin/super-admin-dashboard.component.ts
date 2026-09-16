@@ -1473,10 +1473,10 @@ export class SuperAdminDashboardComponent {
       ticketsPending: 0
     });
   }
-  private applyPlanPreset(code: string): void {
+  protected applyPlanPreset(code: string): void {
     const preset = this.planPresets[String(code || '').toLowerCase()];
     if (!preset) return;
-
+  
     this.billingPlanForm.patchValue(
       {
         name: preset.name,

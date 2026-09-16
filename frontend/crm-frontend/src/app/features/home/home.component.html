@@ -1,210 +1,617 @@
 <app-public-header />
+
 <main class="home-page">
+
+  <!-- =====================================================
+       HERO
+       ===================================================== -->
   <section class="hero">
-    <div class="hero-banner">
-      <img [src]="heroBannerImage" [alt]="heroBannerAlt" loading="eager" />
-    </div>
+    <div class="hero-orb orb-one" aria-hidden="true"></div>
+    <div class="hero-orb orb-two" aria-hidden="true"></div>
+    <div class="hero-grid-pattern" aria-hidden="true"></div>
 
     <div class="hero-content">
-      <p class="eyebrow">Opas Bizz Pvt. Ltd.</p>
-      <h1>CRM and HRMS workspace for growing Indian businesses.</h1>
-      <p>
-        Register your company, create admins, assign HR and employee roles, track leads, manage invoices,
-        and run everyday operations from one responsive workspace.
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        <span>OPAS BIZZ PVT. LTD.</span>
+        <span class="badge-divider"></span>
+        <span class="badge-soft">CRM · HRMS · Operations</span>
+      </div>
+
+      <h1>
+        One workspace to
+        <span>manage and grow</span>
+        your business.
+      </h1>
+
+      <p class="hero-description">
+        Register your company, create admins, assign HR and employee roles,
+        track leads, manage invoices and run everyday operations from one
+        connected, responsive workspace.
       </p>
+
       <div class="hero-actions">
-        <a class="btn primary" routerLink="/register-company">Create Company CRM</a>
-        <a class="btn light" routerLink="/login">Login to Workspace</a>
+        <a class="btn primary" routerLink="/register-company">
+          <span>Create Company CRM</span>
+          <span class="btn-arrow" aria-hidden="true">→</span>
+        </a>
+
+        <a class="btn secondary" routerLink="/login">
+          <span class="play-icon" aria-hidden="true">▶</span>
+          <span>Login to Workspace</span>
+        </a>
+      </div>
+
+      <div class="hero-trust">
+        <div>
+          <span class="trust-check">✓</span>
+          <span>Easy setup</span>
+        </div>
+
+        <div>
+          <span class="trust-check">✓</span>
+          <span>Role-based access</span>
+        </div>
+
+        <div>
+          <span class="trust-check">✓</span>
+          <span>Built for Indian businesses</span>
+        </div>
       </div>
     </div>
 
-    <!-- <aside class="hero-panel" aria-label="Company details">
-      <img src="/brand/opasbizz-crm.webp" alt="Opas Bizz CRM" />
-      <strong>Opas Bizz Pvt. Ltd.</strong>
-      <span>Super admin company for the platform</span>
-      <ul>
-        <li>Multi-company CRM</li>
-        <li>Role-based admin, HR, employee and accounts dashboards</li>
-        <li>Sales, HRMS, finance, reports and settings modules</li>
-      </ul>
-    </aside> -->
-  </section>
+    <div class="hero-visual">
+      <div class="hero-image-shell">
+        <div class="image-topbar">
+          <div class="window-dots" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
 
-  <section class="metrics" aria-label="Platform highlights">
-    <article>
-      <strong>360</strong>
-      <span>customer and employee view</span>
-    </article>
-    <article>
-      <strong>5+</strong>
-      <span>role dashboards</span>
-    </article>
-    <article>
-      <strong>24/7</strong>
-      <span>business access</span>
-    </article>
-  </section>
+          <span class="image-label">Business Workspace</span>
 
-  <section class="section" id="about">
-    <div class="section-heading">
-      <p class="eyebrow dark">CRM / HRMS Suite</p>
-      <h4>Everything a registered company needs after onboarding.</h4>
+          <span class="live-status">
+            <span></span>
+            Live
+          </span>
+        </div>
+
+        <div class="hero-banner">
+          <img
+            [src]="heroBannerImage"
+            [alt]="heroBannerAlt"
+            loading="eager"
+          />
+        </div>
+      </div>
+
+      <div class="floating-card floating-card-top">
+        <span class="floating-icon">↗</span>
+
+        <div>
+          <strong>Connected</strong>
+          <span>One business workspace</span>
+        </div>
+      </div>
+
+      <div class="floating-card floating-card-bottom">
+        <span class="floating-icon success">✓</span>
+
+        <div>
+          <strong>Work smarter</strong>
+          <span>Teams stay in sync</span>
+        </div>
+      </div>
     </div>
+  </section>
+
+  <!-- =====================================================
+       METRICS
+       ===================================================== -->
+  <section
+    class="metrics-shell"
+    aria-label="Platform highlights"
+  >
+    <div class="metrics">
+      <article>
+        <span class="metric-icon">◎</span>
+
+        <div>
+          <strong>360°</strong>
+          <span>Customer & employee view</span>
+        </div>
+      </article>
+
+      <article>
+        <span class="metric-icon">⌘</span>
+
+        <div>
+          <strong>5+</strong>
+          <span>Role-based dashboards</span>
+        </div>
+      </article>
+
+      <article>
+        <span class="metric-icon">◷</span>
+
+        <div>
+          <strong>24/7</strong>
+          <span>Business workspace access</span>
+        </div>
+      </article>
+
+      <article>
+        <span class="metric-icon">✓</span>
+
+        <div>
+          <strong>One</strong>
+          <span>Connected company workspace</span>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       CORE MODULES
+       ===================================================== -->
+  <section class="section modules-section" id="about">
+    <div class="section-heading centered">
+      <p class="eyebrow">CRM / HRMS SUITE</p>
+
+      <h2>
+        Everything your company needs
+        <span>after onboarding.</span>
+      </h2>
+
+      <p class="section-intro">
+        Give every department the right workspace while keeping your company
+        operations connected under one platform.
+      </p>
+    </div>
+
     <div class="feature-grid">
       <article>
-        <span>01</span>
+        <div class="feature-top">
+          <span class="feature-icon">CA</span>
+          <span class="feature-number">01</span>
+        </div>
+
         <h3>Company Admin</h3>
-        <p>Create HR users, manage employees, configure company profile, assign roles and monitor workspace activity.</p>
+
+        <p>
+          Create HR users, manage employees, configure company profile,
+          assign roles and monitor workspace activity.
+        </p>
+
+        <span class="feature-line"></span>
       </article>
+
       <article>
-        <span>02</span>
+        <div class="feature-top">
+          <span class="feature-icon">CRM</span>
+          <span class="feature-number">02</span>
+        </div>
+
         <h3>Sales CRM</h3>
-        <p>Capture leads, manage contacts, accounts, deals, tasks, quotations and sales reports from one panel.</p>
+
+        <p>
+          Capture leads, manage contacts, accounts, deals, tasks,
+          quotations and sales reports from one panel.
+        </p>
+
+        <span class="feature-line"></span>
       </article>
+
       <article>
-        <span>03</span>
+        <div class="feature-top">
+          <span class="feature-icon">HR</span>
+          <span class="feature-number">03</span>
+        </div>
+
         <h3>HRMS</h3>
-        <p>HR can create employee records, manage onboarding, leave requests, attendance, documents and announcements.</p>
+
+        <p>
+          HR can create employee records, manage onboarding, leave requests,
+          attendance, documents and announcements.
+        </p>
+
+        <span class="feature-line"></span>
       </article>
+
       <article>
-        <span>04</span>
+        <div class="feature-top">
+          <span class="feature-icon">₹</span>
+          <span class="feature-number">04</span>
+        </div>
+
         <h3>Accounts</h3>
-        <p>Track invoices, payments, expenses and financial reports with clean role-based visibility.</p>
+
+        <p>
+          Track invoices, payments, expenses and financial reports with
+          clean role-based visibility.
+        </p>
+
+        <span class="feature-line"></span>
       </article>
     </div>
   </section>
 
-  <!-- NEW SECTION 1: CRM showcase (image + content) -->
+  <!-- =====================================================
+       SALES CRM
+       ===================================================== -->
   <section class="split-section" id="crm">
     <div class="split-media">
-      <img src="assets/home/crm-dashboard.jpg" alt="Opas Bizz Sales CRM dashboard" loading="lazy" />
+      <div class="media-decoration" aria-hidden="true"></div>
+
+      <div class="media-shell">
+        <div class="media-header">
+          <span>Sales Workspace</span>
+
+          <span class="media-status">
+            <i></i>
+            Active
+          </span>
+        </div>
+
+        <img
+          src="assets/home/crm-dashboard.jpg"
+          alt="Opas Bizz Sales CRM dashboard"
+          loading="lazy"
+        />
+      </div>
+
+      <div class="media-float">
+        <strong>Sales CRM</strong>
+        <span>Lead → Deal → Invoice</span>
+      </div>
     </div>
+
     <div class="split-content">
-      <p class="eyebrow dark">Sales CRM</p>
-      <h2>Run your entire sales pipeline in one place.</h2>
+      <p class="eyebrow">SALES CRM</p>
+
+      <h2>
+        Run your entire sales pipeline
+        <span>in one place.</span>
+      </h2>
+
       <p>
-        From the first lead to the final invoice, your sales team gets a single workspace to capture
-        contacts, move deals through stages, assign follow-ups and close faster.
+        From the first lead to the final invoice, your sales team gets a
+        single workspace to capture contacts, move deals through stages,
+        assign follow-ups and close faster.
       </p>
+
       <ul class="check-list">
         <li>Lead capture, contact and account management</li>
         <li>Deal pipeline with stage tracking and task reminders</li>
         <li>Quotation and invoice generation with company branding</li>
         <li>Sales performance reports for admins and managers</li>
       </ul>
-      <a class="btn primary" routerLink="/register-company">Set Up Your Sales CRM</a>
+
+      <a class="btn primary compact" routerLink="/register-company">
+        <span>Set Up Your Sales CRM</span>
+        <span class="btn-arrow" aria-hidden="true">→</span>
+      </a>
     </div>
   </section>
 
-  <!-- NEW SECTION 2: HRM showcase (content + image, reversed) -->
+  <!-- =====================================================
+       HRMS
+       ===================================================== -->
   <section class="split-section reverse" id="hrm">
     <div class="split-content">
-      <p class="eyebrow dark">HRM</p>
-      <h2>HR operations that don't need spreadsheets anymore.</h2>
+      <p class="eyebrow">HRMS</p>
+
+      <h2>
+        HR operations without
+        <span>spreadsheet chaos.</span>
+      </h2>
+
       <p>
-        Give your HR team one dashboard to onboard employees, track attendance and leave, share
-        documents and send announcements, while employees get self-service access to their own records.
+        Give your HR team one dashboard to onboard employees, track
+        attendance and leave, share documents and send announcements,
+        while employees get self-service access to their own records.
       </p>
+
       <ul class="check-list">
         <li>Employee onboarding and document management</li>
         <li>Attendance and leave request approvals</li>
         <li>Role-based access for HR, managers and employees</li>
         <li>Company-wide announcements and notices</li>
       </ul>
-      <a class="btn primary" routerLink="/register-company">Set Up Your HRMS</a>
+
+      <a class="btn primary compact" routerLink="/register-company">
+        <span>Set Up Your HRMS</span>
+        <span class="btn-arrow" aria-hidden="true">→</span>
+      </a>
     </div>
+
     <div class="split-media">
-      <img src="assets/home/hrm-dashboard.jpg" alt="Opas Bizz HRMS dashboard" loading="lazy" />
+      <div class="media-decoration teal" aria-hidden="true"></div>
+
+      <div class="media-shell">
+        <div class="media-header">
+          <span>People Workspace</span>
+
+          <span class="media-status">
+            <i></i>
+            Connected
+          </span>
+        </div>
+
+        <img
+          src="assets/home/hrm-dashboard.jpg"
+          alt="Opas Bizz HRMS dashboard"
+          loading="lazy"
+        />
+      </div>
+
+      <div class="media-float right">
+        <strong>HRMS</strong>
+        <span>People · Attendance · Leave</span>
+      </div>
     </div>
   </section>
 
-  <!-- NEW SECTION 3: How it works (real sequence, numbered) -->
+  <!-- =====================================================
+       PROCESS
+       ===================================================== -->
   <section class="section process-section" id="how-it-works">
-    <div class="section-heading">
-      <p class="eyebrow dark">How It Works</p>
-      <h2>From company registration to daily operations in four steps.</h2>
+    <div class="section-heading centered">
+      <p class="eyebrow">HOW IT WORKS</p>
+
+      <h2>
+        From registration to daily operations
+        <span>in four steps.</span>
+      </h2>
+
+      <p class="section-intro">
+        Start with your company profile, build your team and give each
+        department the workspace it needs.
+      </p>
     </div>
+
     <div class="process-grid">
       <article>
-        <span class="step-number">1</span>
+        <span class="step-number">01</span>
+        <span class="step-icon">＋</span>
+
         <h3>Register your company</h3>
-        <p>Create your company profile and become the super admin of your own CRM and HRMS workspace.</p>
+
+        <p>
+          Create your company profile and become the super admin of your
+          own CRM and HRMS workspace.
+        </p>
       </article>
+
       <article>
-        <span class="step-number">2</span>
+        <span class="step-number">02</span>
+        <span class="step-icon">◇</span>
+
         <h3>Add HR and admins</h3>
-        <p>Create HR and admin users, and assign the role each person should have inside the company.</p>
+
+        <p>
+          Create HR and admin users, and assign the role each person
+          should have inside the company.
+        </p>
       </article>
+
       <article>
-        <span class="step-number">3</span>
+        <span class="step-number">03</span>
+        <span class="step-icon">◎</span>
+
         <h3>Onboard your team</h3>
-        <p>HR adds employees, uploads documents and sets up attendance and leave policies.</p>
+
+        <p>
+          HR adds employees, uploads documents and sets up attendance
+          and leave policies.
+        </p>
       </article>
+
       <article>
-        <span class="step-number">4</span>
+        <span class="step-number">04</span>
+        <span class="step-icon">↗</span>
+
         <h3>Run daily operations</h3>
-        <p>Sales, HR and accounts teams work from their own dashboards, all connected to one company record.</p>
+
+        <p>
+          Sales, HR and accounts teams work from their own dashboards,
+          all connected to one company record.
+        </p>
       </article>
     </div>
+
     <div class="process-media">
-      <img src="assets/home/team-collaboration.jpg" alt="Team collaborating on Opas Bizz workspace" loading="lazy" />
+      <img
+        src="assets/home/team-collaboration.jpg"
+        alt="Team collaborating on Opas Bizz workspace"
+        loading="lazy"
+      />
+
+      <div class="process-overlay">
+        <span class="overlay-badge">ONE WORKSPACE</span>
+
+        <strong>
+          Your teams stay connected while working in their own roles.
+        </strong>
+      </div>
     </div>
   </section>
 
-  <!-- NEW SECTION 4: Why choose us (trust / stats with image) -->
+  <!-- =====================================================
+       WHY OPAS BIZZ
+       ===================================================== -->
   <section class="why-section" id="why-us">
     <div class="why-media">
-      <img src="assets/home/growth-analytics.jpg" alt="Business growth analytics on Opas Bizz" loading="lazy" />
+      <div class="why-image-shell">
+        <img
+          src="assets/home/growth-analytics.jpg"
+          alt="Business growth analytics on Opas Bizz"
+          loading="lazy"
+        />
+
+        <div class="analytics-chip">
+          <span class="analytics-icon">↗</span>
+
+          <div>
+            <strong>Business visibility</strong>
+            <span>Connected reporting</span>
+          </div>
+        </div>
+      </div>
     </div>
+
     <div class="why-content">
-      <p class="eyebrow dark">Why Opas Bizz</p>
-      <h2>One workspace for CRM and HRM, built for Indian businesses.</h2>
+      <p class="eyebrow">WHY OPAS BIZZ</p>
+
+      <h2>
+        Built around the way
+        <span>your departments work.</span>
+      </h2>
+
       <p>
-        Most tools make you choose between managing customers and managing your team. Opas Bizz brings
-        sales, HR, accounts and reporting into one connected system, so every department works from the
-        same company data.
+        Opas Bizz brings sales, HR, accounts and reporting into one
+        connected system, so departments work from the same company
+        ecosystem while retaining role-based access.
       </p>
+
       <div class="why-points">
         <div>
-          <strong>Unified</strong>
-          <span>CRM and HRMS on a single company account</span>
+          <span class="why-icon">∞</span>
+
+          <div>
+            <strong>Unified</strong>
+            <span>CRM and HRMS on a single company account</span>
+          </div>
         </div>
+
         <div>
-          <strong>Role-based</strong>
-          <span>Every user sees only what their role allows</span>
+          <span class="why-icon">✓</span>
+
+          <div>
+            <strong>Role-based</strong>
+            <span>Every user sees the workspace their role allows</span>
+          </div>
         </div>
+
         <div>
-          <strong>Responsive</strong>
-          <span>Works on desktop, tablet and mobile</span>
+          <span class="why-icon">↔</span>
+
+          <div>
+            <strong>Responsive</strong>
+            <span>Built for desktop, tablet and mobile workflows</span>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="office-section" id="contact">
-    <div>
-      <p class="eyebrow dark">Visit Our Office</p>
-      <h2>Built and supported by Opas Bizz Pvt. Ltd.</h2>
-    </div>
-    <div class="contact-grid">
-      <a href="https://www.google.com/maps?q=23.297645501084,77.43253845083365" target="_blank" rel="noreferrer">
-        <span>Registered Office</span>
-        2, 2 A, Ashirwad Tower, G-2 Gulmohar Colony, B Site, Bala Ji Supermarket, Main Road, Bhopal, Madhya Pradesh, India - 462039
-      </a>
-      <a href="https://www.google.com/maps?q=28.616424283172044,77.38155359999999" target="_blank" rel="noreferrer">
-        <span>Corporate Office</span>
-        Office No. F09, 1st floor, Anjuman House, 23, C Block, Sector 63, Noida, Uttar Pradesh, 201301
-      </a>
-      <a href="https://mail.google.com/mail/?view=cm&fs=1&to=info@opasbizz.com" target="_blank" rel="noreferrer">
-        <span>Email</span>
-        info@opasbizz.com
-      </a>
+  <!-- =====================================================
+       CTA
+       ===================================================== -->
+  <section class="cta-section">
+    <div class="cta-content">
       <div>
-        <span>Phone</span>
-        <strong>(+012) 047-65577</strong>
-        <strong>+91-9111001049</strong>
+        <p class="eyebrow light">READY TO GET STARTED?</p>
+
+        <h2>
+          Bring your business operations
+          into one workspace.
+        </h2>
+
+        <p>
+          Register your company and start building your CRM and HRMS
+          workspace with role-based access for your teams.
+        </p>
+      </div>
+
+      <div class="cta-actions">
+        <a class="btn cta-primary" routerLink="/register-company">
+          <span>Create Company CRM</span>
+          <span class="btn-arrow" aria-hidden="true">→</span>
+        </a>
+
+        <a class="btn cta-secondary" routerLink="/login">
+          Login
+        </a>
       </div>
     </div>
   </section>
+
+  <!-- =====================================================
+       CONTACT / OFFICES
+       ===================================================== -->
+  <section class="office-section" id="contact">
+    <div class="section-heading">
+      <p class="eyebrow">VISIT OUR OFFICE</p>
+
+      <h2>
+        Built and supported by
+        <span>Opas Bizz Pvt. Ltd.</span>
+      </h2>
+    </div>
+
+    <div class="contact-grid">
+      <a
+        href="https://www.google.com/maps?q=23.297645501084,77.43253845083365"
+        target="_blank"
+        rel="noreferrer"
+      >
+        <span class="contact-icon">⌖</span>
+
+        <div>
+          <small>Registered Office</small>
+
+          <strong>
+            2, 2 A, Ashirwad Tower, G-2 Gulmohar Colony, B Site,
+            Bala Ji Supermarket, Main Road, Bhopal, Madhya Pradesh,
+            India - 462039
+          </strong>
+        </div>
+      </a>
+
+      <a
+        href="https://www.google.com/maps?q=28.616424283172044,77.38155359999999"
+        target="_blank"
+        rel="noreferrer"
+      >
+        <span class="contact-icon">⌖</span>
+
+        <div>
+          <small>Corporate Office</small>
+
+          <strong>
+            Office No. F09, 1st floor, Anjuman House, 23, C Block,
+            Sector 63, Noida, Uttar Pradesh, 201301
+          </strong>
+        </div>
+      </a>
+
+      <a
+        href="https://mail.google.com/mail/?view=cm&fs=1&to=info@opasbizz.com"
+        target="_blank"
+        rel="noreferrer"
+      >
+        <span class="contact-icon">@</span>
+
+        <div>
+          <small>Email Us</small>
+          <strong>info@opasbizz.com</strong>
+        </div>
+      </a>
+
+      <div class="contact-card">
+        <span class="contact-icon">☎</span>
+
+        <div>
+          <small>Call Us</small>
+          <strong>(+012) 047-65577</strong>
+          <strong>+91-9111001049</strong>
+        </div>
+      </div>
+    </div>
+  </section>
+
 </main>
+
 <app-public-footer />

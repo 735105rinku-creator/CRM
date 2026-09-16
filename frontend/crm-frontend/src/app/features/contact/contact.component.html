@@ -1,32 +1,318 @@
 <app-public-header />
 
 <main class="contact-page">
-  <section class="desk">
-    <div class="letter">
-      <p class="stamp">Contact</p>
-      <h1>Talk to Opas Bizz Pvt. Ltd.</h1>
-      <p class="intro">For CRM setup, HRMS onboarding, workspace configuration and product support.</p>
+  <section class="contact-hero">
+    <div class="hero-grid-pattern" aria-hidden="true"></div>
+    <div class="hero-orb hero-orb-one" aria-hidden="true"></div>
+    <div class="hero-orb hero-orb-two" aria-hidden="true"></div>
 
-      <div class="contact-list">
-        @for (item of contacts; track item.label) {
-          <a [href]="item.href">
-            <span>{{ item.label }}</span>
-            <strong>{{ item.value }}</strong>
-          </a>
-        }
+    <div class="contact-hero-content">
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        <span>CONTACT OPAS BIZZ</span>
+        <span class="badge-divider"></span>
+        <span class="badge-soft">We’re Here to Help</span>
+      </div>
+
+      <h1>
+        Let’s talk about your
+        <span>business workspace.</span>
+      </h1>
+
+      <p class="hero-description">
+        Connect with Opas Bizz Pvt. Ltd. for CRM setup, HRMS onboarding,
+        workspace configuration and product support.
+      </p>
+
+      <div class="hero-points">
+        <span>
+          <i>✓</i>
+          CRM &amp; HRMS assistance
+        </span>
+
+        <span>
+          <i>✓</i>
+          Company onboarding support
+        </span>
+
+        <span>
+          <i>✓</i>
+          Product &amp; workspace guidance
+        </span>
+      </div>
+
+      <div class="hero-actions">
+        <a class="primary-contact" href="mailto:info@opasbizz.com">
+          <span>Email Our Team</span>
+          <span class="button-arrow" aria-hidden="true">→</span>
+        </a>
+
+        <a class="secondary-contact" href="tel:+919111001049">
+          Call Us
+        </a>
       </div>
     </div>
 
-    <aside class="address-card">
-      <span>Corporate Office</span>
-      <strong>Office No. F09, 1st floor, Anjuman House</strong>
-      <p>Sector 63, Noida</p>
-      <div class="notches">
-        <i></i>
-        <i></i>
-        <i></i>
+    <div class="contact-visual">
+      <div class="contact-console">
+        <div class="console-topbar">
+          <div class="window-dots" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+
+          <span class="console-label">Opas Bizz Support Desk</span>
+
+          <span class="console-status">
+            <i></i>
+            Connected
+          </span>
+        </div>
+
+        <div class="console-content">
+          <div class="support-heading">
+            <span class="support-kicker">GET IN TOUCH</span>
+            <strong>
+              One team for your
+              <span>CRM + HRMS workspace.</span>
+            </strong>
+            <p>
+              Choose the contact option that works best for you and connect
+              directly with the Opas Bizz team.
+            </p>
+          </div>
+
+          <div class="quick-contact-list">
+            @for (item of contacts; track item.label; let index = $index) {
+              <a [href]="item.href">
+                <span class="contact-icon">
+                  @if (index === 0) {
+                    &#64;
+                  } @else if (index === 1) {
+                    ☎
+                  } @else {
+                    M
+                  }
+                </span>
+
+                <span class="contact-copy">
+                  <small>{{ item.label }}</small>
+                  <strong>{{ item.value }}</strong>
+                </span>
+
+                <span class="contact-arrow" aria-hidden="true">→</span>
+              </a>
+            }
+          </div>
+        </div>
       </div>
-    </aside>
+
+      <div class="floating-support-card">
+        <span class="floating-icon">✓</span>
+        <div>
+          <strong>Business Support</strong>
+          <span>CRM + HRMS assistance</span>
+        </div>
+      </div>
+
+      <div class="floating-location-card">
+        <span class="floating-icon teal">⌖</span>
+        <div>
+          <strong>Noida Office</strong>
+          <span>Sector 63, Uttar Pradesh</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="contact-options-section">
+    <div class="section-heading">
+      <p class="eyebrow">CONNECT WITH US</p>
+
+      <h2>
+        Choose the easiest way to
+        <span>reach our team.</span>
+      </h2>
+
+      <p>
+        Whether you need onboarding assistance, product information or
+        workspace support, our contact channels are available below.
+      </p>
+    </div>
+
+    <div class="contact-card-grid">
+      @for (item of contacts; track item.label; let index = $index) {
+        <a class="contact-card" [href]="item.href">
+          <div class="card-top">
+            <span class="card-number">0{{ index + 1 }}</span>
+
+            <span class="card-icon">
+              @if (index === 0) {
+                &#64;
+              } @else if (index === 1) {
+                ☎
+              } @else {
+                M
+              }
+            </span>
+          </div>
+
+          <div class="card-content">
+            <small>{{ item.label }}</small>
+            <strong>{{ item.value }}</strong>
+
+            <span class="card-action">
+              Connect
+              <i aria-hidden="true">→</i>
+            </span>
+          </div>
+
+          <span class="card-accent" aria-hidden="true"></span>
+        </a>
+      }
+    </div>
+  </section>
+
+  <section class="office-section">
+    <div class="section-heading">
+      <p class="eyebrow">OUR OFFICES</p>
+
+      <h2>
+        Find Opas Bizz
+        <span>where business happens.</span>
+      </h2>
+
+      <p>
+        Our registered and corporate offices support the company operations
+        behind the Opas Bizz business workspace.
+      </p>
+    </div>
+
+    <div class="office-grid">
+      <article class="office-card">
+        <div class="office-card-top">
+          <span class="office-icon" aria-hidden="true">
+            <i></i>
+          </span>
+
+          <span class="office-type">REGISTERED OFFICE</span>
+        </div>
+
+        <h3>Bhopal, Madhya Pradesh</h3>
+
+        <p>
+          2, 2 A, Ashirwad Tower, G-2 Gulmohar Colony, B Site,
+          Bala Ji Supermarket, Main Road, Bhopal, Madhya Pradesh,
+          India - 462039
+        </p>
+
+        <a
+          href="https://www.google.com/maps?q=23.297645501084,77.43253845083365"
+          target="_blank"
+          rel="noreferrer"
+        >
+          <span>View on Map</span>
+          <span aria-hidden="true">→</span>
+        </a>
+      </article>
+
+      <article class="office-card featured-office">
+        <div class="office-card-top">
+          <span class="office-icon" aria-hidden="true">
+            <i></i>
+          </span>
+
+          <span class="office-type">CORPORATE OFFICE</span>
+        </div>
+
+        <h3>Noida, Uttar Pradesh</h3>
+
+        <p>
+          Office No. F09, 1st floor, Anjuman House, 23, C Block,
+          Sector 63, Noida, Uttar Pradesh, India - 201301
+        </p>
+
+        <a
+          href="https://www.google.com/maps?q=28.616424283172044,77.38155359999999"
+          target="_blank"
+          rel="noreferrer"
+        >
+          <span>View on Map</span>
+          <span aria-hidden="true">→</span>
+        </a>
+      </article>
+    </div>
+  </section>
+
+  <section class="support-section">
+    <div class="support-panel">
+      <div class="support-panel-copy">
+        <p class="eyebrow light">HOW WE CAN HELP</p>
+
+        <h2>
+          Support across your
+          <span>business workspace journey.</span>
+        </h2>
+
+        <p>
+          From initial company setup to daily CRM and HRMS usage, connect
+          with our team whenever you need product or workspace assistance.
+        </p>
+      </div>
+
+      <div class="support-services">
+        <article>
+          <span>01</span>
+          <div>
+            <strong>CRM Setup</strong>
+            <p>Guidance for getting your company CRM workspace ready.</p>
+          </div>
+        </article>
+
+        <article>
+          <span>02</span>
+          <div>
+            <strong>HRMS Onboarding</strong>
+            <p>Support for employee and HR workspace onboarding.</p>
+          </div>
+        </article>
+
+        <article>
+          <span>03</span>
+          <div>
+            <strong>Workspace Support</strong>
+            <p>Help with product access and everyday workspace usage.</p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="contact-cta">
+    <div>
+      <p class="eyebrow light">START A CONVERSATION</p>
+
+      <h2>
+        Have a question about Opas Bizz?
+        Talk to our team.
+      </h2>
+
+      <p>
+        Contact us for CRM, HRMS, company onboarding and workspace support.
+      </p>
+    </div>
+
+    <div class="cta-actions">
+      <a class="cta-primary" href="mailto:info@opasbizz.com">
+        <span>info@opasbizz.com</span>
+        <span aria-hidden="true">→</span>
+      </a>
+
+      <a class="cta-secondary" href="tel:+919111001049">
+        +91-9111001049
+      </a>
+    </div>
   </section>
 </main>
 

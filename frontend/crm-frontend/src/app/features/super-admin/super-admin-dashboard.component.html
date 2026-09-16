@@ -468,7 +468,17 @@
               <article class="panel executive-content-panel billing-form-panel">
                 <div class="panel-heading"><div><h2>Plan Management</h2><p>Create or update basic, standard and business plans.</p></div></div>
                 <form class="form-grid" [formGroup]="billingPlanForm" (ngSubmit)="saveBillingPlan()">
-                  <label>Plan code<select formControlName="code"><option value="basic">basic</option><option value="standard">standard</option><option value="business">business</option></select></label>
+                  <label>
+                    Plan code
+                    <select
+                      formControlName="code"
+                      (change)="applyPlanPreset($any($event.target).value)"
+                    >
+                      <option value="basic">Basic</option>
+                      <option value="standard">Standard</option>
+                      <option value="business">Business</option>
+                    </select>
+                  </label>
                   <label>Name<input formControlName="name" /></label>
                   <label>Price INR<input type="number" formControlName="priceInr" /></label>
                   <label>Duration months<input type="number" formControlName="durationMonths" /></label>

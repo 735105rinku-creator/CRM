@@ -6,7 +6,11 @@ import { PublicHeaderComponent } from '../../shared/components/public-header/pub
 
 @Component({
   selector: 'app-home',
-  imports: [PublicFooterComponent, PublicHeaderComponent, RouterLink],
+  imports: [
+    PublicFooterComponent,
+    PublicHeaderComponent,
+    RouterLink
+  ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
