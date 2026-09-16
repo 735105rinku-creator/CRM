@@ -2586,3 +2586,111 @@ mark{background:#e9fff4;border:1px solid #98ecc2;border-radius:999px;color:#0478
   border-radius: 999px;
   padding: 4px 9px;
 }
+
+
+/* Premium Payroll, Organization, Communication and Account workspaces */
+.payroll-cycle-summary,
+.organization-upcoming-list,
+.announcement-workspace,
+.message-workspace {
+  align-items: start;
+  gap: 18px;
+}
+
+.payroll-cycle-summary .hr-panel,
+.organization-upcoming-list .hr-panel,
+.announcement-workspace .hr-panel,
+.message-workspace .hr-panel {
+  border-radius: var(--hr-radius-md);
+  box-shadow: var(--hr-shadow-soft);
+}
+
+.payroll-toolbar {
+  align-items: center;
+  background: var(--hr-surface-soft);
+  border: 1px solid var(--hr-border);
+  border-radius: var(--hr-radius-sm);
+  gap: 16px;
+  padding: 14px;
+}
+
+.payroll-table-shell {
+  border: 1px solid var(--hr-border);
+  border-radius: var(--hr-radius-sm);
+  overflow: auto;
+}
+
+.payroll-table-shell table {
+  margin: 0;
+}
+
+.organization-calendar-grid {
+  background: var(--hr-surface-soft);
+  border: 1px solid var(--hr-border);
+  border-radius: var(--hr-radius-md);
+  gap: 12px;
+  padding: 14px;
+}
+
+.organization-upcoming-list .table-wrap,
+.announcement-workspace .table-wrap {
+  border: 1px solid var(--hr-border);
+  border-radius: var(--hr-radius-sm);
+  overflow: auto;
+}
+
+.announcement-workspace form,
+.message-workspace form {
+  background: var(--hr-surface-soft);
+  border: 1px solid var(--hr-border);
+  border-radius: var(--hr-radius-sm);
+  padding: 16px;
+}
+
+.message-workspace {
+  grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.2fr);
+}
+
+.message-thread {
+  background: var(--hr-surface-soft);
+  border: 1px solid var(--hr-border);
+  border-radius: var(--hr-radius-sm);
+  max-height: 560px;
+  overflow: auto;
+  padding: 12px;
+}
+
+.message-thread .message-item {
+  background: var(--hr-surface);
+  border: 1px solid var(--hr-border);
+  border-radius: var(--hr-radius-sm);
+  box-shadow: var(--hr-shadow-soft);
+}
+
+.profile-summary-card {
+  background: var(--hr-surface-soft);
+  border: 1px solid var(--hr-border);
+  border-radius: var(--hr-radius-md);
+  box-shadow: var(--hr-shadow-soft);
+  padding: 14px;
+}
+
+.security-card {
+  border-radius: var(--hr-radius-md);
+  box-shadow: var(--hr-shadow-soft);
+  max-width: 720px;
+}
+
+.security-card form {
+  background: var(--hr-surface-soft);
+  border: 1px solid var(--hr-border);
+  border-radius: var(--hr-radius-sm);
+  padding: 16px;
+}
+
+.payroll-table-shell mark,
+.organization-upcoming-list mark,
+.announcement-workspace mark {
+  border-radius: 999px;
+  padding: 4px 9px;
+}

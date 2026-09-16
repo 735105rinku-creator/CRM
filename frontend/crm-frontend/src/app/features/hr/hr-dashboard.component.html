@@ -683,7 +683,7 @@
     <div class="profile-copy">
       <p>HR Profile</p>
       <h2>{{ hrDisplayName() }}</h2>
-      <div class="summary-grid profile-summary-grid">
+      <div class="summary-grid profile-summary-grid profile-summary-card">
         <span><strong>Email</strong><em>{{ userEmail() }}</em></span>
         <span><strong>Role</strong><em>{{ hrProfileSubtitle() }}</em></span>
         <span><strong>Company</strong><em>{{ companyName() }}</em></span>
@@ -1244,7 +1244,7 @@
 
 <ng-template #payslipGenerationView>
   <article class="hr-panel large span-2">
-    <div class="panel-title">
+    <div class="panel-title payroll-toolbar">
       <div>
         <p>Payslip Generation</p>
         <h2>Payslips</h2>
@@ -1252,7 +1252,7 @@
       </div>
       <div class="mini-stats"><span>Total <strong>{{ payslips().length }}</strong></span><span>Net <strong>{{ formatCurrency(payrollNetTotal()) }}</strong></span></div>
     </div>
-    <div class="table-wrap">
+    <div class="table-wrap payroll-table-shell">
       <table>
         <thead><tr><th>Employee</th><th>Month</th><th>Payslip no.</th><th>Gross</th><th>Deductions</th><th>Net</th><th>Status</th><th>PDF</th></tr></thead>
         <tbody>
@@ -1277,7 +1277,7 @@
 </ng-template>
 
 <ng-template #payrollProcessingView>
-  <div class="panel-grid">
+  <div class="panel-grid payroll-cycle-summary">
     <article class="hr-panel">
       <h2>Payroll Processing</h2>
       <p>Create a monthly payroll run and generate employee payslips.</p>
@@ -1369,7 +1369,7 @@
 </ng-template>
 
 <ng-template #eventView>
-  <div class="panel-grid">
+  <div class="panel-grid announcement-workspace">
     <article class="hr-panel">
       <h2>Event setup</h2>
       <p>Create company events, announcements and engagement updates.</p>
@@ -1430,7 +1430,7 @@
 </ng-template>
 
 <ng-template #meetingView>
-  <div class="panel-grid">
+  <div class="panel-grid organization-upcoming-list">
     <article class="hr-panel">
       <h2>Meeting setup</h2>
       <p>Schedule HR meetings, conversations and action reviews.</p>
@@ -1670,7 +1670,7 @@
           </tbody>
         </table>
       </div>
-      <div class="calendar-grid">
+      <div class="calendar-grid organization-calendar-grid">
         @for (holiday of holidays(); track holiday._id || 'calendar-' + holiday.holidayName) {
           <span [style.border-color]="holiday.holidayColor || '#2563eb'">
             <i [style.background]="holiday.holidayColor || '#2563eb'"></i>
@@ -1687,7 +1687,7 @@
 </ng-template>
 
 <ng-template #messageView>
-  <div class="panel-grid">
+  <div class="panel-grid message-workspace">
     <article class="hr-panel">
       <h2>Send message</h2>
       <p>Select an employee before sending a message.</p>
@@ -1707,7 +1707,7 @@
     <article class="hr-panel large">
       <h2>Messages</h2>
       <p>Sent messages and employee replies from backend records.</p>
-      <div class="message-list chat-thread">
+      <div class="message-list chat-thread message-thread">
         @for (item of chatMessages(); track item._id) {
           <section class="message-item" [class.outgoing]="isOwnMessage(item)" [class.incoming]="!isOwnMessage(item)">
             <header>
@@ -1928,7 +1928,7 @@
 
 <ng-template #passwordView>
   <div class="panel-grid">
-    <article class="hr-panel">
+    <article class="hr-panel security-card">
       <h2>Change password</h2>
       <p>Update your HR login password.</p>
       <form [formGroup]="passwordForm" (ngSubmit)="changePassword()" class="form-grid single">

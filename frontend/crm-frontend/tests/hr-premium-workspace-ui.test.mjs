@@ -99,3 +99,27 @@ test("HR Attendance and Leave workspaces expose premium operation hooks", () => 
     assert.match(html, new RegExp(hook));
   }
 });
+
+test("HR Payroll and Organization workspaces expose premium operation hooks", () => {
+  for (const hook of [
+    "payroll-cycle-summary",
+    "payroll-toolbar",
+    "payroll-table-shell",
+    "organization-calendar-grid",
+    "organization-upcoming-list"
+  ]) {
+    assert.match(html, new RegExp(hook));
+  }
+});
+
+test("HR Communication and Account workspaces expose premium operation hooks", () => {
+  for (const hook of [
+    "announcement-workspace",
+    "message-workspace",
+    "message-thread",
+    "profile-summary-card",
+    "security-card"
+  ]) {
+    assert.match(html, new RegExp(hook));
+  }
+});
