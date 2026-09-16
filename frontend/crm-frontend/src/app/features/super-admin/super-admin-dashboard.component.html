@@ -113,7 +113,7 @@
       </div>
     </aside>
 
-    <main class="platform-main">
+    <main class="platform-main super-admin-premium-main">
       <header class="super-admin-shared-navbar">
         <div class="super-admin-navbar-main">
           <div class="super-admin-navbar-identity">
@@ -132,6 +132,19 @@
                 (click)="toggleNotificationPanel()"
                 aria-label="Open notifications"
               >
+                <svg
+                  class="notification-bell-icon"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.9"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                </svg>
                 @if (notificationUnreadCount() > 0) {
                   <span>{{ notificationUnreadCount() }}</span>
                 }
@@ -204,7 +217,7 @@
           <article class="executive-metric-card">
             <span>Total Companies</span>
             <strong>{{ stats().companies }}</strong>
-            <small>{{ stats().active }} active â€¢ {{ stats().trial }} trial â€¢ {{ stats().suspended }} suspended</small>
+            <small>{{ stats().active }} active • {{ stats().trial }} trial • {{ stats().suspended }} suspended</small>
           </article>
           <article class="executive-metric-card">
             <span>Total Users</span>
@@ -311,13 +324,19 @@
                 <p>Company, subscription, payment and support updates.</p>
               </div>
             </div>
-            <div class="activity-feed">
+            <div class="activity-feed executive-activity-feed">
               @for (activity of recentActivity(); track activity.title + activity.meta) {
-                <span>
-                  <strong>{{ activity.title }}</strong>
-                  <em>{{ activity.meta }}</em>
-                  <i>{{ activity.status }}</i>
-                </span>
+                <article class="executive-activity-item">
+                  <span class="executive-activity-mark" aria-hidden="true"></span>
+                  <span class="executive-activity-copy">
+                    <strong>{{ activity.title }}</strong>
+                    <em>{{ activity.meta }}</em>
+                  </span>
+                  <i
+                    class="executive-activity-status"
+                    [class.is-success]="activity.status === 'Paid' || activity.status === 'Active'"
+                  >{{ activity.status }}</i>
+                </article>
               } @empty {
                 <div class="empty-state">No activity found yet.</div>
               }
@@ -491,16 +510,71 @@
                 </form>
               </article>
 
-              <article class="panel executive-content-panel">
-                <div class="panel-heading"><div><h2>Plan Registry</h2><p>Only plan management records are shown here.</p></div></div>
+              <article class="panel executive-content-panel billing-registry-panel">
+                <div class="panel-heading billing-registry-heading">
+                  <div>
+                    <h2>Plan Registry</h2>
+                    <p>Manage saved subscription plans and their availability.</p>
+                  </div>
+                  <span class="billing-registry-count">{{ billingPlans().length }} plans</span>
+                </div>
+
                 <div class="plan-admin-list">
                   @for (plan of billingPlans(); track plan._id || plan.code) {
-                    <span>
-                      <strong>{{ plan.name }} ï¿½ {{ formatCurrency(plan.priceInr) }}</strong>
-                      <em>{{ limitLabel(plan.employeeLimit) }} employees ï¿½ {{ limitLabel(plan.hrAccountLimit) }} HR ï¿½ {{ plan.isActive === false ? 'inactive' : 'active' }}</em>
-                      <button type="button" class="table-action" (click)="togglePlan(plan)">{{ plan.isActive === false ? 'Activate' : 'Inactive' }}</button>
-                    </span>
-                  } @empty { <div class="empty-state">No plans saved yet.</div> }
+                    <article class="billing-plan-card" [class.is-inactive]="plan.isActive === false">
+                      <div class="billing-plan-card-head">
+                        <div class="billing-plan-identity">
+                          <span class="billing-plan-icon">{{ (plan.name || plan.code || 'P').slice(0, 1).toUpperCase() }}</span>
+                          <div>
+                            <strong>{{ plan.name }}</strong>
+                            <small>{{ plan.code || 'subscription' }}</small>
+                          </div>
+                        </div>
+
+                        <span
+                          class="billing-plan-status"
+                          [class.is-active]="plan.isActive !== false"
+                          [class.is-inactive]="plan.isActive === false"
+                        >
+                          {{ plan.isActive === false ? 'Inactive' : 'Active' }}
+                        </span>
+                      </div>
+
+                      <div class="billing-plan-price">
+                        <strong>{{ formatCurrency(plan.priceInr) }}</strong>
+                        <span>/ {{ plan.durationMonths || 1 }} month{{ (plan.durationMonths || 1) === 1 ? '' : 's' }}</span>
+                      </div>
+
+                      <div class="billing-plan-limits">
+                        <span>
+                          <small>Employees</small>
+                          <strong>{{ limitLabel(plan.employeeLimit) }}</strong>
+                        </span>
+                        <span>
+                          <small>HR Accounts</small>
+                          <strong>{{ limitLabel(plan.hrAccountLimit) }}</strong>
+                        </span>
+                      </div>
+
+                      @if (plan.description) {
+                        <p class="billing-plan-description">{{ plan.description }}</p>
+                      }
+
+                      <div class="billing-plan-card-actions">
+                        <button
+                          type="button"
+                          class="billing-plan-toggle"
+                          [class.activate]="plan.isActive === false"
+                          [class.deactivate]="plan.isActive !== false"
+                          (click)="togglePlan(plan)"
+                        >
+                          {{ plan.isActive === false ? 'Activate Plan' : 'Deactivate Plan' }}
+                        </button>
+                      </div>
+                    </article>
+                  } @empty {
+                    <div class="empty-state billing-plan-empty">No plans saved yet.</div>
+                  }
                 </div>
               </article>
             </div>
@@ -574,7 +648,7 @@
                 <div class="panel-heading"><div><h2>Offer Registry</h2><p>Only coupons and discounts are listed here.</p></div></div>
                 <div class="plan-admin-list">
                   @for (offer of planOffers(); track offer._id || offer.code) {
-                    <span><strong>{{ offer.title }} ï¿½ {{ offer.code }}</strong><em>{{ offer.planCode || 'all' }} ï¿½ {{ offer.discountValue }}{{ offer.discountType === 'flat' ? ' INR' : '%' }} ï¿½ {{ offer.isActive === false ? 'inactive' : 'active' }}</em><button type="button" class="table-action" (click)="toggleOffer(offer)">{{ offer.isActive === false ? 'Activate' : 'Inactive' }}</button></span>
+                    <span><strong>{{ offer.title }} • {{ offer.code }}</strong><em>{{ offer.planCode || 'all' }} • {{ offer.discountValue }}{{ offer.discountType === 'flat' ? ' INR' : '%' }} • {{ offer.isActive === false ? 'inactive' : 'active' }}</em><button type="button" class="table-action" (click)="toggleOffer(offer)">{{ offer.isActive === false ? 'Activate' : 'Inactive' }}</button></span>
                   } @empty { <div class="empty-state">No offers created yet.</div> }
                 </div>
               </article>
@@ -708,7 +782,7 @@
               @for (role of customRoleRows(); track role._id || role.name) {
                 <span>
                   <strong>{{ roleLabelText(role.name) }}</strong>
-                  <em>{{ roleCompanyLabel(role) }} ï¿½ level {{ role.level }} ï¿½ {{ permissionCount(role) }} permissions ï¿½ {{ role.isActive === false ? 'inactive' : 'active' }}</em>
+                  <em>{{ roleCompanyLabel(role) }} • level {{ role.level }} • {{ permissionCount(role) }} permissions • {{ role.isActive === false ? 'inactive' : 'active' }}</em>
                   <button type="button" class="table-action" [disabled]="!role._id || isRoleSaving()" (click)="toggleRoleActive(role)">{{ role.isActive === false ? 'Activate' : 'Inactive' }}</button>
                 </span>
               } @empty { <div class="empty-state">No custom roles created yet.</div> }
@@ -763,7 +837,7 @@
             <div class="panel-heading"><div><h2>Lead Sources</h2><p>Lead source records only.</p></div></div>
             <div class="plan-admin-list">
               @for (row of crmRows('lead_source'); track row._id || row.code) {
-                <span><strong><i [style.background]="row.color"></i>{{ row.name }}</strong><em>{{ row.code }} ï¿½ order {{ row.sortOrder || 0 }} ï¿½ {{ row.isDefault ? 'default' : 'template' }} ï¿½ {{ row.isActive === false ? 'inactive' : 'active' }}</em><button type="button" class="table-action" [disabled]="!row._id || isCrmSettingSaving()" (click)="toggleCrmSetting(row)">{{ row.isActive === false ? 'Activate' : 'Inactive' }}</button><button type="button" class="table-action success" [disabled]="!row._id || isCrmSettingSaving()" (click)="markCrmDefault(row)">Default</button></span>
+                <span><strong><i [style.background]="row.color"></i>{{ row.name }}</strong><em>{{ row.code }} • order {{ row.sortOrder || 0 }} • {{ row.isDefault ? 'default' : 'template' }} • {{ row.isActive === false ? 'inactive' : 'active' }}</em><button type="button" class="table-action" [disabled]="!row._id || isCrmSettingSaving()" (click)="toggleCrmSetting(row)">{{ row.isActive === false ? 'Activate' : 'Inactive' }}</button><button type="button" class="table-action success" [disabled]="!row._id || isCrmSettingSaving()" (click)="markCrmDefault(row)">Default</button></span>
               } @empty { <div class="empty-state">No lead sources found.</div> }
             </div>
           </article>
@@ -787,7 +861,7 @@
             <div class="panel-heading"><div><h2>Pipeline Stages</h2><p>Default pipeline stage records only.</p></div></div>
             <div class="plan-admin-list">
               @for (row of crmRows('pipeline_stage'); track row._id || row.code) {
-                <span><strong><i [style.background]="row.color"></i>{{ row.name }}</strong><em>{{ row.code }} ï¿½ order {{ row.sortOrder || 0 }} ï¿½ {{ row.isDefault ? 'default' : 'stage' }} ï¿½ {{ row.isActive === false ? 'inactive' : 'active' }}</em><button type="button" class="table-action" [disabled]="!row._id || isCrmSettingSaving()" (click)="toggleCrmSetting(row)">{{ row.isActive === false ? 'Activate' : 'Inactive' }}</button><button type="button" class="table-action success" [disabled]="!row._id || isCrmSettingSaving()" (click)="markCrmDefault(row)">Default</button></span>
+                <span><strong><i [style.background]="row.color"></i>{{ row.name }}</strong><em>{{ row.code }} • order {{ row.sortOrder || 0 }} • {{ row.isDefault ? 'default' : 'stage' }} • {{ row.isActive === false ? 'inactive' : 'active' }}</em><button type="button" class="table-action" [disabled]="!row._id || isCrmSettingSaving()" (click)="toggleCrmSetting(row)">{{ row.isActive === false ? 'Activate' : 'Inactive' }}</button><button type="button" class="table-action success" [disabled]="!row._id || isCrmSettingSaving()" (click)="markCrmDefault(row)">Default</button></span>
               } @empty { <div class="empty-state">No pipeline stages found.</div> }
             </div>
           </article>
@@ -813,7 +887,7 @@
             <div class="panel-heading"><div><h2>Templates</h2><p>Email/SMS template records only.</p></div></div>
             <div class="plan-admin-list">
               @for (row of crmRows('message_template'); track row._id || row.code) {
-                <span><strong>{{ row.name }}</strong><em>{{ row.channel }} ï¿½ {{ row.code }} ï¿½ {{ row.isDefault ? 'default' : 'template' }} ï¿½ {{ row.isActive === false ? 'inactive' : 'active' }}</em><small>{{ row.subject || row.body }}</small><button type="button" class="table-action" [disabled]="!row._id || isCrmSettingSaving()" (click)="toggleCrmSetting(row)">{{ row.isActive === false ? 'Activate' : 'Inactive' }}</button><button type="button" class="table-action success" [disabled]="!row._id || isCrmSettingSaving()" (click)="markCrmDefault(row)">Default</button></span>
+                <span><strong>{{ row.name }}</strong><em>{{ row.channel }} • {{ row.code }} • {{ row.isDefault ? 'default' : 'template' }} • {{ row.isActive === false ? 'inactive' : 'active' }}</em><small>{{ row.subject || row.body }}</small><button type="button" class="table-action" [disabled]="!row._id || isCrmSettingSaving()" (click)="toggleCrmSetting(row)">{{ row.isActive === false ? 'Activate' : 'Inactive' }}</button><button type="button" class="table-action success" [disabled]="!row._id || isCrmSettingSaving()" (click)="markCrmDefault(row)">Default</button></span>
               } @empty { <div class="empty-state">No CRM templates found.</div> }
             </div>
           </article>
@@ -827,9 +901,9 @@
           <article class="panel executive-content-panel"><div class="panel-heading"><div><h2>Create Ticket</h2><p>Manual support ticket entry.</p></div></div><form class="form-grid" [formGroup]="supportTicketForm" (ngSubmit)="createSupportTicket()"><label class="span-2">Subject<input formControlName="subject" /></label><label>Requester<input formControlName="requesterName" /></label><label>Email<input formControlName="requesterEmail" /></label><label>Category<input formControlName="category" /></label><label>Priority<select formControlName="priority"><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option><option value="urgent">Urgent</option></select></label><label>Status<select formControlName="status"><option value="open">Open</option><option value="pending">Pending</option></select></label><label class="span-2">Description<textarea formControlName="description" rows="4"></textarea></label><button class="primary-action" type="submit" [disabled]="supportTicketForm.invalid || isSupportSaving()">Create Ticket</button></form></article>
         </section>
       } @else if (activeSection() === 'ticket-settings') {
-        <section class="workspace-grid"><article class="panel executive-content-panel span-2"><div class="panel-heading"><div><h2>Categories/Priority</h2><p>Only support categories, default priority and SLA controls.</p></div></div><form class="form-grid" [formGroup]="supportCategoryForm" (ngSubmit)="saveSupportCategory()"><label>Name<input formControlName="name" /></label><label>Code<input formControlName="code" placeholder="auto if blank" /></label><label>Default priority<select formControlName="defaultPriority"><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option><option value="urgent">Urgent</option></select></label><label>SLA hours<input type="number" formControlName="slaHours" /></label><label>Sort order<input type="number" formControlName="sortOrder" /></label><label class="check-line"><input type="checkbox" formControlName="isActive" /> Active</label><label class="span-2">Description<input formControlName="description" /></label><button class="primary-action" type="submit" [disabled]="supportCategoryForm.invalid || isSupportSaving()">Save Category</button></form></article><article class="panel executive-content-panel"><div class="panel-heading"><div><h2>Categories</h2><p>Category records only.</p></div></div><div class="plan-admin-list">@for (row of supportCategories(); track row._id || row.code) { <span><strong>{{ row.name }}</strong><em>{{ row.defaultPriority }} ï¿½ SLA {{ row.slaHours }}h ï¿½ {{ row.isActive === false ? 'inactive' : 'active' }}</em><button type="button" class="table-action" [disabled]="!row._id || isSupportSaving()" (click)="toggleSupportCategory(row)">{{ row.isActive === false ? 'Activate' : 'Inactive' }}</button></span> } @empty { <div class="empty-state">No categories found.</div> }</div></article></section>
+        <section class="workspace-grid"><article class="panel executive-content-panel span-2"><div class="panel-heading"><div><h2>Categories/Priority</h2><p>Only support categories, default priority and SLA controls.</p></div></div><form class="form-grid" [formGroup]="supportCategoryForm" (ngSubmit)="saveSupportCategory()"><label>Name<input formControlName="name" /></label><label>Code<input formControlName="code" placeholder="auto if blank" /></label><label>Default priority<select formControlName="defaultPriority"><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option><option value="urgent">Urgent</option></select></label><label>SLA hours<input type="number" formControlName="slaHours" /></label><label>Sort order<input type="number" formControlName="sortOrder" /></label><label class="check-line"><input type="checkbox" formControlName="isActive" /> Active</label><label class="span-2">Description<input formControlName="description" /></label><button class="primary-action" type="submit" [disabled]="supportCategoryForm.invalid || isSupportSaving()">Save Category</button></form></article><article class="panel executive-content-panel"><div class="panel-heading"><div><h2>Categories</h2><p>Category records only.</p></div></div><div class="plan-admin-list">@for (row of supportCategories(); track row._id || row.code) { <span><strong>{{ row.name }}</strong><em>{{ row.defaultPriority }} • SLA {{ row.slaHours }}h • {{ row.isActive === false ? 'inactive' : 'active' }}</em><button type="button" class="table-action" [disabled]="!row._id || isSupportSaving()" (click)="toggleSupportCategory(row)">{{ row.isActive === false ? 'Activate' : 'Inactive' }}</button></span> } @empty { <div class="empty-state">No categories found.</div> }</div></article></section>
       } @else if (activeSection() === 'knowledge-base') {
-        <section class="workspace-grid"><article class="panel executive-content-panel span-2"><div class="panel-heading"><div><h2>Knowledge Base / FAQ</h2><p>Only FAQ article creation and publish controls.</p></div></div><form class="form-grid" [formGroup]="knowledgeBaseForm" (ngSubmit)="saveKnowledgeArticle()"><label>Title<input formControlName="title" /></label><label>Slug<input formControlName="slug" placeholder="auto if blank" /></label><label>Category<input formControlName="category" /></label><label>Sort order<input type="number" formControlName="sortOrder" /></label><label class="span-2">Question<input formControlName="question" /></label><label class="span-2">Answer<textarea rows="6" formControlName="answer"></textarea></label><label class="span-2">Tags<input formControlName="tags" placeholder="billing, login" /></label><label class="check-line"><input type="checkbox" formControlName="isPublished" /> Published</label><button class="primary-action" type="submit" [disabled]="knowledgeBaseForm.invalid || isSupportSaving()">Save Article</button></form></article><article class="panel executive-content-panel"><div class="panel-heading"><div><h2>FAQ Articles</h2><p>Knowledge base records only.</p></div></div><div class="plan-admin-list">@for (row of knowledgeArticles(); track row._id || row.slug) { <span><strong>{{ row.title }}</strong><em>{{ row.category }} ï¿½ {{ row.isPublished === false ? 'draft' : 'published' }}</em><small>{{ row.question || row.answer }}</small><button type="button" class="table-action" [disabled]="!row._id || isSupportSaving()" (click)="toggleKnowledgeArticle(row)">{{ row.isPublished === false ? 'Publish' : 'Draft' }}</button></span> } @empty { <div class="empty-state">No knowledge base articles found.</div> }</div></article></section>      } @else if (activeSection() === 'announcements') {
+        <section class="workspace-grid"><article class="panel executive-content-panel span-2"><div class="panel-heading"><div><h2>Knowledge Base / FAQ</h2><p>Only FAQ article creation and publish controls.</p></div></div><form class="form-grid" [formGroup]="knowledgeBaseForm" (ngSubmit)="saveKnowledgeArticle()"><label>Title<input formControlName="title" /></label><label>Slug<input formControlName="slug" placeholder="auto if blank" /></label><label>Category<input formControlName="category" /></label><label>Sort order<input type="number" formControlName="sortOrder" /></label><label class="span-2">Question<input formControlName="question" /></label><label class="span-2">Answer<textarea rows="6" formControlName="answer"></textarea></label><label class="span-2">Tags<input formControlName="tags" placeholder="billing, login" /></label><label class="check-line"><input type="checkbox" formControlName="isPublished" /> Published</label><button class="primary-action" type="submit" [disabled]="knowledgeBaseForm.invalid || isSupportSaving()">Save Article</button></form></article><article class="panel executive-content-panel"><div class="panel-heading"><div><h2>FAQ Articles</h2><p>Knowledge base records only.</p></div></div><div class="plan-admin-list">@for (row of knowledgeArticles(); track row._id || row.slug) { <span><strong>{{ row.title }}</strong><em>{{ row.category }} • {{ row.isPublished === false ? 'draft' : 'published' }}</em><small>{{ row.question || row.answer }}</small><button type="button" class="table-action" [disabled]="!row._id || isSupportSaving()" (click)="toggleKnowledgeArticle(row)">{{ row.isPublished === false ? 'Publish' : 'Draft' }}</button></span> } @empty { <div class="empty-state">No knowledge base articles found.</div> }</div></article></section>      } @else if (activeSection() === 'announcements') {
         <section class="workspace-grid">
           <article class="panel executive-content-panel span-2">
             <div class="panel-heading"><div><h2>Platform Announcement</h2><p>Only platform announcement creation, publish window and audience controls.</p></div><button class="primary-action" type="button" (click)="loadNotificationOverview()">Refresh</button></div>
@@ -849,7 +923,7 @@
           <article class="panel executive-content-panel">
             <div class="panel-heading"><div><h2>Announcements</h2><p>Announcement records only.</p></div></div>
             <div class="plan-admin-list">
-              @for (row of announcements(); track row._id || row.title) { <span><strong>{{ row.title }}</strong><em>{{ row.audience }} Â· {{ row.priority }} Â· {{ row.isPublished === false ? 'draft' : 'published' }}</em><small>{{ row.message }}</small><button type="button" class="table-action" [disabled]="!row._id || isNotificationSaving()" (click)="toggleAnnouncement(row)">{{ row.isPublished === false ? 'Publish' : 'Draft' }}</button></span> } @empty { <div class="empty-state">No announcements found.</div> }
+              @for (row of announcements(); track row._id || row.title) { <span><strong>{{ row.title }}</strong><em>{{ row.audience }} • {{ row.priority }} • {{ row.isPublished === false ? 'draft' : 'published' }}</em><small>{{ row.message }}</small><button type="button" class="table-action" [disabled]="!row._id || isNotificationSaving()" (click)="toggleAnnouncement(row)">{{ row.isPublished === false ? 'Publish' : 'Draft' }}</button></span> } @empty { <div class="empty-state">No announcements found.</div> }
             </div>
           </article>
         </section>
@@ -871,7 +945,7 @@
           <article class="panel executive-content-panel">
             <div class="panel-heading"><div><h2>Templates</h2><p>Notification template records only.</p></div></div>
             <div class="plan-admin-list">
-              @for (row of notificationTemplates(); track row._id || row.code) { <span><strong>{{ row.name }}</strong><em>{{ row.channel }} Â· {{ row.code }} Â· {{ row.isActive === false ? 'inactive' : 'active' }}</em><small>{{ row.subject || row.body }}</small><button type="button" class="table-action" [disabled]="!row._id || isNotificationSaving()" (click)="toggleNotificationTemplate(row)">{{ row.isActive === false ? 'Activate' : 'Inactive' }}</button></span> } @empty { <div class="empty-state">No notification templates found.</div> }
+              @for (row of notificationTemplates(); track row._id || row.code) { <span><strong>{{ row.name }}</strong><em>{{ row.channel }} • {{ row.code }} • {{ row.isActive === false ? 'inactive' : 'active' }}</em><small>{{ row.subject || row.body }}</small><button type="button" class="table-action" [disabled]="!row._id || isNotificationSaving()" (click)="toggleNotificationTemplate(row)">{{ row.isActive === false ? 'Activate' : 'Inactive' }}</button></span> } @empty { <div class="empty-state">No notification templates found.</div> }
             </div>
           </article>
         </section>
@@ -896,7 +970,7 @@
             <div class="panel-heading"><div><h2>Gateways</h2><p>Email/SMS gateway records only.</p></div></div>
             <div class="summary-grid"><span><strong>{{ notificationStat('configuredGateways') }}</strong>Configured</span><span><strong>{{ notificationStat('activeGateways') }}</strong>Active</span></div>
             <div class="plan-admin-list">
-              @for (row of communicationGateways(); track row._id || row.provider) { <span><strong>{{ row.label || row.provider }}</strong><em>{{ row.channel }} Â· {{ row.isConfigured ? 'configured' : 'missing config' }} Â· {{ row.isActive === false ? 'inactive' : 'active' }}</em><small>{{ gatewayConfigLabel(row) }}</small><button type="button" class="table-action" [disabled]="!row._id || isNotificationSaving()" (click)="toggleGateway(row)">{{ row.isActive === false ? 'Activate' : 'Inactive' }}</button></span> } @empty { <div class="empty-state">No gateways found.</div> }
+              @for (row of communicationGateways(); track row._id || row.provider) { <span><strong>{{ row.label || row.provider }}</strong><em>{{ row.channel }} • {{ row.isConfigured ? 'configured' : 'missing config' }} • {{ row.isActive === false ? 'inactive' : 'active' }}</em><small>{{ gatewayConfigLabel(row) }}</small><button type="button" class="table-action" [disabled]="!row._id || isNotificationSaving()" (click)="toggleGateway(row)">{{ row.isActive === false ? 'Activate' : 'Inactive' }}</button></span> } @empty { <div class="empty-state">No gateways found.</div> }
             </div>
           </article>
         </section>      } @else if (activeSection() === 'system-logs') {
@@ -912,7 +986,7 @@
             <div class="summary-grid"><span><strong>{{ auditStat('logins') }}</strong>Logins</span><span><strong>{{ auditStat('logouts') }}</strong>Logouts</span><span><strong>{{ auditStat('activeSessions') }}</strong>Sessions</span></div>
             <div class="table-wrap executive-table-wrap"><table><thead><tr><th>User</th><th>Status</th><th>Reason</th><th>IP</th><th>When</th></tr></thead><tbody>@for (row of authHistoryLogs(); track row._id || (row.email || '') + (row.createdAt || '')) { <tr><td>{{ row.user?.name || row.email }}</td><td><span class="status-pill success">{{ row.status }}</span></td><td>{{ row.reason || '-' }}</td><td>{{ row.ipAddress || '-' }}</td><td>{{ formatDate(row.createdAt) }}</td></tr> } @empty { <tr><td colspan="5" class="empty-state">No login/logout history found.</td></tr> }</tbody></table></div>
           </article>
-          <article class="panel executive-content-panel"><div class="panel-heading"><div><h2>Recent Sessions</h2><p>Session records only.</p></div></div><div class="plan-admin-list">@for (row of activeSessionRows(); track row._id) { <span><strong>{{ row.user?.name || row.user?.email || 'Session' }}</strong><em>{{ row.isRevoked ? 'revoked' : 'active' }} Â· {{ row.ipAddress || '-' }}</em><small>{{ row.deviceName || row.userAgent }}</small></span> } @empty { <div class="empty-state">No sessions found.</div> }</div></article>
+          <article class="panel executive-content-panel"><div class="panel-heading"><div><h2>Recent Sessions</h2><p>Session records only.</p></div></div><div class="plan-admin-list">@for (row of activeSessionRows(); track row._id) { <span><strong>{{ row.user?.name || row.user?.email || 'Session' }}</strong><em>{{ row.isRevoked ? 'revoked' : 'active' }} • {{ row.ipAddress || '-' }}</em><small>{{ row.deviceName || row.userAgent }}</small></span> } @empty { <div class="empty-state">No sessions found.</div> }</div></article>
         </section>
       } @else if (activeSection() === 'failed-logins') {
         <section class="workspace-grid">
@@ -944,7 +1018,7 @@
       } @else if (activeSection() === 'change-password') {
         <section class="workspace-grid"><article class="panel executive-content-panel span-2"><div class="panel-heading"><div><h2>Change Password</h2><p>Only password update. Active sessions are revoked after successful change.</p></div></div><form class="form-grid" [formGroup]="superAdminPasswordForm" (ngSubmit)="changeSuperAdminPassword()"><label>Current password<input type="password" formControlName="currentPassword" /></label><label>New password<input type="password" formControlName="newPassword" /></label><label>Confirm password<input type="password" formControlName="confirmPassword" /></label><button class="primary-action" type="submit" [disabled]="superAdminPasswordForm.invalid || isPlatformSaving()">Change Password</button></form></article></section>
       } @else if (activeSection() === 'my-activity') {
-        <section class="workspace-grid"><article class="panel executive-content-panel span-2"><div class="panel-heading"><div><h2>Activity Log</h2><p>Only this Super Admin login, session and export activity.</p></div><button class="primary-action" type="button" (click)="loadProfileActivity()">Refresh</button></div><div class="table-wrap executive-table-wrap"><table><thead><tr><th>Type</th><th>Status</th><th>Detail</th><th>When</th></tr></thead><tbody>@for (row of profileLoginRows(); track row._id || row.createdAt) { <tr><td>Login Audit</td><td>{{ row.status }}</td><td>{{ row.reason || row.ipAddress || '-' }}</td><td>{{ formatDate(row.createdAt) }}</td></tr> } @for (row of profileBackupRows(); track row._id || row.fileName) { <tr><td>Backup</td><td>{{ row.status }}</td><td>{{ row.fileName }}</td><td>{{ formatDate(row.createdAt) }}</td></tr> } @empty { <tr><td colspan="4" class="empty-state">No profile activity found.</td></tr> }</tbody></table></div></article><article class="panel executive-content-panel"><div class="panel-heading"><div><h2>My Sessions</h2><p>Session history only.</p></div></div><div class="plan-admin-list">@for (row of profileSessionRows(); track row._id) { <span><strong>{{ row.deviceName || 'Session' }}</strong><em>{{ row.isRevoked ? 'revoked' : 'active' }} Â· {{ row.ipAddress || '-' }}</em><small>{{ formatDate(row.createdAt) }}</small></span> } @empty { <div class="empty-state">No sessions found.</div> }</div></article></section>      } @else {
+        <section class="workspace-grid"><article class="panel executive-content-panel span-2"><div class="panel-heading"><div><h2>Activity Log</h2><p>Only this Super Admin login, session and export activity.</p></div><button class="primary-action" type="button" (click)="loadProfileActivity()">Refresh</button></div><div class="table-wrap executive-table-wrap"><table><thead><tr><th>Type</th><th>Status</th><th>Detail</th><th>When</th></tr></thead><tbody>@for (row of profileLoginRows(); track row._id || row.createdAt) { <tr><td>Login Audit</td><td>{{ row.status }}</td><td>{{ row.reason || row.ipAddress || '-' }}</td><td>{{ formatDate(row.createdAt) }}</td></tr> } @for (row of profileBackupRows(); track row._id || row.fileName) { <tr><td>Backup</td><td>{{ row.status }}</td><td>{{ row.fileName }}</td><td>{{ formatDate(row.createdAt) }}</td></tr> } @empty { <tr><td colspan="4" class="empty-state">No profile activity found.</td></tr> }</tbody></table></div></article><article class="panel executive-content-panel"><div class="panel-heading"><div><h2>My Sessions</h2><p>Session history only.</p></div></div><div class="plan-admin-list">@for (row of profileSessionRows(); track row._id) { <span><strong>{{ row.deviceName || 'Session' }}</strong><em>{{ row.isRevoked ? 'revoked' : 'active' }} • {{ row.ipAddress || '-' }}</em><small>{{ formatDate(row.createdAt) }}</small></span> } @empty { <div class="empty-state">No sessions found.</div> }</div></article></section>      } @else {
         <article class="panel executive-content-panel">
           <div class="panel-heading">
             <div>
@@ -967,9 +1041,6 @@
     </main>
   </div>
 </section>
-
-
-
 
 
 
