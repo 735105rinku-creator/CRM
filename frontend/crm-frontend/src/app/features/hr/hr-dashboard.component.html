@@ -1,4 +1,4 @@
-<section class="hr-shell">
+<section class="hr-shell hr-workspace">
   @if (messagePopup()) {
     <div class="message-popup">{{ messagePopup() }}</div>
   }
@@ -16,11 +16,14 @@
       </div>
     </div>
 
+    <button type="button" class="hr-nav-toggle" aria-label="Collapse HR navigation" hidden></button>
+    <button type="button" class="hr-mobile-backdrop" aria-label="Close HR navigation" hidden></button>
+
     <nav class="hr-nav" aria-label="HR workspace features">
-      <p>Dashboard</p>
+      <p class="hr-nav-section">Overview</p>
       <button type="button" [class.active]="activeFeature() === 'dashboard'" (click)="setFeature('dashboard')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('dashboard')" aria-hidden="true"></span>Overview</button>
 
-      <p>Employees</p>
+      <p class="hr-nav-section">People</p>
       <button type="button" [class.active]="activeFeature() === 'employee'" (click)="setFeature('employee')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('employee')" aria-hidden="true"></span>All Employees</button>
       <button type="button" [class.active]="activeFeature() === 'add-employee'" (click)="setFeature('add-employee'); openEmployeeModal()"><span class="sidebar-icon" [ngClass]="sidebarIconClass('add-employee')" aria-hidden="true"></span>Add New Employee</button>
       <button type="button" [class.active]="activeFeature() === 'employee-profile'" (click)="setFeature('employee-profile')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('employee-profile')" aria-hidden="true"></span>Employee Profile</button>
@@ -47,33 +50,33 @@
       <button type="button" [class.active]="activeFeature() === 'logistics-tracking'" (click)="setFeature('logistics-tracking')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('logistics-tracking')" aria-hidden="true"></span>Tracking</button>
       <button type="button" [class.active]="activeFeature() === 'logistics-documents'" (click)="setFeature('logistics-documents')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('logistics-documents')" aria-hidden="true"></span>Documents</button>
       }
-      <p>Attendance</p>
+      <p class="hr-nav-section">Time & Attendance</p>
       <button type="button" [class.active]="activeFeature() === 'attendance'" (click)="setFeature('attendance')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('attendance')" aria-hidden="true"></span>Daily Attendance</button>
       <button type="button" [class.active]="activeFeature() === 'attendance-reports'" (click)="setFeature('attendance-reports')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('attendance-reports')" aria-hidden="true"></span>Attendance Reports</button>
 
-      <p>Leave Management</p>
+      <p class="hr-nav-section">Leave</p>
       <button type="button" [class.active]="activeFeature() === 'leave-requests'" (click)="setFeature('leave-requests')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('leave-requests')" aria-hidden="true"></span>Leave Requests</button>
       <button type="button" [class.active]="activeFeature() === 'leave-calendar'" (click)="setFeature('leave-calendar')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('leave-calendar')" aria-hidden="true"></span>Leave Calendar</button>
       <button type="button" [class.active]="activeFeature() === 'leave-balance'" (click)="setFeature('leave-balance')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('leave-balance')" aria-hidden="true"></span>Leave Balance</button>
       <button type="button" [class.active]="activeFeature() === 'leave-types'" (click)="setFeature('leave-types')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('leave-types')" aria-hidden="true"></span>Leave Types Configuration</button>
 
-      <p>Payroll</p>
+      <p class="hr-nav-section">Payroll</p>
       <button type="button" [class.active]="activeFeature() === 'salary-structure'" (click)="setFeature('salary-structure')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('salary-structure')" aria-hidden="true"></span>Salary Structure</button>
       <button type="button" [class.active]="activeFeature() === 'payslip-generation'" (click)="setFeature('payslip-generation')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('payslip-generation')" aria-hidden="true"></span>Payslip Generation</button>
       <button type="button" [class.active]="activeFeature() === 'payroll-processing'" (click)="setFeature('payroll-processing')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('payroll-processing')" aria-hidden="true"></span>Payroll Processing</button>
       <button type="button" [class.active]="activeFeature() === 'payroll-reports'" (click)="setFeature('payroll-reports')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('payroll-reports')" aria-hidden="true"></span>Payroll Reports</button>
 
-      <p>Events & Calendar</p>
+      <p class="hr-nav-section">Organization</p>
       <button type="button" [class.active]="activeFeature() === 'meetings'" (click)="setFeature('meetings')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('meetings')" aria-hidden="true"></span>Meetings</button>
       <button type="button" [class.active]="activeFeature() === 'company-events'" (click)="setFeature('company-events')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('company-events')" aria-hidden="true"></span>Company Events</button>
       <button type="button" [class.active]="activeFeature() === 'holidays'" (click)="setFeature('holidays')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('holidays')" aria-hidden="true"></span>Holiday Calendar</button>
 
-      <p>Communication</p>
+      <p class="hr-nav-section">Communication</p>
       <button type="button" [class.active]="activeFeature() === 'announcements'" (click)="setFeature('announcements')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('announcements')" aria-hidden="true"></span>Announcements</button>
       <button type="button" [class.active]="activeFeature() === 'messages'" (click)="setFeature('messages')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('messages')" aria-hidden="true"></span>Internal Messaging</button>
 
 
-      <p>My Profile</p>
+      <p class="hr-nav-section">Account</p>
       <button type="button" [class.active]="activeFeature() === 'profile'" (click)="setFeature('profile')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('profile')" aria-hidden="true"></span>Profile Settings</button>
       <button type="button" [class.active]="activeFeature() === 'access'" (click)="setFeature('access')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('access')" aria-hidden="true"></span>Change Password</button>
     </nav>
