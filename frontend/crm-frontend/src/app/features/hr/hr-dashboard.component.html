@@ -7,20 +7,13 @@
       <img [src]="companyLogoUrl()" [alt]="companyName() + ' logo'" />
       <span>{{ companyName() | uppercase }}</span>
     </div>
-
-    <!-- <div class="hr-card">
+    <div class="hr-card">
       <img class="hr-profile-photo" [src]="hrProfileImage()" [alt]="hrDisplayName() + ' profile image'" />
       <div>
         <strong>{{ hrDisplayName() }}</strong>
         <small>{{ hrProfileSubtitle() }}</small>
       </div>
-    </div> -->
-
-    <!-- <button type="button" class="hr-nav-toggle" aria-label="Toggle HR navigation" (click)="toggleSidebar()"><span aria-hidden="true">☰</span></button>
-    <button type="button" class="hr-mobile-nav-toggle" aria-label="Open HR navigation" (click)="toggleMobileNav()"><span aria-hidden="true">☰</span></button>
-    @if (isMobileNavOpen()) {
-      <button type="button" class="hr-mobile-backdrop" aria-label="Close HR navigation" (click)="closeMobileNav()"></button>
-    } -->
+    </div>
 
     <nav class="hr-nav" aria-label="HR workspace features">
       <p class="hr-nav-section">Overview</p>
@@ -31,28 +24,6 @@
       <button type="button" [class.active]="activeFeature() === 'add-employee'" (click)="setFeature('add-employee'); openEmployeeModal()"><span class="sidebar-icon" [ngClass]="sidebarIconClass('add-employee')" aria-hidden="true"></span>Add New Employee</button>
       <button type="button" [class.active]="activeFeature() === 'employee-profile'" (click)="setFeature('employee-profile')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('employee-profile')" aria-hidden="true"></span>Employee Profile</button>
       <button type="button" [class.active]="activeFeature() === 'departments'" (click)="setFeature('departments')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('departments')" aria-hidden="true"></span>Departments & Designations</button>
-
-      @if (!isHrOnlyUser()) {
-      <p>CRM</p>
-      <button type="button" [class.active]="activeFeature() === 'crm-leads'" (click)="setFeature('crm-leads')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('crm-leads')" aria-hidden="true"></span>CRM Leads</button>
-      <button type="button" [class.active]="activeFeature() === 'crm-deals'" (click)="setFeature('crm-deals')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('crm-deals')" aria-hidden="true"></span>CRM Deals</button>
-      <button type="button" [class.active]="activeFeature() === 'crm-tasks'" (click)="setFeature('crm-tasks')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('crm-tasks')" aria-hidden="true"></span>CRM Tasks</button>
-      <button type="button" [class.active]="activeFeature() === 'account-invoices'" (click)="setFeature('account-invoices')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('account-invoices')" aria-hidden="true"></span>Invoices</button>
-      <button type="button" [class.active]="activeFeature() === 'account-payments'" (click)="setFeature('account-payments')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('account-payments')" aria-hidden="true"></span>Payments</button>
-      <button type="button" [class.active]="activeFeature() === 'account-expenses'" (click)="setFeature('account-expenses')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('account-expenses')" aria-hidden="true"></span>Expenses</button>
-      }
-
-      @if (!isHrOnlyUser()) {
-      <p>Logistics</p>
-      <button type="button" [class.active]="activeFeature() === 'logistics'" (click)="setFeature('logistics')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('logistics')" aria-hidden="true"></span>Logistics Overview</button>
-      <button type="button" [class.active]="activeFeature() === 'logistics-air-cargo'" (click)="setFeature('logistics-air-cargo')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('logistics-air-cargo')" aria-hidden="true"></span>Air Cargo</button>
-      <button type="button" [class.active]="activeFeature() === 'logistics-sea-freight'" (click)="setFeature('logistics-sea-freight')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('logistics-sea-freight')" aria-hidden="true"></span>Sea Freight</button>
-      <button type="button" [class.active]="activeFeature() === 'logistics-cha'" (click)="setFeature('logistics-cha')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('logistics-cha')" aria-hidden="true"></span>CHA</button>
-      <button type="button" [class.active]="activeFeature() === 'logistics-transporters'" (click)="setFeature('logistics-transporters')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('logistics-transporters')" aria-hidden="true"></span>Transporters</button>
-      <button type="button" [class.active]="activeFeature() === 'logistics-warehouse'" (click)="setFeature('logistics-warehouse')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('logistics-warehouse')" aria-hidden="true"></span>Warehouse</button>
-      <button type="button" [class.active]="activeFeature() === 'logistics-tracking'" (click)="setFeature('logistics-tracking')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('logistics-tracking')" aria-hidden="true"></span>Tracking</button>
-      <button type="button" [class.active]="activeFeature() === 'logistics-documents'" (click)="setFeature('logistics-documents')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('logistics-documents')" aria-hidden="true"></span>Documents</button>
-      }
       <p class="hr-nav-section">Time & Attendance</p>
       <button type="button" [class.active]="activeFeature() === 'attendance'" (click)="setFeature('attendance')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('attendance')" aria-hidden="true"></span>Daily Attendance</button>
       <button type="button" [class.active]="activeFeature() === 'attendance-reports'" (click)="setFeature('attendance-reports')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('attendance-reports')" aria-hidden="true"></span>Attendance Reports</button>
@@ -94,30 +65,34 @@
   </aside>
 
   <div class="hr-main">
-    <header class="hr-topbar">
-      <label class="search-box global-search-box">
-        <span>S</span>
-        <input [value]="searchTerm()" (input)="searchTerm.set($any($event.target).value)" type="search" placeholder="Search employees, CRM, invoices, logistics..." />
-        @if (hasGlobalSearchTerm()) {
-          <button type="button" class="search-clear" (click)="clearGlobalSearch()" aria-label="Clear search">X</button>
-          <div class="global-search-results">
-            @for (result of globalSearchResults(); track result.feature + result.title + result.meta) {
-              <button type="button" (click)="openSearchResult(result)">
-                <strong>{{ result.title }}</strong>
-                <small>{{ result.meta }}</small>
-              </button>
-            } @empty {
-              <span class="empty">No matching records found.</span>
-            }
-          </div>
-        }
-      </label>
-      <!-- <button type="button" class="role-chip">HR</button>
-      <span class="topbar-avatar"><img [src]="hrProfileImage()" [alt]="hrDisplayName() + ' profile image'" /></span>
-      <div class="team-copy hr-topbar-profile">
-        <strong>HR Team</strong>
-        <span>{{ userEmail() }}</span>
-      </div> -->
+    <header class="hr-topbar hr-shared-navbar">
+      <button type="button" class="hr-nav-toggle hr-mobile-nav-toggle hr-navbar-menu-button" aria-label="Open HR navigation" (click)="toggleMobileNav()">
+        <span aria-hidden="true">☰</span>
+      </button>
+      @if (isMobileNavOpen()) {
+        <button type="button" class="hr-mobile-backdrop" aria-label="Close HR navigation" (click)="closeMobileNav()"></button>
+      }
+      <div class="hr-navbar-identity">
+        <span class="hr-navbar-badge">HR Workspace</span>
+        <div class="hr-navbar-copy">
+          <h1>{{ activeFeatureLabel() }}</h1>
+          <p>{{ activeFeatureDescription() }}</p>
+        </div>
+      </div>
+      <button type="button" class="hr-navbar-refresh" (click)="refreshAll()" [disabled]="isRefreshing()">
+        {{ isRefreshing() ? 'Refreshing...' : 'Refresh' }}
+      </button>
+
+      <div class="hr-navbar-profile">
+        <span class="topbar-avatar">
+          <img [src]="hrProfileImage()" [alt]="hrDisplayName() + ' profile image'" />
+        </span>
+        <div class="team-copy hr-topbar-profile">
+          <strong>{{ hrDisplayName() }}</strong>
+          <span>HR Team</span>
+        </div>
+        <span class="hr-profile-chevron" aria-hidden="true">›</span>
+      </div>
       <div class="notification-menu" style="position:relative">
         <button type="button" class="icon-btn badge" (click)="toggleNotificationPanel()" aria-label="Open HR notifications">
           ­ƒöö<small>{{ unreadCount() }}</small>
@@ -145,12 +120,34 @@
           </section>
         }
       </div>
-      <!-- <button type="button" class="header-back-btn hr-header-back" (click)="goBack()"><span>´┐¢</span>Back</button>
-      <button type="button" class="topbar-logout" (click)="logout()">Log out</button> -->
+      @if (activeFeature() !== 'dashboard') {
+        <button type="button" class="header-back-btn hr-header-back" (click)="goBack()">
+          <span aria-hidden="true">‹</span>
+          Back
+        </button>
+      }
     </header>
 
     <main class="hr-content">
-      <div class="breadcrumb">HR Workspace <span>/</span> {{ activeFeatureLabel() }}</div>
+      <div class="hr-content-search">
+<label class="search-box global-search-box">
+        <span>S</span>
+        <input [value]="searchTerm()" (input)="searchTerm.set($any($event.target).value)" type="search" placeholder="Search employees, CRM, invoices, logistics..." />
+        @if (hasGlobalSearchTerm()) {
+          <button type="button" class="search-clear" (click)="clearGlobalSearch()" aria-label="Clear search">X</button>
+          <div class="global-search-results">
+            @for (result of globalSearchResults(); track result.feature + result.title + result.meta) {
+              <button type="button" (click)="openSearchResult(result)">
+                <strong>{{ result.title }}</strong>
+                <small>{{ result.meta }}</small>
+              </button>
+            } @empty {
+              <span class="empty">No matching records found.</span>
+            }
+          </div>
+        }
+      </label>
+      </div>
 
       @if (activeFeature() === 'dashboard') {
         <section class="hero-panel hr-command-hero">

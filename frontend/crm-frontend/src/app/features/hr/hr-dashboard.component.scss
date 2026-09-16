@@ -2858,3 +2858,802 @@ mark{background:#e9fff4;border:1px solid #98ecc2;border-radius:999px;color:#0478
     min-width: 0;
   }
 }
+
+/* HR sidebar parity with Company Admin */
+.hr-workspace .hr-sidebar {
+  background: #0b1324 !important;
+  border-right: 0 !important;
+  box-shadow: 10px 0 30px rgba(15, 23, 42, 0.14) !important;
+  color: #e5edf8 !important;
+  gap: 16px;
+  padding: 22px 16px !important;
+}
+
+.hr-workspace .hr-logo {
+  border-bottom: 0 !important;
+  padding: 0 8px 8px !important;
+}
+
+.hr-workspace .hr-logo span {
+  color: #94a3b8 !important;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+}
+
+.hr-workspace .hr-card {
+  background: #121e33 !important;
+  border: 1px solid rgba(148, 163, 184, 0.16) !important;
+  border-radius: 16px !important;
+  box-shadow: none !important;
+  padding: 14px !important;
+}
+
+.hr-workspace .hr-card strong {
+  color: #ffffff !important;
+  font-weight: 900;
+}
+
+.hr-workspace .hr-card small {
+  color: #94a3b8 !important;
+}
+
+.hr-workspace .hr-nav {
+  gap: 18px !important;
+  padding-right: 4px;
+}
+
+.hr-workspace .hr-nav-section {
+  color: #7f8da3 !important;
+  font-size: 0.68rem !important;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  margin: 4px 8px 2px !important;
+  text-transform: uppercase;
+}
+
+.hr-workspace .hr-nav button {
+  align-items: center;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+  color: #aebacd !important;
+  font-size: 0.82rem;
+  font-weight: 650;
+  gap: 10px;
+  min-height: 34px;
+  padding: 7px 10px !important;
+  text-align: left;
+}
+
+.hr-workspace .hr-nav button:hover {
+  background: rgba(59, 130, 246, 0.1) !important;
+  color: #ffffff !important;
+}
+
+.hr-workspace .hr-nav button.active {
+  background: linear-gradient(
+    90deg,
+    rgba(37, 99, 235, 0.24),
+    rgba(37, 99, 235, 0.08)
+  ) !important;
+  border-left: 2px solid #60a5fa !important;
+  box-shadow: none !important;
+  color: #ffffff !important;
+}
+
+.hr-workspace .hr-nav button .sidebar-icon {
+  color: #7f8da3 !important;
+  flex: 0 0 18px;
+}
+
+.hr-workspace .hr-nav button:hover .sidebar-icon,
+.hr-workspace .hr-nav button.active .sidebar-icon {
+  color: #93c5fd !important;
+}
+
+.hr-workspace .workspace-logout {
+  background: transparent !important;
+  border-top: 1px solid rgba(148, 163, 184, 0.16) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 16px 4px 0 !important;
+}
+
+.hr-workspace .workspace-logout strong {
+  color: #ffffff !important;
+}
+
+.hr-workspace .workspace-logout span {
+  color: #94a3b8 !important;
+}
+
+.hr-workspace .workspace-logout button {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: none !important;
+  color: #e2e8f0 !important;
+}
+
+.hr-workspace .workspace-logout button:hover {
+  background: rgba(59, 130, 246, 0.18) !important;
+  color: #ffffff !important;
+}
+
+/* HR shared sticky navbar */
+.hr-workspace .hr-shared-navbar {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.96) !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.07);
+  display: flex;
+  gap: 24px;
+  justify-content: space-between;
+  min-height: 78px;
+  padding: 14px 26px !important;
+  position: sticky;
+  top: 0;
+  z-index: 900;
+}
+
+.hr-workspace .hr-navbar-identity {
+  align-items: center;
+  display: flex;
+  gap: 14px;
+  min-width: 220px;
+}
+
+.hr-workspace .hr-navbar-badge {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 999px;
+  color: #2563eb;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  padding: 7px 10px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.hr-workspace .hr-navbar-copy {
+  min-width: 0;
+}
+
+.hr-workspace .hr-navbar-copy h1 {
+  color: #172033;
+  font-size: 1.12rem;
+  font-weight: 900;
+  line-height: 1.15;
+  margin: 0;
+}
+
+.hr-workspace .hr-navbar-copy p {
+  color: #64748b;
+  font-size: 0.76rem;
+  font-weight: 650;
+  line-height: 1.35;
+  margin: 4px 0 0;
+  max-width: 360px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hr-workspace .hr-shared-navbar .global-search-box {
+  flex: 1 1 360px;
+  max-width: 520px;
+}
+
+.hr-workspace .hr-shared-navbar .topbar-avatar {
+  flex: 0 0 auto;
+}
+
+.hr-workspace .hr-shared-navbar .team-copy {
+  flex: 0 1 150px;
+}
+
+@media (max-width: 1100px) {
+  .hr-workspace .hr-navbar-copy p {
+    display: none;
+  }
+
+  .hr-workspace .hr-navbar-identity {
+    min-width: 160px;
+  }
+}
+
+@media (max-width: 768px) {
+  .hr-workspace .hr-shared-navbar {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px 16px !important;
+  }
+
+  .hr-workspace .hr-navbar-identity {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  .hr-workspace .hr-navbar-copy h1 {
+    font-size: 1rem;
+  }
+
+  .hr-workspace .hr-shared-navbar .global-search-box {
+    flex: 1 1 100%;
+    max-width: none;
+    order: 3;
+  }
+
+  .hr-workspace .hr-shared-navbar .team-copy {
+    display: none;
+  }
+}
+
+/* HR navbar mobile menu control */
+.hr-workspace .hr-navbar-menu-button {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .hr-workspace .hr-navbar-menu-button {
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid #dbe3ee;
+    border-radius: 10px;
+    color: #172033;
+    display: inline-flex;
+    height: 40px;
+    justify-content: center;
+    min-width: 42px;
+    order: 1;
+    padding: 0;
+  }
+}
+
+/* HR content search placement */
+.hr-workspace .hr-content-search {
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 5px 16px rgba(15, 23, 42, 0.05);
+  padding: 12px 24px;
+}
+
+.hr-workspace .hr-content-search .global-search-box {
+  display: flex;
+  margin: 0 auto;
+  max-width: 760px;
+  width: 100%;
+}
+
+.hr-workspace .hr-shared-navbar .global-search-box {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .hr-workspace .hr-content-search {
+    padding: 10px 16px;
+  }
+}
+
+/* HR final Company Admin navbar layout */
+.hr-workspace .hr-shared-navbar {
+  align-items: center;
+  background: #ffffff !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.07) !important;
+  display: grid !important;
+  gap: 16px;
+  grid-template-columns: minmax(250px, 1fr) auto auto auto auto;
+  min-height: 92px;
+  padding: 16px 26px !important;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.hr-workspace .hr-navbar-identity {
+  align-items: center;
+  display: flex;
+  gap: 14px;
+  min-width: 0;
+  order: 1;
+}
+
+.hr-workspace .hr-navbar-copy {
+  min-width: 0;
+}
+
+.hr-workspace .hr-navbar-copy h1 {
+  color: #172033 !important;
+  font-size: 1.2rem !important;
+  font-weight: 900 !important;
+  line-height: 1.15;
+  margin: 0 !important;
+}
+
+.hr-workspace .hr-navbar-copy p {
+  color: #64748b !important;
+  font-size: 0.75rem !important;
+  font-weight: 650 !important;
+  margin: 4px 0 0 !important;
+  max-width: 360px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hr-workspace .hr-navbar-badge {
+  background: #eff6ff !important;
+  border: 1px solid #bfdbfe !important;
+  border-radius: 999px !important;
+  color: #2563eb !important;
+  font-size: 0.68rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.06em;
+  padding: 8px 11px !important;
+  white-space: nowrap;
+}
+
+.hr-workspace .hr-shared-navbar .notification-menu {
+  order: 2;
+}
+
+.hr-workspace .hr-shared-navbar .notification-menu .icon-btn {
+  background: #ffffff !important;
+  border: 1px solid #dbe3ee !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+  color: #334155 !important;
+  height: 42px;
+  min-width: 42px;
+}
+
+.hr-workspace .hr-shared-navbar .notification-menu .icon-btn {
+  font-size: 0;
+}
+
+.hr-workspace .hr-shared-navbar .notification-menu .icon-btn::before {
+  color: #334155;
+  content: "\1F514";
+  font-size: 1rem;
+}
+
+.hr-workspace .hr-shared-navbar .notification-menu small {
+  font-size: 0.68rem !important;
+}
+
+.hr-workspace .hr-navbar-refresh {
+  background: #2563eb !important;
+  border: 0 !important;
+  border-radius: 10px !important;
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.24) !important;
+  color: #ffffff !important;
+  font-size: 0.78rem;
+  font-weight: 900;
+  min-height: 42px;
+  order: 3;
+  padding: 0 17px;
+  white-space: nowrap;
+}
+
+.hr-workspace .hr-navbar-profile {
+  align-items: center;
+  background: #f1f5f9 !important;
+  border: 1px solid #dbe3ee !important;
+  border-radius: 12px !important;
+  display: flex;
+  gap: 10px;
+  min-height: 48px;
+  min-width: 170px;
+  order: 4;
+  padding: 5px 10px 5px 6px;
+}
+
+.hr-workspace .hr-navbar-profile .topbar-avatar {
+  border-radius: 10px !important;
+  height: 36px;
+  width: 36px;
+}
+
+.hr-workspace .hr-navbar-profile .team-copy {
+  display: grid !important;
+  gap: 2px;
+  min-width: 0;
+}
+
+.hr-workspace .hr-navbar-profile .team-copy strong {
+  color: #172033 !important;
+  font-size: 0.78rem;
+  font-weight: 900;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hr-workspace .hr-navbar-profile .team-copy span {
+  color: #64748b !important;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.hr-workspace .hr-profile-chevron {
+  color: #64748b !important;
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.hr-workspace .hr-shared-navbar .hr-header-back {
+  order: 5;
+}
+
+.hr-workspace .hr-shared-navbar .hr-header-back {
+  background: #f8fafc !important;
+  border: 1px solid #dbe3ee !important;
+  border-radius: 10px !important;
+  color: #172033 !important;
+  min-height: 42px;
+  padding: 0 14px;
+}
+
+.hr-workspace .hr-shared-navbar .hr-header-back span {
+  font-size: 1.1rem;
+  margin-right: 4px;
+}
+
+@media (max-width: 1050px) {
+  .hr-workspace .hr-shared-navbar {
+    gap: 10px;
+    grid-template-columns: minmax(190px, 1fr) auto auto auto;
+  }
+
+  .hr-workspace .hr-shared-navbar .hr-header-back {
+    display: none;
+  }
+
+  .hr-workspace .hr-navbar-profile {
+    min-width: 48px;
+    padding-right: 6px;
+  }
+
+  .hr-workspace .hr-navbar-profile .team-copy,
+  .hr-workspace .hr-profile-chevron {
+    display: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .hr-workspace .hr-shared-navbar {
+    display: flex !important;
+    flex-wrap: wrap;
+    min-height: 0;
+    padding: 12px 16px !important;
+  }
+
+  .hr-workspace .hr-navbar-identity {
+    flex: 1 1 calc(100% - 52px);
+  }
+
+  .hr-workspace .hr-navbar-copy p {
+    display: none;
+  }
+
+  .hr-workspace .hr-shared-navbar .notification-menu,
+  .hr-workspace .hr-navbar-refresh,
+  .hr-workspace .hr-navbar-profile {
+    flex: 0 0 auto;
+  }
+
+  .hr-workspace .hr-navbar-refresh {
+    min-height: 40px;
+    padding: 0 12px;
+  }
+}
+
+/* HR aligned content search */
+.hr-workspace .hr-content-search {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  margin: 0 0 18px;
+  padding: 0 !important;
+  width: 100%;
+}
+
+.hr-workspace .hr-content-search .global-search-box {
+  background: #ffffff !important;
+  border: 1px solid #dbe3ee !important;
+  border-radius: 12px !important;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06) !important;
+  display: flex;
+  margin: 0 !important;
+  max-width: none !important;
+  min-height: 48px;
+  width: 100%;
+}
+
+.hr-workspace .hr-content-search .global-search-box input {
+  background: transparent;
+  min-width: 0;
+  width: 100%;
+}
+
+.hr-workspace .hr-content-search .global-search-box > span {
+  color: #2563eb;
+  font-weight: 900;
+}
+
+@media (max-width: 768px) {
+  .hr-workspace .hr-content-search {
+    margin-bottom: 14px;
+  }
+
+  .hr-workspace .hr-content-search .global-search-box {
+    min-height: 44px;
+  }
+}
+
+/* HR search spacing and alignment */
+.hr-workspace .hr-content-search {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  margin: 16px 0 22px !important;
+  padding: 0 !important;
+  width: 100%;
+}
+
+.hr-workspace .hr-content-search .global-search-box {
+  align-items: center;
+  background: #ffffff !important;
+  border: 1px solid #dbe3ee !important;
+  border-radius: 14px !important;
+  box-shadow:
+    0 8px 20px rgba(15, 23, 42, 0.06),
+    0 1px 2px rgba(15, 23, 42, 0.04) !important;
+  display: flex;
+  margin: 0 !important;
+  max-width: none !important;
+  min-height: 52px;
+  padding: 4px 14px !important;
+  width: 100%;
+}
+
+.hr-workspace .hr-content-search .global-search-box input {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  font-size: 0.95rem;
+  min-height: 42px;
+  padding: 0 10px !important;
+  width: 100%;
+}
+
+.hr-workspace .hr-content-search .global-search-box > span {
+  align-items: center;
+  background: #eff6ff;
+  border-radius: 9px;
+  color: #2563eb;
+  display: inline-flex;
+  flex: 0 0 30px;
+  font-size: 0.92rem;
+  font-weight: 900;
+  height: 30px;
+  justify-content: center;
+  width: 30px;
+}
+
+@media (max-width: 768px) {
+  .hr-workspace .hr-content-search {
+    margin: 12px 0 16px !important;
+  }
+
+  .hr-workspace .hr-content-search .global-search-box {
+    min-height: 48px;
+    padding: 3px 10px !important;
+  }
+}
+
+/* HR dashboard command center refinement */
+.hr-workspace .hr-command-hero {
+  align-items: flex-end;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(96, 165, 250, 0.18), transparent 34%),
+    linear-gradient(135deg, #0b1324 0%, #13233f 60%, #1e3a5f 100%) !important;
+  border: 0 !important;
+  border-radius: 18px !important;
+  box-shadow: 0 18px 34px rgba(15, 23, 42, 0.16) !important;
+  color: #ffffff;
+  min-height: 174px;
+  overflow: hidden;
+  padding: 30px !important;
+  position: relative;
+}
+
+.hr-workspace .hr-command-hero::after {
+  border: 1px solid rgba(147, 197, 253, 0.16);
+  border-radius: 50%;
+  content: "";
+  height: 220px;
+  position: absolute;
+  right: -90px;
+  top: -130px;
+  width: 220px;
+}
+
+.hr-workspace .hr-command-hero > div {
+  position: relative;
+  z-index: 1;
+}
+
+.hr-workspace .hr-command-hero p {
+  color: #93c5fd !important;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  margin: 0 0 10px;
+  text-transform: uppercase;
+}
+
+.hr-workspace .hr-command-hero h1 {
+  color: #ffffff !important;
+  font-size: clamp(2rem, 4vw, 3rem) !important;
+  font-weight: 950;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  margin: 0 0 12px;
+}
+
+.hr-workspace .hr-command-hero span {
+  color: #cbd5e1 !important;
+  display: block;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  max-width: 600px;
+}
+
+.hr-workspace .hr-command-hero .primary-action {
+  background: #2563eb !important;
+  border: 1px solid rgba(147, 197, 253, 0.38) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.32) !important;
+  color: #ffffff !important;
+  min-height: 42px;
+  padding: 0 18px;
+  position: relative;
+  z-index: 1;
+}
+
+.hr-workspace .hr-kpi-grid {
+  gap: 16px !important;
+  margin-top: 20px;
+}
+
+.hr-workspace .hr-kpi-grid .metric-card {
+  background: #ffffff !important;
+  border: 1px solid #dbe3ee !important;
+  border-radius: 15px !important;
+  border-top: 3px solid #2563eb !important;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.07) !important;
+  min-height: 132px;
+  padding: 20px 18px !important;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.hr-workspace .hr-kpi-grid .metric-card:hover {
+  box-shadow: 0 16px 28px rgba(15, 23, 42, 0.11) !important;
+  transform: translateY(-3px);
+}
+
+.hr-workspace .hr-kpi-grid .metric-card span {
+  color: #64748b !important;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.hr-workspace .hr-kpi-grid .metric-card strong {
+  color: #172033 !important;
+  font-size: 2rem;
+  margin-top: 20px;
+}
+
+.hr-workspace .hr-kpi-grid .metric-card i {
+  background: #eff6ff !important;
+  border: 1px solid #dbeafe;
+  color: #2563eb !important;
+  height: 38px;
+  right: 14px;
+  top: 14px;
+  width: 38px;
+}
+
+.hr-workspace .hr-quick-actions {
+  gap: 12px !important;
+  margin: 20px 0 !important;
+}
+
+.hr-workspace .hr-quick-actions button {
+  align-items: center;
+  background: #ffffff !important;
+  border: 1px solid #dbe3ee !important;
+  border-radius: 11px !important;
+  box-shadow: 0 7px 16px rgba(15, 23, 42, 0.05) !important;
+  color: #172033 !important;
+  display: inline-flex;
+  flex: 1 1 190px;
+  font-size: 0.8rem;
+  font-weight: 850;
+  gap: 9px;
+  justify-content: flex-start;
+  min-height: 48px;
+  padding: 0 14px;
+}
+
+.hr-workspace .hr-quick-actions button:hover {
+  border-color: #93c5fd !important;
+  box-shadow: 0 10px 20px rgba(37, 99, 235, 0.1) !important;
+  color: #2563eb !important;
+  transform: translateY(-2px);
+}
+
+.hr-workspace .hr-quick-actions button span {
+  align-items: center;
+  background: #eff6ff;
+  border-radius: 8px;
+  color: #2563eb;
+  display: inline-flex;
+  font-weight: 950;
+  height: 28px;
+  justify-content: center;
+  width: 28px;
+}
+
+.hr-workspace .hr-dashboard-grid {
+  gap: 18px !important;
+}
+
+.hr-workspace .hr-dashboard-grid .hr-panel {
+  background: #ffffff !important;
+  border: 1px solid #dbe3ee !important;
+  border-radius: 15px !important;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.06) !important;
+  padding: 22px !important;
+}
+
+.hr-workspace .hr-dashboard-grid .hr-panel h2 {
+  color: #172033 !important;
+  font-size: 1.05rem;
+  font-weight: 900;
+  margin-bottom: 5px;
+}
+
+.hr-workspace .hr-dashboard-grid .hr-panel > p {
+  color: #64748b !important;
+  font-size: 0.78rem;
+  margin-bottom: 18px;
+}
+
+@media (max-width: 768px) {
+  .hr-workspace .hr-command-hero {
+    align-items: flex-start;
+    min-height: 0;
+    padding: 24px !important;
+  }
+
+  .hr-workspace .hr-command-hero h1 {
+    font-size: 2.2rem !important;
+  }
+
+  .hr-workspace .hr-command-hero .primary-action {
+    margin-top: 18px;
+  }
+
+  .hr-workspace .hr-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .hr-workspace .hr-quick-actions button {
+    flex-basis: 100%;
+  }
+}
