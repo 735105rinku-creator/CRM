@@ -1,3 +1,16 @@
+.hr-workspace {
+  --hr-bg: #f4f7fb;
+  --hr-surface: #ffffff;
+  --hr-surface-soft: #f8fafc;
+  --hr-border: #e2e8f0;
+  --hr-text: #0f172a;
+  --hr-muted: #64748b;
+  --hr-radius-sm: 12px;
+  --hr-radius-md: 16px;
+  --hr-radius-lg: 20px;
+  --hr-shadow: 0 12px 32px rgba(15, 23, 42, 0.07);
+  --hr-shadow-soft: 0 6px 18px rgba(15, 23, 42, 0.05);
+}
 .hr-shell {
   background: #f4f7fb;
   color: #0f172a;
@@ -1836,7 +1849,7 @@ mark{background:#e9fff4;border:1px solid #98ecc2;border-radius:999px;color:#0478
 .icon-ship::before { content: "?"; }
 .icon-shield::before { content: "?"; }
 .icon-truck::before { content: "?"; }
-.icon-warehouse::before { content: "¦"; }
+.icon-warehouse::before { content: "ï¿½"; }
 .icon-map::before,
 .icon-route::before { content: "?"; }
 .icon-document::before { content: "?"; }
@@ -2313,3 +2326,168 @@ mark{background:#e9fff4;border:1px solid #98ecc2;border-radius:999px;color:#0478
 }
 
 
+
+
+/* Premium HR workspace foundation */
+.hr-workspace {
+  background: var(--hr-bg);
+  color: var(--hr-text);
+}
+
+.hr-workspace .hr-content {
+  background: var(--hr-bg);
+}
+
+.hr-workspace .hr-topbar {
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom-color: var(--hr-border);
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.03);
+}
+
+.hr-workspace .hero-panel,
+.hr-workspace .page-heading,
+.hr-workspace .setup-card,
+.hr-workspace .hr-panel,
+.hr-workspace .metric-card {
+  background-color: var(--hr-surface);
+  border-color: var(--hr-border);
+  box-shadow: var(--hr-shadow-soft);
+}
+
+.hr-workspace .hero-panel {
+  border-radius: var(--hr-radius-lg);
+}
+
+.hr-workspace .page-heading,
+.hr-workspace .metric-card {
+  border-radius: var(--hr-radius-md);
+}
+
+.hr-workspace .setup-card,
+.hr-workspace .hr-panel {
+  border-radius: var(--hr-radius-sm);
+}
+
+.hr-nav-section {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.69rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  margin: 18px 10px 5px;
+  text-transform: uppercase;
+}
+
+.hr-nav-toggle,
+.hr-mobile-nav-toggle {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  color: #ffffff;
+  cursor: pointer;
+  display: inline-flex;
+  height: 40px;
+  justify-content: center;
+  width: 40px;
+}
+
+.hr-mobile-nav-toggle {
+  display: none;
+}
+
+.sidebar-collapsed {
+  grid-template-columns: 88px minmax(0, 1fr);
+}
+
+.sidebar-collapsed .hr-sidebar {
+  padding-inline: 12px;
+}
+
+.sidebar-collapsed .hr-logo span,
+.sidebar-collapsed .hr-card > div,
+.sidebar-collapsed .workspace-logout > div,
+.sidebar-collapsed .hr-nav-section {
+  display: none;
+}
+
+.sidebar-collapsed .hr-logo img {
+  width: 52px;
+}
+
+.sidebar-collapsed .hr-card {
+  justify-content: center;
+  padding: 8px;
+}
+
+.sidebar-collapsed .hr-nav button {
+  font-size: 0;
+  justify-content: center;
+  padding-inline: 0;
+}
+
+.sidebar-collapsed .hr-nav button .sidebar-icon {
+  font-size: 1rem;
+  margin: 0;
+}
+
+.hr-command-hero {
+  overflow: hidden;
+  position: relative;
+}
+
+.hr-command-hero::after {
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.7), transparent 68%);
+  border-radius: 999px;
+  content: "";
+  height: 220px;
+  pointer-events: none;
+  position: absolute;
+  right: -70px;
+  top: -90px;
+  width: 220px;
+}
+
+.hr-quick-actions {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.hr-quick-actions button {
+  background: var(--hr-surface);
+  border: 1px solid var(--hr-border);
+  border-radius: var(--hr-radius-sm);
+  box-shadow: var(--hr-shadow-soft);
+  color: var(--hr-text);
+  cursor: pointer;
+  min-height: 54px;
+  padding: 10px 14px;
+}
+
+.hr-quick-actions button span {
+  color: var(--color-accent);
+  font-weight: 900;
+}
+
+.hr-kpi-grid {
+  gap: 16px;
+}
+
+.hr-kpi-grid .metric-card {
+  min-height: 124px;
+}
+
+.hr-dashboard-grid {
+  align-items: stretch;
+}
+
+.hr-topbar-profile {
+  min-width: 0;
+}
+
+.hr-topbar-profile strong,
+.hr-topbar-profile span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

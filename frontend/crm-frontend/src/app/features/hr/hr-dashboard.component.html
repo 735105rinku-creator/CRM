@@ -114,7 +114,7 @@
       </label>
       <button type="button" class="role-chip">HR</button>
       <span class="topbar-avatar"><img [src]="hrProfileImage()" [alt]="hrDisplayName() + ' profile image'" /></span>
-      <div class="team-copy">
+      <div class="team-copy hr-topbar-profile">
         <strong>HR Team</strong>
         <span>{{ userEmail() }}</span>
       </div>
@@ -153,7 +153,7 @@
       <div class="breadcrumb">HR Workspace <span>/</span> {{ activeFeatureLabel() }}</div>
 
       @if (activeFeature() === 'dashboard') {
-        <section class="hero-panel">
+        <section class="hero-panel hr-command-hero">
           <div>
             <p>Human Resource Dashboard</p>
             <h1>Live HR Analytics</h1>
@@ -524,7 +524,7 @@
 }
 
 <ng-template #dashboardView>
-  <div class="metric-row">
+  <div class="metric-row hr-kpi-grid">
     @for (metric of dashboardMetrics(); track metric.label) {
       <article class="metric-card">
         <span>{{ metric.label }}</span>
@@ -534,15 +534,14 @@
     }
   </div>
 
-  <div class="quick-actions">
-    <button type="button" (click)="setFeature('add-employee'); openEmployeeModal()"><span>+</span>Employee</button>
-    <button type="button" (click)="setFeature('leave-requests')"><span>L</span>Leaves</button>
-    <button type="button" (click)="setFeature('attendance')"><span>A</span>Attendance</button>
-    <button type="button" (click)="setFeature('job-postings')"><span>J</span>Job</button>
-    <button type="button" (click)="setFeature('logistics')"><span>L</span>Logistics</button>
+  <div class="quick-actions hr-quick-actions">
+    <button type="button" (click)="setFeature('add-employee'); openEmployeeModal()"><span>+</span>Add Employee</button>
+    <button type="button" (click)="setFeature('attendance')"><span>A</span>Daily Attendance</button>
+    <button type="button" (click)="setFeature('announcements')"><span>N</span>Announcement</button>
+    <button type="button" (click)="setFeature('payroll-processing')"><span>P</span>Payroll</button>
   </div>
 
-  <div class="hr-chart-grid">
+  <div class="hr-chart-grid hr-dashboard-grid">
     <article class="hr-panel">
       <h2>Attendance Trend</h2>
       <p>Weekly present trend</p>
