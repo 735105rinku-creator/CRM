@@ -33,3 +33,14 @@ test("HR premium shell has desktop collapse and mobile drawer controls", () => {
   assert.match(html, /hr-nav-toggle/);
   assert.match(html, /hr-mobile-backdrop/);
 });
+
+const tsPath = path.join(root, "src/app/features/hr/hr-dashboard.component.ts");
+const ts = fs.readFileSync(tsPath, "utf8");
+
+test("HR workspace exposes responsive navigation state", () => {
+  assert.match(ts, /isSidebarCollapsed\s*=\s*signal\(false\)/);
+  assert.match(ts, /isMobileNavOpen\s*=\s*signal\(false\)/);
+  assert.match(ts, /toggleSidebar\s*\(/);
+  assert.match(ts, /toggleMobileNav\s*\(/);
+  assert.match(ts, /closeMobileNav\s*\(/);
+});

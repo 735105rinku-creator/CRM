@@ -1,4 +1,4 @@
-<section class="hr-shell hr-workspace">
+<section class="hr-shell hr-workspace" [class.sidebar-collapsed]="isSidebarCollapsed()" [class.mobile-nav-open]="isMobileNavOpen()">
   @if (messagePopup()) {
     <div class="message-popup">{{ messagePopup() }}</div>
   }
@@ -16,8 +16,11 @@
       </div>
     </div>
 
-    <button type="button" class="hr-nav-toggle" aria-label="Collapse HR navigation" hidden></button>
-    <button type="button" class="hr-mobile-backdrop" aria-label="Close HR navigation" hidden></button>
+    <button type="button" class="hr-nav-toggle" aria-label="Toggle HR navigation" (click)="toggleSidebar()"><span aria-hidden="true">☰</span></button>
+    <button type="button" class="hr-mobile-nav-toggle" aria-label="Open HR navigation" (click)="toggleMobileNav()"><span aria-hidden="true">☰</span></button>
+    @if (isMobileNavOpen()) {
+      <button type="button" class="hr-mobile-backdrop" aria-label="Close HR navigation" (click)="closeMobileNav()"></button>
+    }
 
     <nav class="hr-nav" aria-label="HR workspace features">
       <p class="hr-nav-section">Overview</p>
