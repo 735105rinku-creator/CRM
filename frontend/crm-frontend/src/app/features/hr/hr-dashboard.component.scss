@@ -2746,3 +2746,115 @@ mark{background:#e9fff4;border:1px solid #98ecc2;border-radius:999px;color:#0478
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Visible HR premium surface polish */
+.hr-workspace {
+  --hr-bg: #edf3fb;
+  --hr-surface: #f7faff;
+  --hr-surface-soft: #eef4fb;
+  --hr-border: #d6e2f0;
+  --hr-shadow: 10px 10px 24px rgba(145, 163, 184, .22), -10px -10px 24px rgba(255, 255, 255, .96);
+  --hr-shadow-soft: 6px 6px 14px rgba(145, 163, 184, .18), -6px -6px 14px rgba(255, 255, 255, .9);
+}
+
+.hr-shell {
+  background: var(--hr-bg);
+}
+
+.hr-main,
+.hr-content {
+  background: linear-gradient(145deg, #edf3fb, #f8fbff);
+}
+
+.hr-topbar {
+  background: rgba(247, 250, 255, .9);
+  border-bottom: 1px solid var(--hr-border);
+  box-shadow: 0 6px 18px rgba(90, 113, 141, .08);
+}
+
+.hr-card,
+.search-box,
+.role-chip,
+.icon-btn,
+.hero-panel,
+.page-heading,
+.setup-card,
+.hr-panel,
+.metric-card {
+  border: 1px solid rgba(214, 226, 240, .9);
+  box-shadow: var(--hr-shadow-soft);
+}
+
+.hr-card {
+  background: linear-gradient(145deg, rgba(255,255,255,.2), rgba(110,145,184,.12));
+  border-radius: 18px;
+}
+
+.hr-nav button {
+  border-radius: 14px;
+}
+
+.hr-nav button:hover,
+.hr-nav button.active {
+  background: linear-gradient(145deg, rgba(255,255,255,.2), rgba(111,146,185,.25));
+  box-shadow: inset 3px 3px 8px rgba(15,23,42,.12), inset -3px -3px 8px rgba(255,255,255,.08);
+}
+
+.hero-panel,
+.page-heading {
+  background: linear-gradient(145deg, #f9fcff, #e8f0fa);
+  border-radius: 24px;
+  box-shadow: var(--hr-shadow);
+}
+
+.hr-panel,
+.setup-card {
+  background: linear-gradient(145deg, #f9fcff, #edf3fa);
+  border-radius: 20px;
+  box-shadow: var(--hr-shadow);
+}
+
+.metric-card {
+  background: linear-gradient(145deg, #fbfdff, #eaf1f9);
+  border-radius: 18px;
+  box-shadow: var(--hr-shadow-soft);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+
+.metric-card:hover {
+  box-shadow: 8px 8px 18px rgba(145,163,184,.25), -8px -8px 18px rgba(255,255,255,.95);
+  transform: translateY(-3px);
+}
+
+.panel-title,
+.people-toolbar,
+.attendance-toolbar,
+.payroll-toolbar {
+  border-radius: 16px;
+}
+
+.primary-action,
+.primary-btn,
+.hero-panel button {
+  box-shadow: 5px 5px 12px rgba(70,105,170,.24), -4px -4px 10px rgba(255,255,255,.7);
+}
+
+@media (max-width: 768px) {
+  .hr-content {
+    padding: 16px;
+  }
+
+  .hero-panel,
+  .page-heading {
+    border-radius: 18px;
+    padding: 22px 18px;
+  }
+
+  .metric-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .metric-card {
+    min-width: 0;
+  }
+}

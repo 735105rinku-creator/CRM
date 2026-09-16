@@ -8,19 +8,19 @@
       <span>{{ companyName() | uppercase }}</span>
     </div>
 
-    <div class="hr-card">
+    <!-- <div class="hr-card">
       <img class="hr-profile-photo" [src]="hrProfileImage()" [alt]="hrDisplayName() + ' profile image'" />
       <div>
         <strong>{{ hrDisplayName() }}</strong>
         <small>{{ hrProfileSubtitle() }}</small>
       </div>
-    </div>
+    </div> -->
 
-    <button type="button" class="hr-nav-toggle" aria-label="Toggle HR navigation" (click)="toggleSidebar()"><span aria-hidden="true">☰</span></button>
+    <!-- <button type="button" class="hr-nav-toggle" aria-label="Toggle HR navigation" (click)="toggleSidebar()"><span aria-hidden="true">☰</span></button>
     <button type="button" class="hr-mobile-nav-toggle" aria-label="Open HR navigation" (click)="toggleMobileNav()"><span aria-hidden="true">☰</span></button>
     @if (isMobileNavOpen()) {
       <button type="button" class="hr-mobile-backdrop" aria-label="Close HR navigation" (click)="closeMobileNav()"></button>
-    }
+    } -->
 
     <nav class="hr-nav" aria-label="HR workspace features">
       <p class="hr-nav-section">Overview</p>
@@ -112,12 +112,12 @@
           </div>
         }
       </label>
-      <button type="button" class="role-chip">HR</button>
+      <!-- <button type="button" class="role-chip">HR</button>
       <span class="topbar-avatar"><img [src]="hrProfileImage()" [alt]="hrDisplayName() + ' profile image'" /></span>
       <div class="team-copy hr-topbar-profile">
         <strong>HR Team</strong>
         <span>{{ userEmail() }}</span>
-      </div>
+      </div> -->
       <div class="notification-menu" style="position:relative">
         <button type="button" class="icon-btn badge" (click)="toggleNotificationPanel()" aria-label="Open HR notifications">
           ­ƒöö<small>{{ unreadCount() }}</small>
@@ -145,8 +145,8 @@
           </section>
         }
       </div>
-      <button type="button" class="header-back-btn hr-header-back" (click)="goBack()"><span>´┐¢</span>Back</button>
-      <button type="button" class="topbar-logout" (click)="logout()">Log out</button>
+      <!-- <button type="button" class="header-back-btn hr-header-back" (click)="goBack()"><span>´┐¢</span>Back</button>
+      <button type="button" class="topbar-logout" (click)="logout()">Log out</button> -->
     </header>
 
     <main class="hr-content">
