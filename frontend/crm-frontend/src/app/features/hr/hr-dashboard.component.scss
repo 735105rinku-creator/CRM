@@ -2694,3 +2694,55 @@ mark{background:#e9fff4;border:1px solid #98ecc2;border-radius:999px;color:#0478
   border-radius: 999px;
   padding: 4px 9px;
 }
+
+
+/* Task 9 responsive and accessible workspace polish */
+.hr-mobile-nav-toggle,
+.hr-mobile-backdrop {
+  display: none;
+}
+
+:focus-visible {
+  outline: 3px solid rgba(132, 61, 122, 0.38);
+  outline-offset: 3px;
+}
+
+@media (max-width: 1024px) {}
+
+@media (max-width: 768px) {
+  .hr-sidebar {
+    position: fixed;
+    transform: translateX(-105%);
+    transition: transform 0.22s ease;
+    z-index: 1500;
+  }
+
+  .hr-shell.mobile-nav-open .hr-sidebar {
+    transform: translateX(0);
+  }
+
+  .hr-mobile-nav-toggle {
+    display: inline-flex;
+  }
+
+  .hr-mobile-backdrop {
+    display: block;
+    inset: 0;
+    position: fixed;
+    z-index: 1400;
+  }
+
+  .hr-nav-toggle {
+    display: none;
+  }
+
+  .message-workspace {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition-duration: 0.01ms !important;
+  }
+}

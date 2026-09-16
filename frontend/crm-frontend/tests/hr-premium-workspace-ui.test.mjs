@@ -123,3 +123,18 @@ test("HR Communication and Account workspaces expose premium operation hooks", (
     assert.match(html, new RegExp(hook));
   }
 });
+
+test("HR workspace defines responsive and accessible premium behavior", () => {
+  for (const hook of [
+    "@media (max-width: 1024px)",
+    "@media (max-width: 768px)",
+    ".mobile-nav-open",
+    ".hr-mobile-backdrop",
+    ":focus-visible"
+  ]) {
+    assert.match(scss, new RegExp(hook.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  }
+
+  assert.match(scss, /\.message-workspace[\s\S]*grid-template-columns:\s*1fr/);
+  assert.match(scss, /\.hr-mobile-nav-toggle[\s\S]*display:\s*inline-flex/);
+});
