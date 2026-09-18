@@ -1,4 +1,5 @@
 import { ApiError } from "../utils/apiError.js";
+
 import { Company } from "../models/Company.js";
 
 import {
@@ -8,6 +9,7 @@ import {
   getDepartmentWiseEmployees,
   getBranchWiseEmployees,
   getAttendanceSummaryToday,
+  getWeeklyAttendanceTrend,
   getLeaveSummary,
   getEmployeesOnLeaveToday,
   getRecruitmentSummary,
@@ -17,16 +19,27 @@ import {
   getMeetingSummary,
 } from "../repositories/hrDashboard.repository.js";
 
+
 const getCompanyId = (currentUser) => {
   if (!currentUser.companyId) {
-    throw new ApiError(403, "Company context missing.");
+    throw new ApiError(
+      403,
+      "Company context missing."
+    );
   }
 
-  return currentUser.companyId._id || currentUser.companyId;
+  return (
+    currentUser.companyId._id ||
+    currentUser.companyId
+  );
 };
 
-export const getHRDashboardService = async (currentUser) => {
-  const companyId = getCompanyId(currentUser);
+
+export const getHRDashboardService = async (
+  currentUser
+) => {
+  const companyId =
+    getCompanyId(currentUser);
 
   const [
     employeeSummary,
@@ -35,6 +48,7 @@ export const getHRDashboardService = async (currentUser) => {
     departmentWiseEmployees,
     branchWiseEmployees,
     attendanceToday,
+    attendanceWeeklyTrend,
     leaveSummary,
     employeesOnLeaveToday,
     recruitmentSummary,
@@ -44,47 +58,123 @@ export const getHRDashboardService = async (currentUser) => {
     meetingSummary,
     company,
   ] = await Promise.all([
-    getEmployeeSummary(companyId),
-    getUpcomingBirthdays(companyId, 10),
-    getUpcomingWorkAnniversaries(companyId, 10),
-    getDepartmentWiseEmployees(companyId),
-    getBranchWiseEmployees(companyId),
-    getAttendanceSummaryToday(companyId),
-    getLeaveSummary(companyId),
-    getEmployeesOnLeaveToday(companyId),
-    getRecruitmentSummary(companyId),
-    getPayrollSummary(companyId),
-    getUpcomingHolidaySummary(companyId, 5),
-    getUpcomingEventSummary(companyId, 5),
-    getMeetingSummary(companyId),
-    Company.findById(companyId).select("companyName companyCode logo settings").lean(),
+    getEmployeeSummary(
+      companyId
+    ),
+
+    getUpcomingBirthdays(
+      companyId,
+      10
+    ),
+
+    getUpcomingWorkAnniversaries(
+      companyId,
+      10
+    ),
+
+    getDepartmentWiseEmployees(
+      companyId
+    ),
+
+    getBranchWiseEmployees(
+      companyId
+    ),
+
+    getAttendanceSummaryToday(
+      companyId
+    ),
+
+    getWeeklyAttendanceTrend(
+      companyId
+    ),
+
+    getLeaveSummary(
+      companyId
+    ),
+
+    getEmployeesOnLeaveToday(
+      companyId
+    ),
+
+    getRecruitmentSummary(
+      companyId
+    ),
+
+    getPayrollSummary(
+      companyId
+    ),
+
+    getUpcomingHolidaySummary(
+      companyId,
+      5
+    ),
+
+    getUpcomingEventSummary(
+      companyId,
+      5
+    ),
+
+    getMeetingSummary(
+      companyId
+    ),
+
+    Company.findById(
+      companyId
+    )
+      .select(
+        "companyName companyCode logo settings"
+      )
+      .lean(),
   ]);
 
   return {
     company,
+
     employees: {
-      summary: employeeSummary,
+      summary:
+        employeeSummary,
+
       upcomingBirthdays,
+
       upcomingWorkAnniversaries,
+
       departmentWiseEmployees,
+
       branchWiseEmployees,
     },
+
     attendance: {
-      today: attendanceToday,
+      today:
+        attendanceToday,
+
+      weeklyTrend:
+        attendanceWeeklyTrend,
     },
+
     leave: {
-      summary: leaveSummary,
+      summary:
+        leaveSummary,
+
       employeesOnLeaveToday,
     },
-    recruitment: recruitmentSummary,
-    payroll: payrollSummary,
+
+    recruitment:
+      recruitmentSummary,
+
+    payroll:
+      payrollSummary,
+
     holidays: {
-      upcoming: upcomingHolidays,
+      upcoming:
+        upcomingHolidays,
     },
+
     events: {
-      upcoming: upcomingEvents,
+      upcoming:
+        upcomingEvents,
     },
-    meetings: meetingSummary,
+
+    meetings:
+      meetingSummary,
   };
 };
-

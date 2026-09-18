@@ -518,6 +518,18 @@ interface MeetingRow {
 
 type CompanyTheme = { primaryColor?: string; accentColor?: string; sidebarColor?: string };
 
+interface AttendanceWeeklyTrendItem {
+  day: string;
+  date: string;
+  hasRecords: boolean;
+  records: number;
+  present: number | null;
+  absent: number | null;
+  late: number | null;
+  halfDay: number | null;
+  onLeave: number | null;
+}
+
 interface HrDashboardData {
   company?: { companyName?: string; companyCode?: string; logo?: string; settings?: { theme?: CompanyTheme } };
   employees?: {
@@ -539,6 +551,7 @@ interface HrDashboardData {
       halfDay?: number;
       onLeave?: number;
     };
+    weeklyTrend?: AttendanceWeeklyTrendItem[];
   };
   leave?: {
     summary?: {
@@ -2611,14 +2624,44 @@ export class HrDashboardComponent implements OnDestroy {
     return this.employees().filter((employee) => (employee.employeeStatus ?? '').includes('probation')).length;
   }
 
-  protected attendanceTrendBars(): Array<{ label: string; value: number; percent: number }> {
-    const present = this.dashboard()?.attendance?.today?.present ?? 0;
-    const total = Math.max(
-      present + Number(this.dashboard()?.attendance?.today?.absent ?? 0) + Number(this.dashboard()?.attendance?.today?.onLeave ?? 0),
+  protected attendanceTrendBars(): Array<{
+    label: string;
+    value: number;
+    percent: number;
+  }> {
+    const trend: AttendanceWeeklyTrendItem[] =
+      this.dashboard()?.attendance?.weeklyTrend ?? [];
+  
+    const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  
+    const maxPresent = Math.max(
+      ...trend
+        .filter((item) => item.hasRecords)
+        .map((item) => Number(item.present ?? 0)),
       1
     );
-    const percent = Math.max(8, Math.round((present / total) * 100));
-    return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((label) => ({ label, value: present, percent }));
+  
+    return labels.map((label) => {
+      const item = trend.find((entry) => entry.day === label);
+  
+      if (!item?.hasRecords) {
+        return {
+          label,
+          value: 0,
+          percent: 0
+        };
+      }
+  
+      const value = Number(item.present ?? 0);
+  
+      return {
+        label,
+        value,
+        percent: value > 0
+          ? Math.max(8, Math.round((value / maxPresent) * 100))
+          : 0
+      };
+    });
   }
 
   protected departmentDisplayLabel(value?: string | null): string {
@@ -4615,7 +4658,15 @@ export class HrDashboardComponent implements OnDestroy {
   }
 
   private toDateInput(date: Date): string {
-    return date.toISOString().slice(0, 10);
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
+      return '';
+    }
+  
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+  
+    return `${year}-${month}-${day}`;
   }
 
   private toDateTimeInput(date: Date): string {
