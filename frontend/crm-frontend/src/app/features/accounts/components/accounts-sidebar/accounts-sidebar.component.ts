@@ -519,7 +519,7 @@ export class AccountsSidebarComponent {
     item: AccountsSidebarItem
   ): string {
 
-    return item.route;
+    return `${item.route}|${item.queryParams?.feature ?? ''}|${item.label}`;
 
   }
 
