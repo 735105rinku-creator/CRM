@@ -2,7 +2,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { map, Observable, of, tap } from 'rxjs';
+import { catchError, map, Observable, of, tap, timeout } from 'rxjs';
 
 import { Company } from '../models/company.model';
 import { API_BASE_URL, ENABLE_DEMO_LOGIN, apiUrl } from '../config/api.config';
@@ -66,6 +66,7 @@ export class AuthService {
 
   private memoryAccessToken: string | null = null;
   private memoryRefreshToken: string | null = null;
+  private sessionUser: User | JwtUserPayload | null = null;
 
   private readonly isBrowser: boolean;
 
@@ -80,30 +81,34 @@ export class AuthService {
 
     if (this.isBrowser) {
       /*
-       * Authentication identity is intentionally tab-scoped.
-       *
-       * localStorage is shared by every tab for the same origin, so it must
-       * not be used as the active authentication source when different CRM
-       * users need to work in different tabs simultaneously.
-       *
-       * Remove legacy shared auth values left by older versions of the app.
-       * The current tab's auth state is restored from sessionStorage below.
+       * Authentication identity remains tab-scoped, but access/refresh tokens
+       * are not restored from browser storage. The cached user is only an
+       * identity hint used to safely restore the server session.
        */
       localStorage.removeItem(this.accessTokenKey);
       localStorage.removeItem(this.refreshTokenKey);
-      localStorage.removeItem(this.userKey);
-      localStorage.removeItem(this.rememberSessionKey);
-
-      this.memoryAccessToken =
-        sessionStorage.getItem(this.accessTokenKey);
-
-      this.memoryRefreshToken =
-        sessionStorage.getItem(this.refreshTokenKey);
+      sessionStorage.removeItem(this.accessTokenKey);
+      sessionStorage.removeItem(this.refreshTokenKey);
     }
 
-    this.currentUser.set(this.loadStoredUser());
+    // Cached display data is not an authenticated session. Bootstrap restores
+    // the server session before protected route/profile requests run.
   }
 
+  restoreSession(): Observable<AuthResponse | null> {
+    if (!this.isBrowser || !this.loadStoredUser()?.id) {
+      this.clearLocalSession();
+      return of(null);
+    }
+
+    return this.refreshToken().pipe(
+      timeout(10_000),
+      catchError(() => {
+        this.clearLocalSession();
+        return of(null);
+      })
+    );
+  }
   login(
     email: string,
     password: string,
@@ -163,25 +168,7 @@ export class AuthService {
   logout(redirect = true): void {
     const refreshToken = this.getRefreshToken();
 
-    if (this.isBrowser) {
-      sessionStorage.removeItem(this.accessTokenKey);
-      sessionStorage.removeItem(this.refreshTokenKey);
-      sessionStorage.removeItem(this.userKey);
-      sessionStorage.removeItem(this.rememberSessionKey);
-
-      /*
-       * Clean up legacy shared auth state as well. These keys must not become
-       * an authentication source again.
-       */
-      localStorage.removeItem(this.accessTokenKey);
-      localStorage.removeItem(this.refreshTokenKey);
-      localStorage.removeItem(this.userKey);
-      localStorage.removeItem(this.rememberSessionKey);
-    }
-
-    this.currentUser.set(null);
-    this.memoryAccessToken = null;
-    this.memoryRefreshToken = null;
+    this.clearLocalSession();
 
     this.http
       .post(
@@ -207,15 +194,55 @@ export class AuthService {
       });
   }
 
+  clearLocalSession(): void {
+    if (this.isBrowser) {
+      const expectedUser = this.sessionUser ?? this.loadStoredUser();
+      const rememberedUser = this.loadStoredUser(localStorage);
+
+      localStorage.removeItem(this.accessTokenKey);
+      localStorage.removeItem(this.refreshTokenKey);
+
+      /*
+       * localStorage may contain another tab's remembered user. Only remove it
+       * when it belongs to the identity being cleared in this tab.
+       */
+      if (
+        expectedUser?.id &&
+        rememberedUser?.id === expectedUser.id
+      ) {
+        localStorage.removeItem(this.userKey);
+        localStorage.removeItem(this.rememberSessionKey);
+      }
+
+      sessionStorage.removeItem(this.accessTokenKey);
+      sessionStorage.removeItem(this.refreshTokenKey);
+      sessionStorage.removeItem(this.userKey);
+      sessionStorage.setItem(this.rememberSessionKey, 'false');
+    }
+
+    this.currentUser.set(null);
+    this.memoryAccessToken = null;
+    this.memoryRefreshToken = null;
+    this.sessionUser = null;
+  }
+
   refreshToken(): Observable<AuthResponse> {
     const refreshToken = this.getRefreshToken();
+    const expectedUser =
+      this.sessionUser ??
+      this.loadStoredUser();
+
+    const expectedUserId =
+      expectedUser?.id ||
+      (expectedUser as JwtUserPayload | null)?.sub;
 
     return this.http
       .post<ApiResponse<AuthResponse> | AuthResponse>(
         apiUrl('/auth/refresh-token'),
         {
           rememberMe: this.shouldRememberSession(),
-          refreshToken
+          refreshToken,
+          expectedUserId
         },
         {
           withCredentials: true
@@ -223,6 +250,28 @@ export class AuthService {
       )
       .pipe(
         map((response) => this.unwrapAuthResponse(response)),
+        tap((response) => {
+          const tokenUser = response.accessToken
+            ? this.decodeJwt(response.accessToken)
+            : null;
+
+          if (
+            !tokenUser?.sub ||
+            (
+              expectedUserId &&
+              tokenUser.sub !== expectedUserId
+            ) ||
+            (
+              expectedUser &&
+              (tokenUser.companyId || '') !==
+                (expectedUser.companyId || '')
+            )
+          ) {
+            throw new Error(
+              'Session identity changed. Please log in again.'
+            );
+          }
+        }),
         tap((response) =>
           this.storeSession(
             response,
@@ -231,7 +280,6 @@ export class AuthService {
         )
       );
   }
-
   updateCurrentUserProfileImage(profileImage: string): void {
     const image = String(profileImage || '').trim();
 
@@ -250,29 +298,38 @@ export class AuthService {
       profileImage
     } as User | JwtUserPayload;
 
+    this.sessionUser = next;
     this.currentUser.set(next);
 
     if (this.isBrowser) {
-      sessionStorage.setItem(
-        this.userKey,
-        JSON.stringify(next)
-      );
+      this.persistUser(next);
     }
   }
 
   getCurrentUser(): User | JwtUserPayload | null {
-    const tokenUser = this.decodeAccessToken();
-    const storedUser = this.loadStoredUser();
+    const current = this.currentUser();
 
     /*
-     * Prefer the stored full user object because it contains department,
-     * roleRef, company and other information that may not exist in the JWT.
+     * sessionUser is established only by a validated login/refresh response.
+     * Browser-cached user data must never become the active authenticated
+     * identity by itself.
      *
-     * Both sources are tab-scoped.
+     * Keep currentUser profile updates when they still belong to the exact
+     * same authenticated user/company/role.
      */
-    const user = storedUser ?? tokenUser;
+    const user =
+      this.sessionUser &&
+      current?.id === this.sessionUser.id &&
+      current?.companyId === this.sessionUser.companyId &&
+      current?.role === this.sessionUser.role
+        ? current
+        : this.sessionUser;
 
     this.currentUser.set(user);
+
+    if (user && this.isBrowser) {
+      this.persistUser(user);
+    }
 
     return user;
   }
@@ -281,7 +338,7 @@ export class AuthService {
     const token = this.getAccessToken();
 
     if (!token) {
-      return Boolean(this.loadStoredUser());
+      return false;
     }
 
     const payload = this.decodeJwt(token);
@@ -289,7 +346,6 @@ export class AuthService {
 
     return !expiresAt || expiresAt * 1000 > Date.now();
   }
-
   hasRole(role: string): boolean {
     const user = this.getCurrentUser();
 
@@ -665,39 +721,12 @@ export class AuthService {
   }
 
   getAccessToken(): string | null {
-    if (this.memoryAccessToken) {
-      return this.memoryAccessToken;
-    }
-
-    if (!this.isBrowser) {
-      return null;
-    }
-
-    const token =
-      sessionStorage.getItem(this.accessTokenKey);
-
-    this.memoryAccessToken = token;
-
-    return token;
+    return this.memoryAccessToken;
   }
 
   getRefreshToken(): string | null {
-    if (this.memoryRefreshToken) {
-      return this.memoryRefreshToken;
-    }
-
-    if (!this.isBrowser) {
-      return null;
-    }
-
-    const token =
-      sessionStorage.getItem(this.refreshTokenKey);
-
-    this.memoryRefreshToken = token;
-
-    return token;
+    return this.memoryRefreshToken;
   }
-
   private unwrapAuthResponse(
     response:
       | ApiResponse<AuthResponse>
@@ -891,72 +920,148 @@ export class AuthService {
       return;
     }
 
+    const tokenUser = response.accessToken
+      ? this.decodeJwt(response.accessToken)
+      : null;
+
     /*
-     * IMPORTANT:
-     * Active auth identity always belongs to the current tab.
-     *
-     * sessionStorage is isolated per browser tab while localStorage is shared
-     * by every tab for the same CRM origin.
+     * A successful auth response must describe the same identity in both the
+     * JWT and response user. Never persist a response with mixed identities.
      */
-    if (response.accessToken) {
-      this.memoryAccessToken =
-        response.accessToken;
-
-      sessionStorage.setItem(
-        this.accessTokenKey,
-        response.accessToken
+    if (
+      !tokenUser?.sub ||
+      (
+        response.user &&
+        (
+          response.user.id !== tokenUser.sub ||
+          (response.user.companyId || '') !==
+            (tokenUser.companyId || '')
+        )
+      )
+    ) {
+      throw new Error(
+        'Invalid session identity. Please log in again.'
       );
     }
 
-    if (response.refreshToken) {
-      this.memoryRefreshToken =
-        response.refreshToken;
+    /*
+     * Access and refresh tokens are intentionally memory-only. HttpOnly
+     * cookies restore the server session after a reload.
+     */
+    localStorage.removeItem(this.accessTokenKey);
+    localStorage.removeItem(this.refreshTokenKey);
+    sessionStorage.removeItem(this.accessTokenKey);
+    sessionStorage.removeItem(this.refreshTokenKey);
 
-      sessionStorage.setItem(
-        this.refreshTokenKey,
-        response.refreshToken
-      );
-    }
+    this.memoryAccessToken =
+      response.accessToken || null;
+
+    this.memoryRefreshToken =
+      response.refreshToken || null;
 
     sessionStorage.setItem(
       this.rememberSessionKey,
       rememberMe ? 'true' : 'false'
     );
 
-    /*
-     * Remove legacy shared auth values so another tab cannot become the
-     * authentication source for this tab.
-     */
-    localStorage.removeItem(
-      this.accessTokenKey
-    );
-    localStorage.removeItem(
-      this.refreshTokenKey
-    );
-    localStorage.removeItem(
-      this.userKey
-    );
-    localStorage.removeItem(
-      this.rememberSessionKey
+    if (rememberMe) {
+      localStorage.setItem(
+        this.rememberSessionKey,
+        'true'
+      );
+    } else {
+      localStorage.removeItem(
+        this.rememberSessionKey
+      );
+      localStorage.removeItem(
+        this.userKey
+      );
+    }
+
+    this.sessionUser =
+      response.user ??
+      ({
+        ...tokenUser,
+        id: tokenUser.sub
+      } as JwtUserPayload);
+
+    this.persistUser(
+      this.sessionUser,
+      true
     );
 
-    if (response.user) {
+    this.currentUser.set(
+      this.sessionUser
+    );
+  }
+
+  private persistUser(
+    user: User | JwtUserPayload,
+    replaceRememberedUser = false
+  ): void {
+    if (!this.isBrowser) {
+      return;
+    }
+
+    const value = JSON.stringify(user);
+
+    if (
+      sessionStorage.getItem(this.userKey) !== value
+    ) {
       sessionStorage.setItem(
         this.userKey,
-        JSON.stringify(response.user)
+        value
       );
+    }
 
-      this.currentUser.set(response.user);
+    if (!this.shouldRememberSession()) {
+      return;
+    }
+
+    const rememberedUser =
+      this.loadStoredUser(localStorage);
+
+    /*
+     * Normal profile/getter updates may only update localStorage when it
+     * already belongs to this same user. Login/refresh is allowed to replace
+     * the remembered identity explicitly.
+     */
+    if (
+      replaceRememberedUser ||
+      rememberedUser?.id === user.id
+    ) {
+      if (
+        localStorage.getItem(this.userKey) !== value
+      ) {
+        localStorage.setItem(
+          this.userKey,
+          value
+        );
+      }
     }
   }
 
-  private loadStoredUser(): User | null {
+  private loadStoredUser(
+    source?: Storage
+  ): User | null {
     if (!this.isBrowser) {
       return null;
     }
 
+    let storage: Storage;
+
+    if (source) {
+      storage = source;
+    } else if (
+      sessionStorage.getItem(this.userKey)
+    ) {
+      storage = sessionStorage;
+    } else {
+      storage = this.sessionStorage();
+    }
+
     const storedUser =
-      sessionStorage.getItem(this.userKey);
+      storage.getItem(this.userKey);
 
     if (!storedUser) {
       return null;
@@ -970,20 +1075,35 @@ export class AuthService {
         }
       );
     } catch {
-      sessionStorage.removeItem(this.userKey);
+      storage.removeItem(this.userKey);
       return null;
     }
   }
 
   private shouldRememberSession(): boolean {
+    if (!this.isBrowser) {
+      return false;
+    }
+
     return (
-      this.isBrowser &&
-      sessionStorage.getItem(
-        this.rememberSessionKey
+      (
+        sessionStorage.getItem(
+          this.rememberSessionKey
+        ) ??
+        localStorage.getItem(
+          this.rememberSessionKey
+        )
       ) === 'true'
     );
   }
 
+  private sessionStorage(
+    rememberMe = this.shouldRememberSession()
+  ): Storage {
+    return rememberMe
+      ? localStorage
+      : window.sessionStorage;
+  }
   private decodeAccessToken():
     | JwtUserPayload
     | null {

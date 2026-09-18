@@ -4,7 +4,6 @@ import test from "node:test";
 
 const read = (file) => fs.readFileSync(file, "utf8");
 
-const authService = read("src/app/core/auth/auth.service.ts");
 const login = read("src/app/features/auth/login/login.component.ts");
 const shell = read("src/app/features/accounts/layout/accounts-shell.component.ts");
 const sidebar = read("src/app/features/accounts/components/accounts-sidebar/accounts-sidebar.component.ts");
@@ -21,10 +20,7 @@ test("Accounts identity is derived from the authenticated company context", () =
   assert.match(sidebarHtml, /\{\{\s*companyName\(\)\s*\}\}/);
 });
 
-test("Stored identity cannot silently override the active authenticated identity", () => {
-  assert.match(authService, /storeSession\(response, rememberMe\)/);
-  assert.match(authService, /this\.currentUser\.set\(response\.user\)/);
-});
+// Session identity is exercised behaviorally in auth-session-rehydration.test.mjs.
 
 test("Employee profile lookup prioritizes the authenticated user link", () => {
   assert.match(repository, /findOne\(\{\s*companyId,\s*userId\s*\}\)/s);

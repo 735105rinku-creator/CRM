@@ -354,7 +354,15 @@ export const refreshToken = asyncHandler(async (req, res) => {
     throw new ApiError(401, "Invalid or expired refresh token");
   }
 
-  const user = await User.findById(decoded.sub);
+  // This hint only rejects a conflicting cookie; it never selects a user or
+  // authenticates a request. The verified refresh-token subject remains authoritative.
+  if (req.body?.expectedUserId && String(req.body.expectedUserId) !== String(decoded.sub)) {
+    throw new ApiError(401, "Session identity changed. Please log in again.");
+  }
+
+  const user = await User.findById(decoded.sub)
+    .populate("companyId", "companyName companyCode logo settings status subscriptionStatus subscriptionPlan enabledModules")
+    .populate("roleRef", "name level permissions company isCustom");
 
   if (!user || user.status !== USER_STATUS.ACTIVE) {
     throw new ApiError(403, "Inactive person. Your account is inactive. Please contact your administrator.");
@@ -378,6 +386,7 @@ export const refreshToken = asyncHandler(async (req, res) => {
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
       sessionId: tokens.sessionId,
+      user: sanitizeUser(user),
     }, "Token refreshed"));
 });
 

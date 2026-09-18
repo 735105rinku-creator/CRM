@@ -66,7 +66,9 @@ function handleUnauthorizedError(
     catchError((refreshError: unknown) => {
       isRefreshing = false;
       refreshTokenSubject.next(null);
-      authService.logout(false);
+      // The shared cookie may belong to a login in another tab. A failed
+      // refresh must clear this tab, not revoke that other user's session.
+      authService.clearLocalSession();
       void router.navigate(['/login']);
       return throwError(() => refreshError);
     })

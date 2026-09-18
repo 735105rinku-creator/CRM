@@ -289,7 +289,10 @@ export class LoginComponent {
   private redirectUrlForRole(role: string): string {
     const roleRedirects: Record<string, string> = {
       hr: '/hr-dashboard',
-      employee: '/employee-dashboard',
+      employee: '/employee/dashboard',
+      logistics: '/logistics/dashboard',
+      purchase: '/purchase/dashboard',
+      sales: '/sales/dashboard',
       accounts: '/accounts/dashboard',
       super_admin: '/super-admin'
     };

@@ -15,11 +15,11 @@ const guardSource =
   fs.readFileSync(guardPath, 'utf8');
 
 test(
-  'employee login must enter employee-dashboard so department guard can decide workspace',
+  'employee login must enter employee/dashboard so department guard can decide workspace',
   () => {
     assert.match(
       loginSource,
-      /employee\s*:\s*['"]\/employee-dashboard['"]/,
+      /employee\s*:\s*['"]\/employee\/dashboard['"]/,
       'employee login is bypassing employeeDashboardGuard'
     );
   }
