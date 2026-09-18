@@ -290,7 +290,7 @@ export class LoginComponent {
     const roleRedirects: Record<string, string> = {
       hr: '/hr-dashboard',
       employee: '/employee-dashboard',
-      accounts: '/invoices',
+      accounts: '/accounts/dashboard',
       super_admin: '/super-admin'
     };
 

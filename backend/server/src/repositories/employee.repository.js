@@ -92,20 +92,33 @@ export const findEmployeeProfile = async ({
   employeeCode,
   officialEmail,
 }) => {
-  const matchers = [];
+  let employee = null;
 
-  if (employeeId) matchers.push({ _id: employeeId });
-  if (userId) matchers.push({ userId });
-  if (employeeCode) {
-    matchers.push({ employeeCode: employeeCode.toUpperCase().trim() });
-  }
-  if (officialEmail) {
-    matchers.push({ officialEmail: officialEmail.toLowerCase().trim() });
+  if (userId) {
+    employee = await Employee.findOne({ companyId, userId });
   }
 
-  if (!matchers.length) return null;
+  if (!employee && employeeId) {
+    employee = await Employee.findOne({ companyId, _id: employeeId });
+  }
 
-  return Employee.findOne({ companyId, $or: matchers })
+  if (!employee && employeeCode) {
+    employee = await Employee.findOne({
+      companyId,
+      employeeCode: employeeCode.toUpperCase().trim(),
+    });
+  }
+
+  if (!employee && officialEmail) {
+    employee = await Employee.findOne({
+      companyId,
+      officialEmail: officialEmail.toLowerCase().trim(),
+    });
+  }
+
+  if (!employee) return null;
+
+  return Employee.findById(employee._id)
     .populate("branchId", "branchName branchCode")
     .populate("departmentId", "departmentName departmentCode featureKey dashboardKey accessModules")
     .populate("designationId", "designationName designationCode")
@@ -435,7 +448,6 @@ export const getUpcomingBirthdays = async (companyId, limit = 10) => {
     },
   ]);
 };
-
 
 
 

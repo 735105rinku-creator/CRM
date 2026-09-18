@@ -518,3 +518,83 @@
   text-align:
     left;
 }
+/* Premium finance workspace skin */
+.accounts-sidebar,
+.sidebar-header,
+.sidebar-footer {
+  background: #0b1426;
+  color: #e7eefb;
+}
+
+.sidebar-header,
+.sidebar-footer {
+  border-color: rgba(148, 163, 184, .16);
+}
+
+.workspace-icon {
+  background: linear-gradient(145deg, #17233b, #070d1b);
+  box-shadow: 0 12px 24px rgba(2, 8, 23, .34);
+}
+
+.workspace-text h2,
+.footer-card strong {
+  color: #f8fbff;
+}
+
+.workspace-text p,
+.footer-label,
+.group-title {
+  color: #91a3bf;
+}
+
+.sidebar-nav {
+  padding: 18px 14px 22px;
+}
+
+.sidebar-link {
+  color: #aab9d0;
+}
+
+.sidebar-link:hover {
+  background: rgba(59, 130, 246, .12);
+  color: #fff;
+}
+
+.sidebar-link.active {
+  background: linear-gradient(90deg, rgba(37, 99, 235, .3), rgba(37, 99, 235, .08));
+  color: #fff;
+}
+
+.menu-icon {
+  background: rgba(148, 163, 184, .12);
+  color: #9db0cd;
+}
+
+.sidebar-link.active .menu-icon {
+  background: #3b82f6;
+  color: #fff;
+}
+
+.active-indicator {
+  background: #60a5fa;
+}
+
+.footer-card {
+  border-color: rgba(148, 163, 184, .18);
+  background: rgba(30, 45, 72, .72);
+}
+
+.footer-icon {
+  background: #172746;
+}
+
+.sidebar-logout {
+  border-color: rgba(248, 113, 113, .24);
+  background: rgba(127, 29, 29, .2);
+  color: #fca5a5;
+}
+
+.sidebar-logout:hover {
+  background: rgba(127, 29, 29, .34);
+  color: #fecaca;
+}

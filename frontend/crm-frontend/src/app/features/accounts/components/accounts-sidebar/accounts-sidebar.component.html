@@ -7,12 +7,16 @@
   <div class="sidebar-header">
 
     <div class="workspace-icon">
-      ₹
+      @if (companyLogo()) {
+        <img [src]="companyLogo()" [alt]="companyName() + ' logo'" />
+      } @else {
+        ₹
+      }
     </div>
 
     <div class="workspace-text">
       <h2>
-        {{ workspaceName }}
+        {{ companyName() }}
       </h2>
 
       <p>

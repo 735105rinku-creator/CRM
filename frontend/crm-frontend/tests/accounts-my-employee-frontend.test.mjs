@@ -18,6 +18,7 @@ const routesSource = read(
 const sidebarSource = read(
   "src/app/features/accounts/components/accounts-sidebar/accounts-sidebar.component.ts"
 );
+const normalizedSidebarSource = sidebarSource.replace(/\s+/g, ' ');
 
 const sidebarHtmlSource = read(
   "src/app/features/accounts/components/accounts-sidebar/accounts-sidebar.component.html"
@@ -77,7 +78,10 @@ test(
       );
 
       assert.ok(
-        sidebarSource.includes(`queryParams: { feature: '${feature}' }`),
+        new RegExp(
+          String.raw`queryParams:\s*\{\s*feature:\s*['"]${feature}['"][^}]*\}`,
+          "s"
+        ).test(sidebarSource),
         `Missing Accounts MY EMPLOYEE feature: ${feature}`
       );
     }
@@ -107,7 +111,7 @@ test('Accounts sidebar separates employee query params from router path', () => 
 
   assert.match(
     sidebarSource,
-    /queryParams:\s*\{\s*feature:\s*['"]profile['"]\s*\}/
+    /queryParams:\s*\{\s*feature:\s*['"]profile['"][^}]*\}/s
   );
 
   assert.match(

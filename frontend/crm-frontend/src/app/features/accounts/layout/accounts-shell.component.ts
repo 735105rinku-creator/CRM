@@ -55,6 +55,23 @@ export class AccountsShellComponent {
   readonly userMenuOpen =
     signal(false);
 
+  readonly companyName =
+    computed(() => {
+      const user = this.auth.currentUser() as {
+        company?: { name?: string; companyName?: string };
+        companyId?: string | { name?: string; companyName?: string };
+      } | null;
+
+      const company = user?.company ||
+        (typeof user?.companyId === 'object' ? user.companyId : undefined);
+
+      return String(
+        company?.name ||
+        company?.companyName ||
+        'Registered Company'
+      ).trim();
+    });
+
 
   readonly userName =
     computed(

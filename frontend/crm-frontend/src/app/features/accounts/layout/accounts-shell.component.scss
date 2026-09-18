@@ -980,3 +980,29 @@
       220px;
   }
 }
+/* Premium finance shell */
+.accounts-shell {
+  background: #eef3f9;
+}
+
+.accounts-sidebar-wrapper {
+  background: #0b1426;
+  border-right-color: rgba(15, 23, 42, .16);
+  box-shadow: 16px 0 36px rgba(15, 23, 42, .16);
+}
+
+.accounts-header {
+  min-height: 82px;
+  padding: 14px 30px;
+  border-bottom-color: #dbe4f0;
+  box-shadow: 0 8px 24px rgba(50, 75, 110, .07);
+}
+
+.workspace-badge {
+  background: #101a2d;
+}
+
+.financial-year {
+  border-color: #dbe4f0;
+  background: #f7faff;
+}

@@ -1,4 +1,4 @@
-<section class="hr-shell hr-workspace" [class.sidebar-collapsed]="isSidebarCollapsed()" [class.mobile-nav-open]="isMobileNavOpen()">
+<section class="hr-shell hr-workspace" [class.sidebar-collapsed]="isSidebarCollapsed()" [class.mobile-nav-open]="isMobileNavOpen()" [class.employee-modal-open]="isEmployeeModalOpen()">
   @if (messagePopup()) {
     <div class="message-popup">{{ messagePopup() }}</div>
   }
@@ -270,7 +270,7 @@
               <span class="status-check muted">...</span>
             }
             @if (employeeCodeCheckStatus() === 'available') {
-              <span class="status-check success">Ô£ô</span>
+              <span class="status-check success" aria-label="Employee ID available">✓</span>
             }
             @if (employeeCodeCheckStatus() === 'taken') {
               <span class="status-check error">!</span>
@@ -948,8 +948,7 @@
     </article>  </div>
 </ng-template>
 
-<ng-template #attendanceReportsView>
-  <div class="panel-grid">
+<ng-template #attendanceReportsView>`r`n  <div class="panel-grid attendance-reports-workspace">
     <article class="hr-panel large span-2">
       <div class="panel-title">
         <div>
