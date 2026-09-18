@@ -20,6 +20,7 @@
 
     <div class="header-actions">
       <span>Already registered?</span>
+
       <a routerLink="/login">
         Sign in
         <span aria-hidden="true">→</span>
@@ -28,6 +29,10 @@
   </header>
 
   <section class="registration-shell">
+    <!-- =====================================================
+         LEFT INTRO
+         ===================================================== -->
+
     <aside class="registration-intro">
       <div class="intro-content">
         <div class="intro-badge">
@@ -71,6 +76,7 @@
         <div class="registration-flow">
           <article class="active">
             <span>01</span>
+
             <div>
               <strong>Company Details</strong>
               <small>Organization information</small>
@@ -81,6 +87,7 @@
 
           <article>
             <span>02</span>
+
             <div>
               <strong>Admin Account</strong>
               <small>First company administrator</small>
@@ -91,6 +98,7 @@
 
           <article>
             <span>03</span>
+
             <div>
               <strong>Checkout</strong>
               <small>Activate selected plan</small>
@@ -103,6 +111,7 @@
 
           <div>
             <strong>Structured company access</strong>
+
             <p>
               Company Admin can create HR users, and HR users can manage
               employees within the registered company workspace.
@@ -112,6 +121,10 @@
       </div>
     </aside>
 
+    <!-- =====================================================
+         RIGHT FORM
+         ===================================================== -->
+
     <section class="form-panel">
       <div class="register-card">
         <div class="card-heading">
@@ -119,7 +132,9 @@
 
           <div>
             <p class="eyebrow">GET STARTED</p>
+
             <h2>Register your company</h2>
+
             <p>
               Complete the information below to create your company workspace.
             </p>
@@ -140,7 +155,11 @@
           </div>
         }
 
-        <form [formGroup]="registerForm" (ngSubmit)="submit()" novalidate>
+        <form
+          [formGroup]="registerForm"
+          (ngSubmit)="submit()"
+          novalidate
+        >
           <!-- =====================================================
                ADMIN ACCOUNT
                ===================================================== -->
@@ -151,6 +170,7 @@
 
               <div>
                 <h3>Admin Account</h3>
+
                 <p>
                   Create the first administrator who will manage this company.
                 </p>
@@ -158,9 +178,11 @@
             </div>
 
             <div class="form-grid">
+              <!-- FULL NAME -->
+
               <label class="field">
                 <span class="field-label">
-                  Full Name
+                  <span>Full Name</span>
                   <small>Required</small>
                 </span>
 
@@ -171,7 +193,10 @@
                   autocomplete="name"
                 />
 
-                @if (registerForm.controls.fullName.touched && registerForm.controls.fullName.invalid) {
+                @if (
+                  registerForm.controls.fullName.touched &&
+                  registerForm.controls.fullName.invalid
+                ) {
                   <span class="field-error">
                     <i>!</i>
                     Full name is required.
@@ -179,9 +204,11 @@
                 }
               </label>
 
+              <!-- ADMIN EMAIL -->
+
               <label class="field">
                 <span class="field-label">
-                  Admin Email
+                  <span>Admin Email</span>
                   <small>Required</small>
                 </span>
 
@@ -193,7 +220,10 @@
                   autocomplete="email"
                 />
 
-                @if (registerForm.controls.email.touched && registerForm.controls.email.invalid) {
+                @if (
+                  registerForm.controls.email.touched &&
+                  registerForm.controls.email.invalid
+                ) {
                   <span class="field-error">
                     <i>!</i>
                     Enter a valid admin email.
@@ -201,9 +231,11 @@
                 }
               </label>
 
+              <!-- ADMIN MOBILE -->
+
               <label class="field">
                 <span class="field-label">
-                  Mobile No
+                  <span>Mobile No</span>
                   <small>Required</small>
                 </span>
 
@@ -213,7 +245,10 @@
                     formControlName="adminCountryCode"
                     aria-label="Admin mobile country code"
                   >
-                    @for (countryCode of countryCodes; track countryCode.code) {
+                    @for (
+                      countryCode of countryCodes;
+                      track countryCode.id
+                    ) {
                       <option [value]="countryCode.code">
                         {{ countryCode.label }}
                       </option>
@@ -221,67 +256,203 @@
                   </select>
 
                   <input
-                    class="form-control"
+                    class="form-control phone-number-input"
+                    type="text"
                     formControlName="mobileNo"
                     placeholder="9111001049"
                     autocomplete="tel"
+                    inputmode="numeric"
+                    pattern="[0-9]*"
+                    maxlength="15"
+                    aria-label="Admin mobile number"
+                    (input)="onPhoneInput($event, 'mobileNo')"
                   />
                 </span>
 
-                @if (registerForm.controls.mobileNo.touched && registerForm.controls.mobileNo.invalid) {
+                @if (
+                  registerForm.controls.mobileNo.touched &&
+                  registerForm.controls.mobileNo.invalid
+                ) {
                   <span class="field-error">
                     <i>!</i>
-                    Enter a valid mobile number.
+                    Enter a valid 7-15 digit mobile number.
                   </span>
                 }
               </label>
 
-              <div class="field field-placeholder" aria-hidden="true"></div>
+              <div
+                class="field field-placeholder"
+                aria-hidden="true"
+              ></div>
 
-              <label class="field">
+              <!-- PASSWORD -->
+
+              <div class="field">
                 <span class="field-label">
-                  Password
+                  <span>Password</span>
                   <small>Required</small>
                 </span>
 
-                <input
-                  class="form-control"
-                  type="password"
-                  formControlName="password"
-                  placeholder="Create secure password"
-                  autocomplete="new-password"
-                />
+                <div class="password-field">
+                  <input
+                    class="form-control"
+                    [type]="showPassword() ? 'text' : 'password'"
+                    formControlName="password"
+                    placeholder="Create secure password"
+                    autocomplete="new-password"
+                  />
 
-                @if (registerForm.controls.password.touched && registerForm.controls.password.invalid) {
+                  <button
+                    class="password-toggle"
+                    type="button"
+                    (click)="togglePasswordVisibility()"
+                    [attr.aria-label]="
+                      showPassword() ? 'Hide password' : 'Show password'
+                    "
+                    [attr.title]="
+                      showPassword() ? 'Hide password' : 'Show password'
+                    "
+                  >
+                    @if (showPassword()) {
+                      <!-- Eye off -->
+                      <svg
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M3 3l18 18M10.6 10.7a2 2 0 002.7 2.7M9.9 4.2A10.8 10.8 0 0112 4c5.5 0 9.5 5.3 9.5 5.3a14.8 14.8 0 01-2.8 3.4M6.2 6.2C3.9 7.8 2.5 9.3 2.5 9.3S6.5 16 12 16c1.5 0 2.9-.4 4.1-1"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.8"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
+                    } @else {
+                      <!-- Eye -->
+                      <svg
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M2.5 12S6.5 5.5 12 5.5 21.5 12 21.5 12 17.5 18.5 12 18.5 2.5 12 2.5 12z"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.8"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+
+                        <circle
+                          cx="12"
+                          cy="12"
+                          r="2.8"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.8"
+                        />
+                      </svg>
+                    }
+                  </button>
+                </div>
+
+                @if (
+                  registerForm.controls.password.touched &&
+                  registerForm.controls.password.invalid
+                ) {
                   <span class="field-error">
                     <i>!</i>
                     Use 8-32 chars with uppercase, lowercase, number and special
                     character.
                   </span>
                 }
-              </label>
+              </div>
 
-              <label class="field">
+              <!-- CONFIRM PASSWORD -->
+
+              <div class="field">
                 <span class="field-label">
-                  Confirm Password
+                  <span>Confirm Password</span>
                   <small>Required</small>
                 </span>
 
-                <input
-                  class="form-control"
-                  type="password"
-                  formControlName="confirmPassword"
-                  placeholder="Re-enter password"
-                  autocomplete="new-password"
-                />
+                <div class="password-field">
+                  <input
+                    class="form-control"
+                    [type]="showConfirmPassword() ? 'text' : 'password'"
+                    formControlName="confirmPassword"
+                    placeholder="Re-enter password"
+                    autocomplete="new-password"
+                  />
 
-                @if (registerForm.errors?.['passwordMismatch'] && registerForm.controls.confirmPassword.touched) {
+                  <button
+                    class="password-toggle"
+                    type="button"
+                    (click)="toggleConfirmPasswordVisibility()"
+                    [attr.aria-label]="
+                      showConfirmPassword()
+                        ? 'Hide confirm password'
+                        : 'Show confirm password'
+                    "
+                    [attr.title]="
+                      showConfirmPassword()
+                        ? 'Hide confirm password'
+                        : 'Show confirm password'
+                    "
+                  >
+                    @if (showConfirmPassword()) {
+                      <!-- Eye off -->
+                      <svg
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M3 3l18 18M10.6 10.7a2 2 0 002.7 2.7M9.9 4.2A10.8 10.8 0 0112 4c5.5 0 9.5 5.3 9.5 5.3a14.8 14.8 0 01-2.8 3.4M6.2 6.2C3.9 7.8 2.5 9.3 2.5 9.3S6.5 16 12 16c1.5 0 2.9-.4 4.1-1"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.8"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
+                    } @else {
+                      <!-- Eye -->
+                      <svg
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M2.5 12S6.5 5.5 12 5.5 21.5 12 21.5 12 17.5 18.5 12 18.5 2.5 12 2.5 12z"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.8"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+
+                        <circle
+                          cx="12"
+                          cy="12"
+                          r="2.8"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.8"
+                        />
+                      </svg>
+                    }
+                  </button>
+                </div>
+
+                @if (
+                  registerForm.errors?.['passwordMismatch'] &&
+                  registerForm.controls.confirmPassword.touched
+                ) {
                   <span class="field-error">
                     <i>!</i>
                     Password and confirm password must match.
                   </span>
                 }
-              </label>
+              </div>
             </div>
           </section>
 
@@ -295,6 +466,7 @@
 
               <div>
                 <h3>Company Details</h3>
+
                 <p>
                   Add the primary information for your organization.
                 </p>
@@ -302,9 +474,11 @@
             </div>
 
             <div class="form-grid">
+              <!-- COMPANY NAME -->
+
               <label class="field">
                 <span class="field-label">
-                  Company Name
+                  <span>Company Name</span>
                   <small>Required</small>
                 </span>
 
@@ -315,7 +489,10 @@
                   autocomplete="organization"
                 />
 
-                @if (registerForm.controls.companyName.touched && registerForm.controls.companyName.invalid) {
+                @if (
+                  registerForm.controls.companyName.touched &&
+                  registerForm.controls.companyName.invalid
+                ) {
                   <span class="field-error">
                     <i>!</i>
                     Company name is required.
@@ -323,9 +500,11 @@
                 }
               </label>
 
+              <!-- COMPANY CODE -->
+
               <label class="field">
                 <span class="field-label">
-                  Company Code
+                  <span>Company Code</span>
                   <small>Auto generated</small>
                 </span>
 
@@ -336,7 +515,10 @@
                   readonly
                 />
 
-                @if (registerForm.controls.companyCode.touched && registerForm.controls.companyCode.invalid) {
+                @if (
+                  registerForm.controls.companyCode.touched &&
+                  registerForm.controls.companyCode.invalid
+                ) {
                   <span class="field-error">
                     <i>!</i>
                     Use 3-20 uppercase letters, numbers, dash or underscore.
@@ -344,9 +526,11 @@
                 }
               </label>
 
+              <!-- INDUSTRY -->
+
               <label class="field">
                 <span class="field-label">
-                  Industry
+                  <span>Industry</span>
                   <small>Required</small>
                 </span>
 
@@ -357,9 +541,11 @@
                 />
               </label>
 
+              <!-- EMPLOYEE COUNT -->
+
               <label class="field">
                 <span class="field-label">
-                  Employee Count
+                  <span>Employee Count</span>
                   <small>Required</small>
                 </span>
 
@@ -375,9 +561,11 @@
                 </select>
               </label>
 
+              <!-- COMPANY EMAIL -->
+
               <label class="field">
                 <span class="field-label">
-                  Company Email
+                  <span>Company Email</span>
                   <small>Required</small>
                 </span>
 
@@ -390,9 +578,11 @@
                 />
               </label>
 
+              <!-- COMPANY PHONE -->
+
               <label class="field">
                 <span class="field-label">
-                  Company Phone
+                  <span>Company Phone</span>
                   <small>Required</small>
                 </span>
 
@@ -402,7 +592,10 @@
                     formControlName="companyCountryCode"
                     aria-label="Company phone country code"
                   >
-                    @for (countryCode of countryCodes; track countryCode.code) {
+                    @for (
+                      countryCode of countryCodes;
+                      track countryCode.id
+                    ) {
                       <option [value]="countryCode.code">
                         {{ countryCode.label }}
                       </option>
@@ -410,24 +603,35 @@
                   </select>
 
                   <input
-                    class="form-control"
+                    class="form-control phone-number-input"
+                    type="text"
                     formControlName="companyPhone"
                     placeholder="Office phone"
                     autocomplete="tel"
+                    inputmode="numeric"
+                    pattern="[0-9]*"
+                    maxlength="15"
+                    aria-label="Company phone number"
+                    (input)="onPhoneInput($event, 'companyPhone')"
                   />
                 </span>
 
-                @if (registerForm.controls.companyPhone.touched && registerForm.controls.companyPhone.invalid) {
+                @if (
+                  registerForm.controls.companyPhone.touched &&
+                  registerForm.controls.companyPhone.invalid
+                ) {
                   <span class="field-error">
                     <i>!</i>
-                    Enter a valid company phone number.
+                    Enter a valid 7-15 digit company phone number.
                   </span>
                 }
               </label>
 
+              <!-- COUNTRY -->
+
               <label class="field">
                 <span class="field-label">
-                  Country
+                  <span>Country</span>
                   <small>Required</small>
                 </span>
 
@@ -439,9 +643,11 @@
                 />
               </label>
 
+              <!-- WEBSITE -->
+
               <label class="field">
                 <span class="field-label">
-                  Website
+                  <span>Website</span>
                   <small>Optional</small>
                 </span>
 
@@ -452,7 +658,10 @@
                   autocomplete="url"
                 />
 
-                @if (registerForm.controls.website.touched && registerForm.controls.website.invalid) {
+                @if (
+                  registerForm.controls.website.touched &&
+                  registerForm.controls.website.invalid
+                ) {
                   <span class="field-error">
                     <i>!</i>
                     Enter a valid website URL.
@@ -460,9 +669,11 @@
                 }
               </label>
 
+              <!-- ADDRESS -->
+
               <label class="field full">
                 <span class="field-label">
-                  Registered Address
+                  <span>Registered Address</span>
                   <small>Required</small>
                 </span>
 
@@ -474,7 +685,10 @@
                   autocomplete="street-address"
                 ></textarea>
 
-                @if (registerForm.controls.registeredAddress.touched && registerForm.controls.registeredAddress.invalid) {
+                @if (
+                  registerForm.controls.registeredAddress.touched &&
+                  registerForm.controls.registeredAddress.invalid
+                ) {
                   <span class="field-error">
                     <i>!</i>
                     Registered address is required.
@@ -494,6 +708,7 @@
 
               <div>
                 <h3>Tax & Company Identity</h3>
+
                 <p>
                   Add optional tax information and your company logo.
                 </p>
@@ -501,9 +716,11 @@
             </div>
 
             <div class="form-grid">
+              <!-- PAN -->
+
               <label class="field">
                 <span class="field-label">
-                  Company PAN Number
+                  <span>Company PAN Number</span>
                   <small>Optional</small>
                 </span>
 
@@ -513,7 +730,10 @@
                   placeholder="ABCDE1234F"
                 />
 
-                @if (registerForm.controls.companyPan.touched && registerForm.controls.companyPan.invalid) {
+                @if (
+                  registerForm.controls.companyPan.touched &&
+                  registerForm.controls.companyPan.invalid
+                ) {
                   <span class="field-error">
                     <i>!</i>
                     Enter a valid PAN number.
@@ -521,9 +741,11 @@
                 }
               </label>
 
+              <!-- GST -->
+
               <label class="field">
                 <span class="field-label">
-                  Company GST Number
+                  <span>Company GST Number</span>
                   <small>Optional</small>
                 </span>
 
@@ -533,7 +755,10 @@
                   placeholder="22AAAAA0000A1Z5"
                 />
 
-                @if (registerForm.controls.companyGst.touched && registerForm.controls.companyGst.invalid) {
+                @if (
+                  registerForm.controls.companyGst.touched &&
+                  registerForm.controls.companyGst.invalid
+                ) {
                   <span class="field-error">
                     <i>!</i>
                     Enter a valid GST number.
@@ -541,9 +766,11 @@
                 }
               </label>
 
+              <!-- LOGO -->
+
               <div class="field full logo-field">
                 <span class="field-label">
-                  Company Logo
+                  <span>Company Logo</span>
                   <small>Optional</small>
                 </span>
 
@@ -554,11 +781,20 @@
                     (change)="onLogoSelected($event)"
                   />
 
-                  <span class="upload-icon" aria-hidden="true">+</span>
+                  <span
+                    class="upload-icon"
+                    aria-hidden="true"
+                  >
+                    +
+                  </span>
 
                   <span class="upload-copy">
                     <strong>
-                      {{ logoPreview() ? 'Change company logo' : 'Upload company logo' }}
+                      {{
+                        logoPreview()
+                          ? 'Change company logo'
+                          : 'Upload company logo'
+                      }}
                     </strong>
 
                     <small>
@@ -583,6 +819,7 @@
 
                     <div>
                       <strong>Company logo ready</strong>
+
                       <span>
                         Cropped image will be uploaded with registration.
                       </span>
@@ -607,18 +844,26 @@
                 formControlName="acceptTerms"
               />
 
-              <span class="custom-check" aria-hidden="true">
+              <span
+                class="custom-check"
+                aria-hidden="true"
+              >
                 <i>✓</i>
               </span>
 
               <span>
                 I accept the
-                <a routerLink="/terms">terms and conditions</a>
+                <a routerLink="/terms">
+                  terms and conditions
+                </a>
                 for creating an Opas Bizz company workspace.
               </span>
             </label>
 
-            @if (registerForm.controls.acceptTerms.touched && registerForm.controls.acceptTerms.invalid) {
+            @if (
+              registerForm.controls.acceptTerms.touched &&
+              registerForm.controls.acceptTerms.invalid
+            ) {
               <span class="field-error terms-error">
                 <i>!</i>
                 Please accept terms and conditions.
@@ -628,10 +873,14 @@
             <div class="checkout-summary">
               <div>
                 <small>YOU ARE REGISTERING WITH</small>
-                <strong>{{ selectedPlanCode() | uppercase }} PLAN</strong>
+                <strong>
+                  {{ selectedPlanCode() | uppercase }} PLAN
+                </strong>
               </div>
 
-              <a routerLink="/pricing">Change plan</a>
+              <a routerLink="/pricing">
+                Change plan
+              </a>
             </div>
 
             <button
@@ -639,27 +888,41 @@
               type="submit"
               [disabled]="registerForm.invalid || isLoading()"
             >
-              <span class="button-shine" aria-hidden="true"></span>
+              <span
+                class="button-shine"
+                aria-hidden="true"
+              ></span>
 
               @if (isLoading()) {
                 <span
                   class="spinner-border spinner-border-sm"
                   aria-hidden="true"
                 ></span>
+
                 <span>Creating workspace...</span>
               } @else {
                 <span>Create Company CRM</span>
-                <span class="button-arrow" aria-hidden="true">→</span>
+
+                <span
+                  class="button-arrow"
+                  aria-hidden="true"
+                >
+                  →
+                </span>
               }
             </button>
 
             <p class="submit-note">
               After registration, you will continue to checkout for the
-              <strong>{{ selectedPlanCode() | uppercase }}</strong> plan.
+              <strong>
+                {{ selectedPlanCode() | uppercase }}
+              </strong>
+              plan.
             </p>
 
             <p class="signin-link">
               Already registered?
+
               <a routerLink="/login">
                 Sign in
                 <span aria-hidden="true">→</span>
@@ -671,8 +934,14 @@
     </section>
   </section>
 
+  <!-- =====================================================
+       FOOTER
+       ===================================================== -->
+
   <footer class="register-footer">
-    <a routerLink="/">← Back to website</a>
+    <a routerLink="/">
+      ← Back to website
+    </a>
 
     <div>
       <span>Opas Bizz Pvt. Ltd.</span>
