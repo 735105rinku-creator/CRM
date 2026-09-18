@@ -865,6 +865,7 @@ export class HrDashboardComponent implements OnDestroy {
     { value: 'sales', label: 'Sales CRM Dashboard' },
     { value: 'accounts', label: 'Accounts Dashboard' },
     { value: 'logistics', label: 'Logistics Dashboard' },
+    { value: 'purchase', label: 'Purchase Dashboard' },
     { value: 'hr', label: 'HR Dashboard' },
     { value: 'none', label: 'No dashboard shortcut' }
   ] as const;
@@ -890,6 +891,7 @@ export class HrDashboardComponent implements OnDestroy {
     { value: 'sales-crm', label: 'Sales CRM' },
     { value: 'accounts', label: 'Accounts' },
     { value: 'logistics', label: 'Logistics' },
+    { value: 'purchase', label: 'Purchase' },
     { value: 'settings', label: 'Settings' },
     { value: 'notifications', label: 'Notifications' }
   ] as const;
@@ -3514,7 +3516,7 @@ export class HrDashboardComponent implements OnDestroy {
 
   private defaultDepartmentDashboard(featureKey?: string): string {
     const key = String(featureKey || 'none').toLowerCase();
-    return ['sales', 'accounts', 'logistics', 'hr', 'support', 'operations'].includes(key) ? key : 'employee';
+    return ['sales', 'accounts', 'logistics', 'purchase', 'hr', 'support', 'operations'].includes(key) ? key : 'employee';
   }
 
   private defaultDepartmentAccess(featureKey?: string): string[] {
@@ -3522,7 +3524,8 @@ export class HrDashboardComponent implements OnDestroy {
     const key = String(featureKey || 'none').toLowerCase();
     if (key === 'sales') return [...base, 'sales-crm'];
     if (key === 'accounts') return [...base, 'accounts'];
-    if (key === 'logistics') return [...base, 'logistics'];
+    if (key === 'logistics') return ['logistics'];
+    if (key === 'purchase') return [...base, 'purchase'];
     return base;
   }
 
