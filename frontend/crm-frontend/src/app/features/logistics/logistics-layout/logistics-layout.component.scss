@@ -135,6 +135,11 @@
   
     overflow-x: hidden;
   }
+
+  /* The dashboard header sticks to .logistics-content, its scroll container. */
+  :host ::ng-deep .logistics-router-content:has(.logistics-dashboard-page) {
+    overflow: visible;
+  }
   
   
   /* Angular RouterOutlet itself doesn't need layout space */
@@ -547,3 +552,62 @@
         68px;
     }
   }
+  /* ============================================================
+  LOGISTICS STICKY ROUTED PAGE HEADER
+  .logistics-content is the ONLY vertical scroll container.
+============================================================ */
+
+/*
+* Angular routed component host sits between router-outlet
+* and the actual page wrapper.
+*/
+:host ::ng-deep .logistics-router-content > *:not(router-outlet) {
+ display: block;
+
+ width: 100%;
+ min-width: 0;
+ min-height: 100%;
+
+ overflow: visible !important;
+}
+
+/*
+* Dashboard wrapper must NOT become another scroll container.
+*/
+:host ::ng-deep .logistics-dashboard-page {
+ position: relative;
+
+ width: 100%;
+ min-width: 0;
+ min-height: 100%;
+
+ overflow: visible !important;
+}
+
+/*
+* Logistics Dashboard upper header.
+* It now sticks against .logistics-content,
+* which is the actual scrolling container.
+*/
+:host ::ng-deep .logistics-dashboard-page > .topbar {
+ position: sticky !important;
+
+ top: 0 !important;
+ left: 0;
+ right: 0;
+
+ z-index: 1000 !important;
+
+ width: 100%;
+
+ background: rgba(237, 241, 246, 0.98) !important;
+
+ -webkit-backdrop-filter: blur(18px);
+ backdrop-filter: blur(18px);
+
+ border-bottom: 1px solid rgba(201, 168, 106, 0.15);
+
+ box-shadow:
+   0 8px 20px rgba(15, 23, 42, 0.07),
+   0 1px 0 rgba(255, 255, 255, 0.85);
+}

@@ -804,9 +804,21 @@
                 State *
               </label>
 
+              @if (form.address.country.trim().toLowerCase() === 'india') {
+              <select [(ngModel)]="form.address.state">
+                <option value="">Select state</option>
+                @if (form.address.state && !indiaStates.includes(form.address.state)) {
+                  <option [value]="form.address.state">{{ form.address.state }}</option>
+                }
+                @for (state of indiaStates; track state) {
+                  <option [value]="state">{{ state }}</option>
+                }
+              </select>
+              } @else {
               <input
                 [(ngModel)]="form.address.state"
               />
+              }
 
             </div>
 

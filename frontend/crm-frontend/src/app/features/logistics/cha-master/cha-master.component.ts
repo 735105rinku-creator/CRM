@@ -5,6 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { ApiService } from '../../../core/services/api.service';
+import { INDIA_STATES } from '../shared/india-states';
 
 interface Option {
   label: string;
@@ -138,6 +139,7 @@ interface ChaCase {
   styleUrl: './cha-master.component.scss'
 })
 export class ChaMasterComponent implements OnInit {
+  protected readonly indiaStates = INDIA_STATES;
   private readonly api =
     inject(ApiService);
 

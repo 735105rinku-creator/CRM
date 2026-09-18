@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 
 import { ApiService } from '../../../core/services/api.service';
+import { INDIA_STATES } from '../shared/india-states';
 
 
 interface Option {
@@ -80,6 +81,7 @@ interface CustomerRecord {
   styleUrl: './logistics-customers.component.scss'
 })
 export class LogisticsCustomersComponent implements OnInit {
+  protected readonly indiaStates = INDIA_STATES;
 
   private readonly api = inject(ApiService);
 

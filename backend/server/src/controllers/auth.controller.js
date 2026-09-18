@@ -61,7 +61,16 @@ const getClientIp = (req) => {
 };
 
 const getRefreshTokenFromReq = (req) => {
-  return req.cookies?.refreshToken || req.body?.refreshToken || null;
+  const bodyToken =
+    typeof req.body?.refreshToken === "string"
+      ? req.body.refreshToken.trim()
+      : "";
+
+  if (bodyToken) {
+    return bodyToken;
+  }
+
+  return req.cookies?.refreshToken || null;
 };
 
 const sanitizeUser = (user) => user.toSafeObject();

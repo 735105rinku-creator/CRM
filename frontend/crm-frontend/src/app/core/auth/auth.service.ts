@@ -58,12 +58,15 @@ export interface CompanyRegistrationPayload {
 export class AuthService {
   private readonly demoEmail = 'admin@opasbizz.com';
   private readonly demoPassword = 'Admin@123';
+
   private readonly accessTokenKey = 'accessToken';
   private readonly refreshTokenKey = 'refreshToken';
   private readonly userKey = 'user';
   private readonly rememberSessionKey = 'rememberSession';
+
   private memoryAccessToken: string | null = null;
   private memoryRefreshToken: string | null = null;
+
   private readonly isBrowser: boolean;
 
   readonly currentUser = signal<User | JwtUserPayload | null>(null);
@@ -76,47 +79,104 @@ export class AuthService {
     this.isBrowser = isPlatformBrowser(platformId);
 
     if (this.isBrowser) {
+      /*
+       * Authentication identity is intentionally tab-scoped.
+       *
+       * localStorage is shared by every tab for the same origin, so it must
+       * not be used as the active authentication source when different CRM
+       * users need to work in different tabs simultaneously.
+       *
+       * Remove legacy shared auth values left by older versions of the app.
+       * The current tab's auth state is restored from sessionStorage below.
+       */
       localStorage.removeItem(this.accessTokenKey);
       localStorage.removeItem(this.refreshTokenKey);
-      sessionStorage.removeItem(this.accessTokenKey);
-      sessionStorage.removeItem(this.refreshTokenKey);
+      localStorage.removeItem(this.userKey);
+      localStorage.removeItem(this.rememberSessionKey);
+
+      this.memoryAccessToken =
+        sessionStorage.getItem(this.accessTokenKey);
+
+      this.memoryRefreshToken =
+        sessionStorage.getItem(this.refreshTokenKey);
     }
 
     this.currentUser.set(this.loadStoredUser());
   }
 
-  login(email: string, password: string, role = 'company_admin', rememberMe = false): Observable<AuthResponse> {
+  login(
+    email: string,
+    password: string,
+    role = 'company_admin',
+    rememberMe = false
+  ): Observable<AuthResponse> {
     if (this.isDemoLogin(email, password)) {
-      return of(this.createDemoSession(role)).pipe(tap((response) => this.storeSession(response, rememberMe)));
+      return of(this.createDemoSession(role)).pipe(
+        tap((response) => this.storeSession(response, rememberMe))
+      );
     }
 
-    return this.http.post<ApiResponse<AuthResponse> | AuthResponse>(apiUrl('/auth/login'), { email, password, role, rememberMe }, { withCredentials: true }).pipe(
-      map((response) => this.unwrapAuthResponse(response)),
-      tap((response) => this.storeSession(response, rememberMe))
-    );
+    return this.http
+      .post<ApiResponse<AuthResponse> | AuthResponse>(
+        apiUrl('/auth/login'),
+        {
+          email,
+          password,
+          role,
+          rememberMe
+        },
+        {
+          withCredentials: true
+        }
+      )
+      .pipe(
+        map((response) => this.unwrapAuthResponse(response)),
+        tap((response) => this.storeSession(response, rememberMe))
+      );
   }
 
-  registerCompany(payload: CompanyRegistrationPayload): Observable<ApiResponse<CompanyRegistrationResponse>> {
+  registerCompany(
+    payload: CompanyRegistrationPayload
+  ): Observable<ApiResponse<CompanyRegistrationResponse>> {
     const body = this.toRegistrationBody(payload);
 
     return this.http
-      .post<ApiResponse<CompanyRegistrationResponse>>(apiUrl('/auth/register-company'), body, { withCredentials: true })
-      .pipe(tap((response) => {
-        if (response.data?.accessToken || response.data?.user) {
-          this.storeSession(this.unwrapAuthResponse(response.data), false);
+      .post<ApiResponse<CompanyRegistrationResponse>>(
+        apiUrl('/auth/register-company'),
+        body,
+        {
+          withCredentials: true
         }
-      }));
+      )
+      .pipe(
+        tap((response) => {
+          if (response.data?.accessToken || response.data?.user) {
+            this.storeSession(
+              this.unwrapAuthResponse(response.data),
+              false
+            );
+          }
+        })
+      );
   }
 
   logout(redirect = true): void {
+    const refreshToken = this.getRefreshToken();
+
     if (this.isBrowser) {
+      sessionStorage.removeItem(this.accessTokenKey);
+      sessionStorage.removeItem(this.refreshTokenKey);
+      sessionStorage.removeItem(this.userKey);
+      sessionStorage.removeItem(this.rememberSessionKey);
+
+      /*
+       * Clean up legacy shared auth state as well. These keys must not become
+       * an authentication source again.
+       */
       localStorage.removeItem(this.accessTokenKey);
       localStorage.removeItem(this.refreshTokenKey);
       localStorage.removeItem(this.userKey);
       localStorage.removeItem(this.rememberSessionKey);
-      sessionStorage.removeItem(this.accessTokenKey);
-      sessionStorage.removeItem(this.refreshTokenKey);
-      sessionStorage.removeItem(this.userKey);
     }
 
     this.currentUser.set(null);
@@ -124,51 +184,96 @@ export class AuthService {
     this.memoryRefreshToken = null;
 
     this.http
-      .post(apiUrl('/auth/logout'), {}, { withCredentials: true })
+      .post(
+        apiUrl('/auth/logout'),
+        {
+          refreshToken
+        },
+        {
+          withCredentials: true
+        }
+      )
       .subscribe({
         next: () => {
-          if (redirect) void this.router.navigate(['/login']);
+          if (redirect) {
+            void this.router.navigate(['/login']);
+          }
         },
         error: () => {
-          if (redirect) void this.router.navigate(['/login']);
+          if (redirect) {
+            void this.router.navigate(['/login']);
+          }
         }
       });
   }
 
   refreshToken(): Observable<AuthResponse> {
+    const refreshToken = this.getRefreshToken();
+
     return this.http
       .post<ApiResponse<AuthResponse> | AuthResponse>(
         apiUrl('/auth/refresh-token'),
-        { rememberMe: this.shouldRememberSession() },
-        { withCredentials: true }
+        {
+          rememberMe: this.shouldRememberSession(),
+          refreshToken
+        },
+        {
+          withCredentials: true
+        }
       )
       .pipe(
         map((response) => this.unwrapAuthResponse(response)),
-        tap((response) => this.storeSession(response, this.shouldRememberSession()))
+        tap((response) =>
+          this.storeSession(
+            response,
+            this.shouldRememberSession()
+          )
+        )
       );
   }
 
   updateCurrentUserProfileImage(profileImage: string): void {
     const image = String(profileImage || '').trim();
-    if (!image) return;
+
+    if (!image) {
+      return;
+    }
 
     const current = this.getCurrentUser();
-    if (!current) return;
 
-    const next = { ...current, profileImage } as User | JwtUserPayload;
+    if (!current) {
+      return;
+    }
+
+    const next = {
+      ...current,
+      profileImage
+    } as User | JwtUserPayload;
+
     this.currentUser.set(next);
 
     if (this.isBrowser) {
-      this.sessionStorage().setItem(this.userKey, JSON.stringify(next));
+      sessionStorage.setItem(
+        this.userKey,
+        JSON.stringify(next)
+      );
     }
   }
 
   getCurrentUser(): User | JwtUserPayload | null {
     const tokenUser = this.decodeAccessToken();
     const storedUser = this.loadStoredUser();
+
+    /*
+     * Prefer the stored full user object because it contains department,
+     * roleRef, company and other information that may not exist in the JWT.
+     *
+     * Both sources are tab-scoped.
+     */
     const user = storedUser ?? tokenUser;
 
     this.currentUser.set(user);
+
     return user;
   }
 
@@ -193,93 +298,307 @@ export class AuthService {
     }
 
     const roles = new Set<string>();
-    const primaryRole = 'role' in user ? user.role : undefined;
+    const primaryRole =
+      'role' in user ? user.role : undefined;
 
     if (primaryRole) {
       roles.add(String(primaryRole));
     }
 
     if ('roles' in user && Array.isArray(user.roles)) {
-      user.roles.forEach((userRole) => roles.add(userRole));
+      user.roles.forEach((userRole) =>
+        roles.add(userRole)
+      );
     }
 
     return roles.has('super_admin') || roles.has(role);
   }
 
-  hasStructuredPermission(module: string, subModule: string, action: 'view' | 'create' | 'edit' | 'delete' | 'updateStatus' = 'view'): boolean {
+  hasStructuredPermission(
+    module: string,
+    subModule: string,
+    action:
+      | 'view'
+      | 'create'
+      | 'edit'
+      | 'delete'
+      | 'updateStatus' = 'view'
+  ): boolean {
     const user = this.getCurrentUser();
-    if (!user) return false;
+
+    if (!user) {
+      return false;
+    }
+
     const entries = [
-      ...(('permissions' in user && Array.isArray(user.permissions)) ? user.permissions : []),
-      ...(('roleRef' in user && user.roleRef && typeof user.roleRef === 'object' && Array.isArray(user.roleRef.permissions)) ? user.roleRef.permissions : [])
+      ...(
+        'permissions' in user &&
+        Array.isArray(user.permissions)
+          ? user.permissions
+          : []
+      ),
+      ...(
+        'roleRef' in user &&
+        user.roleRef &&
+        typeof user.roleRef === 'object' &&
+        Array.isArray(user.roleRef.permissions)
+          ? user.roleRef.permissions
+          : []
+      )
     ];
 
-    const structuredEntries = entries.filter((entry) => entry && typeof entry === 'object') as Array<Record<string, unknown>>;
-    const explicit = structuredEntries.find((permission) => permission['module'] === module && permission['subModule'] === subModule);
-    if (explicit) return explicit[action] === true;
+    const structuredEntries = entries.filter(
+      (entry) =>
+        entry &&
+        typeof entry === 'object'
+    ) as Array<Record<string, unknown>>;
 
-    return this.hasDefaultStructuredPermission(module, subModule, action);
+    const explicit = structuredEntries.find(
+      (permission) =>
+        permission['module'] === module &&
+        permission['subModule'] === subModule
+    );
+
+    if (explicit) {
+      return explicit[action] === true;
+    }
+
+    return this.hasDefaultStructuredPermission(
+      module,
+      subModule,
+      action
+    );
   }
 
-  private hasDefaultStructuredPermission(module: string, subModule: string, action: 'view' | 'create' | 'edit' | 'delete' | 'updateStatus'): boolean {
-    if (module !== 'logistics') return false;
+  private hasDefaultStructuredPermission(
+    module: string,
+    subModule: string,
+    action:
+      | 'view'
+      | 'create'
+      | 'edit'
+      | 'delete'
+      | 'updateStatus'
+  ): boolean {
+    if (module !== 'logistics') {
+      return false;
+    }
 
-    const role = String(this.getCurrentUser()?.role || '').toLowerCase();
-    const roleRef = this.getCurrentUser() && 'roleRef' in this.getCurrentUser()! && this.getCurrentUser()!.roleRef && typeof this.getCurrentUser()!.roleRef === 'object'
-      ? String((this.getCurrentUser()!.roleRef as { name?: string }).name || '').toLowerCase()
-      : '';
+    const currentUser = this.getCurrentUser();
+
+    const role = String(
+      currentUser?.role || ''
+    ).toLowerCase();
+
+    const roleRef =
+      currentUser &&
+      'roleRef' in currentUser &&
+      currentUser.roleRef &&
+      typeof currentUser.roleRef === 'object'
+        ? String(
+            (
+              currentUser.roleRef as {
+                name?: string;
+              }
+            ).name || ''
+          ).toLowerCase()
+        : '';
+
     const roleNames = [role, roleRef];
-    const fullAccess = roleNames.some((name) => ['super_admin', 'company_admin', 'manager', 'department_head', 'team_leader'].includes(name));
-    const hrReadOnly = roleNames.some((name) => ['hr', 'hr_manager'].includes(name));
-    const employeeModules = ['airCargo', 'seaFreight', 'tracking', 'documents'];
+
+    const fullAccess = roleNames.some((name) =>
+      [
+        'super_admin',
+        'company_admin',
+        'manager',
+        'department_head',
+        'team_leader'
+      ].includes(name)
+    );
+
+    const hrReadOnly = roleNames.some((name) =>
+      ['hr', 'hr_manager'].includes(name)
+    );
+
+    const employeeModules = [
+      'airCargo',
+      'seaFreight',
+      'tracking',
+      'documents'
+    ];
+
     const employee = roleNames.includes('employee');
 
-    if (fullAccess) return true;
-    if (hrReadOnly) return action === 'view';
-    if (employee) return employeeModules.includes(subModule) && (action === 'view' || action === 'updateStatus');
+    if (fullAccess) {
+      return true;
+    }
+
+    if (hrReadOnly) {
+      return action === 'view';
+    }
+
+    if (employee) {
+      return (
+        employeeModules.includes(subModule) &&
+        (
+          action === 'view' ||
+          action === 'updateStatus'
+        )
+      );
+    }
+
     return false;
   }
 
   hasPermission(permission: string): boolean {
     const user = this.getCurrentUser();
-    if (!user) return false;
-    if (this.getRoleLevel() === 0 || this.hasRole('super_admin')) return true;
+
+    if (!user) {
+      return false;
+    }
+
+    if (
+      this.getRoleLevel() === 0 ||
+      this.hasRole('super_admin')
+    ) {
+      return true;
+    }
+
     const roleFallbacks: Record<string, string[]> = {
-      company_admin: ['manage_company', 'manage_departments', 'manage_users', 'view_reports'],
-      hr: ['manage_users', 'approve_leaves', 'view_reports'],
-      employee: ['view_self', 'request_leave', 'mark_attendance']
+      company_admin: [
+        'manage_company',
+        'manage_departments',
+        'manage_users',
+        'view_reports'
+      ],
+      hr: [
+        'manage_users',
+        'approve_leaves',
+        'view_reports'
+      ],
+      employee: [
+        'view_self',
+        'request_leave',
+        'mark_attendance'
+      ]
     };
+
     const permissions = new Set<string>();
-    if ('permissions' in user && Array.isArray(user.permissions)) {
-      user.permissions.forEach((item) => { if (typeof item === 'string') permissions.add(item); });
+
+    if (
+      'permissions' in user &&
+      Array.isArray(user.permissions)
+    ) {
+      user.permissions.forEach((item) => {
+        if (typeof item === 'string') {
+          permissions.add(item);
+        }
+      });
     }
-    const roleRef = 'roleRef' in user && user.roleRef && typeof user.roleRef === 'object' ? user.roleRef : null;
-    if (roleRef && Array.isArray(roleRef.permissions)) {
-      roleRef.permissions.forEach((item) => { if (typeof item === 'string') permissions.add(item); });
+
+    const roleRef =
+      'roleRef' in user &&
+      user.roleRef &&
+      typeof user.roleRef === 'object'
+        ? user.roleRef
+        : null;
+
+    if (
+      roleRef &&
+      Array.isArray(roleRef.permissions)
+    ) {
+      roleRef.permissions.forEach((item) => {
+        if (typeof item === 'string') {
+          permissions.add(item);
+        }
+      });
     }
-    const role = 'role' in user ? String(user.role || '') : '';
-    (roleFallbacks[role] || []).forEach((item) => permissions.add(item));
+
+    const role =
+      'role' in user
+        ? String(user.role || '')
+        : '';
+
+    (roleFallbacks[role] || []).forEach((item) =>
+      permissions.add(item)
+    );
+
     return permissions.has(permission);
   }
 
   getRoleLevel(): number {
     const user = this.getCurrentUser();
-    if (!user) return 99;
-    if ('roleLevel' in user && typeof user.roleLevel === 'number') return user.roleLevel;
-    const roleRef = 'roleRef' in user && user.roleRef && typeof user.roleRef === 'object' ? user.roleRef : null;
-    if (roleRef && typeof roleRef.level === 'number') return roleRef.level;
-    if ('role' in user && user.role === 'super_admin') return 0;
-    if ('role' in user && user.role === 'company_admin') return 1;
-    if ('role' in user && user.role === 'hr') return 2;
+
+    if (!user) {
+      return 99;
+    }
+
+    if (
+      'roleLevel' in user &&
+      typeof user.roleLevel === 'number'
+    ) {
+      return user.roleLevel;
+    }
+
+    const roleRef =
+      'roleRef' in user &&
+      user.roleRef &&
+      typeof user.roleRef === 'object'
+        ? user.roleRef
+        : null;
+
+    if (
+      roleRef &&
+      typeof roleRef.level === 'number'
+    ) {
+      return roleRef.level;
+    }
+
+    if (
+      'role' in user &&
+      user.role === 'super_admin'
+    ) {
+      return 0;
+    }
+
+    if (
+      'role' in user &&
+      user.role === 'company_admin'
+    ) {
+      return 1;
+    }
+
+    if (
+      'role' in user &&
+      user.role === 'hr'
+    ) {
+      return 2;
+    }
+
     return 4;
   }
 
   getDefaultRedirectUrl(): string {
     const level = this.getRoleLevel();
-    if (level === 0) return '/super-admin/dashboard';
-    if (level === 1) return '/company/dashboard';
-    if (this.hasRole('employee') && this.isLogisticsUser()) return '/logistics/dashboard';
-    if (level >= 2 && level < 99) return '/employee/dashboard';
+
+    if (level === 0) {
+      return '/super-admin/dashboard';
+    }
+
+    if (level === 1) {
+      return '/company/dashboard';
+    }
+
+    if (
+      this.hasRole('employee') &&
+      this.isLogisticsUser()
+    ) {
+      return '/logistics/dashboard';
+    }
+
+    if (level >= 2 && level < 99) {
+      return '/employee/dashboard';
+    }
 
     if (this.hasRole('super_admin')) {
       return '/super-admin';
@@ -300,7 +619,9 @@ export class AuthService {
     return '/dashboard';
   }
 
-  isLogisticsUser(user = this.getCurrentUser()): boolean {
+  isLogisticsUser(
+    user = this.getCurrentUser()
+  ): boolean {
     if (!user) {
       return false;
     }
@@ -308,7 +629,9 @@ export class AuthService {
     const userWithDepartment = user as {
       department?: string;
       departmentRef?: DepartmentRef | string | null;
-      profile?: { department?: string };
+      profile?: {
+        department?: string;
+      };
     };
 
     return this.hasLogisticsDepartment([
@@ -318,101 +641,218 @@ export class AuthService {
     ]);
   }
 
-  hasLogisticsDepartment(values: unknown[]): boolean {
+  hasLogisticsDepartment(
+    values: unknown[]
+  ): boolean {
     return values
-      .flatMap((value) => this.departmentValues(value))
-      .map((value) => String(value ?? '').trim().toLowerCase())
+      .flatMap((value) =>
+        this.departmentValues(value)
+      )
+      .map((value) =>
+        String(value ?? '')
+          .trim()
+          .toLowerCase()
+      )
       .filter(Boolean)
-      .some((value) =>
-        value === 'logistics' ||
-        value === 'logistic' ||
-        value === 'logistics-department' ||
-        value === 'logistics department' ||
-        /\blogistics?\b/i.test(value)
+      .some(
+        (value) =>
+          value === 'logistics' ||
+          value === 'logistic' ||
+          value === 'logistics-department' ||
+          value === 'logistics department' ||
+          /\blogistics?\b/i.test(value)
       );
   }
 
   getAccessToken(): string | null {
-    return this.memoryAccessToken;
+    if (this.memoryAccessToken) {
+      return this.memoryAccessToken;
+    }
+
+    if (!this.isBrowser) {
+      return null;
+    }
+
+    const token =
+      sessionStorage.getItem(this.accessTokenKey);
+
+    this.memoryAccessToken = token;
+
+    return token;
   }
 
   getRefreshToken(): string | null {
-    return this.memoryRefreshToken;
+    if (this.memoryRefreshToken) {
+      return this.memoryRefreshToken;
+    }
+
+    if (!this.isBrowser) {
+      return null;
+    }
+
+    const token =
+      sessionStorage.getItem(this.refreshTokenKey);
+
+    this.memoryRefreshToken = token;
+
+    return token;
   }
 
-  private unwrapAuthResponse(response: ApiResponse<AuthResponse> | AuthResponse): AuthResponse {
-    const authResponse = 'data' in response && response.data ? response.data : (response as AuthResponse);
+  private unwrapAuthResponse(
+    response:
+      | ApiResponse<AuthResponse>
+      | AuthResponse
+  ): AuthResponse {
+    const authResponse =
+      'data' in response && response.data
+        ? response.data
+        : response as AuthResponse;
 
     if (authResponse.user) {
-      authResponse.user = this.normalizeUser(authResponse.user);
+      authResponse.user =
+        this.normalizeUser(authResponse.user);
     }
 
     return authResponse;
   }
 
-  private normalizeUser(user: User & { _id?: string; companyId?: string | Company }): User {
+  private normalizeUser(
+    user: User & {
+      _id?: string;
+      companyId?: string | Company;
+    }
+  ): User {
     const companyIdValue = user.companyId;
-    const backendCompany =
-      companyIdValue && typeof companyIdValue === 'object'
-        ? (companyIdValue as Company & { _id?: string; companyName?: string; companyCode?: string })
-        : undefined;
-    const userCompany =
-      user.company && typeof user.company === 'object'
-        ? (user.company as Company & { _id?: string; companyName?: string; companyCode?: string; logo?: string })
-        : undefined;
-    const rawCompany = userCompany || backendCompany;
 
-    const primaryRole = String(user.role || '');
+    const backendCompany =
+      companyIdValue &&
+      typeof companyIdValue === 'object'
+        ? (
+            companyIdValue as Company & {
+              _id?: string;
+              companyName?: string;
+              companyCode?: string;
+            }
+          )
+        : undefined;
+
+    const userCompany =
+      user.company &&
+      typeof user.company === 'object'
+        ? (
+            user.company as Company & {
+              _id?: string;
+              companyName?: string;
+              companyCode?: string;
+              logo?: string;
+            }
+          )
+        : undefined;
+
+    const rawCompany =
+      userCompany || backendCompany;
+
+    const primaryRole =
+      String(user.role || '');
 
     return {
       ...user,
       id: user.id || user._id || '',
-      roleLevel: user.roleLevel ?? user.roleRef?.level,
+      roleLevel:
+        user.roleLevel ??
+        user.roleRef?.level,
       roleRef: user.roleRef
         ? {
             ...user.roleRef,
-            id: user.roleRef.id || user.roleRef._id || ''
+            id:
+              user.roleRef.id ||
+              user.roleRef._id ||
+              ''
           }
         : undefined,
-      companyId: typeof companyIdValue === 'string' ? companyIdValue : rawCompany?.id || rawCompany?._id || '',
+      companyId:
+        typeof companyIdValue === 'string'
+          ? companyIdValue
+          : rawCompany?.id ||
+            rawCompany?._id ||
+            '',
       company: rawCompany
         ? {
             ...rawCompany,
-            id: rawCompany.id || rawCompany._id || '',
-            name: rawCompany.name || rawCompany.companyName || 'Registered Company',
-            slug: rawCompany.slug || rawCompany.companyCode || 'company',
-            logoUrl: this.resolveAssetUrl(rawCompany.logoUrl || rawCompany.logo)
+            id:
+              rawCompany.id ||
+              rawCompany._id ||
+              '',
+            name:
+              rawCompany.name ||
+              rawCompany.companyName ||
+              'Registered Company',
+            slug:
+              rawCompany.slug ||
+              rawCompany.companyCode ||
+              'company',
+            logoUrl:
+              this.resolveAssetUrl(
+                rawCompany.logoUrl ||
+                rawCompany.logo
+              )
           }
         : undefined,
-      roles: primaryRole === 'super_admin' ? ['super_admin'] : user.roles || [primaryRole]
+      roles:
+        primaryRole === 'super_admin'
+          ? ['super_admin']
+          : user.roles || [primaryRole]
     } as User;
   }
 
-  private toRegistrationBody(payload: CompanyRegistrationPayload): FormData | CompanyRegistrationPayload {
+  private toRegistrationBody(
+    payload: CompanyRegistrationPayload
+  ): FormData | CompanyRegistrationPayload {
     if (!payload.logo) {
       return payload;
     }
 
     const formData = new FormData();
 
-    Object.entries(payload).forEach(([key, value]) => {
-      if (value === undefined || value === null || value === '') {
-        return;
-      }
+    Object.entries(payload).forEach(
+      ([key, value]) => {
+        if (
+          value === undefined ||
+          value === null ||
+          value === ''
+        ) {
+          return;
+        }
 
-      formData.append(key, value instanceof File ? value : String(value));
-    });
+        formData.append(
+          key,
+          value instanceof File
+            ? value
+            : String(value)
+        );
+      }
+    );
 
     return formData;
   }
 
-  private resolveAssetUrl(value?: string): string | undefined {
-    if (!value) return undefined;
-    if (/^https?:\/\//i.test(value)) return value;
+  private resolveAssetUrl(
+    value?: string
+  ): string | undefined {
+    if (!value) {
+      return undefined;
+    }
+
+    if (/^https?:\/\//i.test(value)) {
+      return value;
+    }
+
     return apiUrl(value);
   }
 
-  private departmentValues(value: unknown): unknown[] {
+  private departmentValues(
+    value: unknown
+  ): unknown[] {
     if (!value) {
       return [];
     }
@@ -425,40 +865,87 @@ export class AuthService {
       return [value];
     }
 
-    const department = value as DepartmentRef;
+    const department =
+      value as DepartmentRef;
 
     return [
       department.departmentName,
       department.departmentCode,
       department.featureKey,
       department.dashboardKey,
-      ...(Array.isArray(department.accessModules) ? department.accessModules : [])
+      ...(
+        Array.isArray(
+          department.accessModules
+        )
+          ? department.accessModules
+          : []
+      )
     ];
   }
 
-  private storeSession(response: AuthResponse, rememberMe: boolean): void {
+  private storeSession(
+    response: AuthResponse,
+    rememberMe: boolean
+  ): void {
     if (!this.isBrowser) {
       return;
     }
 
-    localStorage.removeItem(this.accessTokenKey);
-    localStorage.removeItem(this.refreshTokenKey);
-    sessionStorage.removeItem(this.accessTokenKey);
-    sessionStorage.removeItem(this.refreshTokenKey);
+    /*
+     * IMPORTANT:
+     * Active auth identity always belongs to the current tab.
+     *
+     * sessionStorage is isolated per browser tab while localStorage is shared
+     * by every tab for the same CRM origin.
+     */
+    if (response.accessToken) {
+      this.memoryAccessToken =
+        response.accessToken;
 
-    this.memoryAccessToken = response.accessToken || null;
-    this.memoryRefreshToken = response.refreshToken || null;
-
-    if (rememberMe) {
-      localStorage.setItem(this.rememberSessionKey, 'true');
-    } else {
-      localStorage.removeItem(this.rememberSessionKey);
+      sessionStorage.setItem(
+        this.accessTokenKey,
+        response.accessToken
+      );
     }
 
+    if (response.refreshToken) {
+      this.memoryRefreshToken =
+        response.refreshToken;
+
+      sessionStorage.setItem(
+        this.refreshTokenKey,
+        response.refreshToken
+      );
+    }
+
+    sessionStorage.setItem(
+      this.rememberSessionKey,
+      rememberMe ? 'true' : 'false'
+    );
+
+    /*
+     * Remove legacy shared auth values so another tab cannot become the
+     * authentication source for this tab.
+     */
+    localStorage.removeItem(
+      this.accessTokenKey
+    );
+    localStorage.removeItem(
+      this.refreshTokenKey
+    );
+    localStorage.removeItem(
+      this.userKey
+    );
+    localStorage.removeItem(
+      this.rememberSessionKey
+    );
+
     if (response.user) {
-      localStorage.removeItem(this.userKey);
-      sessionStorage.removeItem(this.userKey);
-      this.sessionStorage(rememberMe).setItem(this.userKey, JSON.stringify(response.user));
+      sessionStorage.setItem(
+        this.userKey,
+        JSON.stringify(response.user)
+      );
+
       this.currentUser.set(response.user);
     }
   }
@@ -468,61 +955,113 @@ export class AuthService {
       return null;
     }
 
-    const storage = this.sessionStorage();
-    const storedUser = storage.getItem(this.userKey);
+    const storedUser =
+      sessionStorage.getItem(this.userKey);
 
     if (!storedUser) {
       return null;
     }
 
     try {
-      return this.normalizeUser(JSON.parse(storedUser) as User & { _id?: string; companyId?: string | Company });
+      return this.normalizeUser(
+        JSON.parse(storedUser) as User & {
+          _id?: string;
+          companyId?: string | Company;
+        }
+      );
     } catch {
-      storage.removeItem(this.userKey);
+      sessionStorage.removeItem(this.userKey);
       return null;
     }
   }
 
   private shouldRememberSession(): boolean {
-    return this.isBrowser && localStorage.getItem(this.rememberSessionKey) === 'true';
+    return (
+      this.isBrowser &&
+      sessionStorage.getItem(
+        this.rememberSessionKey
+      ) === 'true'
+    );
   }
 
-  private sessionStorage(rememberMe = this.shouldRememberSession()): Storage {
-    return rememberMe ? localStorage : window.sessionStorage;
-  }
-
-  private decodeAccessToken(): JwtUserPayload | null {
+  private decodeAccessToken():
+    | JwtUserPayload
+    | null {
     const token = this.getAccessToken();
-    return token ? this.decodeJwt(token) : null;
+
+    return token
+      ? this.decodeJwt(token)
+      : null;
   }
 
-  private decodeJwt(token: string): JwtUserPayload | null {
+  private decodeJwt(
+    token: string
+  ): JwtUserPayload | null {
     try {
       const payload = token.split('.')[1];
-      const normalizedPayload = payload.replace(/-/g, '+').replace(/_/g, '/');
-      const decodedPayload = atob(normalizedPayload);
-      const jsonPayload = decodeURIComponent(
-        decodedPayload
-          .split('')
-          .map((char) => `%${`00${char.charCodeAt(0).toString(16)}`.slice(-2)}`)
-          .join('')
-      );
 
-      return JSON.parse(jsonPayload) as JwtUserPayload;
+      const normalizedPayload =
+        payload
+          .replace(/-/g, '+')
+          .replace(/_/g, '/');
+
+      const decodedPayload =
+        atob(normalizedPayload);
+
+      const jsonPayload =
+        decodeURIComponent(
+          decodedPayload
+            .split('')
+            .map(
+              (char) =>
+                `%${`00${char
+                  .charCodeAt(0)
+                  .toString(16)}`.slice(-2)}`
+            )
+            .join('')
+        );
+
+      return JSON.parse(
+        jsonPayload
+      ) as JwtUserPayload;
     } catch {
       return null;
     }
   }
 
-  private isDemoLogin(email: string, password: string): boolean {
-    return this.canUseDemoLogin() && email.trim().toLowerCase() === this.demoEmail && password === this.demoPassword;
+  private isDemoLogin(
+    email: string,
+    password: string
+  ): boolean {
+    return (
+      this.canUseDemoLogin() &&
+      email.trim().toLowerCase() ===
+        this.demoEmail &&
+      password === this.demoPassword
+    );
   }
 
   private canUseDemoLogin(): boolean {
-    return ENABLE_DEMO_LOGIN || /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(?::\d+)?$/i.test(API_BASE_URL);
+    return (
+      ENABLE_DEMO_LOGIN ||
+      /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(?::\d+)?$/i.test(
+        API_BASE_URL
+      )
+    );
   }
-  private createDemoSession(selectedRole: string): AuthResponse {
-    const roleMap: Record<string, { role: string; name: string; designation: string; roles: string[] }> = {
+
+  private createDemoSession(
+    selectedRole: string
+  ): AuthResponse {
+    const roleMap: Record<
+      string,
+      {
+        role: string;
+        name: string;
+        designation: string;
+        roles: string[];
+      }
+    > = {
       super_admin: {
         role: 'super_admin',
         name: 'Opas Bizz Super Admin',
@@ -533,7 +1072,10 @@ export class AuthService {
         role: 'company_admin',
         name: 'Company Admin',
         designation: 'Company Administrator',
-        roles: ['company_admin', 'manager']
+        roles: [
+          'company_admin',
+          'manager'
+        ]
       },
       hr: {
         role: 'hr',
@@ -554,10 +1096,17 @@ export class AuthService {
         roles: ['accounts']
       }
     };
-    const demoRole = roleMap[selectedRole] ?? roleMap['company_admin'];
+
+    const demoRole =
+      roleMap[selectedRole] ??
+      roleMap['company_admin'];
+
     const company: Company = {
       id: 'company_opasbizz',
-      name: selectedRole === 'super_admin' ? 'Opas Bizz Pvt. Ltd.' : 'Registered Company Workspace',
+      name:
+        selectedRole === 'super_admin'
+          ? 'Opas Bizz Pvt. Ltd.'
+          : 'Registered Company Workspace',
       slug: 'opasbizz',
       email: 'admin@opasbizz.com',
       phone: '+91-9111001049',
@@ -590,37 +1139,67 @@ export class AuthService {
       roles: demoRole.roles,
       status: 'active',
       profile: {
-        designation: demoRole.designation
+        designation:
+          demoRole.designation
       },
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
 
     return {
-      accessToken: this.createDemoToken(user, 60 * 60),
-      refreshToken: this.createDemoToken(user, 60 * 60 * 24 * 7),
+      accessToken:
+        this.createDemoToken(
+          user,
+          60 * 60
+        ),
+      refreshToken:
+        this.createDemoToken(
+          user,
+          60 * 60 * 24 * 7
+        ),
       user
     };
   }
 
-  private createDemoToken(user: User, expiresInSeconds: number): string {
-    const header = this.base64UrlEncode({ alg: 'HS256', typ: 'JWT' });
-    const payload = this.base64UrlEncode({
-      sub: user.id,
-      companyId: user.companyId,
-      email: user.email,
-      exp: Math.floor(Date.now() / 1000) + expiresInSeconds,
-      iat: Math.floor(Date.now() / 1000),
-      name: user.name,
-      role: user.role,
-      roles: user.roles
-    });
+  private createDemoToken(
+    user: User,
+    expiresInSeconds: number
+  ): string {
+    const header =
+      this.base64UrlEncode({
+        alg: 'HS256',
+        typ: 'JWT'
+      });
+
+    const payload =
+      this.base64UrlEncode({
+        sub: user.id,
+        companyId: user.companyId,
+        email: user.email,
+        exp:
+          Math.floor(
+            Date.now() / 1000
+          ) + expiresInSeconds,
+        iat: Math.floor(
+          Date.now() / 1000
+        ),
+        name: user.name,
+        role: user.role,
+        roles: user.roles
+      });
 
     return `${header}.${payload}.demo-signature`;
   }
 
-  private base64UrlEncode(value: Record<string, unknown>): string {
-    return btoa(JSON.stringify(value)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  private base64UrlEncode(
+    value: Record<string, unknown>
+  ): string {
+    return btoa(
+      JSON.stringify(value)
+    )
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
   }
 
   /*
@@ -632,6 +1211,3 @@ export class AuthService {
   //   ...
   // }
 }
-
-
-

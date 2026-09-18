@@ -458,10 +458,22 @@
                 State
               </label>
 
+              @if (form.country.trim().toLowerCase() === 'india') {
+              <select [(ngModel)]="form.state">
+                <option value="">Select state</option>
+                @if (form.state && !indiaStates.includes(form.state)) {
+                  <option [value]="form.state">{{ form.state }}</option>
+                }
+                @for (state of indiaStates; track state) {
+                  <option [value]="state">{{ state }}</option>
+                }
+              </select>
+              } @else {
               <input
                 [(ngModel)]="form.state"
                 placeholder="Enter state"
               />
+              }
 
             </div>
 

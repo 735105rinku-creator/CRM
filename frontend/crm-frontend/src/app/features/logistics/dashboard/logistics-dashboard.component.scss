@@ -2350,3 +2350,34 @@
     box-shadow: none;
   }
 }
+
+/* ============================================================
+   LOGISTICS DASHBOARD - FIXED TOP HEADER
+   Keep this block at the END of this file.
+============================================================ */
+
+.logistics-dashboard-page {
+  position: relative;
+  min-width: 0;
+  min-height: 100%;
+  overflow: visible;
+}
+
+.logistics-dashboard-page > .topbar {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 1000 !important;
+
+  width: 100%;
+
+  background: rgba(237, 241, 246, 0.98) !important;
+
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+
+  border-bottom: 1px solid rgba(201, 168, 106, 0.15);
+
+  box-shadow:
+    0 8px 20px rgba(15, 23, 42, 0.07),
+    0 1px 0 rgba(255, 255, 255, 0.85);
+}
