@@ -1,8 +1,9 @@
-import {
+﻿import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  inject
+  inject,
+  signal
 } from '@angular/core';
 
 import {
@@ -17,6 +18,10 @@ import {
 import {
   AuthService
 } from '../../../../core/auth/auth.service';
+
+import {
+  apiUrl
+} from '../../../../core/config/api.config';
 
 
 interface AccountsSidebarItem {
@@ -85,20 +90,96 @@ export class AccountsSidebarComponent {
     ).trim();
   });
 
+  private readonly failedCompanyLogo =
+    signal('');
+
+
   readonly companyLogo = computed(() => {
+
     const user = this.auth.currentUser() as {
-      company?: { logo?: string; logoUrl?: string };
-      companyId?: string | { logo?: string; logoUrl?: string };
+      company?: {
+        logo?: string;
+        logoUrl?: string;
+      };
+      companyId?:
+        | string
+        | {
+            logo?: string;
+            logoUrl?: string;
+          };
     } | null;
 
-    const company = user?.company ||
-      (typeof user?.companyId === 'object' ? user.companyId : undefined);
+    const company =
+      user?.company ||
+      (
+        typeof user?.companyId === 'object'
+          ? user.companyId
+          : undefined
+      );
 
-    return String(company?.logoUrl || company?.logo || '').trim();
+    const logo =
+      String(
+        company?.logoUrl ||
+        company?.logo ||
+        ''
+      ).trim();
+      console.log('companyLogo computed:', logo);
+
+    if (!logo) {
+      return '';
+    }
+
+    const resolved =
+      this.assetUrl(logo);
+
+    return this.failedCompanyLogo() === resolved
+      ? ''
+      : resolved;
+
   });
+
 
   readonly workspaceSubtitle =
     'Finance & Accounting';
+
+
+  onCompanyLogoError(): void {
+
+    const currentLogo =
+      this.companyLogo();
+
+    if (currentLogo) {
+      this.failedCompanyLogo.set(
+        currentLogo
+      );
+    }
+
+  }
+
+
+  private assetUrl(
+    value?: string
+  ): string {
+
+    const asset =
+      String(value || '').trim();
+
+    if (!asset) {
+      return '';
+    }
+
+    if (
+      /^https?:\/\//i.test(asset) ||
+      asset.startsWith('data:') ||
+      asset.startsWith('blob:') ||
+      asset.startsWith('/brand/')
+    ) {
+      return asset;
+    }
+
+    return apiUrl(asset);
+
+  }
 
 
   /* =========================================================

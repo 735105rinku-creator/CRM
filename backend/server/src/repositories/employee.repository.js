@@ -122,6 +122,7 @@ export const findEmployeeProfile = async ({
     .populate("branchId", "branchName branchCode")
     .populate("departmentId", "departmentName departmentCode featureKey dashboardKey accessModules")
     .populate("designationId", "designationName designationCode")
+    .populate("userId", "department designation departmentRef")
     .populate("reportingManagerId", "displayName employeeCode officialEmail")
     .populate("shiftId", "shiftName shiftCode startTime endTime")
     .lean();
@@ -215,6 +216,7 @@ export const listEmployees = async ({ filter, page, limit, sort, currentUser = n
       .populate("branchId", "branchName branchCode")
       .populate("departmentId", "departmentName departmentCode featureKey dashboardKey accessModules")
       .populate("designationId", "designationName designationCode")
+      .populate("userId", "department designation departmentRef")
       .populate("reportingManagerId", "displayName employeeCode")
       .sort(sort)
       .skip(skip)

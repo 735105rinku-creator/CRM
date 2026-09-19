@@ -2,11 +2,14 @@ import { ApiError } from "../utils/apiError.js";
 import { ROLES } from "../constants/roles.js";
 import { ATTENDANCE_STATUS, CHECKIN_SOURCE } from "../models/Attendance.js";
 import { REGULARIZATION_STATUS } from "../models/AttendanceRegularization.js";
+import { Department } from "../models/Department.js";
+import { Designation } from "../models/Designation.js";
 
 import {
   createEmployeeRecord,
   findEmployeeByCode,
   findEmployeeProfile,
+  updateEmployeeById,
 } from "../repositories/employee.repository.js";
 
 import {
@@ -293,6 +296,16 @@ const splitUserName = (name = "Team Member") => {
   };
 };
 
+const findCompanyMasterByValue = async (Model, companyId, value, fields) => {
+  const normalizedValue = String(value || "").trim();
+  if (!normalizedValue) return null;
+
+  return Model.findOne({
+    companyId,
+    $or: fields.map((field) => ({ [field]: normalizedValue })),
+  }).select("_id");
+};
+
 const ensureSelfEmployee = async (currentUser) => {
   if ([ROLES.SUPER_ADMIN, ROLES.COMPANY_ADMIN].includes(currentUser.role)) {
     throw new ApiError(403, "Admin roles are not employee profiles.");
@@ -307,8 +320,31 @@ const ensureSelfEmployee = async (currentUser) => {
     officialEmail: currentUser.email,
   });
   const existingEmployee = await findExistingSelfEmployee();
+  const department = currentUser.departmentRef?._id
+    ? currentUser.departmentRef
+    : await findCompanyMasterByValue(
+        Department,
+        companyId,
+        currentUser.department,
+        ["departmentName", "departmentCode"]
+      );
+  const designation = await findCompanyMasterByValue(
+    Designation,
+    companyId,
+    currentUser.designation,
+    ["designationName", "designationCode"]
+  );
 
   if (existingEmployee) {
+    if ((!existingEmployee.departmentId && department?._id) || (!existingEmployee.designationId && designation?._id)) {
+      await updateEmployeeById(existingEmployee._id, {
+        ...(existingEmployee.departmentId ? {} : { departmentId: department?._id || null }),
+        ...(existingEmployee.designationId ? {} : { designationId: designation?._id || null }),
+        updatedBy: currentUser._id,
+      });
+      existingEmployee.departmentId = department?._id || existingEmployee.departmentId;
+      existingEmployee.designationId = designation?._id || existingEmployee.designationId;
+    }
     currentUser.employeeCode = existingEmployee.employeeCode;
     currentUser.employee = existingEmployee._id;
     return existingEmployee;
@@ -331,8 +367,8 @@ const ensureSelfEmployee = async (currentUser) => {
       officialEmail: currentUser.email,
       mobile: currentUser.mobile || "0000000000",
       joiningDate: currentUser.createdAt || new Date(),
-      departmentId: null,
-      designationId: null,
+      departmentId: department?._id || null,
+      designationId: designation?._id || null,
       employeeStatus: "active",
       isActive: true,
       workMode: "office",

@@ -93,8 +93,17 @@ interface EmployeeRow {
   workMode?: string;
   attendanceAllowedDevices?: string[];
   joiningDate?: string;
-  departmentId?: { _id?: string; departmentName?: string; departmentCode?: string; featureKey?: string; dashboardKey?: string; accessModules?: string[] };
-  designationId?: { designationName?: string; designationCode?: string };
+  department?: string;
+  designation?: string;
+  departmentName?: string;
+  designationName?: string;
+  userId?: {
+    department?: string;
+    designation?: string;
+    departmentRef?: string | { _id?: string; departmentName?: string; departmentCode?: string };
+  } | string | null;
+  departmentId?: { _id?: string; departmentName?: string; departmentCode?: string; featureKey?: string; dashboardKey?: string; accessModules?: string[] } | string | null;
+  designationId?: { designationName?: string; designationCode?: string } | string | null;
   reportingManagerId?: { displayName?: string; employeeCode?: string };
   organizationRole?: string;
   customRoleTitle?: string;
@@ -1197,7 +1206,9 @@ export class HrDashboardComponent implements OnDestroy {
     isDefault: [true]
   });
   constructor() {
-    this.selectedCompanyId.set(this.route.snapshot.queryParamMap.get('companyId'));
+    const routeCompanyId = this.route.snapshot.queryParamMap.get('companyId');
+    const userCompanyId = this.auth.currentUser()?.companyId || this.currentCompany()?.id || null;
+    this.selectedCompanyId.set(routeCompanyId || userCompanyId);
     const requestedFeature = this.route.snapshot.queryParamMap.get('feature');
     if (
       this.isHrFeature(requestedFeature) &&
@@ -1873,9 +1884,27 @@ export class HrDashboardComponent implements OnDestroy {
 
   protected logisticsStaffRows(): EmployeeRow[] {
     return this.employees().filter((employee) => {
-      const department = employee.departmentId;
-      const values = [department?.departmentName, department?.departmentCode, department?.featureKey, department?.dashboardKey, ...(department?.accessModules || [])]
-        .map((value) => String(value || '').toLowerCase());
+      const department = typeof employee.departmentId === 'object' && employee.departmentId ? employee.departmentId : null;
+      const rawDepartmentValue = employee.departmentId ?? employee.departmentName ?? employee.department;
+      const matchedDepartment = typeof rawDepartmentValue === 'string' || typeof rawDepartmentValue === 'number'
+        ? this.departments().find((item) =>
+            item._id === String(rawDepartmentValue) ||
+            item.departmentCode === String(rawDepartmentValue) ||
+            item.departmentName === String(rawDepartmentValue)
+          )
+        : null;
+      const values = [
+        department?.departmentName,
+        matchedDepartment?.departmentName,
+        department?.departmentCode,
+        matchedDepartment?.departmentCode,
+        department?.featureKey,
+        matchedDepartment?.featureKey,
+        department?.dashboardKey,
+        matchedDepartment?.dashboardKey,
+        ...(department?.accessModules || []),
+        ...(matchedDepartment?.accessModules || [])
+      ].map((value) => String(value || '').toLowerCase());
       return values.some((value) => value.includes('logistics'));
     });
   }
@@ -1915,7 +1944,7 @@ export class HrDashboardComponent implements OnDestroy {
     return this.logisticsStaffRows().map((employee) => ({
       employeeName: this.employeeDisplayName(employee),
       employeeCode: employee.employeeCode || '-',
-      department: employee.departmentId?.departmentName || 'Logistics',
+      department: this.employeeDepartmentName(employee) || 'Logistics',
       shift: shift?.shiftName || 'General Shift',
       schedule: `${shift?.startTime || '09:30'} - ${shift?.endTime || '18:30'}`,
       status: employee.employeeStatus || employee.status || 'active'
@@ -2490,6 +2519,66 @@ export class HrDashboardComponent implements OnDestroy {
     if (!employeeCode || employeeCode === '-') return 0;
     return this.attendanceRecords().filter((record) => this.attendanceEmployeeCode(record) === employeeCode && (record.isLate || record.status === 'late' || (record.lateByMinutes || 0) > 0)).length;
   }
+  protected employeeDepartmentName(employee: EmployeeRow): string {
+    const department = typeof employee.departmentId === 'object' && employee.departmentId ? employee.departmentId : null;
+    const linkedUser = typeof employee.userId === 'object' && employee.userId ? employee.userId : null;
+    const linkedUserDepartment = typeof linkedUser?.departmentRef === 'object' ? linkedUser.departmentRef : null;
+    const rawValue = employee.departmentId ?? employee.departmentName ?? employee.department ?? linkedUserDepartment?._id ?? linkedUser?.department;
+    const matched = typeof rawValue === 'string' || typeof rawValue === 'number'
+      ? this.departments().find((item) =>
+          item._id === String(rawValue) ||
+          item.departmentCode === String(rawValue) ||
+          item.departmentName === String(rawValue)
+        )
+      : null;
+    const value = department?.departmentName || matched?.departmentName || linkedUserDepartment?.departmentName || employee.departmentName || employee.department || linkedUser?.department;
+    return value || '-';
+  }
+
+  protected employeeDepartmentCode(employee: EmployeeRow): string {
+    const department = typeof employee.departmentId === 'object' && employee.departmentId ? employee.departmentId : null;
+    const linkedUser = typeof employee.userId === 'object' && employee.userId ? employee.userId : null;
+    const linkedUserDepartment = typeof linkedUser?.departmentRef === 'object' ? linkedUser.departmentRef : null;
+    const rawValue = employee.departmentId ?? employee.departmentName ?? employee.department ?? linkedUserDepartment?._id ?? linkedUser?.department;
+    const matched = typeof rawValue === 'string' || typeof rawValue === 'number'
+      ? this.departments().find((item) =>
+          item._id === String(rawValue) ||
+          item.departmentCode === String(rawValue) ||
+          item.departmentName === String(rawValue)
+        )
+      : null;
+    return department?.departmentCode || matched?.departmentCode || linkedUserDepartment?.departmentCode || '';
+  }
+
+  protected employeeDesignationName(employee: EmployeeRow): string {
+    const designation = typeof employee.designationId === 'object' && employee.designationId ? employee.designationId : null;
+    const linkedUser = typeof employee.userId === 'object' && employee.userId ? employee.userId : null;
+    const rawValue = employee.designationId ?? employee.designationName ?? employee.designation ?? linkedUser?.designation;
+    const matched = typeof rawValue === 'string' || typeof rawValue === 'number'
+      ? this.designations().find((item) =>
+          item._id === String(rawValue) ||
+          item.designationCode === String(rawValue) ||
+          item.designationName === String(rawValue)
+        )
+      : null;
+    const value = designation?.designationName || matched?.designationName || employee.designationName || employee.designation || linkedUser?.designation;
+    return value || '-';
+  }
+
+  protected employeeDesignationCode(employee: EmployeeRow): string {
+    const designation = typeof employee.designationId === 'object' && employee.designationId ? employee.designationId : null;
+    const linkedUser = typeof employee.userId === 'object' && employee.userId ? employee.userId : null;
+    const rawValue = employee.designationId ?? employee.designationName ?? employee.designation ?? linkedUser?.designation;
+    const matched = typeof rawValue === 'string' || typeof rawValue === 'number'
+      ? this.designations().find((item) =>
+          item._id === String(rawValue) ||
+          item.designationCode === String(rawValue) ||
+          item.designationName === String(rawValue)
+        )
+      : null;
+    return designation?.designationCode || matched?.designationCode || '';
+  }
+
   protected filteredEmployees(): EmployeeRow[] {
     const term = this.searchTerm().trim().toLowerCase();
     if (!term) return this.employees();
@@ -2500,8 +2589,8 @@ export class HrDashboardComponent implements OnDestroy {
         employee.lastName,
         employee.officialEmail,
         employee.employeeCode,
-        employee.departmentId?.departmentName,
-        employee.designationId?.designationName
+        this.employeeDepartmentName(employee),
+        this.employeeDesignationName(employee)
       ].some((value) => String(value || '').toLowerCase().includes(term))
     );
   }
@@ -2515,7 +2604,7 @@ export class HrDashboardComponent implements OnDestroy {
     const results: Array<{ title: string; meta: string; feature: HrFeature }> = [];
 
     this.employees().forEach((employee) => {
-      if (matches([employee.displayName, employee.name, employee.firstName, employee.lastName, employee.employeeCode, employee.officialEmail, employee.mobile, employee.departmentId?.departmentName, employee.designationId?.designationName])) {
+      if (matches([employee.displayName, employee.name, employee.firstName, employee.lastName, employee.employeeCode, employee.officialEmail, employee.mobile, this.employeeDepartmentName(employee), this.employeeDesignationName(employee)])) {
         results.push({ title: this.employeeDisplayName(employee), meta: `Employee - ${employee.employeeCode || employee.officialEmail || '-'}`, feature: 'employee' });
       }
     });
@@ -2673,7 +2762,7 @@ export class HrDashboardComponent implements OnDestroy {
     if (department) return department.departmentName || department.departmentCode || normalized;
 
     const employeeDepartment = this.employees()
-      .map((employee) => employee.departmentId)
+      .map((employee) => typeof employee.departmentId === 'object' && employee.departmentId ? employee.departmentId : null)
       .find((item) => item?._id === normalized || item?.departmentCode === normalized || item?.departmentName === normalized);
 
     return employeeDepartment?.departmentName || employeeDepartment?.departmentCode || normalized;
@@ -4731,8 +4820,8 @@ export class HrDashboardComponent implements OnDestroy {
       permanentCity: row.permanentAddress?.city || '',
       permanentState: row.permanentAddress?.state || '',
       permanentPincode: row.permanentAddress?.pincode || '',
-      departmentCode: row.departmentId?.departmentCode || '',
-      designationCode: row.designationId?.designationCode || '',
+      departmentCode: this.employeeDepartmentCode(row),
+      designationCode: this.employeeDesignationCode(row),
       reportingManagerEmployeeCode: row.reportingManagerId?.employeeCode || '',
       joiningDate: row.joiningDate ? this.toDateInput(new Date(row.joiningDate)) : new Date().toISOString().slice(0, 10),
       employmentType: row.employmentType || 'permanent',

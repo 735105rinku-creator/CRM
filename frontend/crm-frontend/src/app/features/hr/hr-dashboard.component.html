@@ -711,8 +711,8 @@
           @for (employee of filteredEmployees(); track employee._id || employee.employeeCode) {
             <tr>
               <td><strong>{{ employeeDisplayName(employee) }}</strong><span>{{ employee.employeeCode || employee.officialEmail || employee.email }}</span></td>
-              <td>{{ employee.departmentId?.departmentName || '-' }}</td>
-              <td>{{ employee.designationId?.designationName || '-' }}</td>
+              <td>{{ employeeDepartmentName(employee) || '-' }}</td>
+              <td>{{ employeeDesignationName(employee) || '-' }}</td>
               <td>{{ formatDate(employee.joiningDate) }}</td>
               <td><mark>{{ employeeStatusLabel(employee) }}</mark></td>
               <td class="table-actions"><button type="button" class="table-btn" (click)="editEmployee(employee)">Edit</button><button type="button" class="table-btn" (click)="toggleEmployeeStatus(employee)">{{ employeeActionLabel(employee) }}</button><button type="button" class="table-btn danger" (click)="deleteEmployee(employee)">Delete</button></td>
@@ -760,8 +760,8 @@
             <tr>
               <td><strong>{{ employeeDisplayName(employee) }}</strong><span>{{ employee.employeeCode || '-' }}</span></td>
               <td>{{ employee.officialEmail || employee.email || employee.mobile || '-' }}</td>
-              <td>{{ employee.departmentId?.departmentName || '-' }}</td>
-              <td>{{ employee.designationId?.designationName || '-' }}</td>
+              <td>{{ employeeDepartmentName(employee) || '-' }}</td>
+              <td>{{ employeeDesignationName(employee) || '-' }}</td>
               <td>{{ employeeRoleLabel(employee) }}</td>
               <td><mark>{{ employeeStatusLabel(employee) }}</mark></td>
               <td class="table-actions"><button type="button" class="table-btn" (click)="openEmployeeDashboard(employee)">Open</button><button type="button" class="table-btn" (click)="editEmployee(employee)">Edit</button><button type="button" class="table-btn danger" (click)="deleteEmployee(employee)">Delete</button></td>
@@ -1464,7 +1464,7 @@
                 />
                 <span>
                   <strong>{{ employee.displayName || employee.name || employee.employeeCode }}</strong>
-                  <small>{{ employee.employeeCode }} | {{ employee.departmentId?.departmentName || '-' }} | {{ employee.designationId?.designationName || '-' }}</small>
+                  <small>{{ employee.employeeCode }} | {{ employeeDepartmentName(employee) || '-' }} | {{ employeeDesignationName(employee) || '-' }}</small>
                 </span>
               </label>
             } @empty {
@@ -1542,7 +1542,7 @@
     }
 
     @if (activeFeature() === 'logistics-employees') {
-      <article class="hr-panel large span-2 logistics-monitor-table"><h2>All Logistics Staff</h2><p>Air, Sea, Truck, Warehouse, CHA and QC team list from employee master.</p><div class="table-wrap"><table><thead><tr><th>Employee</th><th>Department</th><th>Designation</th><th>Joining</th><th>Status</th></tr></thead><tbody>@for (employee of logisticsStaffRows(); track employee._id || employee.employeeCode) { <tr><td><strong>{{ employeeDisplayName(employee) }}</strong><span>{{ employee.employeeCode || '-' }}</span></td><td>{{ employee.departmentId?.departmentName || '-' }}</td><td>{{ employee.designationId?.designationName || '-' }}</td><td>{{ formatDate(employee.joiningDate) }}</td><td><mark>{{ employee.employeeStatus || employee.status || 'active' }}</mark></td></tr> } @empty { <tr><td colspan="5" class="empty">No Logistics department employees found.</td></tr> }</tbody></table></div></article>
+      <article class="hr-panel large span-2 logistics-monitor-table"><h2>All Logistics Staff</h2><p>Air, Sea, Truck, Warehouse, CHA and QC team list from employee master.</p><div class="table-wrap"><table><thead><tr><th>Employee</th><th>Department</th><th>Designation</th><th>Joining</th><th>Status</th></tr></thead><tbody>@for (employee of logisticsStaffRows(); track employee._id || employee.employeeCode) { <tr><td><strong>{{ employeeDisplayName(employee) }}</strong><span>{{ employee.employeeCode || '-' }}</span></td><td>{{ employeeDepartmentName(employee) || '-' }}</td><td>{{ employeeDesignationName(employee) || '-' }}</td><td>{{ formatDate(employee.joiningDate) }}</td><td><mark>{{ employee.employeeStatus || employee.status || 'active' }}</mark></td></tr> } @empty { <tr><td colspan="5" class="empty">No Logistics department employees found.</td></tr> }</tbody></table></div></article>
     }
 
     @if (activeFeature() === 'logistics-daily-work') {

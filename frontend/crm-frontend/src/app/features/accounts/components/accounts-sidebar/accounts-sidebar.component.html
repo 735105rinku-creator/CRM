@@ -1,4 +1,4 @@
-<div class="accounts-sidebar">
+﻿<div class="accounts-sidebar">
 
   <!-- =====================================================
        BRAND / WORKSPACE
@@ -7,14 +7,26 @@
   <div class="sidebar-header">
 
     <div class="workspace-icon">
+
       @if (companyLogo()) {
-        <img [src]="companyLogo()" [alt]="companyName() + ' logo'" />
+        <img
+          [src]="companyLogo()"
+          [alt]="companyName() + ' logo'"
+          (error)="onCompanyLogoError()"
+        />
       } @else {
-        ₹
+        <span
+          class="workspace-logo-fallback"
+          aria-hidden="true"
+        >
+          &#8377;
+        </span>
       }
+
     </div>
 
     <div class="workspace-text">
+
       <h2>
         {{ companyName() }}
       </h2>
@@ -22,6 +34,7 @@
       <p>
         {{ workspaceSubtitle }}
       </p>
+
     </div>
 
   </div>
@@ -64,79 +77,76 @@
               }"
             >
 
-              <!-- =========================================
-                   ICON
-              ========================================== -->
-
               <span
                 class="menu-icon"
                 [attr.data-icon]="item.icon"
+                aria-hidden="true"
               >
 
                 @switch (item.icon) {
 
                   @case ('dashboard') {
-                    <span>⌂</span>
+                    <span>&#8962;</span>
                   }
 
                   @case ('customers') {
-                    <span>👥</span>
+                    <span>&#9786;</span>
                   }
 
                   @case ('vendors') {
-                    <span>🏢</span>
+                    <span>&#9672;</span>
                   }
 
                   @case ('chart') {
-                    <span>☷</span>
+                    <span>&#9776;</span>
                   }
 
                   @case ('invoice') {
-                    <span>▤</span>
+                    <span>&#9638;</span>
                   }
 
                   @case ('receipt') {
-                    <span>₹</span>
+                    <span>&#8377;</span>
                   }
 
                   @case ('credit') {
-                    <span>↩</span>
+                    <span>&#8617;</span>
                   }
 
                   @case ('bill') {
-                    <span>▧</span>
+                    <span>&#9639;</span>
                   }
 
                   @case ('payment') {
-                    <span>⇄</span>
+                    <span>&#8644;</span>
                   }
 
                   @case ('debit') {
-                    <span>↪</span>
+                    <span>&#8618;</span>
                   }
 
                   @case ('expense') {
-                    <span>−</span>
+                    <span>&minus;</span>
                   }
 
                   @case ('journal') {
-                    <span>✎</span>
+                    <span>&#9998;</span>
                   }
 
                   @case ('ledger') {
-                    <span>☰</span>
+                    <span>&#9776;</span>
                   }
 
                   @case ('customer-ledger') {
-                    <span>◉</span>
+                    <span>&#9673;</span>
                   }
 
                   @case ('vendor-ledger') {
-                    <span>◎</span>
+                    <span>&#9678;</span>
                   }
 
                   @case ('bank') {
-                    <span>🏦</span>
+                    <span>&#9635;</span>
                   }
 
                   @case ('tax') {
@@ -144,15 +154,51 @@
                   }
 
                   @case ('reports') {
-                    <span>▥</span>
+                    <span>&#9645;</span>
+                  }
+
+                  @case ('profile') {
+                    <span>&#9817;</span>
+                  }
+
+                  @case ('attendance') {
+                    <span>&#10003;</span>
+                  }
+
+                  @case ('leave') {
+                    <span>&#9744;</span>
+                  }
+
+                  @case ('payslip') {
+                    <span>&#8377;</span>
+                  }
+
+                  @case ('documents') {
+                    <span>&#9638;</span>
+                  }
+
+                  @case ('events') {
+                    <span>&#9734;</span>
+                  }
+
+                  @case ('calendar') {
+                    <span>&#9638;</span>
+                  }
+
+                  @case ('meetings') {
+                    <span>&#9673;</span>
+                  }
+
+                  @case ('messages') {
+                    <span>&#9993;</span>
                   }
 
                   @case ('settings') {
-                    <span>⚙</span>
+                    <span>&#9881;</span>
                   }
 
                   @default {
-                    <span>•</span>
+                    <span>&bull;</span>
                   }
 
                 }
@@ -160,18 +206,10 @@
               </span>
 
 
-              <!-- =========================================
-                   LABEL
-              ========================================== -->
-
               <span class="menu-label">
                 {{ item.label }}
               </span>
 
-
-              <!-- =========================================
-                   ACTIVE INDICATOR
-              ========================================== -->
 
               <span class="active-indicator"></span>
 
@@ -201,13 +239,15 @@
       </div>
 
       <div>
+
         <span class="footer-label">
           Financial Year
         </span>
 
         <strong>
-          2026–27
+          2026&ndash;27
         </strong>
+
       </div>
 
     </div>
