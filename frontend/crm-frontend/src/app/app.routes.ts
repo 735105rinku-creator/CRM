@@ -1,4 +1,4 @@
-import { Routes } from '@angular/router';
+﻿import { Routes } from '@angular/router';
 
 import { authGuard } from './core/auth/auth.guard';
 import { companyAdminGuard } from './core/auth/company-admin.guard';
@@ -24,6 +24,7 @@ import { MainLayoutComponent } from './layouts/main-layout/main-layout.component
 
 import { MeetingRoomComponent } from './features/meeting-room/meeting-room.component';
 import { PlaceholderPageComponent } from './features/placeholder-page.component';
+import { NotFound } from './features/not-found/not-found';
 import { PricingComponent } from './features/pricing/pricing.component';
 
 import { RegisterCompanyComponent } from './features/auth/register/register-company.component';
@@ -1311,9 +1312,7 @@ export const routes: Routes = [
 
           {
             path: '**',
-
-            redirectTo:
-              'dashboard'
+    component: NotFound
           }
         ]
       },
@@ -1580,6 +1579,6 @@ export const routes: Routes = [
 
   {
     path: '**',
-    redirectTo: 'dashboard'
+    component: NotFound
   }
 ];

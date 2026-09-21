@@ -1,7 +1,8 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Meta } from '@angular/platform-browser';
 
 import { AuthResponse, AuthService } from '../../../core/auth/auth.service';
 
@@ -23,6 +24,7 @@ export class LoginComponent {
   private readonly formBuilder = inject(FormBuilder);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly meta = inject(Meta);
 
   readonly isPasswordVisible = signal(false);
   readonly isLoading = signal(false);
@@ -66,6 +68,7 @@ export class LoginComponent {
   });
 
   constructor() {
+    this.meta.updateTag({ name: 'robots', content: 'noindex, nofollow' });
     const rememberedEmail = localStorage.getItem('rememberedEmail');
     const queryEmail = this.route.snapshot.queryParamMap.get('email');
     const email = queryEmail || rememberedEmail;
@@ -300,3 +303,4 @@ export class LoginComponent {
     return roleRedirects[role] || this.authService.getDefaultRedirectUrl();
   }
 }
+

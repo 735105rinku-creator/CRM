@@ -1,0 +1,19 @@
+﻿User-agent: *
+Allow: /
+Disallow: /login
+Disallow: /dashboard
+Disallow: /super-admin
+Disallow: /opasbizz
+Disallow: /hr-dashboard
+Disallow: /employee-dashboard
+Disallow: /logistics
+Disallow: /sales
+Disallow: /accounts
+Disallow: /purchase
+Disallow: /checkout
+Disallow: /meeting-room
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /register-company
+
+Sitemap: https://opasbizz.co.in/sitemap.xml
