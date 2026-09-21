@@ -1004,7 +1004,12 @@ export const getAttendanceDashboardService = async (currentUser) => {
     countAttendance({
       companyId,
       attendanceDate: today,
-      status: ATTENDANCE_STATUS.PRESENT,
+      status: {
+        $in: [
+          ATTENDANCE_STATUS.PRESENT,
+          ATTENDANCE_STATUS.LATE,
+        ],
+      },
     }),
     countAttendance({
       companyId,
@@ -1070,8 +1075,11 @@ export const getMonthlyAttendanceService = async (
     year,
     month,
     records,
-    totalPresent: records.filter((x) => x.status === ATTENDANCE_STATUS.PRESENT)
-      .length,
+    totalPresent: records.filter(
+      (x) =>
+        x.status === ATTENDANCE_STATUS.PRESENT ||
+        x.status === ATTENDANCE_STATUS.LATE
+    ).length,
     totalAbsent: records.filter((x) => x.status === ATTENDANCE_STATUS.ABSENT)
       .length,
     totalLate: records.filter((x) => x.status === ATTENDANCE_STATUS.LATE)
