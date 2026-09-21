@@ -2331,7 +2331,7 @@ export class HrDashboardComponent implements OnDestroy {
     const lateCount = rows.filter((row) => row.status === 'late' || row.lateByMinutes > 0).length;
 
     return [
-      { label: 'Present', value: statusCount('present'), icon: 'P' },
+      { label: 'Present', value: statusCount('present') + lateCount, icon: 'P' },
       { label: 'Late', value: lateCount, icon: 'L' },
       { label: 'On leave', value: statusCount('on_leave'), icon: 'O' },
       { label: 'Absent', value: statusCount('absent'), icon: 'A' },
