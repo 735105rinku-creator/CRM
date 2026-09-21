@@ -1,6 +1,7 @@
-import { AfterViewInit, Component, NgZone, OnDestroy, inject } from '@angular/core';
+import { AfterViewInit, Component, NgZone, OnDestroy, inject, PLATFORM_ID } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
+import { isPlatformBrowser } from '@angular/common';
 
 @Component({
   selector: 'app-root',
@@ -11,11 +12,16 @@ import { filter } from 'rxjs';
 export class App implements AfterViewInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly zone = inject(NgZone);
+  private readonly platformId = inject(PLATFORM_ID);
   private readonly dismissedNotificationKey = 'opas.dismissed.notifications';
   private observer?: MutationObserver;
   private routeSubscription?: { unsubscribe: () => void };
 
   ngAfterViewInit(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
     this.zone.runOutsideAngular(() => {
       this.enhanceUiSoon();
       this.observer = new MutationObserver(() => this.enhanceUiSoon());
@@ -33,6 +39,7 @@ export class App implements AfterViewInit, OnDestroy {
   }
 
   private enhanceUiSoon(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
     window.setTimeout(() => {
       this.enhanceLists();
       this.enhanceButtons();

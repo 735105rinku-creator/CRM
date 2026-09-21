@@ -7,7 +7,11 @@ import {
 
 import { IMAGE_CONFIG } from '@angular/common';
 
-import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import {
+  provideHttpClient,
+  withFetch,
+  withInterceptors,
+} from '@angular/common/http';
 
 import { provideRouter, withInMemoryScrolling } from '@angular/router';
 
@@ -21,7 +25,10 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
 
-    provideHttpClient(withInterceptors([tokenInterceptor])),
+    provideHttpClient(
+      withInterceptors([tokenInterceptor]),
+      withFetch(),
+    ),
     provideAppInitializer(() => inject(AuthService).restoreSession()),
 
     provideRouter(
