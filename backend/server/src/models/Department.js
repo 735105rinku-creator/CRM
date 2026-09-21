@@ -62,7 +62,7 @@ const departmentSchema = new mongoose.Schema(
       type: String,
       trim: true,
       lowercase: true,
-      enum: ["none", "employee", "sales", "accounts", "logistics", "hr", "support", "operations"],
+      enum: ["none", "employee", "sales", "accounts", "logistics", "hr", "support", "operations", "purchase"],
       default: "employee",
       index: true,
     },

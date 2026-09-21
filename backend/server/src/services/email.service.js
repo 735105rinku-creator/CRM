@@ -66,29 +66,42 @@ const platformBrand = {
 
 const platformMailShell = ({ title, preheader, body, ctaLabel, ctaUrl }) => `<!DOCTYPE html>
 <html>
-<body style="margin:0;background:#edf4ff;font-family:Arial,Helvetica,sans-serif;color:#172033">
-  <div style="display:none;max-height:0;overflow:hidden">${preheader || title}</div>
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:linear-gradient(135deg,#21083f 0%,#5724bd 38%,#057b7d 72%,#c5164f 100%);padding:32px 12px">
+<body style="margin:0;background:#eef3f8;font-family:Arial,Helvetica,sans-serif;color:#172033">
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0">${preheader || title}</div>
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#eef3f8;padding:36px 12px">
     <tr>
       <td align="center">
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 24px 70px rgba(15,23,42,.28)">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;background:#ffffff;border:1px solid #dbe5ee;border-radius:16px;overflow:hidden;box-shadow:0 18px 50px rgba(21,45,72,.14)">
           <tr>
-            <td style="height:8px;background:linear-gradient(90deg,#dc2626,#f59e0b,#059669,#0284c7)"></td>
+            <td style="height:5px;background:#0f766e;font-size:0;line-height:0">&nbsp;</td>
           </tr>
           <tr>
-            <td style="padding:28px 30px 8px">
-              <img src="${platformBrand.logoUrl}" alt="${platformBrand.name}" style="max-width:160px;height:auto;background:#f8fafc;border-radius:8px;padding:8px;border:1px solid #e2e8f0" />
-              <p style="text-transform:uppercase;letter-spacing:0;font-size:12px;font-weight:800;color:#6d28d9;margin:22px 0 8px">${platformBrand.name}</p>
-              <h1 style="font-size:32px;line-height:1.1;margin:0;color:#111827">${title}</h1>
+            <td style="padding:30px 34px 26px;background:#102a43">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td>
+                    <img src="${platformBrand.logoUrl}" alt="${platformBrand.name}" style="display:block;max-width:156px;height:auto;background:#ffffff;border-radius:10px;padding:8px" />
+                  </td>
+                  <td align="right" style="color:#8fd8d0;font-size:11px;font-weight:bold;letter-spacing:1.4px;text-transform:uppercase">Secure message</td>
+                </tr>
+              </table>
+              <p style="text-transform:uppercase;letter-spacing:1.8px;font-size:11px;font-weight:bold;color:#8fd8d0;margin:28px 0 10px">${platformBrand.name}</p>
+              <h1 style="font-size:32px;line-height:1.16;margin:0;color:#ffffff;font-weight:700">${title}</h1>
             </td>
           </tr>
           <tr>
-            <td style="padding:12px 30px 8px">${body}</td>
+            <td style="padding:34px 34px 10px;background:#ffffff">${body}</td>
           </tr>
           <tr>
-            <td style="padding:16px 30px 30px">
-              <a href="${ctaUrl}" style="display:inline-block;background:linear-gradient(135deg,#4c1d95,#047857,#be123c);color:#fff;text-decoration:none;font-weight:800;padding:14px 22px;border-radius:8px">${ctaLabel}</a>
-              <p style="color:#64748b;font-size:13px;line-height:1.6;margin:22px 0 0">Button work na kare to link copy kare:<br><span style="word-break:break-all;color:#334155">${ctaUrl}</span></p>
+            <td style="padding:18px 34px 34px;background:#ffffff">
+              <a href="${ctaUrl}" style="display:inline-block;background:#0f766e;color:#ffffff;text-decoration:none;font-size:15px;font-weight:bold;padding:14px 24px;border-radius:8px;box-shadow:0 8px 18px rgba(15,118,110,.22)">${ctaLabel}</a>
+              <p style="color:#718096;font-size:12px;line-height:1.65;margin:22px 0 0">If the button does not work, copy and paste this link into your browser:<br><span style="word-break:break-all;color:#34516b">${ctaUrl}</span></p>
+            </td>
+          </tr>
+          <tr>
+            <td style="border-top:1px solid #e7edf3;padding:20px 34px;background:#f8fafc">
+              <p style="color:#587086;font-size:12px;line-height:1.6;margin:0">This is an automated message from ${platformBrand.name}. Please do not reply to this email.</p>
+              <p style="color:#8a9aab;font-size:11px;margin:8px 0 0">Secure access for your business workspace</p>
             </td>
           </tr>
         </table>
@@ -119,7 +132,7 @@ export const sendEmail = async ({
     if (required) {
       throw new Error(
         `SMTP is not configured. Cannot send required email to ${to} — subject: "${subject}". ` +
-          "Set SMTP_HOST, SMTP_USER, and SMTP_PASS in your .env file."
+        "Set SMTP_HOST, SMTP_USER, and SMTP_PASS in your .env file."
       );
     }
 
