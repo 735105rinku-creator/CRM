@@ -4812,3 +4812,962 @@ mark{background:#e9fff4;border:1px solid #98ecc2;border-radius:999px;color:#0478
   line-height: 1.25 !important;
 }
 
+/* ==========================================================
+   ATTENDANCE VIEW — PRODUCTION-GRADE LAYOUT
+   Fixes horizontal scroll, tight tables, and inconsistent spacing
+========================================================== */
+
+/* Top grid: punch panel + history side by side */
+.attendance-top-grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.9fr) minmax(0, 1.1fr);
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 1100px) {
+  .attendance-top-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Panel header (title + subtitle) */
+.punch-panel,
+.history-panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.panel-head {
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+
+.panel-head h2 {
+  color: #0f172a;
+  font-size: 1.1rem;
+  font-weight: 800;
+  margin: 0 0 4px;
+  letter-spacing: -0.01em;
+}
+
+.panel-head p {
+  color: #64748b;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  margin: 0;
+}
+
+/* ---- Punch ring: centered, sized, professional ---- */
+.punch-action-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 0;
+  flex-grow: 1;
+}
+
+.punch-action-wrapper .punch-ring {
+  margin: 0 !important;
+  width: 190px !important;
+  height: 190px !important;
+  max-width: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  border: 6px solid #ecfdf5;
+  background: #159a65;
+  color: #ffffff;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  box-shadow: 0 10px 24px rgba(21, 154, 101, 0.22);
+  font-family: inherit;
+}
+
+.punch-action-wrapper .punch-ring:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px rgba(21, 154, 101, 0.28);
+}
+
+.punch-action-wrapper .punch-ring:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.punch-action-wrapper .punch-ring.out {
+  background: #b91c1c;
+  border-color: #fef2f2;
+  box-shadow: 0 10px 24px rgba(185, 28, 28, 0.22);
+}
+
+.punch-action-wrapper .punch-ring span {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+
+.punch-action-wrapper .punch-ring strong {
+  font-size: 1.55rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.punch-action-wrapper .punch-ring small {
+  font-size: 0.72rem;
+  opacity: 0.85;
+  font-weight: 600;
+}
+
+/* ---- Summary grid: clean 3 columns ---- */
+.attendance-summary-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  margin-top: 16px;
+}
+
+.attendance-summary-grid > span {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.attendance-summary-grid strong {
+  color: #64748b;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.attendance-summary-grid em {
+  color: #0f172a;
+  font-size: 0.82rem;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.attendance-summary-grid em.status-value {
+  color: #047857;
+  text-transform: capitalize;
+}
+
+@media (max-width: 640px) {
+  .attendance-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  .punch-action-wrapper .punch-ring {
+    width: 160px !important;
+    height: 160px !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .attendance-summary-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ---- Table toolbar ---- */
+.table-toolbar {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.toolbar-search {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1 1 200px;
+  min-width: 180px;
+}
+
+.toolbar-search span,
+.toolbar-rows label {
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.toolbar-search input,
+.toolbar-rows select {
+  background: #ffffff;
+  border: 1px solid #d5dfeb;
+  border-radius: 8px;
+  min-height: 38px;
+  padding: 0 12px;
+  font-size: 0.85rem;
+  color: #0f172a;
+  font-family: inherit;
+  outline: 0;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.toolbar-search input:focus,
+.toolbar-rows select:focus {
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+.toolbar-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 0 0 auto;
+}
+
+.toolbar-count {
+  margin-left: auto;
+  color: #475569;
+  font-size: 0.78rem;
+  font-weight: 700;
+  align-self: center;
+}
+
+/* ---- Professional data table ---- */
+.hr-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+  /* ⬇ THIS is the key fix — remove the global 720px min-width */
+  min-width: 0 !important;
+}
+
+.hr-data-table thead th {
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 11px 14px;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.hr-data-table tbody td {
+  padding: 13px 14px;
+  border-bottom: 1px solid #eef2f7;
+  color: #334155;
+  vertical-align: middle;
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+
+.hr-data-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.hr-data-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.hr-data-table td strong {
+  display: block;
+  color: #0f172a;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.hr-data-table td span {
+  display: block;
+  color: #64748b;
+  font-size: 0.74rem;
+  margin-top: 3px;
+}
+
+.hr-data-table td span.muted {
+  color: #94a3b8;
+}
+
+.hr-data-table td .stacked-time {
+  font-variant-numeric: tabular-nums;
+}
+
+.hr-data-table mark {
+  display: inline-block;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  border-radius: 999px;
+  color: #047857;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 4px 10px;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+/* Table wrapper: only scrolls when truly necessary */
+.history-panel .table-wrap,
+.hr-panel .table-wrap {
+  overflow-x: auto;
+  border-radius: 10px;
+}
+
+.history-panel .table-wrap::-webkit-scrollbar,
+.hr-panel .table-wrap::-webkit-scrollbar {
+  height: 6px;
+}
+
+.history-panel .table-wrap::-webkit-scrollbar-thumb,
+.hr-panel .table-wrap::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+/* Compact table for the side history panel */
+.compact-table {
+  font-size: 0.82rem;
+}
+
+.compact-table thead th,
+.compact-table tbody td {
+  padding: 10px 12px;
+}
+
+/* Table footer / pagination */
+.table-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #e2e8f0;
+  font-size: 0.78rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.pagination {
+  display: flex;
+  gap: 6px;
+}
+
+.pagination button {
+  background: #ffffff;
+  border: 1px solid #d5dfeb;
+  border-radius: 7px;
+  color: #334155;
+  cursor: pointer;
+  font-size: 0.76rem;
+  font-weight: 700;
+  min-height: 32px;
+  padding: 0 12px;
+  transition: all 0.15s ease;
+}
+
+.pagination button:hover:not(:disabled) {
+  border-color: #93c5fd;
+  color: #2563eb;
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Empty state */
+.hr-data-table .empty {
+  text-align: center;
+  color: #64748b;
+  font-weight: 600;
+  padding: 32px 12px !important;
+}
+
+/* Force HR panels to not clip content */
+.hr-panel {
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* Kill the global 720px min-width on tables inside attendance */
+.hr-content table {
+  min-width: 0;
+}
+
+/* But keep full-width tables scrollable when they have many columns */
+.hr-panel:has(.hr-data-table) .table-wrap {
+  overflow-x: auto;
+}
+
+.hr-data-table {
+  min-width: 100%;
+}
+
+/* Mobile: convert table rows to stacked cards */
+@media (max-width: 640px) {
+  .hr-data-table thead {
+    display: none;
+  }
+
+  .hr-data-table tbody tr {
+    display: block;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 10px;
+    background: #ffffff;
+  }
+
+  .hr-data-table tbody td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px dashed #eef2f7;
+    text-align: right;
+  }
+
+  .hr-data-table tbody td:last-child {
+    border-bottom: 0;
+  }
+
+  .hr-data-table tbody td::before {
+    content: attr(data-label);
+    color: #64748b;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    text-align: left;
+    margin-right: 12px;
+  }
+
+  .hr-data-table tbody td strong {
+    display: inline;
+    margin: 0;
+  }
+
+  .hr-data-table tbody td span {
+    display: inline;
+    margin: 0;
+  }
+}
+
+/* Override the global 720px min-width */
+table {
+  min-width: 0;
+}
+
+/* Only apply min-width where tables actually need it */
+.logistics-flow-view table,
+.department-structure-grid table,
+.crm-panel-grid table,
+.employee-directory-shell .employee-table-shell table,
+.employee-profile-hero > .table-wrap table,
+.leave-approval-queue table,
+.attendance-reports-workspace table,
+.attendance-table-shell table {
+  min-width: 820px; /* or whatever they need */
+}
+
+/* ==========================================================
+   LEAVE BALANCE — PRODUCTION-GRADE LAYOUT
+========================================================== */
+
+/* Vertical stack of panels */
+.hr-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Panel head with actions on the right */
+.panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.panel-head h2 {
+  color: #0f172a;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  margin: 0 0 4px;
+}
+
+.panel-head p {
+  color: #64748b;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  margin: 0;
+  max-width: 620px;
+}
+
+.panel-head-actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* Small stat pill in header */
+.pill-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 8px 14px;
+  min-width: 90px;
+}
+
+.pill-stat small {
+  color: #64748b;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.pill-stat strong {
+  color: #0f172a;
+  font-size: 1.1rem;
+  font-weight: 800;
+  margin-top: 2px;
+}
+
+/* ---------- LEAVE BALANCE TABLE ---------- */
+
+.leave-balance-table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+/* Column widths — this is what stops the horizontal scroll */
+/* ==========================================================
+   LEAVE BALANCE — SPACING & COLUMN WIDTH FIX
+   Fixes: cramped chips, empty right space, touching columns
+========================================================== */
+
+/* 1. Rebalance column widths so nothing wastes space */
+.leave-balance-table .col-employee {
+  width: 22%;
+  min-width: 180px;
+}
+
+.leave-balance-table .col-num {
+  width: 9%;
+  min-width: 80px;
+  text-align: center;
+}
+
+.leave-balance-table .col-breakdown {
+  width: auto;          /* ← let it take remaining space */
+  min-width: 320px;
+}
+
+/* 2. Give the chips real spacing — this is the main fix */
+.leave-type-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;            /* ← was probably 6px, needs more */
+  align-items: center;
+  padding: 2px 0;
+}
+
+/* 3. Make each chip breathe and align nicely */
+.leave-chip {
+  display: inline-flex;
+  flex-direction: column;    /* ← stack code above value */
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+
+  min-width: 56px;           /* ← prevents squishing */
+  padding: 6px 12px;         /* ← more padding */
+
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+
+  font-size: 0.72rem;
+  line-height: 1.15;
+  white-space: nowrap;
+
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.leave-chip:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
+}
+
+.leave-chip em {
+  color: #64748b;
+  font-style: normal;
+  font-weight: 800;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.leave-chip strong {
+  color: #0f172a;
+  font-weight: 800;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+/* 4. Zero-value chips fade but keep alignment */
+.leave-chip.zero {
+  opacity: 0.5;
+}
+
+.leave-chip.zero strong {
+  color: #94a3b8;
+}
+
+/* 5. Keep the color-coding you already had */
+.leave-chip[data-code="CL"]  { border-color: #bfdbfe; background: #eff6ff; }
+.leave-chip[data-code="CL"] em  { color: #1d4ed8; }
+
+.leave-chip[data-code="SL"]  { border-color: #fecaca; background: #fef2f2; }
+.leave-chip[data-code="SL"] em  { color: #b91c1c; }
+
+.leave-chip[data-code="EL"]  { border-color: #ddd6fe; background: #f5f3ff; }
+.leave-chip[data-code="EL"] em  { color: #6d28d9; }
+
+.leave-chip[data-code="LWP"] { border-color: #fed7aa; background: #fff7ed; }
+.leave-chip[data-code="LWP"] em { color: #c2410c; }
+
+/* 6. Give the table rows a little more breathing room */
+.leave-balance-table tbody td {
+  padding: 14px 12px;
+  vertical-align: middle;
+}
+
+/* 7. Right-align numeric headers properly */
+.leave-balance-table thead th.col-num {
+  text-align: center;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+/* 8. Remaining pill — make it feel anchored */
+.remaining-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 46px;
+  height: 32px;
+  padding: 0 12px;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  border-radius: 999px;
+  color: #047857;
+  font-size: 0.9rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.remaining-pill.zero {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+  color: #64748b;
+}
+
+/* 9. Responsive: let the table breathe on narrow screens */
+@media (max-width: 1100px) {
+  .leave-balance-table .col-employee {
+    width: auto;
+    min-width: 160px;
+  }
+  .leave-balance-table .col-num {
+    min-width: 68px;
+  }
+  .leave-balance-table .col-breakdown {
+    min-width: 260px;
+  }
+}
+
+@media (max-width: 768px) {
+  .leave-type-chips {
+    gap: 8px;
+  }
+  .leave-chip {
+    min-width: 48px;
+    padding: 5px 9px;
+  }
+}
+
+/* ==========================================================
+   LEAVE BALANCE — CENTER THE REMAINING PILL
+   Fixes: remaining pill floating left instead of centered
+========================================================== */
+
+/* 1. Force every numeric cell to truly center its content */
+.leave-balance-table tbody td.col-num {
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* 2. Center the remaining pill inside its cell */
+.leave-balance-table tbody td.col-num .remaining-pill {
+  display: inline-flex;
+  margin: 0 auto;                /* ← THE FIX */
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* 3. If remaining pill is a direct child <span>, wrap it */
+.leave-balance-table tbody td.col-num > span {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* 4. Make sure the header is centered on the same axis */
+.leave-balance-table thead th.col-num {
+  text-align: center;
+}
+
+
+
+/* ==========================================================
+   ATTENDANCE REPORTS — Date Filter Bar
+========================================================== */
+
+.report-filter-bar {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 14px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.filter-field > span {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.filter-field input {
+  background: #ffffff;
+  border: 1px solid #d5dfeb;
+  border-radius: 9px;
+  min-height: 40px;
+  padding: 0 12px;
+  font-size: 0.86rem;
+  color: #0f172a;
+  font-family: inherit;
+  outline: 0;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  width: 100%;
+}
+
+.filter-field input:focus {
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+.filter-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.filter-actions .primary-btn,
+.filter-actions .ghost-btn {
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 9px;
+  font-weight: 800;
+  font-size: 0.82rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.filter-actions .ghost-btn {
+  background: #ffffff;
+  border: 1px solid #d5dfeb;
+  color: #334155;
+}
+
+.filter-actions .ghost-btn:hover {
+  border-color: #93c5fd;
+  color: #2563eb;
+}
+
+/* Quick presets */
+.report-presets {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.preset-label {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-right: 4px;
+}
+
+.chip-btn {
+  background: #ffffff;
+  border: 1px solid #d5dfeb;
+  border-radius: 999px;
+  color: #334155;
+  cursor: pointer;
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 7px 14px;
+  transition: all 0.15s ease;
+}
+
+.chip-btn:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #2563eb;
+}
+
+/* Summary counters */
+.report-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.report-summary-grid > span {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.report-summary-grid strong {
+  color: #64748b;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.report-summary-grid em {
+  color: #0f172a;
+  font-size: 1.15rem;
+  font-style: normal;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Attendance report table */
+.attendance-report-table {
+  table-layout: fixed;
+  width: 100%;
+  min-width: 0;
+}
+
+.attendance-report-table td.col-num {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.attendance-report-table thead th.col-num {
+  text-align: center;
+}
+
+/* Status marks inside the report */
+.hr-data-table mark.status-present {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #047857;
+}
+.hr-data-table mark.status-late {
+  background: #fff7ed;
+  border-color: #fed7aa;
+  color: #c2410c;
+}
+.hr-data-table mark.status-absent {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+.hr-data-table mark.status-on_leave {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+.hr-data-table mark.status-half_day {
+  background: #f5f3ff;
+  border-color: #ddd6fe;
+  color: #6d28d9;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .report-filter-bar {
+    grid-template-columns: 1fr 1fr;
+  }
+  .filter-actions {
+    grid-column: span 2;
+    justify-content: flex-start;
+  }
+  .report-summary-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .report-filter-bar {
+    grid-template-columns: 1fr;
+  }
+  .filter-actions {
+    grid-column: span 1;
+  }
+  .report-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

@@ -918,6 +918,16 @@ export class HrDashboardComponent implements OnDestroy {
     { value: 'notifications', label: 'Notifications' }
   ] as const;
 
+
+  // Attendance Reports filters
+protected readonly reportFromDate = signal(this.toDateInput(new Date(new Date().getFullYear(), new Date().getMonth(), 1)));
+protected readonly reportToDate = signal(this.toDateInput(new Date()));
+protected readonly reportEmployeeCode = signal('');
+protected readonly isReportLoading = signal(false);
+
+// Rows returned from the API for the selected range
+protected readonly attendanceReportRecords = signal<AttendanceRecord[]>([]);
+
   protected readonly employeeForm = this.fb.nonNullable.group({
     fullName: ['', [Validators.required, Validators.minLength(2)]],
     employeeCode: [''],
@@ -2192,6 +2202,62 @@ export class HrDashboardComponent implements OnDestroy {
     this.loadLogisticsMonitor();
   }
 
+  protected attendanceReportMonthlySummary(): Array<{
+  employeeCode: string;
+  employeeName: string;
+  days: number;
+  present: number;
+  late: number;
+  absent: number;
+  onLeave: number;
+  halfDay: number;
+  totalWorked: string;
+}> {
+  const grouped = new Map<string, {
+    employeeCode: string;
+    employeeName: string;
+    days: number;
+    present: number;
+    late: number;
+    absent: number;
+    onLeave: number;
+    halfDay: number;
+    totalMinutes: number;
+  }>();
+
+  for (const row of this.attendanceReportDailyRows()) {
+    const key = row.employeeCode || row.employeeName;
+    const current = grouped.get(key) || {
+      employeeCode: row.employeeCode,
+      employeeName: row.employeeName,
+      days: 0,
+      present: 0,
+      late: 0,
+      absent: 0,
+      onLeave: 0,
+      halfDay: 0,
+      totalMinutes: 0,
+    };
+
+    current.days += 1;
+    if (row.status === 'present') current.present += 1;
+    if (row.status === 'late' || row.lateByMinutes > 0) current.late += 1;
+    if (row.status === 'absent') current.absent += 1;
+    if (row.status === 'on_leave') current.onLeave += 1;
+    if (row.status === 'half_day') current.halfDay += 1;
+    current.totalMinutes += Number(row.totalWorkMinutes || 0);
+
+    grouped.set(key, current);
+  }
+
+  return Array.from(grouped.values())
+    .map((row) => ({
+      ...row,
+      totalWorked: this.formatMinutes(row.totalMinutes),
+    }))
+    .sort((a, b) => a.employeeName.localeCompare(b.employeeName));
+}
+
   protected clearLogisticsDateFilter(): void {
     this.logisticsFromDate.set('');
     this.logisticsToDate.set('');
@@ -2302,6 +2368,7 @@ export class HrDashboardComponent implements OnDestroy {
     this.loadEvents();
     this.loadMeetings();
     this.loadAttendanceManagement();
+    this.loadAttendanceReport();
 
     if (!this.isHrOnlyUser()) {
       this.loadCrm();
@@ -2309,21 +2376,39 @@ export class HrDashboardComponent implements OnDestroy {
     }
   }
 
-  protected dashboardMetrics(): Array<{ label: string; value: number; icon: string }> {
-    const summary = this.dashboard()?.employees?.summary;
-    const attendance = this.dashboard()?.attendance?.today;
-    const birthdayCount = (this.dashboard()?.employees?.upcomingBirthdays || []).length + (this.dashboard()?.employees?.upcomingWorkAnniversaries || []).length;
-    return [
-      { label: 'Total Employees', value: summary?.totalEmployees ?? this.employees().length, icon: 'E' },
-      { label: 'Active Employees', value: summary?.activeEmployees ?? this.activeEmployees(), icon: 'A' },
-      { label: 'Today Present', value: attendance?.present ?? 0, icon: 'P' },
-      { label: 'Pending Leaves', value: this.dashboard()?.leave?.summary?.pending ?? 0, icon: 'L' },
-      { label: 'Open Positions', value: this.dashboard()?.recruitment?.openJobs ?? 0, icon: 'J' },
-      { label: 'Birthdays/Anniv.', value: birthdayCount, icon: 'B' },
-      { label: 'New Joinees', value: summary?.newJoinings ?? 0, icon: 'N' },
-      { label: 'On Leave Today', value: attendance?.onLeave ?? 0, icon: 'O' }
-    ];
-  }
+ protected dashboardMetrics(): Array<{ label: string; value: number; icon: string }> {
+  const summary = this.dashboard()?.employees?.summary;
+  const apiToday = this.dashboard()?.attendance?.today;
+
+  // ✅ Use the SAME computation as the attendance page
+  const liveAttendance = this.attendanceMetrics();
+  const livePresent = liveAttendance.find((item) => item.label === 'Present')?.value ?? 0;
+  const liveLate = liveAttendance.find((item) => item.label === 'Late')?.value ?? 0;
+  const liveAbsent = liveAttendance.find((item) => item.label === 'Absent')?.value ?? 0;
+  const liveOnLeave = liveAttendance.find((item) => item.label === 'On leave')?.value ?? 0;
+  const liveHalfDay = liveAttendance.find((item) => item.label === 'Half day')?.value ?? 0;
+
+  // Prefer live data; fall back to API data if live is empty (avoids showing stale 0)
+  const presentValue = livePresent || Number(apiToday?.present ?? 0);
+  const absentValue = liveAbsent || Number(apiToday?.absent ?? 0);
+  const onLeaveValue = liveOnLeave || Number(apiToday?.onLeave ?? 0);
+  const lateValue = liveLate || Number(apiToday?.late ?? 0);
+
+  const birthdayCount =
+    (this.dashboard()?.employees?.upcomingBirthdays || []).length +
+    (this.dashboard()?.employees?.upcomingWorkAnniversaries || []).length;
+
+  return [
+    { label: 'Total Employees', value: summary?.totalEmployees ?? this.employees().length, icon: 'E' },
+    { label: 'Active Employees', value: summary?.activeEmployees ?? this.activeEmployees(), icon: 'A' },
+    { label: 'Today Present', value: presentValue, icon: 'P' },
+    { label: 'Pending Leaves', value: this.dashboard()?.leave?.summary?.pending ?? 0, icon: 'L' },
+    { label: 'Open Positions', value: this.dashboard()?.recruitment?.openJobs ?? 0, icon: 'J' },
+    { label: 'Birthdays/Anniv.', value: birthdayCount, icon: 'B' },
+    { label: 'New Joinees', value: summary?.newJoinings ?? 0, icon: 'N' },
+    { label: 'On Leave Today', value: onLeaveValue, icon: 'O' }
+  ];
+}
 
   protected attendanceMetrics(): Array<{ label: string; value: number; icon: string }> {
     const rows = this.attendanceDailyRows();
@@ -2405,6 +2490,121 @@ export class HrDashboardComponent implements OnDestroy {
       .map((record) => this.toAttendanceDisplayRow(null, record, this.toDateInput(new Date(record.attendanceDate || new Date()))))
       .sort((a, b) => `${b.date}${b.employeeName}`.localeCompare(`${a.date}${a.employeeName}`));
   }
+
+/* ==========================================================
+   ATTENDANCE REPORTS — Date Filter
+========================================================== */
+
+protected applyReportPreset(preset: 'today' | 'yesterday' | 'week' | 'month'): void {
+  const today = new Date();
+
+  if (preset === 'today') {
+    const d = this.toDateInput(today);
+    this.reportFromDate.set(d);
+    this.reportToDate.set(d);
+  } else if (preset === 'yesterday') {
+    const y = new Date(today);
+    y.setDate(y.getDate() - 1);
+    const d = this.toDateInput(y);
+    this.reportFromDate.set(d);
+    this.reportToDate.set(d);
+  } else if (preset === 'week') {
+    const start = new Date(today);
+    // Monday as start of week
+    const day = start.getDay();
+    const diff = day === 0 ? 6 : day - 1;
+    start.setDate(start.getDate() - diff);
+    this.reportFromDate.set(this.toDateInput(start));
+    this.reportToDate.set(this.toDateInput(today));
+  } else if (preset === 'month') {
+    const start = new Date(today.getFullYear(), today.getMonth(), 1);
+    this.reportFromDate.set(this.toDateInput(start));
+    this.reportToDate.set(this.toDateInput(today));
+  }
+
+  this.loadAttendanceReport();
+}
+
+protected applyReportFilter(): void {
+  if (!this.reportFromDate() || !this.reportToDate()) {
+    this.message.set('Please select both From and To dates.');
+    return;
+  }
+  if (this.reportFromDate() > this.reportToDate()) {
+    this.message.set('From date cannot be after To date.');
+    return;
+  }
+  this.loadAttendanceReport();
+}
+
+protected clearReportFilter(): void {
+  const today = new Date();
+  const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  this.reportFromDate.set(this.toDateInput(startOfMonth));
+  this.reportToDate.set(this.toDateInput(today));
+  this.reportEmployeeCode.set('');
+  this.loadAttendanceReport();
+}
+
+protected loadAttendanceReport(): void {
+  this.isReportLoading.set(true);
+  this.message.set('');
+
+  this.api
+    .get<{ attendance?: AttendanceRecord[] }>('/hr/attendance/records', {
+      from: this.reportFromDate(),
+      to: this.reportToDate(),
+      ...(this.reportEmployeeCode().trim() ? { employeeCode: this.reportEmployeeCode().trim().toUpperCase() } : {}),
+      limit: 500,
+      ...(this.selectedCompanyId() ? { companyId: this.selectedCompanyId() } : {})
+    })
+    .pipe(
+      catchError((error) => {
+        console.error('[ATTENDANCE REPORT] API failed', error);
+        this.message.set(error?.error?.message || 'Unable to load attendance report.');
+        return of({ attendance: [] });
+      }),
+      finalize(() => this.isReportLoading.set(false))
+    )
+    .subscribe((data) => {
+      this.attendanceReportRecords.set(data.attendance ?? []);
+    });
+}
+
+/** Rows for the Daily table (grouped by date, filtered by range) */
+protected attendanceReportDailyRows(): AttendanceDisplayRow[] {
+  const from = this.reportFromDate();
+  const to = this.reportToDate();
+
+  return this.attendanceReportRecords()
+    .filter((record) => {
+      const date = this.toDateInput(new Date(record.attendanceDate || ''));
+      return date >= from && date <= to;
+    })
+    .map((record) => this.toAttendanceDisplayRow(null, record, this.toDateInput(new Date(record.attendanceDate || new Date()))))
+    .sort((a, b) => `${b.date}${b.employeeName}`.localeCompare(`${a.date}${a.employeeName}`));
+}
+
+/** Rows for the Monthly table — same records, different sort */
+protected attendanceReportMonthlyRows(): AttendanceDisplayRow[] {
+  const rows = this.attendanceReportDailyRows();
+  // Group by employee for the monthly summary (or keep flat — your choice)
+  return rows;
+}
+
+/** Summary counters shown at the top of the report */
+protected attendanceReportSummary(): { present: number; late: number; absent: number; onLeave: number; halfDay: number; total: number } {
+  const rows = this.attendanceReportDailyRows();
+
+  const late = rows.filter((r) => r.status === 'late' || r.lateByMinutes > 0).length;
+  const present = rows.filter((r) => r.status === 'present').length + late;   // ← present + late
+  const absent = rows.filter((r) => r.status === 'absent').length;
+  const onLeave = rows.filter((r) => r.status === 'on_leave').length;
+  const halfDay = rows.filter((r) => r.status === 'half_day').length;
+
+  return { present, late, absent, onLeave, halfDay, total: rows.length };
+}
+
 
   protected latePolicySummary(): string {
     const shift = this.defaultShift();
@@ -3370,6 +3570,35 @@ export class HrDashboardComponent implements OnDestroy {
       })
       .join(' | ') || '-';
   }
+
+  parseLeaveBreakdown(summary: EmployeeLeaveSummary): { code: string; value: number }[] {
+  if (!summary?.balances?.length) {
+    return [
+      { code: 'LWP', value: 0 },
+      { code: 'EL',  value: 0 },
+      { code: 'SL',  value: 0 },
+      { code: 'CL',  value: 0 },
+    ];
+  }
+
+  // Preferred order for display
+  const order = ['CL', 'SL', 'EL', 'LWP'];
+
+  const chips = summary.balances.map((balance) => ({
+    code: (balance.leaveTypeId?.leaveCode || balance.leaveTypeId?.leaveName || 'LEAVE')
+      .toString()
+      .trim()
+      .toUpperCase(),
+    value: Number(balance.availableBalance || 0),
+  }));
+
+  // Sort by preferred order, unknown types go to the end
+  return chips.sort((a, b) => {
+    const ai = order.indexOf(a.code);
+    const bi = order.indexOf(b.code);
+    return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+  });
+}
 
   protected selectedMonthLeaveRequests(): LeaveRequestRow[] {
     const [year, month] = this.leaveCalendarMonth().split('-').map((value) => Number(value));

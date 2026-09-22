@@ -856,27 +856,43 @@
       </tbody></table></div>
     </article>
   </div>
-</ng-template><ng-template #attendanceView>
+</ng-template>
+<ng-template #attendanceView>
+  <!-- KPI Metrics -->
   <div class="metric-row attendance-metrics attendance-toolbar">
     @for (metric of attendanceMetrics(); track metric.label) {
-      <article class="metric-card"><span>{{ metric.label }}</span><strong>{{ metric.value }}</strong><i>{{ metric.icon }}</i></article>
+      <article class="metric-card">
+        <span>{{ metric.label }}</span>
+        <strong>{{ metric.value }}</strong>
+        <i>{{ metric.icon }}</i>
+      </article>
     }
   </div>
-  <div class="panel-grid">
-    <article class="hr-panel">
-      <h2>HR Punch In / Punch Out</h2>
-      <p>HR is also an employee, so today's own work session is tracked here.</p>
-      <button
-        type="button"
-        class="punch-ring"
-        [ngClass]="punchStateClass()"
-        (click)="togglePunch()"
-        [disabled]="isPunching()"
-      >
-        <span>{{ punchButtonText() }}</span>
-        <strong>{{ workTimer() }}</strong>
-        <small>{{ punchSubText() }}</small>
-      </button>
+
+  <!-- Top row: Punch + History side by side -->
+  <div class="attendance-top-grid">
+
+    <!-- Punch Panel -->
+    <article class="hr-panel punch-panel">
+      <header class="panel-head">
+        <h2>HR Punch In / Punch Out</h2>
+        <p>HR is also an employee, so today's own work session is tracked here.</p>
+      </header>
+
+      <div class="punch-action-wrapper">
+        <button
+          type="button"
+          class="punch-ring"
+          [ngClass]="punchStateClass()"
+          (click)="togglePunch()"
+          [disabled]="isPunching()"
+        >
+          <span>{{ punchButtonText() }}</span>
+          <strong>{{ workTimer() }}</strong>
+          <small>{{ punchSubText() }}</small>
+        </button>
+      </div>
+
       <div class="punch-summary-grid attendance-summary-grid">
         <span><strong>HR</strong><em>{{ hrDisplayName() }}</em></span>
         <span><strong>Email</strong><em>{{ userEmail() }}</em></span>
@@ -885,70 +901,158 @@
         <span><strong>Status</strong><em class="status-value">{{ todayAttendance()?.status || 'day not started' }}</em></span>
         <span><strong>Today sessions</strong><em>{{ punchSummary(todayAttendance()) }}</em></span>
       </div>
+
       @if (selfMessage()) {
         <div class="notice">{{ selfMessage() }}</div>
       }
     </article>
-    <article class="hr-panel large">
-      <h2>HR Attendance History</h2>
-      <p>Your punch-in, punch-out and working time for this month.</p>
+
+    <!-- HR Attendance History (compact) -->
+    <article class="hr-panel history-panel">
+      <header class="panel-head">
+        <h2>HR Attendance History</h2>
+        <p>Your punch-in, punch-out and working time for this month.</p>
+      </header>
+
+      <div class="table-toolbar">
+        <label class="toolbar-search">
+          <span>Search</span>
+          <input type="search" placeholder="Search this list..." />
+        </label>
+        <div class="toolbar-rows">
+          <label>Rows</label>
+          <select>
+            <option>10</option>
+            <option>25</option>
+            <option>50</option>
+          </select>
+        </div>
+        <span class="toolbar-count">{{ attendanceHistory().length }} records</span>
+      </div>
+
       <div class="table-wrap">
-        <table>
-          <thead><tr><th>Date</th><th>Punch sessions</th><th>Working time</th><th>Status</th></tr></thead>
+        <table class="hr-data-table compact-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Punch sessions</th>
+              <th>Working time</th>
+              <th>Status</th>
+            </tr>
+          </thead>
           <tbody>
             @for (record of attendanceHistory(); track record._id || record.attendanceDate) {
-              <tr><td>{{ formatDate(record.attendanceDate) }}</td><td>{{ punchSummary(record) }}</td><td>{{ formatMinutes(record.totalWorkMinutes, record.checkInTime, record.checkOutTime) }}</td><td><mark>{{ record.status || '-' }}</mark></td></tr>
+              <tr>
+                <td data-label="Date">{{ formatDate(record.attendanceDate) }}</td>
+                <td data-label="Punch sessions">{{ punchSummary(record) }}</td>
+                <td data-label="Working time">{{ formatMinutes(record.totalWorkMinutes, record.checkInTime, record.checkOutTime) }}</td>
+                <td data-label="Status"><mark>{{ record.status || '-' }}</mark></td>
+              </tr>
             } @empty {
               <tr><td colspan="4" class="empty">No attendance records for this range.</td></tr>
             }
           </tbody>
         </table>
       </div>
+
+      <footer class="table-footer">
+        <span>Page 1 of 1</span>
+        <div class="pagination">
+          <button type="button" disabled>Prev</button>
+          <button type="button" disabled>Next</button>
+        </div>
+      </footer>
     </article>
-    <article class="hr-panel large span-2">
+  </div>
+
+  <!-- Full-width: Employee daily attendance -->
+  <article class="hr-panel">
+    <header class="panel-head">
       <h2>Employee daily attendance</h2>
       <p>HR and employee attendance for {{ formatDate(todayIso()) }}. Late count follows {{ latePolicySummary() }}.</p>
-      <div class="table-wrap attendance-table-shell">
-        <table>
-          <thead><tr><th>Employee</th><th>Shift</th><th>In / Out</th><th>Worked</th><th>Status</th><th>Late</th></tr></thead>
-          <tbody>
-            @for (row of attendanceDailyRows(); track row.employeeCode) {
-              <tr>
-                <td><strong>{{ row.employeeName }}</strong><span>{{ row.employeeCode }}</span></td>
-                <td>{{ row.shiftName }}</td>
-                <td>{{ formatDateTime(row.checkInTime) }}<span>{{ formatDateTime(row.checkOutTime) }}</span></td>
-                <td>{{ formatMinutes(row.totalWorkMinutes || 0) }}</td>
-                <td><mark>{{ row.status }}</mark></td>
-                <td>{{ row.lateByMinutes }} min<span>{{ row.lateCountThisMonth }} / {{ row.allowedLateDays }} this month</span></td>
-              </tr>
-            } @empty {
-              <tr><td colspan="6" class="empty">No employee attendance records found.</td></tr>
-            }
-          </tbody>
-        </table>
-      </div>
-    </article>
-    <article class="hr-panel large span-2">
+    </header>
+
+    <div class="table-toolbar">
+      <label class="toolbar-search">
+        <span>Search employee</span>
+        <input type="search" placeholder="Name or code..." />
+      </label>
+      <span class="toolbar-count">{{ attendanceDailyRows().length }} employees</span>
+    </div>
+
+    <div class="table-wrap">
+      <table class="hr-data-table">
+        <thead>
+          <tr>
+            <th>Employee</th>
+            <th>Shift</th>
+            <th>In / Out</th>
+            <th>Worked</th>
+            <th>Status</th>
+            <th>Late</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of attendanceDailyRows(); track row.employeeCode) {
+            <tr>
+              <td data-label="Employee">
+                <strong>{{ row.employeeName }}</strong>
+                <span>{{ row.employeeCode }}</span>
+              </td>
+              <td data-label="Shift">{{ row.shiftName }}</td>
+              <td data-label="In / Out">
+                <span class="stacked-time">{{ formatDateTime(row.checkInTime) }}</span>
+                <span class="stacked-time muted">{{ formatDateTime(row.checkOutTime) }}</span>
+              </td>
+              <td data-label="Worked">{{ formatMinutes(row.totalWorkMinutes || 0) }}</td>
+              <td data-label="Status"><mark>{{ row.status }}</mark></td>
+              <td data-label="Late">
+                <strong>{{ row.lateByMinutes }} min</strong>
+                <span>{{ row.lateCountThisMonth }} / {{ row.allowedLateDays }} allowed</span>
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="6" class="empty">No employee attendance records found.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </article>
+
+  <!-- Full-width: Shift policy -->
+  <article class="hr-panel">
+    <header class="panel-head">
       <h2>Shift timing and late policy</h2>
       <p>Set shift time, grace minutes, and how many late days are allowed per month.</p>
-      <form [formGroup]="shiftForm" (ngSubmit)="saveAttendanceSettings()" class="form-grid">
-        <label>Shift name<input formControlName="shiftName" type="text" /></label>
-        <label>Shift code<input formControlName="shiftCode" type="text" /></label>
-        <label>Start time<input formControlName="startTime" type="time" /></label>
-        <label>End time<input formControlName="endTime" type="time" /></label>
-        <label>Late grace minutes<input formControlName="graceMinutes" type="number" /></label>
-        <label>Full day minutes<input formControlName="fullDayMinutes" type="number" /></label>
-        <label>Policy name<input [formControl]="attendancePolicyForm.controls.policyName" type="text" /></label>
-        <label>Policy code<input [formControl]="attendancePolicyForm.controls.policyCode" type="text" /></label>
-        <label>Allowed late days/month<input [formControl]="attendancePolicyForm.controls.maxLateAllowedPerMonth" type="number" /></label>
-        <label>Late action<select [formControl]="attendancePolicyForm.controls.lateMarkAction"><option value="warning">Warning</option><option value="half_day">Half day</option><option value="leave_deduction">Leave deduction</option><option value="none">None</option></select></label>
-        <button class="primary-btn full" type="submit" [disabled]="shiftForm.invalid || attendancePolicyForm.invalid || isAttendanceSettingsSaving()">Save attendance settings</button>
-      </form>
-      @if (message()) { <div class="notice">{{ message() }}</div> }
-    </article>  </div>
+    </header>
+
+    <form [formGroup]="shiftForm" (ngSubmit)="saveAttendanceSettings()" class="form-grid">
+      <label>Shift name<input formControlName="shiftName" type="text" /></label>
+      <label>Shift code<input formControlName="shiftCode" type="text" /></label>
+      <label>Start time<input formControlName="startTime" type="time" /></label>
+      <label>End time<input formControlName="endTime" type="time" /></label>
+      <label>Late grace minutes<input formControlName="graceMinutes" type="number" /></label>
+      <label>Full day minutes<input formControlName="fullDayMinutes" type="number" /></label>
+      <label>Policy name<input [formControl]="attendancePolicyForm.controls.policyName" type="text" /></label>
+      <label>Policy code<input [formControl]="attendancePolicyForm.controls.policyCode" type="text" /></label>
+      <label>Allowed late days/month<input [formControl]="attendancePolicyForm.controls.maxLateAllowedPerMonth" type="number" /></label>
+      <label>Late action
+        <select [formControl]="attendancePolicyForm.controls.lateMarkAction">
+          <option value="warning">Warning</option>
+          <option value="half_day">Half day</option>
+          <option value="leave_deduction">Leave deduction</option>
+          <option value="none">None</option>
+        </select>
+      </label>
+      <button class="primary-btn full" type="submit" [disabled]="shiftForm.invalid || attendancePolicyForm.invalid || isAttendanceSettingsSaving()">
+        Save attendance settings
+      </button>
+    </form>
+    @if (message()) { <div class="notice">{{ message() }}</div> }
+  </article>
 </ng-template>
 
-<ng-template #attendanceReportsView>`r`n  <div class="panel-grid attendance-reports-workspace">
+<!-- <ng-template #attendanceReportsView>  <div class="panel-grid attendance-reports-workspace">
     <article class="hr-panel large span-2">
       <div class="panel-title">
         <div>
@@ -988,7 +1092,173 @@
       </div>
     </article>
   </div>
+</ng-template> -->
+
+<ng-template #attendanceReportsView>
+  <div class="hr-stack">
+
+    <!-- Filter Bar -->
+    <article class="hr-panel">
+      <header class="panel-head">
+        <div>
+          <h2>Attendance Reports</h2>
+          <p>Filter attendance by date range and employee. Defaults to this month.</p>
+        </div>
+        <div class="panel-head-actions">
+          <span class="pill-stat">
+            <small>Records</small>
+            <strong>{{ attendanceReportSummary().total }}</strong>
+          </span>
+        </div>
+      </header>
+
+      <div class="report-filter-bar">
+        <label class="filter-field">
+          <span>From date</span>
+          <input type="date" [value]="reportFromDate()" (input)="reportFromDate.set($any($event.target).value)" />
+        </label>
+        <label class="filter-field">
+          <span>To date</span>
+          <input type="date" [value]="reportToDate()" (input)="reportToDate.set($any($event.target).value)" />
+        </label>
+        <label class="filter-field">
+          <span>Employee code (optional)</span>
+          <input type="text" placeholder="e.g. OPAS-1067" [value]="reportEmployeeCode()" (input)="reportEmployeeCode.set($any($event.target).value)" />
+        </label>
+
+        <div class="filter-actions">
+          <button type="button" class="primary-btn" (click)="applyReportFilter()" [disabled]="isReportLoading()">
+            {{ isReportLoading() ? 'Loading...' : 'Apply' }}
+          </button>
+          <button type="button" class="ghost-btn" (click)="clearReportFilter()" [disabled]="isReportLoading()">Clear</button>
+        </div>
+      </div>
+
+      <div class="report-presets">
+        <span class="preset-label">Quick:</span>
+        <button type="button" class="chip-btn" (click)="applyReportPreset('today')">Today</button>
+        <button type="button" class="chip-btn" (click)="applyReportPreset('yesterday')">Yesterday</button>
+        <button type="button" class="chip-btn" (click)="applyReportPreset('week')">This Week</button>
+        <button type="button" class="chip-btn" (click)="applyReportPreset('month')">This Month</button>
+      </div>
+
+      <!-- Summary counters for the selected range -->
+      <div class="report-summary-grid">
+        <span><strong>Present</strong><em>{{ attendanceReportSummary().present }}</em></span>
+        <span><strong>Late</strong><em>{{ attendanceReportSummary().late }}</em></span>
+        <span><strong>Absent</strong><em>{{ attendanceReportSummary().absent }}</em></span>
+        <span><strong>On leave</strong><em>{{ attendanceReportSummary().onLeave }}</em></span>
+        <span><strong>Half day</strong><em>{{ attendanceReportSummary().halfDay }}</em></span>
+      </div>
+    </article>
+
+    <!-- Daily detail table -->
+    <article class="hr-panel">
+      <header class="panel-head">
+        <div>
+          <h2>Daily report</h2>
+          <p>Employee-wise attendance between {{ formatDate(reportFromDate()) }} and {{ formatDate(reportToDate()) }}.</p>
+        </div>
+      </header>
+
+      <div class="table-wrap">
+        <table class="hr-data-table attendance-report-table">
+          <thead>
+            <tr>
+              <th>Employee</th>
+              <th>Date</th>
+              <th>Shift</th>
+              <th>In / Out</th>
+              <th>Worked</th>
+              <th>Late</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of attendanceReportDailyRows(); track row.employeeCode + row.date) {
+              <tr>
+                <td data-label="Employee">
+                  <strong>{{ row.employeeName }}</strong>
+                  <span>{{ row.employeeCode }}</span>
+                </td>
+                <td data-label="Date">{{ row.date }}</td>
+                <td data-label="Shift">{{ row.shiftName }}</td>
+                <td data-label="In / Out">
+                  <span class="stacked-time">{{ formatDateTime(row.checkInTime) }}</span>
+                  <span class="stacked-time muted">{{ formatDateTime(row.checkOutTime) }}</span>
+                </td>
+                <td data-label="Worked">{{ formatMinutes(row.totalWorkMinutes || 0) }}</td>
+                <td data-label="Late">
+                  <strong>{{ row.lateByMinutes }} min</strong>
+                  <span>{{ row.lateCountThisMonth }} / {{ row.allowedLateDays }} allowed</span>
+                </td>
+                <td data-label="Status"><mark [ngClass]="'status-' + row.status">{{ row.status }}</mark></td>
+              </tr>
+            } @empty {
+              <tr><td colspan="7" class="empty">
+                {{ isReportLoading() ? 'Loading attendance...' : 'No attendance records in this date range.' }}
+              </td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <footer class="table-footer">
+        <span>{{ attendanceReportDailyRows().length }} records · {{ formatDate(reportFromDate()) }} → {{ formatDate(reportToDate()) }}</span>
+      </footer>
+    </article>
+
+    <!-- Monthly summary table -->
+    <article class="hr-panel">
+      <header class="panel-head">
+        <div>
+          <h2>Monthly summary</h2>
+          <p>Same records, grouped by employee for the selected range.</p>
+        </div>
+      </header>
+
+      <div class="table-wrap">
+        <table class="hr-data-table attendance-report-table">
+          <thead>
+            <tr>
+              <th>Employee</th>
+              <th>Days recorded</th>
+              <th>Present</th>
+              <th>Late</th>
+              <th>Absent</th>
+              <th>On leave</th>
+              <th>Half day</th>
+              <th>Total worked</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of attendanceReportMonthlySummary(); track row.employeeCode) {
+              <tr>
+                <td data-label="Employee">
+                  <strong>{{ row.employeeName }}</strong>
+                  <span>{{ row.employeeCode }}</span>
+                </td>
+                <td data-label="Days recorded" class="col-num">{{ row.days }}</td>
+                <td data-label="Present" class="col-num">{{ row.present }}</td>
+                <td data-label="Late" class="col-num">{{ row.late }}</td>
+                <td data-label="Absent" class="col-num">{{ row.absent }}</td>
+                <td data-label="On leave" class="col-num">{{ row.onLeave }}</td>
+                <td data-label="Half day" class="col-num">{{ row.halfDay }}</td>
+                <td data-label="Total worked">{{ row.totalWorked }}</td>
+              </tr>
+            } @empty {
+              <tr><td colspan="8" class="empty">
+                {{ isReportLoading() ? 'Loading summary...' : 'No records for the selected range.' }}
+              </td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </article>
+  </div>
 </ng-template>
+
+
 
 <ng-template #leaveRequestsView>
   <article class="hr-panel large span-2 leave-approval-queue">
@@ -1103,32 +1373,138 @@
 </ng-template>
 
 <ng-template #leaveBalanceView>
-  <div class="panel-grid">
-    <article class="hr-panel large span-2">
-      <h2>Leave Balance</h2>
-      <p>All employees remaining leave with type-wise balance.</p>
+  <div class="hr-stack">
+
+    <!-- Leave Balance Summary -->
+    <article class="hr-panel">
+      <header class="panel-head">
+        <div>
+          <h2>Leave Balance</h2>
+          <p>Employee-wise remaining leave with type breakdown.</p>
+        </div>
+        <div class="panel-head-actions">
+          <span class="pill-stat">
+            <small>Employees</small>
+            <strong>{{ employeeLeaveSummaries().length }}</strong>
+          </span>
+        </div>
+      </header>
+
+      <div class="table-toolbar">
+        <label class="toolbar-search">
+          <span>Search</span>
+          <input type="search" placeholder="Search employee name or code..." />
+        </label>
+        <div class="toolbar-rows">
+          <label>Rows</label>
+          <select>
+            <option>10</option>
+            <option>25</option>
+            <option>50</option>
+          </select>
+        </div>
+        <span class="toolbar-count">{{ employeeLeaveSummaries().length }} records</span>
+      </div>
+
       <div class="table-wrap">
-        <table>
-          <thead><tr><th>Employee</th><th>Total leave</th><th>Used</th><th>Pending</th><th>Remaining</th><th>Type balance</th></tr></thead>
+        <table class="hr-data-table leave-balance-table">
+          <thead>
+            <tr>
+              <th class="col-employee">Employee</th>
+              <th class="col-num">Total</th>
+              <th class="col-num">Used</th>
+              <th class="col-num">Pending</th>
+              <th class="col-num">Remaining</th>
+              <th class="col-breakdown">Breakdown</th>
+            </tr>
+          </thead>
           <tbody>
             @for (summary of employeeLeaveSummaries(); track summary.employeeCode) {
-              <tr><td><strong>{{ summary.employeeName }}</strong><span>{{ summary.employeeCode }}</span></td><td>{{ summary.totalLeave }}</td><td>{{ summary.usedLeave }}</td><td>{{ summary.pendingLeave }}</td><td><mark>{{ summary.remainingLeave }}</mark></td><td>{{ leaveTypeBreakdown(summary) }}</td></tr>
+              <tr>
+                <td data-label="Employee">
+                  <strong>{{ summary.employeeName }}</strong>
+                  <span>{{ summary.employeeCode }}</span>
+                </td>
+                <td data-label="Total" class="col-num">{{ summary.totalLeave }}</td>
+                <td data-label="Used" class="col-num">{{ summary.usedLeave }}</td>
+                <td data-label="Pending" class="col-num">{{ summary.pendingLeave }}</td>
+                <td data-label="Remaining" class="col-num">
+                  <span class="remaining-pill">{{ summary.remainingLeave }}</span>
+                </td>
+                <td data-label="Breakdown">
+                  <div class="leave-type-chips">
+                    @for (item of parseLeaveBreakdown(summary); track item.code) {
+                      <span class="leave-chip" [class.zero]="item.value === 0">
+                        <em>{{ item.code }}</em>
+                        <strong>{{ item.value }}</strong>
+                      </span>
+                    }
+                  </div>
+                </td>
+              </tr>
             } @empty {
               <tr><td colspan="6" class="empty">No employee leave balances found.</td></tr>
             }
           </tbody>
         </table>
       </div>
+
+      <footer class="table-footer">
+        <span>Showing {{ employeeLeaveSummaries().length }} of {{ employeeLeaveSummaries().length }} records</span>
+        <div class="pagination">
+          <button type="button" disabled>Prev</button>
+          <button type="button" disabled>Next</button>
+        </div>
+      </footer>
     </article>
-    <article class="hr-panel large span-2">
-      <h2>Leave History</h2>
-      <p>All employee leave history with status and remarks.</p>
+
+    <!-- Leave History -->
+    <article class="hr-panel">
+      <header class="panel-head">
+        <div>
+          <h2>Leave History</h2>
+          <p>All employee leave history with status and remarks.</p>
+        </div>
+      </header>
+
+      <div class="table-toolbar">
+        <label class="toolbar-search">
+          <span>Search</span>
+          <input type="search" placeholder="Search employee, type, or status..." />
+        </label>
+        <span class="toolbar-count">{{ allLeaveRequests().length }} records</span>
+      </div>
+
       <div class="table-wrap">
-        <table>
-          <thead><tr><th>Employee</th><th>Leave type</th><th>Dates</th><th>Days</th><th>Status</th><th>Remark</th></tr></thead>
+        <table class="hr-data-table">
+          <thead>
+            <tr>
+              <th>Employee</th>
+              <th>Type</th>
+              <th>Dates</th>
+              <th>Days</th>
+              <th>Status</th>
+              <th>Remark</th>
+            </tr>
+          </thead>
           <tbody>
             @for (leave of allLeaveRequests(); track leave._id) {
-              <tr><td><strong>{{ leave.employeeId?.displayName || '-' }}</strong><span>{{ leave.employeeId?.employeeCode || '-' }}</span></td><td>{{ leave.leaveTypeId?.leaveName || leave.leaveTypeId?.leaveCode || '-' }}</td><td>{{ formatDate(leave.fromDate) }} - {{ formatDate(leave.toDate) }}</td><td>{{ leave.totalDays || 0 }}</td><td><mark>{{ leave.status || 'pending' }}</mark></td><td>{{ leave.approverRemarks || '-' }}</td></tr>
+              <tr>
+                <td data-label="Employee">
+                  <strong>{{ leave.employeeId?.displayName || '-' }}</strong>
+                  <span>{{ leave.employeeId?.employeeCode || '-' }}</span>
+                </td>
+                <td data-label="Type">{{ leave.leaveTypeId?.leaveName || leave.leaveTypeId?.leaveCode || '-' }}</td>
+                <td data-label="Dates">
+                  <span class="stacked-time">{{ formatDate(leave.fromDate) }}</span>
+                  <span class="stacked-time muted">to {{ formatDate(leave.toDate) }}</span>
+                </td>
+                <td data-label="Days" class="col-num">{{ leave.totalDays || 0 }}</td>
+                <td data-label="Status">
+                  <mark [ngClass]="'status-' + (leave.status || 'pending')">{{ leave.status || 'pending' }}</mark>
+                </td>
+                <td data-label="Remark">{{ leave.approverRemarks || '-' }}</td>
+              </tr>
             } @empty {
               <tr><td colspan="6" class="empty">No leave history found.</td></tr>
             }
