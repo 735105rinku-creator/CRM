@@ -3,6 +3,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Meta } from '@angular/platform-browser';
+import { CookieService } from 'ngx-cookie-service';
 
 import { AuthResponse, AuthService } from '../../../core/auth/auth.service';
 
@@ -25,6 +26,7 @@ export class LoginComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly meta = inject(Meta);
+  private readonly cookieService = inject(CookieService);
 
   readonly isPasswordVisible = signal(false);
   readonly isLoading = signal(false);
@@ -51,7 +53,7 @@ export class LoginComponent {
       label: 'Employee',
       shortLabel: 'EM',
       description: 'Employee workspace'
-    }, 
+    },
     {
       value: 'super_admin',
       label: 'Super Admin',
@@ -69,7 +71,7 @@ export class LoginComponent {
 
   constructor() {
     this.meta.updateTag({ name: 'robots', content: 'noindex, nofollow' });
-    const rememberedEmail = localStorage.getItem('rememberedEmail');
+    const rememberedEmail = this.cookieService.get('rememberedEmail');
     const queryEmail = this.route.snapshot.queryParamMap.get('email');
     const email = queryEmail || rememberedEmail;
 
@@ -211,9 +213,9 @@ export class LoginComponent {
         }
 
         if (!rememberMe) {
-          localStorage.removeItem('rememberedEmail');
+          this.cookieService.delete('rememberedEmail', '/');
         } else {
-          localStorage.setItem('rememberedEmail', email);
+          this.cookieService.set('rememberedEmail', email, 30, '/', undefined, true, 'Lax');
         }
 
         const defaultUrl = this.redirectUrlForRole(role);
@@ -303,4 +305,3 @@ export class LoginComponent {
     return roleRedirects[role] || this.authService.getDefaultRedirectUrl();
   }
 }
-

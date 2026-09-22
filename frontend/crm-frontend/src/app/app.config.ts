@@ -1,4 +1,4 @@
-import {
+﻿import {
   ApplicationConfig,
   inject,
   provideAppInitializer,
@@ -29,7 +29,6 @@ export const appConfig: ApplicationConfig = {
       withInterceptors([tokenInterceptor]),
       withFetch(),
     ),
-    provideAppInitializer(() => inject(AuthService).restoreSession()),
 
     provideRouter(
       routes,
@@ -46,5 +45,6 @@ export const appConfig: ApplicationConfig = {
       },
     },
     provideClientHydration(withEventReplay()),
+    provideAppInitializer(() => inject(AuthService).restoreSession()),
   ],
 };

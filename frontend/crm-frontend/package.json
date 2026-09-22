@@ -29,6 +29,7 @@
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
     "ng2-charts": "^10.0.0",
+    "ngx-cookie-service": "^21.3.1",
     "ngx-toastr": "^20.0.5",
     "rxjs": "~7.8.0",
     "socket.io-client": "^4.8.3",

@@ -95,23 +95,15 @@ export class AuthService {
     // the server session before protected route/profile requests run.
   }
 
-
-
   restoreSession(): Observable<AuthResponse | null> {
-    console.log('[restoreSession] CALLED');
-    console.log('[restoreSession] isBrowser:', this.isBrowser);
-
-    if (!this.isBrowser) {
-      console.log('[restoreSession] BAILING OUT - not browser');
+    if (!this.isBrowser || !this.loadStoredUser()?.id) {
+      this.clearLocalSession();
       return of(null);
     }
 
-    console.log('[restoreSession] CALLING refreshToken');
-
     return this.refreshToken().pipe(
       timeout(10_000),
-      catchError((err) => {
-        console.log('[restoreSession] refreshToken FAILED:', err);
+      catchError(() => {
         this.clearLocalSession();
         return of(null);
       })
@@ -272,7 +264,7 @@ export class AuthService {
             (
               expectedUser &&
               (tokenUser.companyId || '') !==
-              (expectedUser.companyId || '')
+                (expectedUser.companyId || '')
             )
           ) {
             throw new Error(
@@ -327,11 +319,17 @@ export class AuthService {
      */
     const user =
       this.sessionUser &&
-        current?.id === this.sessionUser.id &&
-        current?.companyId === this.sessionUser.companyId &&
-        current?.role === this.sessionUser.role
+      current?.id === this.sessionUser.id &&
+      current?.companyId === this.sessionUser.companyId &&
+      current?.role === this.sessionUser.role
         ? current
         : this.sessionUser;
+
+    this.currentUser.set(user);
+
+    if (user && this.isBrowser) {
+      this.persistUser(user);
+    }
 
     return user;
   }
@@ -391,15 +389,15 @@ export class AuthService {
     const entries = [
       ...(
         'permissions' in user &&
-          Array.isArray(user.permissions)
+        Array.isArray(user.permissions)
           ? user.permissions
           : []
       ),
       ...(
         'roleRef' in user &&
-          user.roleRef &&
-          typeof user.roleRef === 'object' &&
-          Array.isArray(user.roleRef.permissions)
+        user.roleRef &&
+        typeof user.roleRef === 'object' &&
+        Array.isArray(user.roleRef.permissions)
           ? user.roleRef.permissions
           : []
       )
@@ -450,16 +448,16 @@ export class AuthService {
 
     const roleRef =
       currentUser &&
-        'roleRef' in currentUser &&
-        currentUser.roleRef &&
-        typeof currentUser.roleRef === 'object'
+      'roleRef' in currentUser &&
+      currentUser.roleRef &&
+      typeof currentUser.roleRef === 'object'
         ? String(
-          (
-            currentUser.roleRef as {
-              name?: string;
-            }
-          ).name || ''
-        ).toLowerCase()
+            (
+              currentUser.roleRef as {
+                name?: string;
+              }
+            ).name || ''
+          ).toLowerCase()
         : '';
 
     const roleNames = [role, roleRef];
@@ -556,8 +554,8 @@ export class AuthService {
 
     const roleRef =
       'roleRef' in user &&
-        user.roleRef &&
-        typeof user.roleRef === 'object'
+      user.roleRef &&
+      typeof user.roleRef === 'object'
         ? user.roleRef
         : null;
 
@@ -600,8 +598,8 @@ export class AuthService {
 
     const roleRef =
       'roleRef' in user &&
-        user.roleRef &&
-        typeof user.roleRef === 'object'
+      user.roleRef &&
+      typeof user.roleRef === 'object'
         ? user.roleRef
         : null;
 
@@ -757,27 +755,27 @@ export class AuthService {
 
     const backendCompany =
       companyIdValue &&
-        typeof companyIdValue === 'object'
+      typeof companyIdValue === 'object'
         ? (
-          companyIdValue as Company & {
-            _id?: string;
-            companyName?: string;
-            companyCode?: string;
-          }
-        )
+            companyIdValue as Company & {
+              _id?: string;
+              companyName?: string;
+              companyCode?: string;
+            }
+          )
         : undefined;
 
     const userCompany =
       user.company &&
-        typeof user.company === 'object'
+      typeof user.company === 'object'
         ? (
-          user.company as Company & {
-            _id?: string;
-            companyName?: string;
-            companyCode?: string;
-            logo?: string;
-          }
-        )
+            user.company as Company & {
+              _id?: string;
+              companyName?: string;
+              companyCode?: string;
+              logo?: string;
+            }
+          )
         : undefined;
 
     const rawCompany =
@@ -794,40 +792,40 @@ export class AuthService {
         user.roleRef?.level,
       roleRef: user.roleRef
         ? {
-          ...user.roleRef,
-          id:
-            user.roleRef.id ||
-            user.roleRef._id ||
-            ''
-        }
+            ...user.roleRef,
+            id:
+              user.roleRef.id ||
+              user.roleRef._id ||
+              ''
+          }
         : undefined,
       companyId:
         typeof companyIdValue === 'string'
           ? companyIdValue
           : rawCompany?.id ||
-          rawCompany?._id ||
-          '',
+            rawCompany?._id ||
+            '',
       company: rawCompany
         ? {
-          ...rawCompany,
-          id:
-            rawCompany.id ||
-            rawCompany._id ||
-            '',
-          name:
-            rawCompany.name ||
-            rawCompany.companyName ||
-            'Registered Company',
-          slug:
-            rawCompany.slug ||
-            rawCompany.companyCode ||
-            'company',
-          logoUrl:
-            this.resolveAssetUrl(
-              rawCompany.logoUrl ||
-              rawCompany.logo
-            )
-        }
+            ...rawCompany,
+            id:
+              rawCompany.id ||
+              rawCompany._id ||
+              '',
+            name:
+              rawCompany.name ||
+              rawCompany.companyName ||
+              'Registered Company',
+            slug:
+              rawCompany.slug ||
+              rawCompany.companyCode ||
+              'company',
+            logoUrl:
+              this.resolveAssetUrl(
+                rawCompany.logoUrl ||
+                rawCompany.logo
+              )
+          }
         : undefined,
       roles:
         primaryRole === 'super_admin'
@@ -937,7 +935,7 @@ export class AuthService {
         (
           response.user.id !== tokenUser.sub ||
           (response.user.companyId || '') !==
-          (tokenUser.companyId || '')
+            (tokenUser.companyId || '')
         )
       )
     ) {
@@ -1158,7 +1156,7 @@ export class AuthService {
     return (
       this.canUseDemoLogin() &&
       email.trim().toLowerCase() ===
-      this.demoEmail &&
+        this.demoEmail &&
       password === this.demoPassword
     );
   }

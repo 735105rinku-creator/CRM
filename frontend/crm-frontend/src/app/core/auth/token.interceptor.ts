@@ -1,5 +1,6 @@
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
-import { inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { inject, PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, catchError, filter, switchMap, take, throwError } from 'rxjs';
 
@@ -12,6 +13,7 @@ const refreshTokenSubject = new BehaviorSubject<string | null>(null);
 export const tokenInterceptor: HttpInterceptorFn = (request, next) => {
   const authService = inject(AuthService);
   const router = inject(Router);
+  const isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   const accessToken = authService.getAccessToken();
   const credentialRequest = request.url.startsWith(API_BASE_URL) ? request.clone({ withCredentials: true }) : request;
   const authRequest = accessToken ? addToken(credentialRequest, accessToken) : credentialRequest;
@@ -21,6 +23,7 @@ export const tokenInterceptor: HttpInterceptorFn = (request, next) => {
       if (
         error instanceof HttpErrorResponse &&
         error.status === 401 &&
+        isBrowser &&
         !isAuthEndpoint(request.url)
       ) {
         return handleUnauthorizedError(authRequest, next, authService, router);
