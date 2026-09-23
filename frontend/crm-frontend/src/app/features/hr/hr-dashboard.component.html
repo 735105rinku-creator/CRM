@@ -95,7 +95,7 @@
       </div>
       <div class="notification-menu" style="position:relative">
         <button type="button" class="icon-btn badge" (click)="toggleNotificationPanel()" aria-label="Open HR notifications">
-          ­ƒöö<small>{{ unreadCount() }}</small>
+          🔔<small>{{ unreadCount() }}</small>
         </button>
         @if (isNotificationPanelOpen()) {
           <section class="notification-panel app-notification-popover" aria-label="HR notifications">
@@ -776,8 +776,8 @@
 </ng-template>
 
 <ng-template #departmentStructureView>
-  <div class="department-structure-grid">
-    <article class="hr-panel department-form-card neumorphic-card">
+  <div class="hr-stack department-designation-shell">
+    <article class="hr-panel department-form-card">
       <h2>{{ editingDepartmentId() ? 'Edit department' : 'Add department' }}</h2>
       <p>Create departments used across employee profiles and reports.</p>
       <form [formGroup]="departmentForm" (ngSubmit)="createDepartment()" class="form-grid single">
@@ -813,7 +813,7 @@
       </form>
     </article>
 
-    <article class="hr-panel department-list-card neumorphic-card full-width-card">
+    <article class="hr-panel department-list-card">
       <h2>Departments</h2>
       <p>Live department master from backend.</p>
       <div class="table-wrap"><table><thead><tr><th>Department</th><th>Code</th><th>Feature</th><th>Dashboard</th><th>Employee access</th><th>Description</th><th>Action</th></tr></thead><tbody>
@@ -823,7 +823,7 @@
       </tbody></table></div>
     </article>
 
-    <article class="hr-panel designation-form-card neumorphic-card">
+    <article class="hr-panel designation-form-card">
       <h2>{{ editingDesignationId() ? 'Edit designation' : 'Add designation' }}</h2>
       <p>Map each designation to a department.</p>
       <form [formGroup]="designationForm" (ngSubmit)="createDesignation()" class="form-grid single">
@@ -846,7 +846,7 @@
       </form>
     </article>
 
-    <article class="hr-panel designation-list-card neumorphic-card full-width-card">
+    <article class="hr-panel designation-list-card">
       <h2>Designations</h2>
       <p>Live designation master from backend.</p>
       <div class="table-wrap"><table><thead><tr><th>Designation</th><th>Code</th><th>Department</th><th>Level</th><th>Action</th></tr></thead><tbody>
@@ -1051,48 +1051,6 @@
     @if (message()) { <div class="notice">{{ message() }}</div> }
   </article>
 </ng-template>
-
-<!-- <ng-template #attendanceReportsView>  <div class="panel-grid attendance-reports-workspace">
-    <article class="hr-panel large span-2">
-      <div class="panel-title">
-        <div>
-          <p>Attendance Reports</p>
-          <h2>Daily employee report</h2>
-          <span>Employee-wise attendance for today with late minutes and monthly late count.</span>
-        </div>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Employee</th><th>Date</th><th>In / Out</th><th>Status</th><th>Late count</th></tr></thead>
-          <tbody>
-            @for (row of attendanceDailyRows(); track row.employeeCode) {
-              <tr><td><strong>{{ row.employeeName }}</strong><span>{{ row.employeeCode }}</span></td><td>{{ row.date }}</td><td>{{ formatDateTime(row.checkInTime) }}<span>{{ formatDateTime(row.checkOutTime) }}</span></td><td><mark>{{ row.status }}</mark></td><td>{{ row.lateByMinutes }} min<span>{{ row.lateCountThisMonth }} / {{ row.allowedLateDays }} allowed</span></td></tr>
-            } @empty { <tr><td colspan="5" class="empty">No daily attendance data found.</td></tr> }
-          </tbody>
-        </table>
-      </div>
-    </article>
-    <article class="hr-panel large span-2">
-      <div class="panel-title">
-        <div>
-          <p>Attendance Reports</p>
-          <h2>Monthly employee report</h2>
-          <span>Month-wise employee attendance list with late tracking.</span>
-        </div>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Employee</th><th>Date</th><th>Shift</th><th>Worked</th><th>Status</th><th>Late</th></tr></thead>
-          <tbody>
-            @for (row of attendanceMonthlyRows(); track row.employeeCode + row.date) {
-              <tr><td><strong>{{ row.employeeName }}</strong><span>{{ row.employeeCode }}</span></td><td>{{ row.date }}</td><td>{{ row.shiftName }}</td><td>{{ formatMinutes(row.totalWorkMinutes || 0) }}</td><td><mark>{{ row.status }}</mark></td><td>{{ row.lateByMinutes }} min<span>{{ row.lateCountThisMonth }} / {{ row.allowedLateDays }} allowed</span></td></tr>
-            } @empty { <tr><td colspan="6" class="empty">No monthly attendance data found.</td></tr> }
-          </tbody>
-        </table>
-      </div>
-    </article>
-  </div>
-</ng-template> -->
 
 <ng-template #attendanceReportsView>
   <div class="hr-stack">
@@ -1301,7 +1259,7 @@
 </ng-template>
 
 <ng-template #leaveCalendarView>
-  <div class="panel-grid leave-calendar-shell">
+  <div class="hr-stack leave-calendar-shell">
     <article class="hr-panel">
       <h2>Add leave</h2>
       <p>Add leave for an employee and reflect it in the selected month calendar.</p>
@@ -1434,7 +1392,7 @@
                 <td data-label="Breakdown">
                   <div class="leave-type-chips">
                     @for (item of parseLeaveBreakdown(summary); track item.code) {
-                      <span class="leave-chip" [class.zero]="item.value === 0">
+                      <span class="leave-chip" [class.zero]="item.value === 0" [attr.data-code]="item.code">
                         <em>{{ item.code }}</em>
                         <strong>{{ item.value }}</strong>
                       </span>
@@ -1516,7 +1474,7 @@
 </ng-template>
 
 <ng-template #leaveTypesView>
-  <div class="panel-grid">
+  <div class="hr-stack leave-types-shell">
     <article class="hr-panel">
       <h2>Leave Types Configuration</h2>
       <p>Create and maintain leave types used by employees.</p>
@@ -1545,7 +1503,7 @@
         <button class="primary-btn full" type="submit" [disabled]="leaveTypeForm.invalid || isLeaveTypeSaving()">Save leave type</button>
       </form>
     </article>
-    <article class="hr-panel large">
+    <article class="hr-panel large leave-types-list-panel">
       <h2>Configured leave types</h2>
       <p>Live leave type master from backend.</p>
       <div class="table-wrap">
@@ -1565,7 +1523,7 @@
 </ng-template>
 
 <ng-template #salaryStructureView>
-  <div class="panel-grid">
+  <div class="hr-stack salary-structure-shell">
     <article class="hr-panel">
       <h2>Salary Structure</h2>
       <p>Create or update salary structure for an employee.</p>
@@ -1588,7 +1546,7 @@
       </form>
     </article>
 
-    <article class="hr-panel large">
+    <article class="hr-panel large salary-structure-list-panel">
       <h2>Salary Structure List</h2>
       <p>Active salary structures used in payroll processing.</p>
       <div class="table-wrap">
@@ -1649,7 +1607,7 @@
 </ng-template>
 
 <ng-template #payrollProcessingView>
-  <div class="panel-grid payroll-cycle-summary">
+  <div class="hr-stack payroll-processing-shell">
     <article class="hr-panel">
       <h2>Payroll Processing</h2>
       <p>Create a monthly payroll run and generate employee payslips.</p>
@@ -1663,7 +1621,7 @@
       </form>
     </article>
 
-    <article class="hr-panel large">
+    <article class="hr-panel large payroll-run-list-panel">
       <h2>Payroll Run Status</h2>
       <p>Process payroll, approve it, and track net payout.</p>
       <div class="table-wrap">
@@ -1693,7 +1651,7 @@
 </ng-template>
 
 <ng-template #payrollReportsView>
-  <div class="panel-grid">
+  <div class="hr-stack payroll-reports-shell">
     <article class="hr-panel feature-summary span-2">
       <h2>Payroll Report</h2>
       <p>Payroll summary, salary profiles, runs and payslip totals.</p>
@@ -1706,7 +1664,7 @@
       </div>
     </article>
 
-    <article class="hr-panel large">
+    <article class="hr-panel large payroll-runs-report-panel">
       <h2>Payroll runs report</h2>
       <div class="table-wrap">
         <table>
@@ -1722,7 +1680,7 @@
       </div>
     </article>
 
-    <article class="hr-panel large">
+    <article class="hr-panel large payslip-report-panel">
       <h2>Payslip report</h2>
       <div class="table-wrap">
         <table>
@@ -1741,7 +1699,7 @@
 </ng-template>
 
 <ng-template #eventView>
-  <div class="panel-grid announcement-workspace">
+  <div class="hr-stack company-events-shell">
     <article class="hr-panel">
       <h2>Event setup</h2>
       <p>Create company events, announcements and engagement updates.</p>
@@ -1773,7 +1731,7 @@
         <button class="primary-btn full" type="submit" [disabled]="eventForm.invalid || isEventSaving()">Create event</button>
       </form>
     </article>
-    <article class="hr-panel large">
+    <article class="hr-panel large company-events-register-panel">
       <h2>Event register</h2>
       <p>Published events are visible on employee dashboard.</p>
       <div class="table-wrap">
@@ -1802,7 +1760,7 @@
 </ng-template>
 
 <ng-template #meetingView>
-  <div class="panel-grid organization-upcoming-list">
+  <div class="hr-stack meeting-setup-shell">
     <article class="hr-panel">
       <h2>Meeting setup</h2>
       <p>Schedule HR meetings, conversations and action reviews.</p>
@@ -1854,7 +1812,7 @@
         <button class="primary-btn full" type="submit" [disabled]="meetingForm.invalid || isMeetingSaving()">Create meeting</button>
       </form>
     </article>
-    <article class="hr-panel large">
+    <article class="hr-panel large meeting-register-panel">
       <h2>Meeting register</h2>
       <p>Employees can view scheduled HR meetings from their page.</p>
       <div class="table-wrap">
@@ -1993,7 +1951,7 @@
 </ng-template>
 
 <ng-template #holidayView>
-  <div class="panel-grid">
+  <div class="hr-stack holiday-calendar-shell">
     <article class="hr-panel">
       <h2>{{ editingHolidayId() ? 'Update holiday' : 'Add holiday' }}</h2>
       <p>HR can maintain the company calendar shown to employees.</p>
@@ -2020,7 +1978,7 @@
         }
       </form>
     </article>
-    <article class="hr-panel large">
+    <article class="hr-panel large holiday-list-panel">
       <h2>Company holiday calendar</h2>
       <p>Employees see this same calendar in read-only mode.</p>
       <div class="table-wrap">
@@ -2313,27 +2271,3 @@
     </article>
   </div>
 </ng-template>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
