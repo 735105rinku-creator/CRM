@@ -4049,7 +4049,7 @@ table { min-width: 0; }
   padding: 16px 26px !important;
   position: sticky;
   top: 0;
-  z-index: 1000;
+  z-index: 2147483500;
 }
 
 .hr-workspace .hr-navbar-identity {
@@ -4159,6 +4159,117 @@ table { min-width: 0; }
 .hr-workspace .hr-profile-chevron { color: #64748b !important; font-size: 1.35rem; line-height: 1; }
 
 .hr-workspace .hr-shared-navbar .hr-header-back { order: 5; }
+
+/* =========================================================
+   HR TOP-RIGHT PROFILE DROPDOWN
+   (My Profile / Settings / Logout menu)
+========================================================= */
+
+.hr-workspace .hr-profile-dropdown-host {
+  position: relative;
+  order: 4;
+  display: inline-flex;
+}
+
+/* When we wrap the profile widget in .dropdown-host, reset the old order rule */
+.hr-workspace .hr-profile-dropdown-host .hr-navbar-profile {
+  order: initial;
+  cursor: pointer;
+  background: #f1f5f9 !important;
+  border: 1px solid #dbe3ee !important;
+  border-radius: 12px !important;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.hr-workspace .hr-profile-dropdown-host .hr-navbar-profile:hover {
+  background: #e8eef7 !important;
+  border-color: #c7d5e6 !important;
+}
+
+.hr-workspace .hr-profile-dropdown-host .luxury-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 220px;
+  background: #ffffff;
+  border: 1px solid #dbe3ee;
+  border-radius: 14px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16),
+              0 4px 10px rgba(15, 23, 42, 0.06);
+  padding: 8px;
+  display: grid;
+  gap: 2px;
+  z-index: 2147483000;
+}
+
+.hr-workspace .hr-profile-dropdown-host .luxury-dropdown button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 10px;
+  color: #172033;
+  cursor: pointer;
+  display: flex;
+  font-size: 0.85rem;
+  font-weight: 700;
+  gap: 10px;
+  min-height: 40px;
+  padding: 0 12px;
+  text-align: left;
+  transition: background 0.15s ease, color 0.15s ease;
+  width: 100%;
+}
+
+.hr-workspace .hr-profile-dropdown-host .luxury-dropdown button:hover {
+  background: #f1f5f9;
+  color: #2563eb;
+}
+
+.hr-workspace .hr-profile-dropdown-host .luxury-dropdown button span {
+  color: #64748b;
+  display: inline-flex;
+  justify-content: center;
+  min-width: 16px;
+}
+
+.hr-workspace .hr-profile-dropdown-host .luxury-dropdown button:hover span {
+  color: #2563eb;
+}
+
+.hr-workspace .hr-profile-dropdown-host .luxury-dropdown hr {
+  border: 0;
+  border-top: 1px solid #e5ebf3;
+  margin: 6px 4px;
+}
+
+.hr-workspace .hr-profile-dropdown-host .luxury-dropdown button.logout-action {
+  color: #be123c;
+}
+
+.hr-workspace .hr-profile-dropdown-host .luxury-dropdown button.logout-action:hover {
+  background: #fff1f2;
+  color: #be123c;
+}
+
+.hr-workspace .hr-profile-dropdown-host .luxury-dropdown button.logout-action span {
+  color: #f43f5e;
+}
+
+/* Mobile: dropdown becomes full-width sheet under the profile chip */
+@media (max-width: 768px) {
+  .hr-workspace .hr-profile-dropdown-host {
+    position: static;
+  }
+
+  .hr-workspace .hr-profile-dropdown-host .luxury-dropdown {
+    left: 12px;
+    right: 12px;
+    top: auto;
+    margin-top: 8px;
+    width: auto;
+    min-width: 0;
+  }
+}
 
 .hr-workspace .hr-shared-navbar .hr-header-back {
   background: #f8fafc !important;

@@ -83,15 +83,41 @@
         {{ isRefreshing() ? 'Refreshing...' : 'Refresh' }}
       </button>
 
-      <div class="hr-navbar-profile">
-        <span class="topbar-avatar">
-          <img [src]="hrProfileImage()" [alt]="hrDisplayName() + ' profile image'" />
-        </span>
-        <div class="team-copy hr-topbar-profile">
-          <strong>{{ hrDisplayName() }}</strong>
-          <span>HR Team</span>
-        </div>
-        <span class="hr-profile-chevron" aria-hidden="true">›</span>
+            <div class="dropdown-host hr-profile-dropdown-host">
+        <button
+          type="button"
+          class="hr-navbar-profile"
+          (click)="toggleHrProfileMenu()"
+          aria-haspopup="menu"
+          [attr.aria-expanded]="isHrProfileMenuOpen()"
+        >
+          <span class="topbar-avatar">
+            <img [src]="hrProfileImage()" [alt]="hrDisplayName() + ' profile image'" />
+          </span>
+          <div class="team-copy hr-topbar-profile">
+            <strong>{{ hrDisplayName() }}</strong>
+            <span>HR Team</span>
+          </div>
+          <span class="hr-profile-chevron" aria-hidden="true">›</span>
+        </button>
+
+        @if (isHrProfileMenuOpen()) {
+          <div class="luxury-dropdown profile-dropdown">
+            <button type="button" (click)="openHrProfile()">
+              <span>♙</span> My Profile
+            </button>
+
+            <button type="button" (click)="openHrSettings()">
+              <span>⚙</span> Settings
+            </button>
+
+            <hr />
+
+            <button type="button" class="logout-action" (click)="logout()">
+              <span>↪</span> Logout
+            </button>
+          </div>
+        }
       </div>
       <div class="notification-menu" style="position:relative">
         <button type="button" class="icon-btn badge" (click)="toggleNotificationPanel()" aria-label="Open HR notifications">

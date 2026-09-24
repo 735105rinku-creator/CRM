@@ -1243,6 +1243,20 @@ export const updateEmployeeService = async (currentUser, id, payload) => {
     throw new ApiError(404, "Employee not found.");
   }
 
+  const leaveBalances = payload.leaveBalances;
+  if (
+    leaveBalances &&
+    typeof leaveBalances === "object" &&
+    Object.keys(leaveBalances).length > 0
+  ) {
+    await saveEmployeeLeaveBalances({
+      companyId: employee.companyId || companyId,
+      employeeId: employee._id,
+      leaveBalances,
+      currentUser,
+    });
+  }
+
   /*
    * Keep an already-linked login account's reporting manager
    * synchronized when reporting manager changes.

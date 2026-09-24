@@ -831,6 +831,7 @@ export class HrDashboardComponent implements OnDestroy {
   protected readonly isEmployeeModalOpen = signal(false);
   protected readonly isEmployeePasswordVisible = signal(false);
   protected readonly isNotificationPanelOpen = signal(false);
+  protected readonly isHrProfileMenuOpen = signal(false);
   protected readonly message = signal('');
   private selectedProfileImage: File | null = null;
   protected readonly messagePopup = signal('');
@@ -4142,6 +4143,24 @@ protected attendanceReportSummary(): { present: number; late: number; absent: nu
     this.markNotificationsSeen();
   }
 
+    protected toggleHrProfileMenu(): void {
+    this.isHrProfileMenuOpen.update((open) => !open);
+  }
+
+  protected closeHrProfileMenu(): void {
+    this.isHrProfileMenuOpen.set(false);
+  }
+
+  protected openHrProfile(): void {
+    this.closeHrProfileMenu();
+    this.setFeature('profile');
+  }
+
+  protected openHrSettings(): void {
+    this.closeHrProfileMenu();
+    this.setFeature('access');
+  }
+
   protected closeNotificationPanel(): void {
     this.isNotificationPanelOpen.set(false);
   }
@@ -4625,12 +4644,23 @@ protected attendanceReportSummary(): { present: number; late: number; absent: nu
       ...(this.selectedCompanyId() ? { companyId: this.selectedCompanyId() } : {})
     };
     const editingId = this.editingEmployeeId();
-    const request = editingId
-      ? forkJoin({
-        employee: this.api.patch<EmployeeRow>(`/hr/employees/${editingId}`, employeeBody),
-        bank: this.api.put<EmployeeBankDetails>(`/hr/employees/${editingId}/bank`, bankDetails),
-        statutory: this.api.put<EmployeeStatutoryDetails>(`/hr/employees/${editingId}/statutory`, statutoryDetails)
-      }).pipe(map(({ employee }) => employee))
+    const leaveBalancesBody = {
+  casual: Number(casualLeaveBalance || 0),
+  sick: Number(sickLeaveBalance || 0),
+  earned: Number(earnedLeaveBalance || 0),
+  lwp: Number(leaveWithoutPay || 0),
+  year: new Date().getFullYear()
+};
+
+const request = editingId
+  ? forkJoin({
+      employee: this.api.patch<EmployeeRow>(
+        `/hr/employees/${editingId}`,
+        { ...employeeBody, leaveBalances: leaveBalancesBody }
+      ),
+      bank: this.api.put<EmployeeBankDetails>(`/hr/employees/${editingId}/bank`, bankDetails),
+      statutory: this.api.put<EmployeeStatutoryDetails>(`/hr/employees/${editingId}/statutory`, statutoryDetails)
+    }).pipe(map(({ employee }) => employee))
       : this.api.post<EmployeeRow>('/hr/employees', {
         ...employeeBody,
         createLoginAccount: Boolean(cleanedEmployeePayload['createLoginAccount'] && cleanedEmployeePayload['officialEmail']),
