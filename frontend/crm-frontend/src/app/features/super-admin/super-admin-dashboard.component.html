@@ -13,13 +13,13 @@
           </div>
         </div>
 
-        <div class="super-admin-executive-user">
+        <!-- <div class="super-admin-executive-user">
           <span class="super-admin-executive-avatar">{{ initials() || 'SA' }}</span>
           <span class="super-admin-executive-user-copy">
             <strong>{{ userName() }}</strong>
             <small>{{ userEmail() || 'super_admin' }}</small>
           </span>
-        </div>
+        </div> -->
       </div>
 
       <nav class="platform-nav" aria-label="Super Admin sections">
@@ -974,7 +974,7 @@
             </div>
           </article>
         </section>      } @else if (activeSection() === 'system-logs') {
-        <section class="workspace-grid">
+        <section>
           <article class="panel executive-content-panel span-2"><div class="panel-heading"><div><h2>System Activity Logs</h2><p>Only platform modules, status changes, billing, support, backups and announcement activity.</p></div><button class="primary-action" type="button" (click)="loadAuditOverview()">Refresh</button></div>
             <div class="summary-grid"><span><strong>{{ auditStat('systemLogs') }}</strong>System Events</span><span><strong>{{ auditStat('activeSessions') }}</strong>Active Sessions</span><span><strong>{{ auditStat('failedAttempts') }}</strong>Failed Attempts</span></div>
             <div class="table-wrap executive-table-wrap"><table><thead><tr><th>Module</th><th>Action</th><th>Actor</th><th>Status</th><th>When</th></tr></thead><tbody>@for (row of systemActivityLogs(); track (row.module || '') + (row.action || '') + (row.createdAt || '')) { <tr><td>{{ row.module }}</td><td>{{ row.action }}</td><td>{{ row.actor }}</td><td><span class="status-pill">{{ row.status || '-' }}</span></td><td>{{ formatDate(row.createdAt) }}</td></tr> } @empty { <tr><td colspan="5" class="empty-state">No system activity found.</td></tr> }</tbody></table></div>
@@ -989,7 +989,7 @@
           <article class="panel executive-content-panel"><div class="panel-heading"><div><h2>Recent Sessions</h2><p>Session records only.</p></div></div><div class="plan-admin-list">@for (row of activeSessionRows(); track row._id) { <span><strong>{{ row.user?.name || row.user?.email || 'Session' }}</strong><em>{{ row.isRevoked ? 'revoked' : 'active' }} • {{ row.ipAddress || '-' }}</em><small>{{ row.deviceName || row.userAgent }}</small></span> } @empty { <div class="empty-state">No sessions found.</div> }</div></article>
         </section>
       } @else if (activeSection() === 'failed-logins') {
-        <section class="workspace-grid">
+        <section>
           <article class="panel executive-content-panel span-2"><div class="panel-heading"><div><h2>Failed Login Attempts</h2><p>Only failed and locked login attempts.</p></div><button class="primary-action" type="button" (click)="loadAuditOverview()">Refresh</button></div>
             <div class="summary-grid"><span><strong>{{ auditStat('failedAttempts') }}</strong>Failed/Locked</span><span><strong>{{ failedLoginAttempts().length }}</strong>Shown</span></div>
             <div class="table-wrap executive-table-wrap"><table><thead><tr><th>Email</th><th>Status</th><th>Reason</th><th>IP</th><th>When</th></tr></thead><tbody>@for (row of failedLoginAttempts(); track row._id || (row.email || '') + (row.createdAt || '')) { <tr><td>{{ row.email || row.user?.email }}</td><td><span class="status-pill danger">{{ row.status }}</span></td><td>{{ row.reason || '-' }}</td><td>{{ row.ipAddress || '-' }}</td><td>{{ formatDate(row.createdAt) }}</td></tr> } @empty { <tr><td colspan="5" class="empty-state">No failed login attempts found.</td></tr> }</tbody></table></div>
@@ -1003,7 +1003,7 @@
           <article class="panel executive-content-panel"><div class="panel-heading"><div><h2>Theme</h2><p>Maximal Super Admin visual theme controls.</p></div></div><form class="theme-settings-grid" [formGroup]="platformThemeForm" (ngSubmit)="savePlatformTheme()"><label>Heading<input formControlName="primaryColor" type="color" /></label><label>Accent<input formControlName="accentColor" type="color" /></label><label>Danger<input formControlName="dangerColor" type="color" /></label><label>Sidebar Start<input formControlName="sidebarStart" type="color" /></label><label>Sidebar End<input formControlName="sidebarEnd" type="color" /></label><button class="primary-action" type="submit">Save Theme</button><button class="ghost-btn" type="button" (click)="resetPlatformTheme()">Reset</button></form></article>
         </section>
       } @else if (activeSection() === 'security') {
-        <section class="workspace-grid">
+        <section>
           <article class="panel executive-content-panel span-2"><div class="panel-heading"><div><h2>Security Settings</h2><p>Only password policy, session timeout, lockout and 2FA enforcement settings.</p></div><button class="primary-action" type="button" (click)="loadPlatformSettings()">Refresh</button></div>
             <form class="form-grid" [formGroup]="securitySettingsForm" (ngSubmit)="saveSecuritySettings()"><label>Password min length<input type="number" formControlName="passwordMinLength" /></label><label>Session timeout minutes<input type="number" formControlName="sessionTimeoutMinutes" /></label><label>Max login attempts<input type="number" formControlName="maxLoginAttempts" /></label><label>Lockout minutes<input type="number" formControlName="lockoutMinutes" /></label><label class="check-line"><input type="checkbox" formControlName="requireStrongPassword" /> Strong password required</label><label class="check-line"><input type="checkbox" formControlName="enforceTwoFactor" /> Enforce 2FA</label><button class="primary-action" type="submit" [disabled]="securitySettingsForm.invalid || isPlatformSaving()">Save Security Settings</button></form>
           </article>
@@ -1016,7 +1016,7 @@
       } @else if (activeSection() === 'profile') {
         <section class="workspace-grid"><article class="panel executive-content-panel span-2"><div class="panel-heading"><div><h2>Profile Settings</h2><p>Only Super Admin profile fields and account metadata.</p></div><button class="primary-action" type="button" (click)="patchProfileFormFromUser()">Reload</button></div><form class="form-grid" [formGroup]="profileSettingsForm" (ngSubmit)="saveProfileSettings()"><label>Name<input formControlName="name" /></label><label>Mobile<input formControlName="mobile" /></label><label>Department<input formControlName="department" /></label><label>Designation<input formControlName="designation" /></label><button class="primary-action" type="submit" [disabled]="profileSettingsForm.invalid || isPlatformSaving()">Save Profile</button></form></article><article class="panel executive-content-panel"><div class="panel-heading"><div><h2>Account</h2><p>Current signed-in profile.</p></div></div><div class="summary-grid"><span><strong>{{ userName() }}</strong>Name</span><span><strong>{{ userEmail() }}</strong>Email</span><span><strong>{{ user()?.role || 'super_admin' }}</strong>Role</span></div></article></section>
       } @else if (activeSection() === 'change-password') {
-        <section class="workspace-grid"><article class="panel executive-content-panel span-2"><div class="panel-heading"><div><h2>Change Password</h2><p>Only password update. Active sessions are revoked after successful change.</p></div></div><form class="form-grid" [formGroup]="superAdminPasswordForm" (ngSubmit)="changeSuperAdminPassword()"><label>Current password<input type="password" formControlName="currentPassword" /></label><label>New password<input type="password" formControlName="newPassword" /></label><label>Confirm password<input type="password" formControlName="confirmPassword" /></label><button class="primary-action" type="submit" [disabled]="superAdminPasswordForm.invalid || isPlatformSaving()">Change Password</button></form></article></section>
+        <section><article class="panel executive-content-panel span-2"><div class="panel-heading"><div><h2>Change Password</h2><p>Only password update. Active sessions are revoked after successful change.</p></div></div><form class="form-grid" [formGroup]="superAdminPasswordForm" (ngSubmit)="changeSuperAdminPassword()"><label>Current password<input type="password" formControlName="currentPassword" /></label><label>New password<input type="password" formControlName="newPassword" /></label><label>Confirm password<input type="password" formControlName="confirmPassword" /></label><button class="primary-action" type="submit" [disabled]="superAdminPasswordForm.invalid || isPlatformSaving()">Change Password</button></form></article></section>
       } @else if (activeSection() === 'my-activity') {
         <section class="workspace-grid"><article class="panel executive-content-panel span-2"><div class="panel-heading"><div><h2>Activity Log</h2><p>Only this Super Admin login, session and export activity.</p></div><button class="primary-action" type="button" (click)="loadProfileActivity()">Refresh</button></div><div class="table-wrap executive-table-wrap"><table><thead><tr><th>Type</th><th>Status</th><th>Detail</th><th>When</th></tr></thead><tbody>@for (row of profileLoginRows(); track row._id || row.createdAt) { <tr><td>Login Audit</td><td>{{ row.status }}</td><td>{{ row.reason || row.ipAddress || '-' }}</td><td>{{ formatDate(row.createdAt) }}</td></tr> } @for (row of profileBackupRows(); track row._id || row.fileName) { <tr><td>Backup</td><td>{{ row.status }}</td><td>{{ row.fileName }}</td><td>{{ formatDate(row.createdAt) }}</td></tr> } @empty { <tr><td colspan="4" class="empty-state">No profile activity found.</td></tr> }</tbody></table></div></article><article class="panel executive-content-panel"><div class="panel-heading"><div><h2>My Sessions</h2><p>Session history only.</p></div></div><div class="plan-admin-list">@for (row of profileSessionRows(); track row._id) { <span><strong>{{ row.deviceName || 'Session' }}</strong><em>{{ row.isRevoked ? 'revoked' : 'active' }} • {{ row.ipAddress || '-' }}</em><small>{{ formatDate(row.createdAt) }}</small></span> } @empty { <div class="empty-state">No sessions found.</div> }</div></article></section>      } @else {
         <article class="panel executive-content-panel">

@@ -635,6 +635,12 @@ const chargeSchema =
         default: "INR",
       },
 
+      freightCurrency: { type: String, trim: true, uppercase: true, default: "INR" },
+      documentationCurrency: { type: String, trim: true, uppercase: true, default: "INR" },
+      chaCurrency: { type: String, trim: true, uppercase: true, default: "INR" },
+      transportationCurrency: { type: String, trim: true, uppercase: true, default: "INR" },
+      otherCurrency: { type: String, trim: true, uppercase: true, default: "INR" },
+
       totalAmount: {
         type: Number,
         min: 0,

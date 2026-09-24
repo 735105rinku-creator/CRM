@@ -111,6 +111,7 @@ export class TrackingComponent implements OnInit {
   protected readonly isSaving = signal(false);
   protected readonly message = signal('');
   protected readonly errorMessage = signal('');
+  protected readonly validationField = signal('');
 
   protected readonly shipmentModes: Option[] = [
     { label: 'Air Cargo', value: 'air-cargo' },
@@ -350,7 +351,8 @@ export class TrackingComponent implements OnInit {
 
     if (validationError) {
       this.errorMessage.set(validationError);
-      window.alert(validationError);
+      this.validationField.set(this.validationFieldFor(validationError));
+      this.focusFirstEmptyControl();
       return;
     }
 
@@ -569,6 +571,34 @@ export class TrackingComponent implements OnInit {
     }
 
     return '';
+  }
+
+  protected fieldError(field: string): string {
+    return this.validationField() === field ? this.errorMessage() : '';
+  }
+
+  private validationFieldFor(message: string): string {
+    if (message.startsWith('Shipment Number')) return 'shipmentNo';
+    if (message.startsWith('Shipment Mode') || message.startsWith('Enter Shipment Mode')) return 'shipmentMode';
+    if (message.startsWith('Current Location')) return 'currentLocation';
+    if (message.startsWith('Current Status') || message.startsWith('Enter Current Status')) return 'currentStatus';
+    if (message.startsWith('Remarks')) return 'remarks';
+    return '';
+  }
+
+  private focusFirstEmptyControl(): void {
+    setTimeout(() => {
+      const controls = Array.from(
+        document.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>('.tracking-page input, .tracking-page select, .tracking-page textarea')
+      );
+      const emptyControl = controls.find((control) => {
+        if (control instanceof HTMLInputElement && ['button', 'submit', 'reset'].includes(control.type)) {
+          return false;
+        }
+        return !control.value.trim();
+      });
+      emptyControl?.focus();
+    });
   }
 
   private prefillForm(

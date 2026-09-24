@@ -171,6 +171,11 @@ interface LogisticsShipment {
     otherCharge?: number;
     totalAmount?: number;
     currency?: string;
+    freightCurrency?: string;
+    documentationCurrency?: string;
+    chaCurrency?: string;
+    transportationCurrency?: string;
+    otherCurrency?: string;
   };
 
   status?: BackendShipmentStatus;
@@ -274,6 +279,11 @@ interface CreateSeaShipmentPayload {
     otherChargeDescription?: string;
     totalAmount?: number;
     currency?: string;
+    freightCurrency?: string;
+    documentationCurrency?: string;
+    chaCurrency?: string;
+    transportationCurrency?: string;
+    otherCurrency?: string;
   };
 
   customs?: {
@@ -350,6 +360,9 @@ export class SeaFreightComponent
     signal('');
 
   protected readonly errorMessage =
+    signal('');
+
+  protected readonly validationField =
     signal('');
 
 
@@ -1170,10 +1183,9 @@ protected get totalChargeAmount(): number {
       this.errorMessage.set(
         validationError
       );
+      this.validationField.set(this.validationFieldFor(validationError));
 
-      window.alert(
-        validationError
-      );
+      this.focusFirstEmptyControl();
 
       return;
     }
@@ -1688,6 +1700,48 @@ protected get totalChargeAmount(): number {
     return '';
   }
 
+  protected fieldError(field: string): string {
+    return this.validationField() === field ? this.errorMessage() : '';
+  }
+
+  private validationFieldFor(message: string): string {
+    if (message.startsWith('Customer Name') || message.startsWith('Enter Customer Name')) return 'customer';
+    if (message.startsWith('Contact Person')) return 'contactPerson';
+    if (message.startsWith('Mobile Number')) return 'mobile';
+    if (message.startsWith('Email')) return 'email';
+    if (message.startsWith('Shipment Date')) return 'shipmentDate';
+    if (message.startsWith('Shipment Type') || message.startsWith('Enter Shipment Type')) return 'shipmentType';
+    if (message.startsWith('Commodity') || message.startsWith('Enter Commodity')) return 'commodity';
+    if (message.startsWith('CHA') || message.startsWith('Enter CHA')) return 'cha';
+    if (message.startsWith('Quantity')) return 'quantity';
+    if (message.startsWith('Gross Weight')) return 'grossWeight';
+    if (message.startsWith('Container Type') || message.startsWith('Enter Container Type')) return 'containerType';
+    if (message.startsWith('Container Count')) return 'containerCount';
+    if (message.startsWith('Origin Port') || message.startsWith('Enter Origin Port')) return 'originPort';
+    if (message.startsWith('Destination Port') || message.startsWith('Enter Destination Port')) return 'destinationPort';
+    if (message.startsWith('Shipping Line') || message.startsWith('Enter Shipping Line')) return 'shippingLine';
+    if (message.startsWith('Vessel Name')) return 'vesselName';
+    if (message.startsWith('Booking Number')) return 'bookingNumber';
+    if (message.startsWith('Status')) return 'status';
+    if (message.startsWith('Remarks')) return 'remarks';
+    return '';
+  }
+
+  private focusFirstEmptyControl(): void {
+    setTimeout(() => {
+      const controls = Array.from(
+        document.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>('.sea-page input, .sea-page select, .sea-page textarea')
+      );
+      const emptyControl = controls.find((control) => {
+        if (control instanceof HTMLInputElement && ['button', 'submit', 'reset'].includes(control.type)) {
+          return false;
+        }
+        return !control.value.trim();
+      });
+      emptyControl?.focus();
+    });
+  }
+
 
   /* ==========================================================
      BUILD API PAYLOAD
@@ -2051,7 +2105,13 @@ protected get totalChargeAmount(): number {
         
         
         currency:
-          this.selectedCurrency()
+          this.selectedCurrency(),
+
+        freightCurrency: this.chargeCurrency(this.form.freightCurrency, this.form.freightCurrencyOther),
+        documentationCurrency: this.chargeCurrency(this.form.documentationCurrency, this.form.documentationCurrencyOther),
+        chaCurrency: this.chargeCurrency(this.form.chaCurrency, this.form.chaCurrencyOther),
+        transportationCurrency: this.chargeCurrency(this.form.transportationCurrency, this.form.transportationCurrencyOther),
+        otherCurrency: this.chargeCurrency(this.form.otherCurrency, this.form.otherCurrencyOther)
 
       },
 
@@ -2604,6 +2664,17 @@ protected get totalChargeAmount(): number {
       currencyOther:
         '',
 
+      freightCurrency: shipment.charges?.freightCurrency || shipment.charges?.currency || 'INR',
+      freightCurrencyOther: '',
+      documentationCurrency: shipment.charges?.documentationCurrency || shipment.charges?.currency || 'INR',
+      documentationCurrencyOther: '',
+      chaCurrency: shipment.charges?.chaCurrency || shipment.charges?.currency || 'INR',
+      chaCurrencyOther: '',
+      transportationCurrency: shipment.charges?.transportationCurrency || shipment.charges?.currency || 'INR',
+      transportationCurrencyOther: '',
+      otherCurrency: shipment.charges?.otherCurrency || shipment.charges?.currency || 'INR',
+      otherCurrencyOther: '',
+
 
       transportationCharge:
         0,
@@ -3067,6 +3138,17 @@ protected get totalChargeAmount(): number {
       currencyOther:
         '',
 
+      freightCurrency: 'INR',
+      freightCurrencyOther: '',
+      documentationCurrency: 'INR',
+      documentationCurrencyOther: '',
+      chaCurrency: 'INR',
+      chaCurrencyOther: '',
+      transportationCurrency: 'INR',
+      transportationCurrencyOther: '',
+      otherCurrency: 'INR',
+      otherCurrencyOther: '',
+
 
       status:
         'booking-created',
@@ -3085,6 +3167,12 @@ protected get totalChargeAmount(): number {
     return this.form.currency === 'other'
       ? this.form.currencyOther.trim().toUpperCase()
       : this.form.currency || 'INR';
+  }
+
+  private chargeCurrency(currency: string, customCurrency: string): string {
+    return currency === 'other'
+      ? customCurrency.trim().toUpperCase() || 'INR'
+      : currency || 'INR';
   }
 
   private formatChaAddress(address: VendorApiRow['address']): string {

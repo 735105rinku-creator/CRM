@@ -22,6 +22,7 @@ import {
   apiUrl
 } from '../../../core/config/api.config';
 import { ApiService } from '../../../core/services/api.service';
+import { DepartmentInvoiceRealtimeService } from '../../../core/services/department-invoice-realtime.service';
 
 import {
   AccountsSidebarComponent
@@ -35,6 +36,15 @@ interface EmployeePhotoResponse {
     companyId?: string;
     employeePhoto?: string;
   } | null;
+}
+
+interface AccountsNotification {
+  _id?: string;
+  title?: string;
+  message?: string;
+  createdAt?: string;
+  isRead?: boolean;
+  actionUrl?: string;
 }
 
 @Component({
@@ -65,6 +75,7 @@ export class AccountsShellComponent implements OnInit {
     inject(AuthService);
   private readonly api = inject(ApiService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly realtime = inject(DepartmentInvoiceRealtimeService);
   private readonly employeeProfileImage = signal<{
     userId: string;
     companyId: string;
@@ -72,6 +83,12 @@ export class AccountsShellComponent implements OnInit {
   } | null>(null);
 
   ngOnInit(): void {
+    this.loadNotifications();
+    this.realtime.connect();
+    this.realtime.notifications$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((notification) => this.addRealtimeNotification(notification as AccountsNotification));
+
     const user = this.auth.getCurrentUser();
     if (!user?.id || !user.companyId) return;
 
@@ -98,6 +115,68 @@ export class AccountsShellComponent implements OnInit {
         // Keep initials when the authenticated employee photo is unavailable.
         error: () => {}
       });
+  }
+
+  readonly notificationOpen = signal(false);
+  readonly notifications = signal<AccountsNotification[]>([]);
+  readonly unreadNotificationCount = signal(0);
+
+  toggleNotifications(): void {
+    this.notificationOpen.update(value => !value);
+    if (this.notificationOpen()) this.loadNotifications();
+  }
+
+  markAllNotificationsRead(): void {
+    if (!this.unreadNotificationCount()) return;
+    this.api.patch('/hr/communication/notifications/read-all', {})
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.notifications.update(rows => rows.map(row => ({ ...row, isRead: true })));
+          this.unreadNotificationCount.set(0);
+        }
+      });
+  }
+
+  openNotification(notification: AccountsNotification): void {
+    const navigate = () => {
+      this.notificationOpen.set(false);
+      if (notification.actionUrl?.startsWith('/')) void this.router.navigateByUrl(notification.actionUrl);
+    };
+    if (!notification._id || notification.isRead) {
+      navigate();
+      return;
+    }
+    this.api.patch(`/hr/communication/notifications/${encodeURIComponent(notification._id)}/read`, {})
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.notifications.update(rows => rows.map(row => row._id === notification._id ? { ...row, isRead: true } : row));
+          this.unreadNotificationCount.update(count => Math.max(0, count - 1));
+          navigate();
+        },
+        error: navigate
+      });
+  }
+
+  notificationTime(value?: string): string {
+    if (!value) return '';
+    return new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
+  }
+
+  private loadNotifications(): void {
+    this.api.get<{ notifications?: AccountsNotification[] }>('/hr/communication/notifications', { limit: 5 })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({ next: response => this.notifications.set(response?.notifications || []), error: () => this.notifications.set([]) });
+    this.api.get<{ unreadCount?: number }>('/hr/communication/notifications/unread-count')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({ next: response => this.unreadNotificationCount.set(Number(response?.unreadCount || 0)), error: () => this.unreadNotificationCount.set(0) });
+  }
+
+  private addRealtimeNotification(notification: AccountsNotification): void {
+    if (!notification || !notification.title && !notification.message) return;
+    this.notifications.update(rows => [notification, ...rows.filter(row => row._id !== notification._id)].slice(0, 5));
+    if (!notification.isRead) this.unreadNotificationCount.update(count => count + 1);
   }
 
 

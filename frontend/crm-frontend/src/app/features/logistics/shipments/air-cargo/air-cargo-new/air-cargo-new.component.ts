@@ -337,6 +337,9 @@ export class AirCargoNewComponent {
   protected readonly errorMessage =
     signal('');
 
+  protected readonly validationField =
+    signal('');
+
   protected readonly editingShipmentId =
     signal<string | null>(null);
 
@@ -1017,6 +1020,11 @@ private populateEditForm(
 
     /* TRANSPORT */
 
+    transporterRequired:
+      transport.required || transport.transporterId || description['Driver'] || description['Vehicle']
+        ? 'yes'
+        : 'no',
+
     transporter:
       transport.transporterId || '',
 
@@ -1513,7 +1521,8 @@ private populateEditForm(
 
     if (validationError) {
       this.errorMessage.set(validationError);
-      window.alert(validationError);
+      this.validationField.set(this.validationFieldFor(validationError));
+      this.focusFirstEmptyControl();
       return;
     }
 
@@ -1755,6 +1764,22 @@ request
     this.form.vehicleNumber = transporter.defaultVehicleNumber || this.form.vehicleNumber;
   }
 
+  protected onTransporterRequirementChanged(): void {
+    this.validationField.set('');
+    this.errorMessage.set('');
+
+    if (this.form.transporterRequired !== 'yes') {
+      this.form.transporter = '';
+      this.form.transporterOther = '';
+      this.form.driverName = '';
+      this.form.driverMobile = '';
+      this.form.vehicleNumber = '';
+      this.form.lrNumber = '';
+      this.form.pickupTime = '';
+      this.form.deliveryTime = '';
+    }
+  }
+
   private loadCustomers(): void {
     this.api
       .get<LogisticsListResponse<CustomerApiRow>>('/logistics/customers', {
@@ -1928,6 +1953,56 @@ request
     this.form.billingAddress = '';
     this.form.pickupAddress = '';
   }
+
+  private focusFirstEmptyControl(): void {
+    setTimeout(() => {
+      const controls = Array.from(
+        document.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>('.air-cargo-page input, .air-cargo-page select, .air-cargo-page textarea')
+      );
+      const emptyControl = controls.find((control) => {
+        if (control instanceof HTMLInputElement && ['button', 'submit', 'reset'].includes(control.type)) {
+          return false;
+        }
+        return !control.value.trim();
+      });
+      emptyControl?.focus();
+    });
+  }
+
+  protected fieldError(field: string): string {
+    return this.validationField() === field ? this.errorMessage() : '';
+  }
+
+  private validationFieldFor(message: string): string {
+    if (message.startsWith('Customer Name') || message.startsWith('Enter Customer Name')) return 'customer';
+    if (message.startsWith('Contact Person')) return 'contactPerson';
+    if (message.startsWith('Mobile Number')) return 'mobile';
+    if (message.startsWith('Email')) return 'email';
+    if (message.startsWith('Billing Address')) return 'billingAddress';
+    if (message.startsWith('Pickup Address')) return 'pickupAddress';
+    if (message.startsWith('Shipment Date')) return 'shipmentDate';
+    if (message.startsWith('Shipment Type')) return 'shipmentType';
+    if (message.startsWith('Shipment Mode')) return 'mode';
+    if (message.startsWith('Product Name')) return 'product';
+    if (message.startsWith('Product Category')) return 'productCategory';
+    if (message.startsWith('Quantity')) return 'quantity';
+    if (message.startsWith('Unit')) return 'unit';
+    if (message.startsWith('Gross Weight')) return 'grossWeight';
+    if (message.startsWith('Chargeable Weight')) return 'chargeableWeight';
+    if (message.startsWith('Source')) return 'source';
+    if (message.startsWith('Destination')) return 'destination';
+    if (message.startsWith('Airline')) return 'airline';
+    if (message.startsWith('Flight Number')) return 'flightNumber';
+    if (message.startsWith('AWB Number')) return 'awbNumber';
+    if (message.startsWith('Transporter')) return 'transporter';
+    if (message.startsWith('Driver Name')) return 'driverName';
+    if (message.startsWith('Driver Mobile')) return 'driverMobile';
+    if (message.startsWith('Vehicle Number')) return 'vehicleNumber';
+    if (message.startsWith('GST')) return 'gstRate';
+    if (message.startsWith('Remarks')) return 'remarks';
+    return '';
+  }
+
   private slug(value: string): string {
     return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'customer';
   }
@@ -1991,16 +2066,27 @@ request
       [this.form.airline, 'Airline Name'],
       [this.form.flightNumber, 'Flight Number'],
       [this.form.awbNumber, 'AWB Number'],
-      [this.form.transporter, 'Transporter Name'],
-      [this.form.driverName, 'Driver Name'],
-      [this.form.driverMobile, 'Driver Mobile'],
-      [this.form.vehicleNumber, 'Vehicle Number'],
       [this.form.gstRate, 'GST']
     ];
 
     for (const [value, label] of requiredTextFields) {
       if (!String(value || '').trim()) {
         return `${label} is required.`;
+      }
+    }
+
+    if (this.form.transporterRequired === 'yes') {
+      const transporterFields: Array<[string, string]> = [
+        [this.form.transporter, 'Transporter Name'],
+        [this.form.driverName, 'Driver Name'],
+        [this.form.driverMobile, 'Driver Mobile'],
+        [this.form.vehicleNumber, 'Vehicle Number']
+      ];
+
+      for (const [value, label] of transporterFields) {
+        if (!String(value || '').trim()) {
+          return `${label} is required.`;
+        }
       }
     }
 
@@ -2361,11 +2447,7 @@ request
 
       transport: {
         required:
-          Boolean(
-            this.form.transporter ||
-            this.form.driverName ||
-            this.form.vehicleNumber
-          ),
+          this.form.transporterRequired === 'yes',
 
         transporterId:
           selectedTransporter?._id || null,
@@ -3407,6 +3489,8 @@ private reconcileEditLookups(
 
       transporter: '',
       transporterOther: '',
+
+      transporterRequired: 'no',
 
       driverName: '',
       driverMobile: '',

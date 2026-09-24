@@ -359,15 +359,6 @@ export class SuperAdminDashboardComponent {
       ]
     },
     {
-      title: 'HRM Module Settings',
-      items: [
-        { id: 'hr-templates', label: 'Departments/Designations' },
-        { id: 'leave-policies', label: 'Leave Policy Templates' },
-        { id: 'holiday-calendar', label: 'Holiday Calendar Templates' },
-        { id: 'attendance-rules', label: 'Attendance Rules Defaults' }
-      ]
-    },
-    {
       title: 'Reports & Analytics',
       items: [
         { id: 'usage-report', label: 'Platform Usage Report' },
@@ -547,6 +538,8 @@ export class SuperAdminDashboardComponent {
     this.loadPlatformSettings();
     this.loadBackupHistory();
     this.loadProfileActivity();
+    this.loadRolesAndPermissions();
+    this.loadReportAnalytics();
     this.patchProfileFormFromUser();
   }
 
@@ -1201,6 +1194,14 @@ export class SuperAdminDashboardComponent {
 
   protected setSection(section: string): void {
     this.activeSection.set(section);
+
+    if (['roles', 'permissions', 'custom-roles'].includes(section)) {
+      this.loadRolesAndPermissions();
+    }
+
+    if (['usage-report', 'revenue-report', 'growth-report', 'module-usage', 'exports'].includes(section)) {
+      this.loadReportAnalytics();
+    }
   }
 
   protected goBack(): void {

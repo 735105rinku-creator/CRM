@@ -28,6 +28,10 @@
     </header>
   
     <main class="page-content">
+
+      @if (errorMessage() && !validationField()) {
+        <p class="validation-error" role="alert">{{ errorMessage() }}</p>
+      }
   
       <section class="summary-grid">
         <article>
@@ -110,6 +114,7 @@
                     placeholder="Enter customer name"
                   />
                 }
+                @if (fieldError('customer')) { <small class="field-error" role="alert">{{ fieldError('customer') }}</small> }
               </div>
   
               <div class="field">
@@ -118,6 +123,7 @@
                   [(ngModel)]="form.contactPerson"
                   placeholder="Enter contact person"
                 />
+                @if (fieldError('contactPerson')) { <small class="field-error" role="alert">{{ fieldError('contactPerson') }}</small> }
               </div>
   
               <div class="field">
@@ -126,6 +132,7 @@
                   [(ngModel)]="form.mobile"
                   placeholder="Enter mobile number"
                 />
+                @if (fieldError('mobile')) { <small class="field-error" role="alert">{{ fieldError('mobile') }}</small> }
               </div>
   
               <div class="field span-2">
@@ -135,6 +142,7 @@
                   [(ngModel)]="form.email"
                   placeholder="Enter email"
                 />
+                @if (fieldError('email')) { <small class="field-error" role="alert">{{ fieldError('email') }}</small> }
               </div>
             </div>
           </div>
@@ -163,6 +171,7 @@
                     placeholder="Enter shipment type"
                   />
                 }
+                @if (fieldError('shipmentType')) { <small class="field-error" role="alert">{{ fieldError('shipmentType') }}</small> }
               </div>
   
               <div class="field">
@@ -185,6 +194,7 @@
                     placeholder="Enter commodity"
                   />
                 }
+                @if (fieldError('commodity')) { <small class="field-error" role="alert">{{ fieldError('commodity') }}</small> }
               </div>
   
               <div class="field">
@@ -193,6 +203,7 @@
                   type="number"
                   [(ngModel)]="form.quantity"
                 />
+                @if (fieldError('quantity')) { <small class="field-error" role="alert">{{ fieldError('quantity') }}</small> }
               </div>
   
               <div class="field">
@@ -201,6 +212,7 @@
                   type="number"
                   [(ngModel)]="form.grossWeight"
                 />
+                @if (fieldError('grossWeight')) { <small class="field-error" role="alert">{{ fieldError('grossWeight') }}</small> }
               </div>
   
               <div class="field">
@@ -447,35 +459,15 @@
             <div class="form-grid">
           
               <div class="field">
-                <label>Currency</label>
-          
-                <select [(ngModel)]="form.currency">
-          
+                <label>Ocean Freight Currency</label>
+                <select [(ngModel)]="form.freightCurrency">
                   @for (option of currencyOptions; track option.value) {
-          
-                    <option [value]="option.value">
-                      {{ option.label }}
-                    </option>
-          
+                    <option [value]="option.value">{{ option.label }}</option>
                   }
-          
                 </select>
-          
-                @if (form.currency === 'other') {
-          
-                  <input
-                    class="other-input"
-                    maxlength="3"
-                    [(ngModel)]="form.currencyOther"
-                    placeholder="Currency Code"
-                  />
-          
+                @if (form.freightCurrency === 'other') {
+                  <input class="other-input" maxlength="3" [(ngModel)]="form.freightCurrencyOther" placeholder="Currency Code" />
                 }
-          
-              </div>
-          
-          
-              <div class="field">
                 <label>Ocean Freight</label>
           
                 <input
@@ -488,6 +480,15 @@
           
           
               <div class="field">
+                <label>Documentation Currency</label>
+                <select [(ngModel)]="form.documentationCurrency">
+                  @for (option of currencyOptions; track option.value) {
+                    <option [value]="option.value">{{ option.label }}</option>
+                  }
+                </select>
+                @if (form.documentationCurrency === 'other') {
+                  <input class="other-input" maxlength="3" [(ngModel)]="form.documentationCurrencyOther" placeholder="Currency Code" />
+                }
                 <label>Documentation Charge</label>
           
                 <input
@@ -500,6 +501,15 @@
           
           
               <div class="field">
+                <label>CHA Currency</label>
+                <select [(ngModel)]="form.chaCurrency">
+                  @for (option of currencyOptions; track option.value) {
+                    <option [value]="option.value">{{ option.label }}</option>
+                  }
+                </select>
+                @if (form.chaCurrency === 'other') {
+                  <input class="other-input" maxlength="3" [(ngModel)]="form.chaCurrencyOther" placeholder="Currency Code" />
+                }
                 <label>CHA Charge</label>
           
                 <input
@@ -512,6 +522,15 @@
           
           
               <div class="field">
+                <label>Transportation Currency</label>
+                <select [(ngModel)]="form.transportationCurrency">
+                  @for (option of currencyOptions; track option.value) {
+                    <option [value]="option.value">{{ option.label }}</option>
+                  }
+                </select>
+                @if (form.transportationCurrency === 'other') {
+                  <input class="other-input" maxlength="3" [(ngModel)]="form.transportationCurrencyOther" placeholder="Currency Code" />
+                }
                 <label>Transportation Charge</label>
           
                 <input
@@ -524,6 +543,15 @@
           
           
               <div class="field">
+                <label>Other Charge Currency</label>
+                <select [(ngModel)]="form.otherCurrency">
+                  @for (option of currencyOptions; track option.value) {
+                    <option [value]="option.value">{{ option.label }}</option>
+                  }
+                </select>
+                @if (form.otherCurrency === 'other') {
+                  <input class="other-input" maxlength="3" [(ngModel)]="form.otherCurrencyOther" placeholder="Currency Code" />
+                }
                 <label>Other Charge</label>
           
                 <input
@@ -534,36 +562,6 @@
           
               </div>
           
-          
-              <!-- =====================================================
-                   AUTO CALCULATED TOTAL
-              ====================================================== -->
-          
-              <div class="field span-2">
-          
-                <label>Total Amount</label>
-          
-                <input
-                  type="text"
-                  class="readonly"
-                  readonly
-                  [value]="
-                    (form.currency === 'other'
-                      ? (form.currencyOther || 'INR').toUpperCase()
-                      : form.currency
-                    )
-                    + ' '
-                    + totalChargeAmount.toLocaleString(
-                        'en-IN',
-                        {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2
-                        }
-                      )
-                  "
-                />
-          
-              </div>
           
             </div>
           </div>

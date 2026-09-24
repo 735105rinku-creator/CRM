@@ -397,6 +397,12 @@ const chargesSchema =
         .max(10)
         .default("INR"),
 
+    freightCurrency: Joi.string().trim().uppercase().max(10).default("INR"),
+    documentationCurrency: Joi.string().trim().uppercase().max(10).default("INR"),
+    chaCurrency: Joi.string().trim().uppercase().max(10).default("INR"),
+    transportationCurrency: Joi.string().trim().uppercase().max(10).default("INR"),
+    otherCurrency: Joi.string().trim().uppercase().max(10).default("INR"),
+
   }).default({});
 
 
