@@ -147,11 +147,9 @@ export const applyLeave = asyncHandler(async (req, res) => {
 });
 
 export const applyMyLeave = asyncHandler(async (req, res) => {
-  const { value, error } = applyLeaveSchema.validate({
-    leaveCode: "CL",
-    employeeCode: req.user.employeeCode,
-    ...req.body,
-  });
+  const { employeeCode: _ignoredEmployeeCode, ...safeBody } = req.body || {};
+
+  const { value, error } = applyLeaveSchema.validate(safeBody);
   if (error) throw new ApiError(400, error.details[0].message);
 
   const data = await applyMyLeaveService(req.user, value);

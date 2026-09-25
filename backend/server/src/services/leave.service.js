@@ -56,6 +56,45 @@ const ensureLeaveAccess = (currentUser) => {
   }
 };
 
+const ensureLeaveApprovalAccess = async (currentUser, request) => {
+  ensureLeaveAccess(currentUser);
+
+    const selfEmployeeId =
+    currentUser.employee?._id || currentUser.employee || null;
+
+  if (
+    selfEmployeeId &&
+    request.employeeId &&
+    request.employeeId.toString() === selfEmployeeId.toString()
+  ) {
+    throw new ApiError(403, "You cannot approve or reject your own leave request.");
+  }
+  // Company Admin can approve or reject leave requests.
+  if (currentUser.role === ROLES.COMPANY_ADMIN) {
+    return;
+  }
+
+  // HR users must not approve HR employee leave requests.
+  if (currentUser.role === ROLES.HR) {
+    const employee = await findEmployeeById(request.employeeId);
+
+    if (!employee) {
+      throw new ApiError(404, "Employee not found.");
+    }
+
+    if (employee.userId) {
+      const employeeUser = await User.findById(employee.userId).select("role");
+
+      if (employeeUser?.role === ROLES.HR) {
+        throw new ApiError(
+          403,
+          "Only Company Admin can approve HR leave requests."
+        );
+      }
+    }
+  }
+};
+
 const ensureSameCompany = (companyId, record, message = "Record not found.") => {
   if (!record || record.companyId.toString() !== companyId.toString()) {
     throw new ApiError(404, message);
@@ -846,12 +885,26 @@ export const updateLeaveRequestStatusService = async (
   id,
   payload
 ) => {
-  ensureLeaveAccess(currentUser);
-
   const companyId = getCompanyId(currentUser);
+
+const allowedStatuses = [
+  LEAVE_REQUEST_STATUS.APPROVED,
+  LEAVE_REQUEST_STATUS.REJECTED,
+  LEAVE_REQUEST_STATUS.CANCELLED,
+];
+
+if (!allowedStatuses.includes(payload.status)) {
+  throw new ApiError(
+    400,
+    "Only approved, rejected, or cancelled status is allowed."
+  );
+}
+
   const request = await findLeaveRequestById(id);
 
   ensureSameCompany(companyId, request, "Leave request not found.");
+
+  await ensureLeaveApprovalAccess(currentUser, request);
 
   if (request.status !== LEAVE_REQUEST_STATUS.PENDING) {
     throw new ApiError(400, "Only pending leave requests can be updated.");
@@ -915,7 +968,10 @@ export const updateLeaveRequestStatusService = async (
     senderUserId: currentUser._id,
     leaveRequest: updatedRequest,
     status: payload.status,
-    remarks: payload.approverRemarks || payload.cancellationReason || "",
+    remarks:
+  payload.approverRemarks ||
+  payload.cancellationReason ||
+  "",
   });
 
   return updatedRequest;

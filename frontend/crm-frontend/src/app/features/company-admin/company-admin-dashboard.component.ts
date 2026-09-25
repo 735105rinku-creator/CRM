@@ -2126,6 +2126,12 @@ export class CompanyAdminDashboardComponent {
   protected readonly leaveBalances =
     signal<any[]>([]);
 
+    protected readonly pendingLeaveRequests =
+    signal<any[]>([]);
+
+  protected readonly isLeaveActionSaving =
+    signal(false);
+
   protected readonly payrollRuns =
     signal<any[]>([]);
 
@@ -4242,6 +4248,51 @@ export class CompanyAdminDashboardComponent {
       );
   }
 
+    protected loadPendingLeaveRequests(): void {
+    this.api
+      .get<{ leaveRequests?: any[] }>(
+        '/hr/leave/requests',
+        { status: 'pending', limit: 100 }
+      )
+      .pipe(catchError(() => of({ leaveRequests: [] })))
+      .subscribe((data) => {
+        this.pendingLeaveRequests.set(data.leaveRequests ?? []);
+      });
+  }
+
+  protected updateLeaveStatus(
+    leave: any,
+    status: 'approved' | 'rejected'
+  ): void {
+    if (!leave?._id || this.isLeaveActionSaving()) return;
+
+    this.isLeaveActionSaving.set(true);
+    this.message.set('');
+
+    this.api
+      .patch(
+        `/hr/leave/requests/${leave._id}/status`,
+        {
+          status,
+          approverRemarks:
+            status === 'approved'
+              ? 'Approved by Company Admin.'
+              : 'Rejected by Company Admin.'
+        }
+      )
+      .pipe(finalize(() => this.isLeaveActionSaving.set(false)))
+      .subscribe({
+        next: () => {
+          this.message.set(`Leave ${status}.`);
+          this.loadPendingLeaveRequests();
+          this.loadHrm();
+        },
+        error: (error: { error?: { message?: string } }) =>
+          this.message.set(
+            error.error?.message || 'Unable to update leave request.'
+          )
+      });
+  }
 
   protected loadHrm(): void {
 
@@ -9679,11 +9730,18 @@ if (
 
       case 'attendance':
 
-      case 'leave':
-
       case 'payroll':
 
         this.loadHrm();
+
+        break;
+
+
+      case 'leave':
+
+        this.loadHrm();
+
+        this.loadPendingLeaveRequests();
 
         break;
 
@@ -9871,6 +9929,7 @@ if (
     );
 
     this.loadCrm();
+    this.loadPendingLeaveRequests();
 
     this.loadAccounting();
 

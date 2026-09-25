@@ -170,7 +170,14 @@ export const listLeaveRequests = async ({ filter, page, limit, sort }) => {
 
   const [rows, total] = await Promise.all([
     LeaveRequest.find(filter)
-      .populate("employeeId", "displayName employeeCode")
+      .populate({
+  path: "employeeId",
+  select: "displayName employeeCode userId",
+  populate: {
+    path: "userId",
+    select: "role",
+  },
+})
       .populate("leaveTypeId", "leaveName leaveCode category")
       .populate("leavePolicyId", "policyName policyCode")
       .sort(sort)

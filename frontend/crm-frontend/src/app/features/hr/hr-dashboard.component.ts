@@ -159,10 +159,17 @@ interface CompanyRow {
 
 interface LeaveRequestRow {
   _id?: string;
-  employeeId?: { displayName?: string; employeeCode?: string };
+  employeeId?: {
+  displayName?: string;
+  employeeCode?: string;
+  userId?: {
+    role?: string;
+  };
+};
   fromDate?: string;
   toDate?: string;
   totalDays?: number;
+  dayType?: string;
   reason?: string;
   status?: string;
   approverRemarks?: string;

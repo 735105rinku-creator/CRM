@@ -338,7 +338,7 @@
             </span>
 
             <strong>
-              0
+              {{ pendingLeaveRequests().length }}
             </strong>
 
             <small>
@@ -3106,7 +3106,92 @@
           </div>
 
         </article>
+         <article class="panel span-2">
+          <div class="panel-heading">
+            <div>
+              <h2>Pending HR Leave Approvals</h2>
+              <p>
+                Approve or reject HR-submitted leave requests. Employee
+                leave is handled by HR.
+              </p>
+            </div>
+            <span class="phase-pill">
+              {{ pendingLeaveRequests().length }} pending
+            </span>
+          </div>
 
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Employee</th>
+                  <th>Leave Type</th>
+                  <th>From</th>
+                  <th>To</th>
+                  <th>Days</th>
+                  <th>Reason</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (
+                  leave of pendingLeaveRequests();
+                  track leave._id
+                ) {
+                  <tr>
+                    <td>
+                      <strong>
+                        {{ leave.employeeId?.displayName || '-' }}
+                      </strong>
+                      <span>
+                        {{ leave.employeeId?.employeeCode || '-' }}
+                      </span>
+                    </td>
+                    <td>
+                      {{ leave.leaveTypeId?.leaveName || leave.leaveTypeId?.leaveCode || '-' }}
+                    </td>
+                    <td>
+                      {{ formatDate(leave.fromDate) }}
+                    </td>
+                    <td>
+                      {{ formatDate(leave.toDate) }}
+                    </td>
+                    <td>
+                      {{ leave.totalDays || '-' }}
+                    </td>
+                    <td>
+                      {{ leave.reason || '-' }}
+                    </td>
+                    <td>
+                      <button
+                        type="button"
+                        class="table-action"
+                        (click)="updateLeaveStatus(leave, 'approved')"
+                        [disabled]="isLeaveActionSaving()"
+                      >
+                        Approve
+                      </button>
+                      <button
+                        type="button"
+                        class="table-action warn"
+                        (click)="updateLeaveStatus(leave, 'rejected')"
+                        [disabled]="isLeaveActionSaving()"
+                      >
+                        Reject
+                      </button>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="7" class="empty-state">
+                      No pending HR leave requests.
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </article>
 
       <!-- =====================================================
            PAYROLL

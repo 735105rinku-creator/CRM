@@ -1245,12 +1245,150 @@
 
 
 <ng-template #leaveRequestsView>
+
+   <!-- HR Personal Leave Application -->
+  <article class="hr-panel large span-2">
+    <div class="panel-title">
+      <div>
+        <p>My Leave</p>
+        <h2>Apply for Leave</h2>
+        <span>Submit your personal leave request for approval.</span>
+      </div>
+    </div>
+
+    <form
+      [formGroup]="leaveForm"
+      (ngSubmit)="applyLeave()"
+      class="form-grid single"
+    >
+      <label>
+        Leave type
+        <select formControlName="leaveCode">
+          @for (type of leaveTypes(); track type._id || type.leaveCode) {
+            <option [value]="type.leaveCode">
+              {{ type.leaveName || type.leaveCode }}
+            </option>
+          } @empty {
+            <option value="CL">Casual Leave</option>
+          }
+        </select>
+      </label>
+
+      <label>
+        From date
+        <input formControlName="fromDate" type="date" />
+      </label>
+
+      <label>
+        To date
+        <input formControlName="toDate" type="date" />
+      </label>
+
+      <label>
+        Day type
+        <select formControlName="dayType">
+          <option value="full_day">Full day</option>
+          <option value="half_day_first">Half day first</option>
+          <option value="half_day_second">Half day second</option>
+        </select>
+      </label>
+
+      <label>
+        Reason
+        <input formControlName="reason" type="text" />
+      </label>
+
+      @if (selfMessage()) {
+        <p class="form-message">
+          {{ selfMessage() }}
+        </p>
+      }
+
+      <button
+        class="primary-btn full"
+        type="submit"
+        [disabled]="leaveForm.invalid || isLeaveSaving()"
+      >
+        {{ isLeaveSaving() ? 'Applying...' : 'Apply Leave' }}
+      </button>
+    </form>
+  </article>
+
+  <!-- HR Personal Leave History -->
+<article class="hr-panel large span-2">
+  <div class="panel-title">
+    <div>
+      <p>My Leave History</p>
+      <h2>Personal Leave Requests</h2>
+      <span>View the status of your submitted leave applications.</span>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Leave Type</th>
+          <th>Dates</th>
+          <th>Days</th>
+          <th>Day Type</th>
+          <th>Status</th>
+          <th>Reason</th>
+          <th>Approver Remarks</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @for (leave of myLeaves(); track leave._id) {
+          <tr>
+            <td>
+              {{ leave.leaveTypeId?.leaveName || leave.leaveTypeId?.leaveCode || '-' }}
+            </td>
+
+            <td>
+              {{ formatDate(leave.fromDate) }}
+              -
+              {{ formatDate(leave.toDate) }}
+            </td>
+
+            <td>
+              {{ leave.totalDays || 0 }}
+            </td>
+
+            <td>
+              {{ leave.dayType || '-' }}
+            </td>
+
+            <td>
+              <mark>{{ leave.status || 'pending' }}</mark>
+            </td>
+
+            <td>
+              {{ leave.reason || '-' }}
+            </td>
+
+            <td>
+              {{ leave.approverRemarks || '-' }}
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="7" class="empty">
+              No personal leave requests found.
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</article>
+
   <article class="hr-panel large span-2 leave-approval-queue">
     <div class="panel-title leave-summary-grid">
       <div>
         <p>Leave Requests</p>
         <h2>Employee leave applications</h2>
-        <span>Only employee-applied leave requests are listed here.</span>
+        <span>Employee leave applications. HR-submitted leaves await Company Admin approval.</span>
       </div>
     </div>
     <label>HR remark<input [value]="leaveRemark()" (input)="leaveRemark.set($any($event.target).value)" type="text" /></label>
@@ -1267,11 +1405,13 @@
               <td><mark>{{ leave.status || 'pending' }}</mark></td>
               <td>{{ leave.reason || '-' }}</td>
               <td>
-                @if ((leave.status || 'pending') === 'pending') {
+                @if ((leave.status || 'pending') !== 'pending') {
+                  <span>{{ leave.approverRemarks || '-' }}</span>
+                } @else if (leave.employeeId?.userId?.role === 'hr' || leave.employeeId?.userId?.role === 'company_admin') {
+                  <span class="status-pill">Awaiting Company Admin approval</span>
+                } @else {
                   <button class="table-btn" type="button" (click)="updateLeaveStatus(leave, 'approved')" [disabled]="isLeaveActionSaving()">Approve</button>
                   <button class="table-btn warn" type="button" (click)="updateLeaveStatus(leave, 'rejected')" [disabled]="isLeaveActionSaving()">Reject</button>
-                } @else {
-                  <span>{{ leave.approverRemarks || '-' }}</span>
                 }
               </td>
             </tr>

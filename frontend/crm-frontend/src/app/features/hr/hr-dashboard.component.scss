@@ -3941,6 +3941,22 @@ table { min-width: 0; }
   text-transform: capitalize;
 }
 
+/* Neutral status pill — used for HR-submitted leave awaiting Company Admin approval */
+.status-pill {
+  align-items: center;
+  background: #eef4fb;
+  border: 1px solid #d6e2f0;
+  border-radius: 999px;
+  color: #475569;
+  display: inline-flex;
+  font-size: 0.74rem;
+  font-weight: 800;
+  line-height: 1;
+  padding: 6px 12px;
+  text-transform: none;
+  white-space: nowrap;
+}
+
 .leave-approval-queue .table-btn {
   border-radius: 10px;
   min-height: 34px;
