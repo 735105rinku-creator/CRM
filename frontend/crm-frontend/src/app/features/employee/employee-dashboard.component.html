@@ -4833,6 +4833,10 @@
         }
 
 
+        @if (activeSection() === 'support-tickets') {
+          <app-support-ticket-form></app-support-ticket-form>
+        }
+
         @if (
           activeSection() === 'settings' ||
           activeSection() === 'announcements'

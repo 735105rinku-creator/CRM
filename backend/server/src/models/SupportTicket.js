@@ -14,6 +14,8 @@ const supportTicketSchema = new mongoose.Schema({
   priority: { type: String, enum: Object.values(SUPPORT_TICKET_PRIORITY), default: SUPPORT_TICKET_PRIORITY.MEDIUM, index: true },
   status: { type: String, enum: Object.values(SUPPORT_TICKET_STATUS), default: SUPPORT_TICKET_STATUS.OPEN, index: true },
   assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+  targetAudience: { type: String, enum: ["company_admin_hr", "super_admin"], default: "super_admin", index: true },
+  recipientRoles: { type: [String], default: [] },
   resolutionNote: { type: String, trim: true, default: "" },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
   updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },

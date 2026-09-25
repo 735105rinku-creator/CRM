@@ -9,6 +9,8 @@ import { apiUrl } from '../../core/config/api.config';
 import { Company } from '../../core/models/company.model';
 import { User } from '../../core/models/user.model';
 import { ApiService } from '../../core/services/api.service';
+import { SupportTicketFormComponent } from '../../shared/components/support-ticket-form/support-ticket-form.component';
+import { SupportTicketInboxComponent } from '../../shared/components/support-ticket-inbox/support-ticket-inbox.component';
 
 type HrFeature =
   | 'dashboard'
@@ -78,7 +80,8 @@ type HrFeature =
   | 'exports'
   | 'analytics'
   | 'settings'
-  | 'access';
+  | 'access'
+  | 'support-tickets';
 
 interface EmployeeRow {
   _id?: string;
@@ -675,7 +678,7 @@ interface FeatureItem {
 
 @Component({
   selector: 'app-hr-dashboard',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, SupportTicketFormComponent, SupportTicketInboxComponent],
   templateUrl: './hr-dashboard.component.html',
   styleUrls: ['../role-dashboard.scss', './hr-dashboard.component.scss']
 })
@@ -706,6 +709,7 @@ export class HrDashboardComponent implements OnDestroy {
     { id: 'events', label: 'Event setup', icon: '✧' },
     { id: 'meetings', label: 'Meeting setup', icon: '♧' },
     { id: 'messages', label: 'Messages', icon: 'M' },
+    { id: 'support-tickets', label: 'Raise Support Ticket', icon: 'S' },
     { id: 'holidays', label: 'Calendar', icon: '□' }
   ];
   protected readonly reportsMenu: FeatureItem[] = [

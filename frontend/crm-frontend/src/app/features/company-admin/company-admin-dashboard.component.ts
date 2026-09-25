@@ -10,6 +10,8 @@ import { apiUrl } from '../../core/config/api.config';
 import { Company } from '../../core/models/company.model';
 import { ApiService } from '../../core/services/api.service';
 import { DepartmentInvoiceRealtimeService } from '../../core/services/department-invoice-realtime.service';
+import { SupportTicketFormComponent } from '../../shared/components/support-ticket-form/support-ticket-form.component';
+import { SupportTicketInboxComponent } from '../../shared/components/support-ticket-inbox/support-ticket-inbox.component';
 
 import {
   AccountsDashboardComponent
@@ -345,7 +347,9 @@ declare global {
     TaxHubComponent,
     FinancialReportsHubComponent,
     AccountsSettingsComponent,
-    InvoiceApprovalsComponent
+    InvoiceApprovalsComponent,
+    SupportTicketFormComponent,
+    SupportTicketInboxComponent
   ],
 
   templateUrl:
@@ -1183,6 +1187,11 @@ export class CompanyAdminDashboardComponent {
       title: 'Communication',
 
       items: [
+        {
+          id: 'support-tickets',
+          label: 'Raise Support Ticket'
+        },
+
         {
           id: 'announcements',
           label: 'Announcements'

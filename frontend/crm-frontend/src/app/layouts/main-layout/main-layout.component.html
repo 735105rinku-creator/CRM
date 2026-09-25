@@ -32,5 +32,8 @@
     <main class="content-area">
       <router-outlet />
     </main>
+    @if (usesGlobalNavigation()) {
+      <app-support-ticket-form mode="launcher"></app-support-ticket-form>
+    }
   </section>
 </div>

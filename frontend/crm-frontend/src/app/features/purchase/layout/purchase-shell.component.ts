@@ -27,6 +27,7 @@ import {
 import {
   PurchaseSidebarComponent
 } from '../components/purchase-sidebar/purchase-sidebar.component';
+import { SupportTicketFormComponent } from '../../../shared/components/support-ticket-form/support-ticket-form.component';
 
 import {
   ApiService
@@ -106,7 +107,8 @@ interface PurchaseSearchItem {
   imports: [
     CommonModule,
     RouterOutlet,
-    PurchaseSidebarComponent
+    PurchaseSidebarComponent,
+    SupportTicketFormComponent
   ],
 
   templateUrl:

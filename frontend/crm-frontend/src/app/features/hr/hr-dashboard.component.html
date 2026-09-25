@@ -48,6 +48,7 @@
       <p class="hr-nav-section">Communication</p>
       <button type="button" [class.active]="activeFeature() === 'announcements'" (click)="setFeature('announcements')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('announcements')" aria-hidden="true"></span>Announcements</button>
       <button type="button" [class.active]="activeFeature() === 'messages'" (click)="setFeature('messages')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('messages')" aria-hidden="true"></span>Internal Messaging</button>
+      <button type="button" [class.active]="activeFeature() === 'support-tickets'" (click)="setFeature('support-tickets')"><span class="sidebar-icon" [ngClass]="sidebarIconClass('support-tickets')" aria-hidden="true"></span>Raise Support Ticket</button>
 
 
       <p class="hr-nav-section">Account</p>
@@ -238,6 +239,12 @@
       }
       @if (activeFeature() === 'messages') {
         <ng-container *ngTemplateOutlet="messageView"></ng-container>
+      }
+      @if (activeFeature() === 'support-tickets') {
+        <div class="support-workspace-stack">
+          <app-support-ticket-inbox></app-support-ticket-inbox>
+          <app-support-ticket-form></app-support-ticket-form>
+        </div>
       }
       @if (activeFeature() === 'crm-leads' || activeFeature() === 'crm-deals' || activeFeature() === 'crm-tasks') {
         <ng-container *ngTemplateOutlet="crmView"></ng-container>

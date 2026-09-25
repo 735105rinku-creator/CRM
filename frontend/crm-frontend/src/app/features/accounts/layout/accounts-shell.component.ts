@@ -27,6 +27,7 @@ import { DepartmentInvoiceRealtimeService } from '../../../core/services/departm
 import {
   AccountsSidebarComponent
 } from '../components/accounts-sidebar/accounts-sidebar.component';
+import { SupportTicketFormComponent } from '../../../shared/components/support-ticket-form/support-ticket-form.component';
 
 interface EmployeePhotoResponse {
   user?: { id?: string };
@@ -54,7 +55,8 @@ interface AccountsNotification {
 
   imports: [
     RouterOutlet,
-    AccountsSidebarComponent
+    AccountsSidebarComponent,
+    SupportTicketFormComponent
   ],
 
   templateUrl:

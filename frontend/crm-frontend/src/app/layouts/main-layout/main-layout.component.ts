@@ -25,6 +25,7 @@ import {
 import {
   SidebarComponent
 } from '../../shared/components/sidebar/sidebar.component';
+import { SupportTicketFormComponent } from '../../shared/components/support-ticket-form/support-ticket-form.component';
 
 
 @Component({
@@ -33,7 +34,8 @@ import {
   imports: [
     NavbarComponent,
     RouterOutlet,
-    SidebarComponent
+    SidebarComponent,
+    SupportTicketFormComponent
   ],
 
   templateUrl:

@@ -11,6 +11,7 @@ import {
 import {
   LogisticsSidebarComponent
 } from '../logistics-sidebar/logistics-sidebar.component';
+import { SupportTicketFormComponent } from '../../../shared/components/support-ticket-form/support-ticket-form.component';
 
 
 @Component({
@@ -23,7 +24,8 @@ import {
   imports: [
     CommonModule,
     RouterOutlet,
-    LogisticsSidebarComponent
+    LogisticsSidebarComponent,
+    SupportTicketFormComponent
   ],
 
   templateUrl:

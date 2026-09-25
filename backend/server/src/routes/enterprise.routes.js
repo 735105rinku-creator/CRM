@@ -22,7 +22,7 @@ import { PlatformSetting } from "../models/PlatformSetting.js";
 import { BackupExport } from "../models/BackupExport.js";
 import { Notification, NOTIFICATION_TYPE, NOTIFICATION_PRIORITY } from "../models/Notification.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
-import { checkHierarchyLevel, checkPermission, canManageTargetLevel } from "../middleware/checkPermission.js";
+import { checkHierarchyLevel, checkPermission, canManageTargetLevel, userRoleLevel } from "../middleware/checkPermission.js";
 import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -313,7 +313,7 @@ const supportSlug = (value = "") => String(value).toLowerCase().trim().replace(/
 
 const supportSummary = async () => {
   const [tickets, categories, articles] = await Promise.all([
-    SupportTicket.find().populate("companyId", "companyName companyCode").populate("assignedTo", "name email role").sort({ createdAt: -1 }).lean(),
+    SupportTicket.find({ targetAudience: "super_admin" }).populate("companyId", "companyName companyCode").populate("assignedTo", "name email role").sort({ createdAt: -1 }).lean(),
     SupportCategory.find().sort({ sortOrder: 1, name: 1 }).lean(),
     KnowledgeBaseArticle.find().sort({ sortOrder: 1, title: 1 }).lean(),
   ]);
@@ -332,6 +332,75 @@ const supportSummary = async () => {
     },
   };
 };
+
+router.get(
+  "/support/tickets",
+  asyncHandler(async (req, res) => {
+    const level = userRoleLevel(req.user);
+    let filter = {};
+    if (level === 0) {
+      filter = {};
+    } else if (level <= 2) {
+      if (!req.user.companyId) throw new ApiError(400, "A company account is required to view tickets.");
+      filter = { companyId: req.user.companyId, targetAudience: "company_admin_hr" };
+    } else {
+      filter = { createdBy: req.user._id };
+    }
+
+    const tickets = await SupportTicket.find(filter)
+      .populate("companyId", "companyName companyCode")
+      .sort({ createdAt: -1 })
+      .lean();
+    res.json(new ApiResponse(200, { tickets }, "Support tickets fetched."));
+  })
+);
+
+router.post(
+  "/support/tickets",
+  asyncHandler(async (req, res) => {
+    const subject = String(req.body.subject || "").trim();
+    if (!subject) throw new ApiError(400, "Ticket subject is required.");
+    if (!req.user.companyId) throw new ApiError(400, "A company account is required to raise a ticket.");
+
+    const isEmployee = userRoleLevel(req.user) >= 4;
+    const targetAudience = isEmployee ? "company_admin_hr" : "super_admin";
+    const recipientRoles = isEmployee ? [ROLES.COMPANY_ADMIN, ROLES.HR] : [ROLES.SUPER_ADMIN];
+    const ticket = await SupportTicket.create({
+      ticketNumber: nextTicketNumber(),
+      companyId: req.user.companyId,
+      requesterName: req.user.name || "",
+      requesterEmail: req.user.email || "",
+      subject,
+      description: String(req.body.description || "").trim(),
+      category: String(req.body.category || "General").trim(),
+      priority: supportPriorityValues.includes(req.body.priority) ? req.body.priority : SUPPORT_TICKET_PRIORITY.MEDIUM,
+      status: SUPPORT_TICKET_STATUS.OPEN,
+      targetAudience,
+      recipientRoles,
+      createdBy: req.user._id,
+      updatedBy: req.user._id,
+    });
+
+    const recipients = await User.find({ companyId: req.user.companyId, role: { $in: recipientRoles }, status: USER_STATUS.ACTIVE }).select("_id").lean();
+    if (recipients.length) {
+      await Notification.insertMany(recipients.map(({ _id }) => ({
+        companyId: req.user.companyId,
+        recipientUserId: _id,
+        senderUserId: req.user._id,
+        type: NOTIFICATION_TYPE.SYSTEM,
+        title: "New support ticket",
+        message: `${req.user.name || "A user"} submitted: ${subject}`,
+        entityType: "support_ticket",
+        entityId: ticket._id,
+        priority: ticket.priority === SUPPORT_TICKET_PRIORITY.URGENT ? NOTIFICATION_PRIORITY.URGENT : NOTIFICATION_PRIORITY.NORMAL,
+        actionUrl: "/support/tickets",
+        createdBy: req.user._id,
+      })));
+    }
+    res.status(201).json(new ApiResponse(201, ticket, "Support ticket submitted."));
+  })
+);
+
 const getPlatformSetting = async () =>
   PlatformSetting.findOneAndUpdate(
     { key: "platform" },

@@ -925,7 +925,7 @@ input[type="color"] {
 table {
   border-collapse: separate;
   border-spacing: 0;
-  min-width: 760px;
+  min-width: 1120px;
   width: 100%;
 }
 
@@ -949,6 +949,15 @@ td {
   font-size: 0.71rem;
   padding: 11px 12px;
   vertical-align: middle;
+}
+
+.support-description-cell {
+  max-width: 380px;
+  min-width: 280px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+  vertical-align: top;
 }
 
 tbody tr:last-child td { border-bottom: 0; }

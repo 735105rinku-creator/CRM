@@ -6507,6 +6507,13 @@
            ANNOUNCEMENTS
       ====================================================== -->
 
+      } @else if (activeSection() === 'support-tickets') {
+
+        <div class="support-workspace-stack">
+          <app-support-ticket-inbox></app-support-ticket-inbox>
+          <app-support-ticket-form></app-support-ticket-form>
+        </div>
+
       } @else if (activeSection() === 'announcements') {
 
         <section class="communication-maximal span-2">

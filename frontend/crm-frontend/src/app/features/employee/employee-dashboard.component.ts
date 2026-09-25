@@ -8,6 +8,7 @@ import { AuthService } from '../../core/auth/auth.service';
 import { apiUrl } from '../../core/config/api.config';
 import { ApiService } from '../../core/services/api.service';
 import { ImageCropperService } from '../../shared/services/image-cropper.service';
+import { SupportTicketFormComponent } from '../../shared/components/support-ticket-form/support-ticket-form.component';
 
 type EmployeeFeature =
   | 'dashboard'
@@ -34,7 +35,8 @@ type EmployeeFeature =
   | 'account-payments'
   | 'account-expenses'
   | 'settings'
-  | 'notifications';
+  | 'notifications'
+  | 'support-tickets';
 
 interface CrmLeadRow {
   _id?: string;
@@ -422,7 +424,8 @@ interface LogisticsMenuItem {
   selector: 'app-employee-dashboard',
   imports: [
     CommonModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    SupportTicketFormComponent
   ],
   templateUrl: './employee-dashboard.component.html',
   styleUrls: [
@@ -734,6 +737,11 @@ export class EmployeeDashboardComponent implements OnDestroy {
       id: 'announcements',
       label: 'Announcements',
       icon: 'N'
+    },
+    {
+      id: 'support-tickets',
+      label: 'Raise Support Ticket',
+      icon: 'S'
     },
     {
       id: 'my-leads',
