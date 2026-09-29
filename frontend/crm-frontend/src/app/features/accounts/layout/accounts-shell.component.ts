@@ -23,6 +23,7 @@ import {
 } from '../../../core/config/api.config';
 import { ApiService } from '../../../core/services/api.service';
 import { DepartmentInvoiceRealtimeService } from '../../../core/services/department-invoice-realtime.service';
+import { navigateToNotification } from '../../../core/services/notification-navigation.service';
 
 import {
   AccountsSidebarComponent
@@ -46,6 +47,8 @@ interface AccountsNotification {
   createdAt?: string;
   isRead?: boolean;
   actionUrl?: string;
+  entityType?: string;
+  entityId?: string | null;
 }
 
 @Component({
@@ -143,7 +146,7 @@ export class AccountsShellComponent implements OnInit {
   openNotification(notification: AccountsNotification): void {
     const navigate = () => {
       this.notificationOpen.set(false);
-      if (notification.actionUrl?.startsWith('/')) void this.router.navigateByUrl(notification.actionUrl);
+      navigateToNotification(this.router, notification, this.auth.currentUser()?.role);
     };
     if (!notification._id || notification.isRead) {
       navigate();

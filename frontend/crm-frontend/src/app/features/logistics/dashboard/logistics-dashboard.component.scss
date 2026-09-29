@@ -1,4 +1,6 @@
-﻿:host {
+﻿@import '../../../shared/styles/notification-unified.scss';
+
+:host {
     --luxury-navy-950: #050b14;
     --luxury-navy-900: #07111f;
     --luxury-navy-850: #0a1727;
@@ -2380,4 +2382,29 @@
   box-shadow:
     0 8px 20px rgba(15, 23, 42, 0.07),
     0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+
+/* =========================================================
+   LOGISTICS NOTIFICATION DROPDOWN FIX
+   Parent (.dropdown-host) ko relative banao taaki
+   dropdown bell ke neeche open ho, na ki page ke middle me.
+========================================================= */
+.dropdown-host {
+  position: relative;
+}
+
+.topbar-actions .dropdown-host,
+.topbar .dropdown-host {
+  position: relative !important;
+  display: inline-block;
+}
+
+.dropdown-host .notification-dropdown,
+.dropdown-host .luxury-dropdown.notification-dropdown {
+  position: absolute !important;
+  top: calc(100% + 8px) !important;
+  right: 0 !important;
+  left: auto !important;
+  z-index: 2147483000 !important;
 }

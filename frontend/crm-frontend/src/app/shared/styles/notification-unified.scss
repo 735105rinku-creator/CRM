@@ -1,0 +1,424 @@
+﻿/* =========================================================
+   UNIVERSAL NOTIFICATION UI
+   Sab modules me same notification look & feel.
+   
+   Har dashboard apni alag classes use karta hai, lekin
+   ye CSS sabko same design dega.
+========================================================= */
+
+/* =========================================================
+   BELL BUTTON — sab dashboards me same
+========================================================= */
+
+.notification-menu,
+.notification-wrap,
+.super-notification-menu,
+.purchase-topbar__dropdown,
+.accounts-notification-host,
+.notification-button {
+  position: relative;
+}
+
+.notification-menu .icon-btn,
+.notification-wrap .notification-bell,
+.super-notification-menu .notification-btn,
+.accounts-notification-button,
+.top-icon-btn.notification-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  min-height: 42px;
+  background: #ffffff;
+  border: 1px solid #dbe3ee;
+  border-radius: 10px;
+  color: #334155;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.notification-menu .icon-btn:hover,
+.notification-wrap .notification-bell:hover,
+.super-notification-menu .notification-btn:hover,
+.accounts-notification-button:hover,
+.top-icon-btn.notification-button:hover {
+  background: #f8fafc;
+  border-color: #c7d5e6;
+}
+
+/* Bell icon */
+.notification-bell-icon,
+.notification-bell,
+.icon-btn .bell {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+/* =========================================================
+   BADGE — same red dot sab jagah
+========================================================= */
+
+.notification-count,
+.notification-badge,
+.notification-menu .icon-btn small,
+.notification-wrap .notification-bell small,
+.super-notification-menu .notification-btn small,
+.accounts-notification-button .notification-count,
+.purchase-topbar__notification-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  background: #e11d48;
+  color: #ffffff;
+  font-size: 0.68rem;
+  font-weight: 900;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #ffffff;
+}
+
+/* =========================================================
+   DROPDOWN PANEL — sab me same
+========================================================= */
+
+.notification-panel,
+.notification-tray,
+.super-notification-panel,
+.purchase-notifications,
+.accounts-notification-dropdown,
+.luxury-dropdown.notification-dropdown {
+  width: min(380px, calc(100vw - 32px)) !important;
+  max-height: min(520px, calc(100vh - 120px)) !important;
+  background: #ffffff !important;
+  border: 1px solid #dbe3ee !important;
+  border-radius: 14px !important;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.15), 0 4px 10px rgba(15, 23, 42, 0.05) !important;
+  z-index: 2147483000 !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr) auto !important;
+}
+
+/* =========================================================
+   HEADER — sab me same
+========================================================= */
+
+.notification-panel header,
+.notification-tray header,
+.super-notification-panel header,
+.purchase-notifications__heading,
+.accounts-notification-heading {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 14px 16px !important;
+  border-bottom: 1px solid #eef2f7 !important;
+  background: #ffffff !important;
+  margin: 0 !important;
+}
+
+.notification-panel header strong,
+.notification-tray header strong,
+.super-notification-panel header strong,
+.purchase-notifications__title strong,
+.accounts-notification-heading strong {
+  color: #0f172a !important;
+  font-size: 0.95rem !important;
+  font-weight: 900 !important;
+}
+
+.notification-panel header small,
+.notification-tray header small,
+.super-notification-panel header small,
+.purchase-notifications__title small,
+.accounts-notification-heading small {
+  color: #64748b !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+}
+
+/* Close button */
+.notification-close,
+.neo-notification-clear,
+.purchase-notifications__close {
+  background: transparent !important;
+  border: 0 !important;
+  color: #2563eb !important;
+  cursor: pointer !important;
+  font-size: 0.75rem !important;
+  font-weight: 800 !important;
+  padding: 6px 10px !important;
+  border-radius: 8px !important;
+}
+
+.notification-close:hover,
+.neo-notification-clear:hover,
+.purchase-notifications__close:hover {
+  background: #eff6ff !important;
+}
+
+/* =========================================================
+   LIST — same scroll + spacing
+========================================================= */
+
+.notification-list,
+.notification-tray-list,
+.super-notification-list,
+.purchase-notifications__list,
+.accounts-notification-list {
+  overflow-y: auto !important;
+  padding: 8px !important;
+  display: grid !important;
+  gap: 6px !important;
+  background: #ffffff !important;
+  min-height: 0 !important;
+}
+
+/* =========================================================
+   ITEM — same card style
+========================================================= */
+
+.notification-list article,
+.notification-tray article,
+.super-notification-list article,
+.purchase-notifications__item,
+.accounts-notification-item {
+  display: grid !important;
+  grid-template-columns: 8px minmax(0, 1fr) !important;
+  gap: 10px !important;
+  align-items: start !important;
+  background: #f8fafc !important;
+  border: 1px solid #e5ebf3 !important;
+  border-radius: 10px !important;
+  padding: 12px !important;
+  cursor: pointer !important;
+  text-align: left !important;
+  width: 100% !important;
+  transition: background 0.15s ease, border-color 0.15s ease !important;
+  pointer-events: auto !important;
+  box-shadow: none !important;
+}
+
+.notification-list article:hover,
+.notification-tray article:hover,
+.super-notification-list article:hover,
+.purchase-notifications__item:hover,
+.accounts-notification-item:hover {
+  background: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+}
+
+.notification-list article.unread,
+.notification-tray article.unread,
+.super-notification-list article.unread,
+.purchase-notifications__item--unread,
+.accounts-notification-item.unread {
+  background: #eff6ff !important;
+  border-color: #bfdbfe !important;
+}
+
+/* Status dot */
+.notification-dot,
+.notification-status,
+.purchase-notifications__status,
+.notification-item-dot {
+  display: inline-block !important;
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 999px !important;
+  background: #cbd5e1 !important;
+  margin-top: 6px !important;
+}
+
+.notification-dot.gold,
+.notification-status.unread,
+.purchase-notifications__status.unread,
+.notification-item-dot.unread {
+  background: #2563eb !important;
+}
+
+/* =========================================================
+   TEXT CONTENT — same typography
+========================================================= */
+
+.notification-list article strong,
+.notification-tray article strong,
+.super-notification-list article strong,
+.purchase-notifications__content strong,
+.accounts-notification-item strong,
+.notification-copy strong {
+  color: #0f172a !important;
+  font-size: 0.88rem !important;
+  font-weight: 800 !important;
+  line-height: 1.25 !important;
+  display: block !important;
+}
+
+.notification-list article p,
+.notification-tray article p,
+.super-notification-list article p,
+.purchase-notifications__content p,
+.accounts-notification-item p,
+.notification-copy p {
+  color: #475569 !important;
+  font-size: 0.8rem !important;
+  line-height: 1.4 !important;
+  margin: 4px 0 0 0 !important;
+  overflow: hidden !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+}
+
+.notification-list article small,
+.notification-tray article small,
+.super-notification-list article small,
+.purchase-notifications__content small,
+.accounts-notification-item small {
+  color: #94a3b8 !important;
+  font-size: 0.72rem !important;
+  font-weight: 600 !important;
+  display: block !important;
+  margin-top: 4px !important;
+}
+
+/* =========================================================
+   EMPTY STATE — same
+========================================================= */
+
+.notification-list .empty,
+.notification-tray .empty,
+.super-notification-list .empty,
+.purchase-notifications__empty,
+.accounts-notification-empty {
+  display: grid !important;
+  gap: 6px !important;
+  padding: 32px 16px !important;
+  text-align: center !important;
+  color: #64748b !important;
+  background: transparent !important;
+  border: 0 !important;
+}
+
+/* =========================================================
+   FOOTER — same
+========================================================= */
+
+.notification-list + footer,
+.notification-view-all,
+.purchase-notifications__all,
+.notification-footer-action {
+  display: block !important;
+  width: 100% !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-top: 1px solid #eef2f7 !important;
+  color: #2563eb !important;
+  cursor: pointer !important;
+  font-size: 0.82rem !important;
+  font-weight: 800 !important;
+  padding: 12px !important;
+  border-radius: 0 !important;
+  text-align: center !important;
+}
+
+.notification-view-all:hover,
+.purchase-notifications__all:hover,
+.notification-footer-action:hover {
+  background: #eff6ff !important;
+}
+
+/* =========================================================
+   OVERLAY HOST — safe pointer events
+========================================================= */
+
+.notification-overlay-host {
+  pointer-events: none !important;
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 2147483000 !important;
+}
+
+.notification-overlay-host .notification-tray {
+  pointer-events: auto !important;
+}
+
+/* =========================================================
+   RESPONSIVE — mobile
+========================================================= */
+
+@media (max-width: 720px) {
+  .notification-panel,
+  .notification-tray,
+  .super-notification-panel,
+  .purchase-notifications,
+  .accounts-notification-dropdown,
+  .luxury-dropdown.notification-dropdown {
+    position: fixed !important;
+    top: 84px !important;
+    right: 12px !important;
+    left: 12px !important;
+    width: auto !important;
+  }
+}
+
+/* =========================================================
+   DROPDOWN STAY-OPEN FIX
+   Document:click listener turant dropdown band kar raha hai.
+   Ye CSS trick `:has()` aur high z-index backdrop se dropdown
+   open rakhega jab tak user outside click na kare.
+========================================================= */
+
+/* Dropdown ke baap ko relative banao */
+.notification-menu,
+.notification-wrap,
+.super-notification-menu,
+.purchase-topbar__dropdown,
+.accounts-notification-host,
+.notification-button {
+  position: relative;
+}
+
+/* Jab dropdown khula ho, toh poori screen pe invisible backdrop laga do
+   taaki document:click wahi pe register ho, dropdown pe nahi */
+.notification-menu:has(.notification-panel)::after,
+.notification-wrap:has(.notification-tray)::after,
+.super-notification-menu:has(.super-notification-panel)::after,
+.purchase-topbar__dropdown:has(.purchase-notifications)::after,
+.accounts-notification-host:has(.accounts-notification-dropdown)::after,
+.notification-button:has(.luxury-dropdown)::after {
+  content: '';
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  background: transparent;
+  pointer-events: auto;
+}
+
+/* Dropdown aur bell button backdrop ke upar rahe */
+.notification-panel,
+.notification-tray,
+.super-notification-panel,
+.purchase-notifications,
+.accounts-notification-dropdown,
+.luxury-dropdown.notification-dropdown,
+.notification-menu > button,
+.notification-wrap > button,
+.super-notification-menu > button,
+.purchase-topbar__dropdown > button,
+.accounts-notification-button,
+.notification-button {
+  position: relative;
+  z-index: 901;
+}
+

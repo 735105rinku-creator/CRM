@@ -7,6 +7,7 @@ import { catchError, finalize, of } from 'rxjs';
 import { apiUrl } from '../../core/config/api.config';
 import { AuthService } from '../../core/auth/auth.service';
 import { ApiService } from '../../core/services/api.service';
+import { navigateToNotification } from '../../core/services/notification-navigation.service';
 
 interface CompanyRow {
   _id?: string;
@@ -132,7 +133,7 @@ interface PlatformAnnouncementRow { _id?: string; title?: string; message?: stri
 interface NotificationTemplateRow { _id?: string; name?: string; code?: string; channel?: string; subject?: string; body?: string; variables?: string[]; isActive?: boolean; }
 interface CommunicationGatewayRow { _id?: string; provider?: string; label?: string; channel?: string; config?: Record<string, unknown>; isActive?: boolean; isConfigured?: boolean; }
 interface NotificationOverview { announcements?: PlatformAnnouncementRow[]; templates?: NotificationTemplateRow[]; gateways?: CommunicationGatewayRow[]; stats?: Record<string, number>; }
-interface TopbarNotificationRow { _id?: string; title?: string; message?: string; type?: string; priority?: string; isRead?: boolean; actionUrl?: string; createdAt?: string; senderUserId?: { name?: string; email?: string; role?: string } | null; }
+interface TopbarNotificationRow { _id?: string; title?: string; message?: string; type?: string; priority?: string; isRead?: boolean; actionUrl?: string; entityType?: string; entityId?: string | null; createdAt?: string; senderUserId?: { name?: string; email?: string; role?: string } | null; }
 interface SystemActivityRow { module?: string; action?: string; actor?: string; status?: string; amountInr?: number; createdAt?: string; }
 interface AuthSessionRow { _id?: string; user?: { name?: string; email?: string; role?: string }; ipAddress?: string; userAgent?: string; deviceName?: string; isRevoked?: boolean; expiresAt?: string; createdAt?: string; }
 interface AuditOverview { systemLogs?: SystemActivityRow[]; authHistory?: LoginAuditRow[]; failedAttempts?: LoginAuditRow[]; sessions?: AuthSessionRow[]; stats?: Record<string, number>; }
@@ -674,6 +675,11 @@ export class SuperAdminDashboardComponent {
 
   protected closeNotificationPanel(): void {
     this.isNotificationPanelOpen.set(false);
+  }
+
+  protected openTopbarNotification(notification: TopbarNotificationRow): void {
+    this.closeNotificationPanel();
+    navigateToNotification(this.router, notification, this.auth.currentUser()?.role);
   }
 
   protected loadTopbarNotifications(markOnOpen = false): void {

@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, NgZone, OnDestroy, inject, PLATFORM_ID } from '@angular/core';
+﻿import { AfterViewInit, Component, NgZone, OnDestroy, inject, PLATFORM_ID } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
 import { isPlatformBrowser } from '@angular/common';
@@ -72,6 +72,10 @@ export class App implements AfterViewInit, OnDestroy {
 
     for (const button of buttons) {
       if (button.classList.contains('punch-ring') || button.dataset['intentColored'] === 'true') continue;
+      // Skip sidebar buttons — HR/Purchase/Accounts/Logistics/Employee dashboards
+      if (button.closest('.hr-sidebar, .hr-workspace, .purchase-sidebar, .accounts-sidebar, .logistics-sidebar, .employee-sidebar, .company-sidebar, .purchase-shell, .accounts-shell, .logistics-shell, .employee-shell, .hr-shell, .company-shell, .notification-menu, .notification-panel, .purchase-sidebar__link')) {
+        continue;
+      }
       const label = `${button.textContent || ''} ${button.className || ''}`.toLowerCase();
       const intent = this.buttonIntent(label);
       if (!intent) continue;
@@ -93,6 +97,10 @@ export class App implements AfterViewInit, OnDestroy {
     const overlayHost = this.notificationOverlayHost();
 
     for (const panel of panels) {
+      // Har dashboard apna notification panel khud manage karta hai
+      if (panel.closest('.hr-workspace, .hr-shell, .hr-topbar, .hr-main, .company-admin-console, .company-premium-shell, .company-shell, .company-navbar-actions, .purchase-shell, .purchase-topbar, .accounts-shell, .accounts-topbar, .logistics-shell, .logistics-topbar, .employee-shell, .employee-topbar, .super-admin-shell, .super-admin-console, .notification-menu')) {
+        continue;
+      }
       if (panel.parentElement !== overlayHost) overlayHost.append(panel);
       panel.classList.add('neo-notification-vertical');
       this.applyDismissedNotifications(panel);
@@ -263,6 +271,8 @@ export class App implements AfterViewInit, OnDestroy {
     sync();
   }
 }
+
+
 
 
 

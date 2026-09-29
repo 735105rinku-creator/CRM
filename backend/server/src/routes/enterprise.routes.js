@@ -381,11 +381,11 @@ router.post(
       updatedBy: req.user._id,
     });
 
-    const recipients = await User.find({ companyId: req.user.companyId, role: { $in: recipientRoles }, status: USER_STATUS.ACTIVE }).select("_id").lean();
+    const recipients = await User.find({ companyId: req.user.companyId, role: { $in: recipientRoles }, status: USER_STATUS.ACTIVE }).select("_id role").lean();
     if (recipients.length) {
-      await Notification.insertMany(recipients.map(({ _id }) => ({
+      await Notification.insertMany(recipients.map((recipient) => ({
         companyId: req.user.companyId,
-        recipientUserId: _id,
+        recipientUserId: recipient._id,
         senderUserId: req.user._id,
         type: NOTIFICATION_TYPE.SYSTEM,
         title: "New support ticket",
@@ -393,7 +393,11 @@ router.post(
         entityType: "support_ticket",
         entityId: ticket._id,
         priority: ticket.priority === SUPPORT_TICKET_PRIORITY.URGENT ? NOTIFICATION_PRIORITY.URGENT : NOTIFICATION_PRIORITY.NORMAL,
-        actionUrl: "/support/tickets",
+        actionUrl: recipient.role === ROLES.HR
+          ? `/hr-dashboard?feature=support-tickets&recordId=${ticket._id}`
+          : recipient.role === ROLES.EMPLOYEE
+            ? `/sales/employee?feature=support-tickets&recordId=${ticket._id}`
+            : `/dashboard?section=support-tickets&recordId=${ticket._id}`,
         createdBy: req.user._id,
       })));
     }

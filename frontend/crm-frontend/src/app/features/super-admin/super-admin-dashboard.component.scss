@@ -1,5 +1,7 @@
+﻿@import '../../shared/styles/notification-unified.scss';
+
 /* ==========================================================================
-   OPAS BIZZ CRM — SUPER ADMIN PREMIUM EXECUTIVE UI
+   OPAS BIZZ CRM â€” SUPER ADMIN PREMIUM EXECUTIVE UI
    Full replacement stylesheet for super-admin-dashboard.component.scss
    Scope: Super Admin only. Functional Angular bindings remain in HTML/TS.
    ========================================================================== */
@@ -751,7 +753,7 @@
   position: absolute;
 }
 
-/* Recent Activity — premium, compact, no flat grey boxes */
+/* Recent Activity â€” premium, compact, no flat grey boxes */
 .executive-recent-activity {
   overflow: hidden;
 }
@@ -1499,7 +1501,7 @@ tbody tr:hover td { background: rgba(219, 234, 254, 0.32); }
 }
 
 /* ==========================================================================
-   DASHBOARD OVERFLOW FIX — TOP ACTIVE COMPANIES
+   DASHBOARD OVERFLOW FIX â€” TOP ACTIVE COMPANIES
    Keep company usage cards inside their panel. Cards wrap into rows instead
    of creating a horizontal scrollbar.
    ========================================================================== */
@@ -1589,7 +1591,7 @@ tbody tr:hover td { background: rgba(219, 234, 254, 0.32); }
 }
 
 /* ==========================================================================
-   SUPER ADMIN NAVBAR — NOTIFICATION BELL VISIBILITY FIX
+   SUPER ADMIN NAVBAR â€” NOTIFICATION BELL VISIBILITY FIX
    Keeps the existing notification click/dropdown behavior intact.
    ========================================================================== */
 
@@ -1684,4 +1686,5 @@ tbody tr:hover td { background: rgba(219, 234, 254, 0.32); }
   top: calc(100% + 10px) !important;
   z-index: 100 !important;
 }
+
 

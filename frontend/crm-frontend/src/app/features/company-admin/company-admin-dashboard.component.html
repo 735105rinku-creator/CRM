@@ -169,7 +169,13 @@
                       notification of notifications().slice(0, 4);
                       track notification._id || notification.createdAt
                     ) {
-                      <article [class.unread]="!notification.isRead">
+                      <article
+                        [class.unread]="!notification.isRead"
+                        role="button"
+                        tabindex="0"
+                        (click)="openTopbarNotification(notification)"
+                        (keydown.enter)="openTopbarNotification(notification)"
+                      >
                         <strong>
                           {{ notification.title || 'Company update' }}
                         </strong>
@@ -3138,7 +3144,7 @@
                   leave of pendingLeaveRequests();
                   track leave._id
                 ) {
-                  <tr>
+                  <tr [id]="'company-leave-' + leave._id">
                     <td>
                       <strong>
                         {{ leave.employeeId?.displayName || '-' }}
@@ -4594,7 +4600,7 @@
                     track lead._id
                   ) {
 
-                    <tr>
+                    <tr [id]="'crm-record-' + lead._id">
 
                       <td>
                         <strong>
@@ -4742,7 +4748,7 @@
                     track contact._id || contact.employeeCode
                   ) {
 
-                    <tr>
+                    <tr [id]="'crm-record-' + contact._id">
 
                       <td>
                         <strong>
@@ -4874,7 +4880,7 @@
                     track account._id || account.employeeCode
                   ) {
 
-                    <tr>
+                    <tr [id]="'crm-record-' + account._id">
 
                       <td>
                         <strong>
@@ -5083,7 +5089,7 @@
                     track deal._id
                   ) {
 
-                    <tr>
+                    <tr [id]="'crm-record-' + deal._id">
 
                       <td>
                         {{ deal.clientName }}
@@ -5241,7 +5247,7 @@
                     track task._id
                   ) {
 
-                    <tr>
+                    <tr [id]="'crm-record-' + task._id">
 
                       <td>
                         {{ task.title }}
@@ -7071,9 +7077,9 @@
                 track row._id || row.createdAt
               ) {
 
-                <article [class.unread]="!row.isRead">
+                <article [id]="row.entityId ? 'company-notification-' + row.entityId : null" [class.unread]="!row.isRead">
 
-                  <div>
+                  <div role="button" tabindex="0" (click)="openNotificationCenterRow(row)" (keydown.enter)="openNotificationCenterRow(row)">
 
                     <strong>
                       {{ row.title || 'Notification' }}
@@ -7101,6 +7107,8 @@
                         : 'Mark Read'
                     }}
                   </button>
+                  <button class="table-action" type="button" (click)="openNotificationCenterRow(row)">Open</button>
+                  [id]="'company-message-' + item._id"
 
                 </article>
 
@@ -7319,7 +7327,7 @@
                   track meeting._id || meeting.meetingCode
                 ) {
 
-                  <tr>
+                  <tr [id]="'company-meeting-' + meeting._id">
 
                     <td>
                       <strong>

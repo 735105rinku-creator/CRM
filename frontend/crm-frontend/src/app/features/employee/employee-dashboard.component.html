@@ -417,6 +417,10 @@
 
               <article
                 [class.unread]="!notification.isRead"
+                role="button"
+                tabindex="0"
+                (click)="openDashboardNotification(notification)"
+                (keydown.enter)="openDashboardNotification(notification)"
               >
                 <strong>
                   {{ notification.title || 'HR update' }}
@@ -2427,7 +2431,7 @@
                       track leave._id
                     ) {
 
-                      <tr>
+                      <tr [id]="'employee-leave-' + leave._id">
 
                         <td>
                           {{
@@ -2688,7 +2692,7 @@
                 track notification._id
               ) {
 
-                <span>
+                <span [id]="notification.entityId ? 'employee-announcement-' + notification.entityId : null" role="button" tabindex="0" (click)="openDashboardNotification(notification)" (keydown.enter)="openDashboardNotification(notification)">
                   <strong>
                     {{ notification.title }}
                   </strong>
@@ -2731,7 +2735,7 @@
               <table>
 
                 <thead>
-                  <tr>
+                      <tr>
                     <th>Month</th>
                     <th>Payslip no.</th>
                     <th>Gross</th>
@@ -3684,7 +3688,7 @@
               <div class="sales-deal-card-grid">
                 @for (deal of crmDeals(); track deal.id || deal._id) {
 
-                  <article class="sales-deal-card">
+                  <article class="sales-deal-card" [id]="'crm-record-' + (deal.id || deal._id)">
                     <div class="sales-deal-card-head">
                       <div class="sales-deal-identity">
                         <span class="sales-deal-avatar">
@@ -3954,6 +3958,7 @@
 
                   <article
                     class="sales-task-card"
+                    [id]="'crm-record-' + (task.id || task._id)"
                     [class.sales-task-card--complete]="task.status === 'Done'"
                   >
 
@@ -4834,6 +4839,7 @@
 
 
         @if (activeSection() === 'support-tickets') {
+          <app-support-ticket-inbox></app-support-ticket-inbox>
           <app-support-ticket-form></app-support-ticket-form>
         }
 
@@ -5020,7 +5026,7 @@
                   track notification._id || notification.createdAt
                 ) {
 
-                  <span>
+                  <span role="button" tabindex="0" (click)="openDashboardNotification(notification)" (keydown.enter)="openDashboardNotification(notification)">
                     <strong>
                       {{ notification.title || 'Announcement' }}
                     </strong>
@@ -5153,6 +5159,7 @@
 
                 <section
                   class="message-item"
+                  [id]="'employee-message-' + item._id"
                   [class.outgoing]="isOwnMessage(item)"
                   [class.incoming]="!isOwnMessage(item)"
                 >
@@ -5360,7 +5367,7 @@
                 track meeting._id || meeting.meetingTitle
               ) {
 
-                <span>
+                <span [id]="'employee-meeting-' + meeting._id">
 
                   <strong>
                     {{ meeting.meetingTitle }}

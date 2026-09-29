@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import {
@@ -23,6 +24,7 @@ export class InvoiceApprovalsComponent implements OnInit {
   private readonly invoicesApi = inject(DepartmentInvoiceService);
   private readonly realtime = inject(DepartmentInvoiceRealtimeService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly route = inject(ActivatedRoute);
 
   readonly rows = signal<DepartmentInvoice[]>([]);
   readonly loading = signal(false);
@@ -37,6 +39,10 @@ export class InvoiceApprovalsComponent implements OnInit {
   remarks = '';
 
   ngOnInit(): void {
+    this.route.queryParamMap.subscribe(params => {
+      const id = params.get('recordId');
+      if (id && /^[a-f\d]{24}$/i.test(id)) this.openNotifiedInvoice(id);
+    });
     this.load();
     this.realtime.connect();
     this.realtime.updates$
@@ -47,6 +53,15 @@ export class InvoiceApprovalsComponent implements OnInit {
         if (selected?._id === event.departmentInvoiceId) {
           this.invoicesApi.getDepartmentInvoice(selected._id).subscribe(row => this.selected.set(row));
         }
+      });
+  }
+
+  private openNotifiedInvoice(id: string): void {
+    this.invoicesApi.getDepartmentInvoice(id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: invoice => this.open(invoice),
+        error: () => this.error.set('This related invoice approval is no longer available.')
       });
   }
 

@@ -7,13 +7,13 @@
       <img [src]="companyLogoUrl()" [alt]="companyName() + ' logo'" />
       <span>{{ companyName() | uppercase }}</span>
     </div>
-    <div class="hr-card">
+    <!-- <div class="hr-card">
       <img class="hr-profile-photo" [src]="hrProfileImage()" [alt]="hrDisplayName() + ' profile image'" />
       <div>
         <strong>{{ hrDisplayName() }}</strong>
         <small>{{ hrProfileSubtitle() }}</small>
       </div>
-    </div>
+    </div> -->
 
     <nav class="hr-nav" aria-label="HR workspace features">
       <p class="hr-nav-section">Overview</p>
@@ -135,7 +135,14 @@
             </header>
             <div class="notification-list">
               @for (notification of visibleNotifications(); track notification._id || notification.createdAt) {
-                <article [class.unread]="!notification.isRead">
+                <article
+                  [id]="notification.entityId ? 'hr-notification-' + notification.entityId : null"
+                  [class.unread]="!notification.isRead"
+                  role="button"
+                  tabindex="0"
+                  (click)="openDashboardNotification(notification)"
+                  (keydown.enter)="openDashboardNotification(notification)"
+                >
                   <strong>{{ notification.title || 'HR update' }}</strong>
                   <p>{{ notification.message || '-' }}</p>
                   <small>{{ formatDateTime(notification.createdAt) }}</small>
@@ -147,12 +154,12 @@
           </section>
         }
       </div>
-      @if (activeFeature() !== 'dashboard') {
+      <!-- @if (activeFeature() !== 'dashboard') {
         <button type="button" class="header-back-btn hr-header-back" (click)="goBack()">
           <span aria-hidden="true">‹</span>
           Back
         </button>
-      }
+      } -->
     </header>
 
     <main class="hr-content">
@@ -1404,7 +1411,7 @@
         <thead><tr><th>Employee</th><th>Leave type</th><th>Dates</th><th>Days</th><th>Status</th><th>Reason</th><th>Action</th></tr></thead>
         <tbody>
           @for (leave of allLeaveRequests(); track leave._id) {
-            <tr>
+            <tr [id]="'hr-leave-' + leave._id">
               <td><strong>{{ leave.employeeId?.displayName || '-' }}</strong><span>{{ leave.employeeId?.employeeCode || '-' }}</span></td>
               <td>{{ leave.leaveTypeId?.leaveName || leave.leaveTypeId?.leaveCode || '-' }}</td>
               <td>{{ formatDate(leave.fromDate) }} - {{ formatDate(leave.toDate) }}</td>
@@ -1993,7 +2000,7 @@
           <thead><tr><th>Meeting</th><th>Schedule</th><th>Mode</th><th>Status</th><th>Action</th></tr></thead>
           <tbody>
             @for (meeting of meetings(); track meeting._id || meeting.meetingCode) {
-              <tr>
+              <tr [id]="'hr-meeting-' + meeting._id">
                 <td><strong>{{ meeting.meetingTitle }}</strong><span>{{ meeting.venue || meeting.meetingLink || '-' }}</span><span>{{ invitedPeopleLabel(meeting) }}</span></td>
                 <td>{{ formatDateTime(meeting.startDateTime) }} - {{ formatTime(meeting.endDateTime) }}</td>
                 <td>{{ meeting.meetingMode || 'online' }}</td>
@@ -2212,7 +2219,7 @@
       <p>Sent messages and employee replies from backend records.</p>
       <div class="message-list chat-thread message-thread">
         @for (item of chatMessages(); track item._id) {
-          <section class="message-item" [class.outgoing]="isOwnMessage(item)" [class.incoming]="!isOwnMessage(item)">
+          <section class="message-item" [id]="'hr-message-' + item._id" [class.outgoing]="isOwnMessage(item)" [class.incoming]="!isOwnMessage(item)">
             <header>
               <small>{{ formatDateTime(item.createdAt) }}</small>
             </header>

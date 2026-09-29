@@ -10,6 +10,7 @@ import { apiUrl } from '../../core/config/api.config';
 import { Company } from '../../core/models/company.model';
 import { ApiService } from '../../core/services/api.service';
 import { DepartmentInvoiceRealtimeService } from '../../core/services/department-invoice-realtime.service';
+import { navigateToNotification } from '../../core/services/notification-navigation.service';
 import { SupportTicketFormComponent } from '../../shared/components/support-ticket-form/support-ticket-form.component';
 import { SupportTicketInboxComponent } from '../../shared/components/support-ticket-inbox/support-ticket-inbox.component';
 
@@ -128,6 +129,9 @@ interface NotificationRow {
   message?: string;
   createdAt?: string;
   isRead?: boolean;
+  actionUrl?: string;
+  entityType?: string;
+  entityId?: string | null;
 }
 
 interface CompanyProfile {
@@ -2034,6 +2038,12 @@ export class CompanyAdminDashboardComponent {
   protected readonly crmEmployeeAccounts =
     signal<any[]>([]);
 
+  private companyCrmNotificationRequest: { section: 'leads' | 'deals' | 'tasks' | 'contacts' | 'accounts'; id: string } | null = null;
+  private requestedLeaveNotificationId: string | null = null;
+  private requestedMessageNotificationId: string | null = null;
+  private requestedMeetingNotificationId: string | null = null;
+  private requestedPlatformAnnouncementId: string | null = null;
+
   protected readonly crmLeadSummary =
     signal<PeriodSummary>({});
 
@@ -2384,6 +2394,23 @@ export class CompanyAdminDashboardComponent {
           'companyId'
         )
     );
+
+    this.route.queryParamMap.subscribe((params) => {
+      const requestedSection = params.get('section');
+      if (!['support-tickets', 'leads', 'deals', 'tasks', 'contacts', 'accounts', 'leave', 'messages', 'meetings', 'invoice-approvals', 'notifications'].includes(requestedSection || '')) return;
+      const section = requestedSection!;
+      const recordId = params.get('recordId');
+      if (recordId && /^[a-f\d]{24}$/i.test(recordId)) {
+        if (section === 'leads' || section === 'deals' || section === 'tasks' || section === 'contacts' || section === 'accounts') {
+          this.companyCrmNotificationRequest = { section, id: recordId };
+        }
+        if (section === 'leave') this.requestedLeaveNotificationId = recordId;
+        if (section === 'messages') this.requestedMessageNotificationId = recordId;
+        if (section === 'meetings') this.requestedMeetingNotificationId = recordId;
+        if (section === 'notifications') this.requestedPlatformAnnouncementId = recordId;
+      }
+      this.setSection(section);
+    });
 
     this.loadNotifications();
     this.realtime.connect();
@@ -3800,6 +3827,8 @@ export class CompanyAdminDashboardComponent {
               []
             );
 
+            this.focusCompanyCrmNotification();
+
             this.crmLeadSummary.set(
               leads.summary ??
               {}
@@ -3850,12 +3879,32 @@ export class CompanyAdminDashboardComponent {
               []
             );
 
+            this.focusCompanyCrmNotification();
+
             this.handleSectionError(
               'CRM',
               error
             );
           }
       });
+  }
+
+  private focusCompanyCrmNotification(): void {
+    const request = this.companyCrmNotificationRequest;
+    if (!request) return;
+    this.companyCrmNotificationRequest = null;
+
+    const rows = request.section === 'leads' ? this.crmLeads()
+      : request.section === 'deals' ? this.crmDeals()
+        : request.section === 'tasks' ? this.crmTasks()
+          : request.section === 'contacts' ? this.crmContacts() : this.crmEmployeeAccounts();
+    const record = rows.find((row) => String(row._id || '') === request.id);
+    if (record && typeof document !== 'undefined') {
+      document.getElementById(`crm-record-${request.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    this.message.set('This related CRM record is no longer available.');
   }
 
 
@@ -4266,7 +4315,22 @@ export class CompanyAdminDashboardComponent {
       .pipe(catchError(() => of({ leaveRequests: [] })))
       .subscribe((data) => {
         this.pendingLeaveRequests.set(data.leaveRequests ?? []);
+        this.focusRequestedLeaveNotification();
       });
+  }
+
+  private focusRequestedLeaveNotification(): void {
+    const id = this.requestedLeaveNotificationId;
+    if (!id) return;
+    const leave = this.pendingLeaveRequests().find((row) => row._id === id);
+    this.requestedLeaveNotificationId = null;
+    if (!leave) {
+      this.message.set('This related leave record is no longer available or is no longer pending.');
+      return;
+    }
+    if (typeof document !== 'undefined') {
+      document.getElementById(`company-leave-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
   }
 
   protected updateLeaveStatus(
@@ -4782,8 +4846,37 @@ export class CompanyAdminDashboardComponent {
             meetings.meetings ??
             []
           );
+          this.focusCompanyMeetingNotification();
         }
       );
+  }
+
+  private focusCompanyMeetingNotification(): void {
+    const id = this.requestedMeetingNotificationId;
+    if (!id) return;
+    const meeting = this.meetings().find((row) => row._id === id);
+    this.requestedMeetingNotificationId = null;
+    if (!meeting) {
+      this.message.set('This related meeting is no longer available.');
+      return;
+    }
+    if (typeof document !== 'undefined') {
+      document.getElementById(`company-meeting-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+
+  private focusPlatformAnnouncementNotification(): void {
+    const id = this.requestedPlatformAnnouncementId;
+    if (!id) return;
+    const notification = this.notifications().find((row) => row.entityId === id);
+    this.requestedPlatformAnnouncementId = null;
+    if (!notification) {
+      this.message.set('This related announcement is no longer available.');
+      return;
+    }
+    if (typeof document !== 'undefined') {
+      document.getElementById(`company-notification-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
   }
 
 
@@ -6933,6 +7026,15 @@ export class CompanyAdminDashboardComponent {
     this.isNotificationPanelOpen.set(
       false
     );
+  }
+
+  protected openTopbarNotification(notification: NotificationRow): void {
+    navigateToNotification(this.router, notification, this.auth.currentUser()?.role);
+    setTimeout(() => this.closeNotificationPanel(), 0);
+  }
+
+  protected openNotificationCenterRow(notification: NotificationRow): void {
+    this.markNotificationRead(notification, true);
   }
 
 
@@ -11224,7 +11326,7 @@ if (
             `${user.name || user.email || 'User'} added`,
 
           meta:
-            `${this.roleLabel(user.role)} â€¢ ${user.department || 'No department'}`,
+            `${this.roleLabel(user.role)} Ã¢â‚¬Â¢ ${user.department || 'No department'}`,
 
           status:
             user.status ||
@@ -14503,15 +14605,24 @@ if (
             })
         )
       )
-      .subscribe(
-        (
-          data
-        ) =>
-          this.messages.set(
-            data.messages ??
-            []
-          )
-      );
+      .subscribe((data) => {
+        this.messages.set(data.messages ?? []);
+        this.focusRequestedMessageNotification();
+      });
+  }
+
+  private focusRequestedMessageNotification(): void {
+    const id = this.requestedMessageNotificationId;
+    if (!id) return;
+    const message = this.messages().find((row) => row._id === id);
+    this.requestedMessageNotificationId = null;
+    if (!message) {
+      this.message.set('This related message is no longer available.');
+      return;
+    }
+    if (typeof document !== 'undefined') {
+      document.getElementById(`company-message-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
   }
 
 
@@ -14891,14 +15002,15 @@ if (
 
   protected markNotificationRead(
     row:
-      NotificationRow
+      NotificationRow,
+    navigateAfter = false
   ): void {
 
     if (
       !row._id ||
       row.isRead
     ) {
-
+      if (navigateAfter) this.openTopbarNotification(row);
       return;
     }
 
@@ -14909,16 +15021,17 @@ if (
         {}
       )
       .subscribe({
-        next:
-          () =>
-            this.loadNotifications(
-              true,
-              50
-            ),
+        next: () => {
+          if (navigateAfter) {
+            this.openTopbarNotification({ ...row, isRead: true });
+            return;
+          }
+          this.loadNotifications(true, 50);
+        },
 
-        error:
-          () =>
-            undefined
+        error: () => {
+          if (navigateAfter) this.openTopbarNotification(row);
+        }
       });
   }
 
@@ -14959,6 +15072,7 @@ if (
             data.notifications ||
             []
           );
+          this.focusPlatformAnnouncementNotification();
 
 
           if (

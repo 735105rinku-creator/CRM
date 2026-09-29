@@ -1,5 +1,7 @@
+﻿@import '../../shared/styles/notification-unified.scss';
+
 /* =========================================================
-   HR WORKSPACE — PRODUCTION NEOMORPHIC SCSS
+   HR WORKSPACE â€” PRODUCTION NEOMORPHIC SCSS
    All feature pages share one visual language.
    Colors preserved from existing palette.
 ========================================================= */
@@ -1302,7 +1304,7 @@ mark {
 }
 
 /* =========================================================
-   CRM (existing neomorphic layout — unchanged)
+   CRM (existing neomorphic layout â€” unchanged)
 ========================================================= */
 .crm-panel-grid {
   display: grid;
@@ -1408,7 +1410,7 @@ mark {
 }
 
 /* =========================================================
-   LOGISTICS (existing — unchanged)
+   LOGISTICS (existing â€” unchanged)
 ========================================================= */
 .logistics-flow-view {
   display: grid;
@@ -1706,7 +1708,7 @@ mark {
   gap: 7px !important;
   min-height: auto !important;
   padding: 14px !important;
-  pointer-events: none !important;
+  pointer-events: auto !important;
 }
 
 :host ::ng-deep .notification-panel.app-notification-popover .neo-notification-clear,
@@ -2323,7 +2325,7 @@ mark {
 }
 
 /* =========================================================
-   STACKED SHELLS — unified neomorphic production layout
+   STACKED SHELLS â€” unified neomorphic production layout
    Applied to: Leave Calendar, Leave Types, Salary Structure,
    Payroll Processing, Payroll Reports, Meetings,
    Company Events, Holiday Calendar, Departments & Designations
@@ -3549,7 +3551,7 @@ table { min-width: 0; }
 }
 
 /* =========================================================
-   LEAVE BALANCE — column widths & chips
+   LEAVE BALANCE â€” column widths & chips
 ========================================================= */
 .leave-balance-table { table-layout: fixed; width: 100%; }
 .leave-balance-table .col-employee { width: 22%; min-width: 180px; }
@@ -3941,7 +3943,7 @@ table { min-width: 0; }
   text-transform: capitalize;
 }
 
-/* Neutral status pill — used for HR-submitted leave awaiting Company Admin approval */
+/* Neutral status pill â€” used for HR-submitted leave awaiting Company Admin approval */
 .status-pill {
   align-items: center;
   background: #eef4fb;
@@ -3978,7 +3980,7 @@ table { min-width: 0; }
 }
 
 /* =========================================================
-   HR EMPLOYEE MODAL — extra safety
+   HR EMPLOYEE MODAL â€” extra safety
 ========================================================= */
 .hr-workspace.employee-modal-open .global-search-box,
 .hr-workspace.employee-modal-open .hr-content-search {
@@ -4853,7 +4855,7 @@ table { min-width: 0; }
 }
 
 /* =========================================================
-   HR SIDEBAR — final dark parity
+   HR SIDEBAR â€” final dark parity
 ========================================================= */
 .hr-workspace .hr-sidebar {
   background: #0b1324 !important;
@@ -5096,3 +5098,4 @@ table { min-width: 0; }
   opacity: 1 !important;
   cursor: not-allowed !important;
 }
+

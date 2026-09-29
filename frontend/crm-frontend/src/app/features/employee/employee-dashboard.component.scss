@@ -1,3 +1,5 @@
+﻿@import '../../shared/styles/notification-unified.scss';
+
 .employee-shell {
   background: #f4f7fb;
   color: #0f172a;
@@ -5183,7 +5185,7 @@ td:nth-child(10) {
 }
 
 /* ==========================================================
-   SALES LEAD AVATAR — FINAL CENTERING FIX
+   SALES LEAD AVATAR â€” FINAL CENTERING FIX
    Keep after generic .sales-lead-identity span rules.
 ========================================================== */
 
@@ -5255,4 +5257,5 @@ td:nth-child(10) {
   letter-spacing: 0 !important;
   line-height: 1.25 !important;
 }
+
 

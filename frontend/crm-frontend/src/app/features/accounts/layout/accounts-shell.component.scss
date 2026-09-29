@@ -1,3 +1,5 @@
+﻿@import '../../../shared/styles/notification-unified.scss';
+
 :host {
   display: block;
   min-height: 100vh;
@@ -1380,3 +1382,4 @@
     width: min(270px, calc(100vw - 20px));
   }
 }
+

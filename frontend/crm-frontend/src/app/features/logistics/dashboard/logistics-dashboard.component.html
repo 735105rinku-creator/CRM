@@ -29,7 +29,12 @@
                 </div>
   
                 @for (notification of notifications(); track notification._id || notification.createdAt || notification.title) {
-                <article>
+                <article
+                  role="button"
+                  tabindex="0"
+                  (click)="openNotification(notification)"
+                  (keydown.enter)="openNotification(notification)"
+                >
                   <span class="notification-dot" [class.green]="notification.isRead" [class.gold]="!notification.isRead"></span>
                   <div>
                     <strong>{{ notification.title || 'Notification' }}</strong>

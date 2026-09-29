@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { catchError, of } from 'rxjs';
 
 import { ApiService } from '../../../core/services/api.service';
@@ -32,12 +33,15 @@ interface SupportTicket {
         <button type="button" class="ticket-inbox__refresh" (click)="load()" [disabled]="isLoading()">{{ isLoading() ? 'Loading...' : 'Refresh' }}</button>
       </header>
       <div class="ticket-inbox__summary"><span><strong>{{ tickets().length }}</strong>Total tickets</span><span><strong>{{ openCount() }}</strong>Open</span><span><strong>{{ urgentCount() }}</strong>Urgent</span></div>
+      @if (requestedTicketMissing()) {
+        <p class="ticket-inbox__missing">This ticket is no longer available.</p>
+      }
       <div class="ticket-inbox__table-wrap">
         <table>
           <thead><tr><th>Ticket</th><th>Requester</th><th>Description</th><th>Category</th><th>Priority</th><th>Status</th><th>Created</th></tr></thead>
           <tbody>
             @for (ticket of tickets(); track ticket._id || ticket.ticketNumber) {
-              <tr><td><strong>{{ ticket.ticketNumber || 'Ticket' }}</strong><small>{{ ticket.subject }}</small></td><td>{{ ticket.requesterName || ticket.requesterEmail || '-' }}</td><td class="ticket-description">{{ ticket.description || 'No description provided.' }}</td><td>{{ ticket.category || 'General' }}</td><td><span class="ticket-badge" [class]="'priority-' + ticket.priority">{{ ticket.priority || 'medium' }}</span></td><td><span class="ticket-status" [class]="'status-' + ticket.status">{{ ticket.status || 'open' }}</span></td><td>{{ formatDate(ticket.createdAt) }}</td></tr>
+              <tr [id]="ticket._id ? 'support-ticket-' + ticket._id : null" [class.ticket-inbox__target]="ticket._id === requestedTicketId()"><td><strong>{{ ticket.ticketNumber || 'Ticket' }}</strong><small>{{ ticket.subject }}</small></td><td>{{ ticket.requesterName || ticket.requesterEmail || '-' }}</td><td class="ticket-description">{{ ticket.description || 'No description provided.' }}</td><td>{{ ticket.category || 'General' }}</td><td><span class="ticket-badge" [class]="'priority-' + ticket.priority">{{ ticket.priority || 'medium' }}</span></td><td><span class="ticket-status" [class]="'status-' + ticket.status">{{ ticket.status || 'open' }}</span></td><td>{{ formatDate(ticket.createdAt) }}</td></tr>
             } @empty {
               <tr><td colspan="7" class="ticket-inbox__empty">No tickets are waiting for your team.</td></tr>
             }
@@ -68,21 +72,50 @@ interface SupportTicket {
     .priority-low { background: #edf8f3; color: #21815c; } .priority-medium { background: #eef4ff; color: #2765bd; } .priority-high { background: #fff5df; color: #a46708; } .priority-urgent { background: #fff0f0; color: #c23b3b; }
     .status-open { background: #eef4ff; color: #2765bd; } .status-pending { background: #fff5df; color: #a46708; } .status-resolved, .status-closed { background: #edf8f3; color: #21815c; }
     .ticket-inbox__empty { padding: 45px; color: #8594a7; text-align: center; }
+    .ticket-inbox__target td { background: #fff5d8; }
+    .ticket-inbox__missing { margin: 0 28px 16px; color: #a46708; font-size: 13px; }
     @media (max-width: 640px) { .ticket-inbox__header { display: block; } .ticket-inbox__refresh { margin-top: 16px; } .ticket-inbox__summary { overflow-x: auto; } }
   `]
 })
 export class SupportTicketInboxComponent implements OnInit {
   private readonly api = inject(ApiService);
+  private readonly route = inject(ActivatedRoute);
   protected readonly tickets = signal<SupportTicket[]>([]);
   protected readonly isLoading = signal(false);
+  protected readonly requestedTicketId = signal<string | null>(null);
+  protected readonly requestedTicketMissing = signal(false);
+  private hasLoadedTickets = false;
 
-  ngOnInit(): void { this.load(); }
+  ngOnInit(): void {
+    this.route.queryParamMap.subscribe((params) => {
+      const id = params.get('recordId');
+      this.requestedTicketId.set(id && /^[a-f\d]{24}$/i.test(id) ? id : null);
+      this.requestedTicketMissing.set(false);
+      if (this.hasLoadedTickets) this.focusRequestedTicket();
+    });
+    this.load();
+  }
 
   protected load(): void {
     this.isLoading.set(true);
     this.api.get<{ tickets?: SupportTicket[] }>('/api/support/tickets')
       .pipe(catchError(() => of({ tickets: [] })),)
-      .subscribe((response) => { this.tickets.set(response.tickets || []); this.isLoading.set(false); });
+      .subscribe((response) => {
+        this.tickets.set(response.tickets || []);
+        this.isLoading.set(false);
+        this.hasLoadedTickets = true;
+        this.focusRequestedTicket();
+      });
+  }
+
+  private focusRequestedTicket(): void {
+    const id = this.requestedTicketId();
+    if (!id || !this.hasLoadedTickets) return;
+    const ticketExists = this.tickets().some((ticket) => ticket._id === id);
+    this.requestedTicketMissing.set(!ticketExists);
+    if (ticketExists && typeof document !== 'undefined') {
+      requestAnimationFrame(() => document.getElementById(`support-ticket-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+    }
   }
 
   protected openCount(): number { return this.tickets().filter((ticket) => ticket.status === 'open').length; }

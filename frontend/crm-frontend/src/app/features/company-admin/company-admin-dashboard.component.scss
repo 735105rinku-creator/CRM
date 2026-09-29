@@ -1,3 +1,5 @@
+﻿@import '../../shared/styles/notification-unified.scss';
+
 .company-admin-console {
   min-height: 100dvh;
 }
@@ -3115,7 +3117,7 @@ justify-self: center;
 
 
 /* ============================================================
-   LEAVE MANAGEMENT & SUMMARY UI — clean enterprise polish
+   LEAVE MANAGEMENT & SUMMARY UI â€” clean enterprise polish
    Additive only. Overrides legacy gradient rules with a
    consistent flat white + subtle border language that
    matches the premium shell.

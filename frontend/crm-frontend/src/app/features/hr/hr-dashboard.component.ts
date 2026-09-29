@@ -9,6 +9,7 @@ import { apiUrl } from '../../core/config/api.config';
 import { Company } from '../../core/models/company.model';
 import { User } from '../../core/models/user.model';
 import { ApiService } from '../../core/services/api.service';
+import { navigateToNotification } from '../../core/services/notification-navigation.service';
 import { SupportTicketFormComponent } from '../../shared/components/support-ticket-form/support-ticket-form.component';
 import { SupportTicketInboxComponent } from '../../shared/components/support-ticket-inbox/support-ticket-inbox.component';
 
@@ -289,6 +290,9 @@ interface NotificationRow {
   message?: string;
   isRead?: boolean;
   createdAt?: string;
+  actionUrl?: string;
+  entityType?: string;
+  entityId?: string | null;
 }
 
 interface PeriodSummary {
@@ -692,33 +696,40 @@ export class HrDashboardComponent implements OnDestroy {
   private messagePollId: ReturnType<typeof setInterval> | null = null;
   private popupTimerId: ReturnType<typeof setTimeout> | null = null;
   private employeeCodeCheckTimer: ReturnType<typeof setTimeout> | null = null;
+  private requestedLeaveNotificationId: string | null = null;
+  private requestedMessageNotificationId: string | null = null;
+  private requestedMeetingNotificationId: string | null = null;
+  private requestedPlatformAnnouncementId: string | null = null;
+  private hasLoadedLeaveRequests = false;
+  private hasLoadedMeetings = false;
+  private hasLoadedNotifications = false;
   private hasLoadedMessages = false;
 
   protected readonly mainMenu: FeatureItem[] = [
-    { id: 'dashboard', label: 'Dashboard', icon: '▦' },
+    { id: 'dashboard', label: 'Dashboard', icon: 'â–¦' },
     { id: 'profile', label: 'Profile', icon: 'P' },
-    { id: 'hr', label: 'HR', icon: '♙' },
-    { id: 'attendance', label: 'Attendance', icon: '▣' },
+    { id: 'hr', label: 'HR', icon: 'â™™' },
+    { id: 'attendance', label: 'Attendance', icon: 'â–£' },
     { id: 'logistics', label: 'Logistics', icon: 'L' }
   ];
   protected readonly managementMenu: FeatureItem[] = [
-    { id: 'employee', label: 'Employee setup', icon: '♙' },
-    { id: 'payroll', label: 'Payroll setup', icon: '▤' },
-    { id: 'leave', label: 'Leave management', icon: '▦' },
-    { id: 'recruitment', label: 'Recruitment setup', icon: '▱' },
-    { id: 'events', label: 'Event setup', icon: '✧' },
-    { id: 'meetings', label: 'Meeting setup', icon: '♧' },
+    { id: 'employee', label: 'Employee setup', icon: 'â™™' },
+    { id: 'payroll', label: 'Payroll setup', icon: 'â–¤' },
+    { id: 'leave', label: 'Leave management', icon: 'â–¦' },
+    { id: 'recruitment', label: 'Recruitment setup', icon: 'â–±' },
+    { id: 'events', label: 'Event setup', icon: 'âœ§' },
+    { id: 'meetings', label: 'Meeting setup', icon: 'â™§' },
     { id: 'messages', label: 'Messages', icon: 'M' },
     { id: 'support-tickets', label: 'Raise Support Ticket', icon: 'S' },
-    { id: 'holidays', label: 'Calendar', icon: '□' }
+    { id: 'holidays', label: 'Calendar', icon: 'â–¡' }
   ];
   protected readonly reportsMenu: FeatureItem[] = [
-    { id: 'reports', label: 'HR Reports', icon: '▥' },
-    { id: 'analytics', label: 'Analytics', icon: '▤' }
+    { id: 'reports', label: 'HR Reports', icon: 'â–¥' },
+    { id: 'analytics', label: 'Analytics', icon: 'â–¤' }
   ];
   protected readonly settingsMenu: FeatureItem[] = [
-    { id: 'settings', label: 'HR Settings', icon: '⚙' },
-    { id: 'access', label: 'Access & Roles', icon: '◇' }
+    { id: 'settings', label: 'HR Settings', icon: 'âš™' },
+    { id: 'access', label: 'Access & Roles', icon: 'â—‡' }
   ];
 
   protected readonly currentCompany = computed(() => {
@@ -1231,13 +1242,36 @@ protected readonly attendanceReportRecords = signal<AttendanceRecord[]>([]);
     const routeCompanyId = this.route.snapshot.queryParamMap.get('companyId');
     const userCompanyId = this.auth.currentUser()?.companyId || this.currentCompany()?.id || null;
     this.selectedCompanyId.set(routeCompanyId || userCompanyId);
-    const requestedFeature = this.route.snapshot.queryParamMap.get('feature');
-    if (
-      this.isHrFeature(requestedFeature) &&
-      !this.isRestrictedHrOperationalFeature(requestedFeature)
-    ) {
-      this.activeFeature.set(requestedFeature);
-    }
+    this.route.queryParamMap.subscribe((params) => {
+      const requestedFeature = params.get('feature');
+      if (
+        this.isHrFeature(requestedFeature) &&
+        !this.isRestrictedHrOperationalFeature(requestedFeature)
+      ) {
+        this.activeFeature.set(requestedFeature);
+      }
+      const recordId = params.get('recordId');
+      if (!recordId || !/^[a-f\d]{24}$/i.test(recordId)) return;
+      if (requestedFeature === 'leave') {
+        this.requestedLeaveNotificationId = recordId;
+        if (this.hasLoadedLeaveRequests) this.focusRequestedLeaveNotification();
+      }
+      if (requestedFeature === 'messages') {
+        this.requestedMessageNotificationId = recordId;
+        if (this.hasLoadedMessages) this.focusRequestedMessageNotification();
+      }
+      if (requestedFeature === 'meetings') {
+        this.requestedMeetingNotificationId = recordId;
+        if (this.hasLoadedMeetings) this.focusRequestedMeetingNotification();
+      }
+    });
+    this.route.queryParamMap.subscribe((params) => {
+      const id = params.get('recordId');
+      if (params.get('feature') === 'dashboard' && id && /^[a-f\d]{24}$/i.test(id)) {
+        this.requestedPlatformAnnouncementId = id;
+        if (this.hasLoadedNotifications) this.focusRequestedPlatformAnnouncement();
+      }
+    });
     this.applyCompanyTheme((this.currentCompany() as any)?.settings?.theme);
     this.refreshAll();
     this.timerId = setInterval(() => this.updateTimer(), 1000);
@@ -2364,6 +2398,8 @@ protected readonly attendanceReportRecords = signal<AttendanceRecord[]>([]);
       this.myLeaves.set(leaves.leaveRequests ?? []);
       const activeNotifications = this.filterDismissedNotifications(notifications.notifications ?? []);
       this.notifications.set(activeNotifications);
+      this.hasLoadedNotifications = true;
+      this.focusRequestedPlatformAnnouncement();
       this.unreadCount.set(Math.min(unread.unreadCount ?? 0, activeNotifications.filter((item) => !item.isRead).length));
       this.attendanceHistory.set(history.attendance ?? []);
       this.payslips.set(payslips.payslips ?? []);
@@ -2392,7 +2428,7 @@ protected readonly attendanceReportRecords = signal<AttendanceRecord[]>([]);
   const summary = this.dashboard()?.employees?.summary;
   const apiToday = this.dashboard()?.attendance?.today;
 
-  // ✅ Use the SAME computation as the attendance page
+  // âœ… Use the SAME computation as the attendance page
   const liveAttendance = this.attendanceMetrics();
   const livePresent = liveAttendance.find((item) => item.label === 'Present')?.value ?? 0;
   const liveLate = liveAttendance.find((item) => item.label === 'Late')?.value ?? 0;
@@ -2504,7 +2540,7 @@ protected readonly attendanceReportRecords = signal<AttendanceRecord[]>([]);
   }
 
 /* ==========================================================
-   ATTENDANCE REPORTS — Date Filter
+   ATTENDANCE REPORTS â€” Date Filter
 ========================================================== */
 
 protected applyReportPreset(preset: 'today' | 'yesterday' | 'week' | 'month'): void {
@@ -2597,10 +2633,10 @@ protected attendanceReportDailyRows(): AttendanceDisplayRow[] {
     .sort((a, b) => `${b.date}${b.employeeName}`.localeCompare(`${a.date}${a.employeeName}`));
 }
 
-/** Rows for the Monthly table — same records, different sort */
+/** Rows for the Monthly table â€” same records, different sort */
 protected attendanceReportMonthlyRows(): AttendanceDisplayRow[] {
   const rows = this.attendanceReportDailyRows();
-  // Group by employee for the monthly summary (or keep flat — your choice)
+  // Group by employee for the monthly summary (or keep flat â€” your choice)
   return rows;
 }
 
@@ -2609,7 +2645,7 @@ protected attendanceReportSummary(): { present: number; late: number; absent: nu
   const rows = this.attendanceReportDailyRows();
 
   const late = rows.filter((r) => r.status === 'late' || r.lateByMinutes > 0).length;
-  const present = rows.filter((r) => r.status === 'present').length + late;   // ← present + late
+  const present = rows.filter((r) => r.status === 'present').length + late;   // â† present + late
   const absent = rows.filter((r) => r.status === 'absent').length;
   const onLeave = rows.filter((r) => r.status === 'on_leave').length;
   const halfDay = rows.filter((r) => r.status === 'half_day').length;
@@ -3995,7 +4031,23 @@ protected attendanceReportSummary(): { present: number; late: number; absent: nu
       this.leaveRequests.set(pending.leaveRequests ?? []);
       this.allLeaveRequests.set(all.leaveRequests ?? []);
       this.leaveBalances.set(balances.leaveBalances ?? []);
+      this.hasLoadedLeaveRequests = true;
+      this.focusRequestedLeaveNotification();
     });
+  }
+
+  private focusRequestedLeaveNotification(): void {
+    const id = this.requestedLeaveNotificationId;
+    if (!id || !this.hasLoadedLeaveRequests) return;
+    const leave = this.allLeaveRequests().find((row) => row._id === id);
+    this.requestedLeaveNotificationId = null;
+    if (!leave) {
+      this.message.set('This related leave record is no longer available.');
+      return;
+    }
+    if (typeof document !== 'undefined') {
+      document.getElementById(`hr-leave-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
   }
 
   protected loadLeaveTypes(): void {
@@ -4079,7 +4131,25 @@ protected attendanceReportSummary(): { present: number; late: number; absent: nu
     this.api
       .get<{ meetings?: MeetingRow[] }>('/hr/meetings', { limit: 40 })
       .pipe(catchError(() => of({ meetings: [] })))
-      .subscribe((data) => this.meetings.set(data.meetings ?? []));
+      .subscribe((data) => {
+        this.meetings.set(data.meetings ?? []);
+        this.hasLoadedMeetings = true;
+        this.focusRequestedMeetingNotification();
+      });
+  }
+
+  private focusRequestedMeetingNotification(): void {
+    const id = this.requestedMeetingNotificationId;
+    if (!id || !this.hasLoadedMeetings) return;
+    const meeting = this.meetings().find((row) => row._id === id);
+    this.requestedMeetingNotificationId = null;
+    if (!meeting) {
+      this.message.set('This related meeting is no longer available.');
+      return;
+    }
+    if (typeof document !== 'undefined') {
+      document.getElementById(`hr-meeting-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
   }
 
   protected createMeeting(): void {
@@ -4174,6 +4244,11 @@ protected attendanceReportSummary(): { present: number; late: number; absent: nu
 
   protected closeNotificationPanel(): void {
     this.isNotificationPanelOpen.set(false);
+  }
+
+  protected openDashboardNotification(notification: NotificationRow): void {
+    navigateToNotification(this.router, notification, this.auth.currentUser()?.role);
+    setTimeout(() => this.closeNotificationPanel(), 0);
   }
 
   protected clearNotifications(): void {
@@ -4453,6 +4528,7 @@ protected attendanceReportSummary(): { present: number; late: number; absent: nu
   private applyMessages(rows: MessageRow[], showPopup: boolean): void {
     const previousIds = new Set(this.messages().map((item) => item._id).filter(Boolean));
     this.messages.set(rows);
+    this.focusRequestedMessageNotification();
 
     if (!this.hasLoadedMessages) {
       this.hasLoadedMessages = true;
@@ -4471,6 +4547,35 @@ protected attendanceReportSummary(): { present: number; late: number; absent: nu
 
     if (incoming) {
       this.showMessagePopup('Message aaya hai: New message');
+    }
+  }
+
+  private focusRequestedMessageNotification(): void {
+    const id = this.requestedMessageNotificationId;
+    if (!id) return;
+    const message = this.messages().find((row) => row._id === id);
+    this.requestedMessageNotificationId = null;
+    if (!message) {
+      this.message.set('This related message is no longer available.');
+      return;
+    }
+    if (typeof document !== 'undefined') {
+      document.getElementById(`hr-message-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+
+  private focusRequestedPlatformAnnouncement(): void {
+    const id = this.requestedPlatformAnnouncementId;
+    if (!id || !this.hasLoadedNotifications) return;
+    const notification = this.notifications().find((row) => row.entityId === id);
+    this.requestedPlatformAnnouncementId = null;
+    if (!notification) {
+      this.message.set('This related announcement is no longer available.');
+      return;
+    }
+    this.isNotificationPanelOpen.set(true);
+    if (typeof document !== 'undefined') {
+      document.getElementById(`hr-notification-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }
 
@@ -5204,7 +5309,6 @@ const request = editingId
     this.workTimer.set([hours, minutes, seconds].map((part) => String(part).padStart(2, '0')).join(':'));
   }
 }
-
 
 
 

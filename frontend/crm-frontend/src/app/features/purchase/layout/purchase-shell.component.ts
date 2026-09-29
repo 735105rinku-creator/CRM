@@ -32,6 +32,7 @@ import { SupportTicketFormComponent } from '../../../shared/components/support-t
 import {
   ApiService
 } from '../../../core/services/api.service';
+import { navigateToNotification } from '../../../core/services/notification-navigation.service';
 
 import {
   AuthService
@@ -90,6 +91,8 @@ interface PurchaseNotification {
   createdAt?: string;
   isRead?: boolean;
   actionUrl?: string;
+  entityType?: string;
+  entityId?: string | null;
 }
 
 interface PurchaseSearchItem {
@@ -577,9 +580,7 @@ export class PurchaseShellComponent {
     const navigate = () => {
       this.notificationOpen.set(false);
 
-      if (notification.actionUrl?.startsWith('/')) {
-        void this.router.navigateByUrl(notification.actionUrl);
-      }
+      navigateToNotification(this.router, notification, this.auth.currentUser()?.role);
     };
 
     if (!notification._id || notification.isRead) {

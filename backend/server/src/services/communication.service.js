@@ -238,7 +238,11 @@ export const sendMessageService = async (currentUser, payload) => {
     message: payload.body,
     entityType: "Message",
     entityId: message._id,
-    actionUrl: `/messages/${message._id}`,
+    actionUrl: recipient.role === ROLES.HR
+      ? `/hr-dashboard?feature=messages&recordId=${message._id}`
+      : [ROLES.COMPANY_ADMIN, ROLES.SUPER_ADMIN].includes(recipient.role)
+        ? `/dashboard?section=messages&recordId=${message._id}`
+        : `/sales/employee?feature=messages&recordId=${message._id}`,
     createdBy: currentUser._id,
   });
 

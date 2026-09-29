@@ -294,7 +294,7 @@ const notifyCompanyHrUsers = async ({ companyId, senderUserId, leaveRequest, emp
     companyId,
     role: { $in: [ROLES.HR, ROLES.COMPANY_ADMIN] },
     status: "active",
-  }).select("_id");
+  }).select("_id role");
 
   await Promise.all(
     recipients.map((recipient) =>
@@ -308,7 +308,9 @@ const notifyCompanyHrUsers = async ({ companyId, senderUserId, leaveRequest, emp
         message: `${employee.displayName || employee.employeeCode} applied for leave.`,
         entityType: "leave_request",
         entityId: leaveRequest._id,
-        actionUrl: "/hr-dashboard",
+        actionUrl: recipient.role === ROLES.HR
+          ? `/hr-dashboard?feature=leave&recordId=${leaveRequest._id}`
+          : `/dashboard?section=leave&recordId=${leaveRequest._id}`,
         createdBy: senderUserId,
       })
     )
@@ -329,7 +331,7 @@ const notifyLeaveEmployee = async ({ companyId, senderUserId, leaveRequest, stat
     message: remarks ? `Your leave was ${status}. Remark: ${remarks}` : `Your leave was ${status}.`,
     entityType: "leave_request",
     entityId: leaveRequest._id,
-    actionUrl: "/employee-dashboard",
+    actionUrl: `/sales/employee?feature=leave-history&recordId=${leaveRequest._id}`,
     createdBy: senderUserId,
   });
 };

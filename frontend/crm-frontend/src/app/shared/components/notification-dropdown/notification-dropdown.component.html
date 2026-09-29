@@ -1,0 +1,66 @@
+﻿<div class="notification-dropdown-wrapper">
+  <button
+    type="button"
+    class="notification-bell-btn"
+    (click)="toggleDropdown($event)"
+    aria-label="Open notifications"
+    [attr.aria-expanded]="isOpen()"
+  >
+    <span class="notification-bell-icon">🔔</span>
+    @if (hasUnread()) {
+      <span class="notification-badge">{{ unreadCount() > 99 ? '99+' : unreadCount() }}</span>
+    }
+  </button>
+
+  @if (isOpen()) {
+    <div class="notification-dropdown-panel" (click)="$event.stopPropagation()">
+      <header class="notification-dropdown-header">
+        <div>
+          <strong>Notifications</strong>
+          <small>{{ unreadCount() }} unread</small>
+        </div>
+        @if (hasUnread()) {
+          <button type="button" class="notification-mark-all" (click)="onMarkAllRead($event)">
+            Mark all read
+          </button>
+        }
+      </header>
+
+      <div class="notification-dropdown-list">
+        @if (isLoading()) {
+          <div class="notification-empty">Loading...</div>
+        } @else if (visibleNotifications().length === 0) {
+          <div class="notification-empty">
+            <span class="notification-empty-icon">🔔</span>
+            <strong>No notifications yet</strong>
+            <small>You're all caught up!</small>
+          </div>
+        } @else {
+          @for (item of visibleNotifications(); track item._id) {
+            <button
+              type="button"
+              class="notification-item"
+              [class.unread]="!item.isRead"
+              (click)="onNotificationClick(item, $event)"
+            >
+              <span class="notification-item-dot" [class.unread]="!item.isRead"></span>
+              <div class="notification-item-content">
+                <strong>{{ item.title }}</strong>
+                <p>{{ item.message }}</p>
+                <small>{{ formatTime(item.createdAt) }}</small>
+              </div>
+            </button>
+          }
+        }
+      </div>
+
+      @if (visibleNotifications().length > 0) {
+        <footer class="notification-dropdown-footer">
+          <button type="button" class="notification-view-all" (click)="onViewAll($event)">
+            View all notifications →
+          </button>
+        </footer>
+      }
+    </div>
+  }
+</div>

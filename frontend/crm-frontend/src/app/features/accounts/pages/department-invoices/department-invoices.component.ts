@@ -13,6 +13,7 @@ import {
   } from '@angular/common';
 
   import {
+    ActivatedRoute,
     Router
   } from '@angular/router';
   
@@ -70,6 +71,8 @@ import {
       inject(FormBuilder);
     private readonly router =
       inject(Router);
+    private readonly route =
+      inject(ActivatedRoute);
     private readonly destroyRef = inject(DestroyRef);
     private readonly realtime = inject(DepartmentInvoiceRealtimeService);
   
@@ -357,12 +360,25 @@ import {
     ========================================================= */
   
     ngOnInit(): void {
-  
+      this.route.queryParamMap.subscribe((params) => {
+        const id = params.get('recordId');
+        if (id && /^[a-f\d]{24}$/i.test(id)) this.openNotifiedInvoice(id);
+      });
       this.loadInvoices();
       this.realtime.connect();
       this.realtime.updates$
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe(() => this.loadInvoices());
+    }
+
+    private openNotifiedInvoice(id: string): void {
+      this.departmentInvoiceService
+        .getDepartmentInvoice(id)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (invoice) => this.openDetails(invoice),
+          error: () => this.error.set('This related invoice is no longer available.')
+        });
     }
   
   

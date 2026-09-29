@@ -168,7 +168,13 @@
 
                   <div class="super-notification-list">
                     @for (notification of topbarNotifications(); track notification._id || notification.createdAt) {
-                      <article [class.unread]="!notification.isRead">
+                      <article
+                        [class.unread]="!notification.isRead"
+                        role="button"
+                        tabindex="0"
+                        (click)="openTopbarNotification(notification)"
+                        (keydown.enter)="openTopbarNotification(notification)"
+                      >
                         <span
                           class="status-pill"
                           [class.danger]="notificationPriorityClass(notification) === 'danger'"

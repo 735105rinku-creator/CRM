@@ -73,6 +73,8 @@ const notificationBaseSchema = Joi.object({
 
   entityType: Joi.string().trim().allow("", null),
 
+  entityId: Joi.string().hex().length(24).allow("", null),
+
   actionUrl: Joi.string().trim().allow("", null),
 }).or("recipientEmail", "recipientEmployeeCode", "employeeCode");
 

@@ -333,13 +333,24 @@ const notifyMeetingInvitees = async ({ companyId, currentUser, meeting, inviteUs
         message: `${meeting.meetingTitle} starts ${new Date(meeting.startDateTime).toLocaleString("en-IN")}.`,
         entityType: "HRMeeting",
         entityId: meeting._id,
-        actionUrl: meeting.meetingLink || "",
+        actionUrl: await meetingNotificationActionUrl(recipientUserId, meeting),
         createdBy: currentUser._id,
       });
 
       emitNotificationToUser(recipientUserId.toString(), notification);
     })
   );
+};
+
+const meetingNotificationActionUrl = async (recipientUserId, meeting) => {
+  if (meeting.meetingLink) return meeting.meetingLink;
+  const recipient = await User.findById(recipientUserId).select("role").lean();
+  const recordId = meeting._id.toString();
+  if (recipient?.role === ROLES.HR) return `/hr-dashboard?feature=meetings&recordId=${recordId}`;
+  if ([ROLES.COMPANY_ADMIN, ROLES.SUPER_ADMIN].includes(recipient?.role)) {
+    return `/dashboard?section=meetings&recordId=${recordId}`;
+  }
+  return `/sales/employee?feature=meetings&recordId=${recordId}`;
 };
 
 const normalizeMeetingPayload = async (
@@ -619,7 +630,7 @@ const currentAttendee = findAttendeeForUser(meeting, currentUser, employee);
           message: `${currentUser.name || currentUser.email || "Employee"} requested to join ${meeting.meetingTitle}.`,
           entityType: "HRMeeting",
           entityId: meeting._id,
-          actionUrl: meeting.meetingLink || "",
+          actionUrl: await meetingNotificationActionUrl(recipient._id, meeting),
           createdBy: currentUser._id,
         });
 
@@ -678,7 +689,7 @@ const currentAttendee = findAttendeeForUser(meeting, currentUser, employee);
         message: `${joiner} joined ${meeting.meetingTitle}.`,
         entityType: "HRMeeting",
         entityId: meeting._id,
-        actionUrl: meeting.meetingLink || "",
+        actionUrl: await meetingNotificationActionUrl(recipientUserId, meeting),
         createdBy: currentUser._id,
       });
 
@@ -759,7 +770,7 @@ export const approveMeetingJoinService = async (currentUser, idOrCode, payload =
       message: status === "accepted" ? `You can join ${meeting.meetingTitle} now.` : `Your request to join ${meeting.meetingTitle} was declined.`,
       entityType: "HRMeeting",
       entityId: meeting._id,
-      actionUrl: meeting.meetingLink || "",
+      actionUrl: await meetingNotificationActionUrl(recipientUserId, meeting),
       createdBy: currentUser._id,
     });
 

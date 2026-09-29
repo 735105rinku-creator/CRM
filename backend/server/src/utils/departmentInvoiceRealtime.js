@@ -95,7 +95,9 @@ const persistWorkflowNotifications = async (row, action) => {
         priority: action === "admin_rejected" ? NOTIFICATION_PRIORITY.HIGH : NOTIFICATION_PRIORITY.NORMAL,
         entityType: "DepartmentInvoice",
         entityId: row._id,
-        actionUrl: action === "verified" ? "/dashboard?section=invoice-approvals" : "/accounts/department-invoices",
+        actionUrl: action === "verified"
+          ? `/dashboard?section=invoice-approvals&recordId=${row._id}`
+          : `/accounts/department-invoices?recordId=${row._id}`,
       });
       emitNotificationToUser(String(recipientUserId), notification.toObject());
     }

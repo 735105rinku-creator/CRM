@@ -7,8 +7,10 @@ import { catchError, finalize, forkJoin, of } from 'rxjs';
 import { AuthService } from '../../core/auth/auth.service';
 import { apiUrl } from '../../core/config/api.config';
 import { ApiService } from '../../core/services/api.service';
+import { navigateToNotification } from '../../core/services/notification-navigation.service';
 import { ImageCropperService } from '../../shared/services/image-cropper.service';
 import { SupportTicketFormComponent } from '../../shared/components/support-ticket-form/support-ticket-form.component';
+import { SupportTicketInboxComponent } from '../../shared/components/support-ticket-inbox/support-ticket-inbox.component';
 
 type EmployeeFeature =
   | 'dashboard'
@@ -230,6 +232,8 @@ interface NotificationRow {
   isRead?: boolean;
   createdAt?: string;
   actionUrl?: string;
+  entityType?: string;
+  entityId?: string | null;
 }
 
 interface HolidayRow {
@@ -425,7 +429,8 @@ interface LogisticsMenuItem {
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    SupportTicketFormComponent
+    SupportTicketFormComponent,
+    SupportTicketInboxComponent
   ],
   templateUrl: './employee-dashboard.component.html',
   styleUrls: [
@@ -447,6 +452,14 @@ export class EmployeeDashboardComponent implements OnDestroy {
   private popupTimerId: ReturnType<typeof setTimeout> | null = null;
   private hasLoadedMessages = false;
   private hasLoadedNotifications = false;
+  private hasLoadedEmployeeLeaves = false;
+  private hasLoadedEmployeeMeetings = false;
+  private hasLoadedCrmWorkspace = false;
+  private requestedCrmNotification: { feature: EmployeeFeature; id: string } | null = null;
+  private requestedLeaveNotificationId: string | null = null;
+  private requestedMessageNotificationId: string | null = null;
+  private requestedMeetingNotificationId: string | null = null;
+  private requestedPlatformAnnouncementId: string | null = null;
 
   protected readonly dashboard =
     signal<EmployeeDashboardData | null>(null);
@@ -947,7 +960,7 @@ export class EmployeeDashboardComponent implements OnDestroy {
     },
     {
       label: 'Vendor Payments',
-      icon: '₹',
+      icon: 'â‚¹',
       route: '/logistics/vendor-payments'
     },
     {
@@ -1392,6 +1405,36 @@ export class EmployeeDashboardComponent implements OnDestroy {
             requestedFeature
           );
         }
+
+        const recordId = params.get('recordId');
+        if (
+          this.isEmployeeFeature(requestedFeature) &&
+          ['my-leads', 'my-deals', 'my-tasks'].includes(requestedFeature) &&
+          recordId &&
+          /^[a-f\d]{24}$/i.test(recordId)
+        ) {
+          this.requestedCrmNotification = {
+            feature: requestedFeature,
+            id: recordId
+          };
+          this.focusRequestedCrmNotification();
+        }
+        if (requestedFeature === 'leave-history' && recordId && /^[a-f\d]{24}$/i.test(recordId)) {
+          this.requestedLeaveNotificationId = recordId;
+          if (this.hasLoadedEmployeeLeaves) this.focusRequestedLeaveNotification();
+        }
+        if (requestedFeature === 'messages' && recordId && /^[a-f\d]{24}$/i.test(recordId)) {
+          this.requestedMessageNotificationId = recordId;
+          if (this.hasLoadedMessages) this.focusRequestedMessageNotification();
+        }
+        if (requestedFeature === 'meetings' && recordId && /^[a-f\d]{24}$/i.test(recordId)) {
+          this.requestedMeetingNotificationId = recordId;
+          if (this.hasLoadedEmployeeMeetings) this.focusRequestedMeetingNotification();
+        }
+        if (requestedFeature === 'notifications' && recordId && /^[a-f\d]{24}$/i.test(recordId)) {
+          this.requestedPlatformAnnouncementId = recordId;
+          if (this.hasLoadedNotifications) this.focusRequestedPlatformAnnouncement();
+        }
       }
     );
 
@@ -1772,6 +1815,8 @@ export class EmployeeDashboardComponent implements OnDestroy {
             leaves.leaveRequests ??
             []
           );
+          this.hasLoadedEmployeeLeaves = true;
+          this.focusRequestedLeaveNotification();
 
           this.setLeaveBalances(
             balances.leaveBalances ??
@@ -1802,6 +1847,8 @@ export class EmployeeDashboardComponent implements OnDestroy {
             meetings.meetings ??
             []
           );
+          this.hasLoadedEmployeeMeetings = true;
+          this.focusRequestedMeetingNotification();
 
           this.applyNotifications(
             notifications.notifications ??
@@ -1928,8 +1975,49 @@ export class EmployeeDashboardComponent implements OnDestroy {
             tasks.tasks ??
             []
           );
+
+          this.hasLoadedCrmWorkspace = true;
+          this.focusRequestedCrmNotification();
         }
       );
+  }
+
+  private focusRequestedCrmNotification(): void {
+    const request = this.requestedCrmNotification;
+    if (!request || !this.hasLoadedCrmWorkspace) return;
+    this.requestedCrmNotification = null;
+
+    if (request.feature === 'my-leads') {
+      const lead = this.crmLeads().find((row) => (row.id || row._id) === request.id);
+      if (lead) {
+        this.startLeadEdit(lead);
+        return;
+      }
+    } else {
+      const records = request.feature === 'my-deals' ? this.crmDeals() : this.crmTasks();
+      const record = records.find((row) => (row.id || row._id) === request.id);
+      if (record && typeof document !== 'undefined') {
+        document.getElementById(`crm-record-${request.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+    }
+
+    this.showMessagePopup('This related CRM record is no longer available.');
+  }
+
+  private focusRequestedLeaveNotification(): void {
+    const id = this.requestedLeaveNotificationId;
+    if (!id || !this.hasLoadedEmployeeLeaves) return;
+    const leave = this.leaves().find((row) => row._id === id);
+    if (!leave) {
+      this.requestedLeaveNotificationId = null;
+      this.showMessagePopup('This related leave record is no longer available.');
+      return;
+    }
+    this.requestedLeaveNotificationId = null;
+    if (typeof document !== 'undefined') {
+      document.getElementById(`employee-leave-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
   }
 
   private saveCrmWorkspace(): void {}
@@ -2664,7 +2752,7 @@ export class EmployeeDashboardComponent implements OnDestroy {
         .filter(Boolean);
 
     return routeParts.length
-      ? routeParts.join(' • ')
+      ? routeParts.join(' â€¢ ')
       : 'Route not specified';
   }
 
@@ -2677,7 +2765,7 @@ export class EmployeeDashboardComponent implements OnDestroy {
       lead.commodity
     ]
       .filter(Boolean)
-      .join(' • ') ||
+      .join(' â€¢ ') ||
       'General Sales';
   }
 
@@ -3130,7 +3218,7 @@ export class EmployeeDashboardComponent implements OnDestroy {
               'Lead',
 
             meta:
-              `Lead • ${lead.company || lead.businessCategory || 'Sales'}`,
+              `Lead â€¢ ${lead.company || lead.businessCategory || 'Sales'}`,
 
             status:
               lead.status ||
@@ -3150,7 +3238,7 @@ export class EmployeeDashboardComponent implements OnDestroy {
               'Deal',
 
             meta:
-              `Deal • ${this.formatCurrency(deal.value || 0)}`,
+              `Deal â€¢ ${this.formatCurrency(deal.value || 0)}`,
 
             status:
               deal.stage ||
@@ -3170,7 +3258,7 @@ export class EmployeeDashboardComponent implements OnDestroy {
               'Follow-up',
 
             meta:
-              `Task • ${task.relatedTo || task.taskType || 'Sales'}`,
+              `Task â€¢ ${task.relatedTo || task.taskType || 'Sales'}`,
 
             status:
               task.status ||
@@ -3467,6 +3555,53 @@ export class EmployeeDashboardComponent implements OnDestroy {
     );
   }
 
+  protected openDashboardNotification(notification: NotificationRow): void {
+    navigateToNotification(this.router, notification, this.auth.currentUser()?.role);
+    setTimeout(() => this.closeNotificationPanel(), 0);
+  }
+
+  private focusRequestedMessageNotification(): void {
+    const id = this.requestedMessageNotificationId;
+    if (!id) return;
+    const message = this.messages().find((row) => row._id === id);
+    this.requestedMessageNotificationId = null;
+    if (!message) {
+      this.showMessagePopup('This related message is no longer available.');
+      return;
+    }
+    if (typeof document !== 'undefined') {
+      document.getElementById(`employee-message-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+
+  private focusRequestedMeetingNotification(): void {
+    const id = this.requestedMeetingNotificationId;
+    if (!id || !this.hasLoadedEmployeeMeetings) return;
+    const meeting = this.meetings().find((row) => row._id === id);
+    this.requestedMeetingNotificationId = null;
+    if (!meeting) {
+      this.showMessagePopup('This related meeting is no longer available.');
+      return;
+    }
+    if (typeof document !== 'undefined') {
+      document.getElementById(`employee-meeting-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+
+  private focusRequestedPlatformAnnouncement(): void {
+    const id = this.requestedPlatformAnnouncementId;
+    if (!id) return;
+    const notification = this.notifications().find((row) => row.entityId === id);
+    this.requestedPlatformAnnouncementId = null;
+    if (!notification) {
+      this.showMessagePopup('This related announcement is no longer available.');
+      return;
+    }
+    if (typeof document !== 'undefined') {
+      document.getElementById(`employee-announcement-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+
   private isEmployeeFeature(
     value:
       string |
@@ -3496,6 +3631,7 @@ export class EmployeeDashboardComponent implements OnDestroy {
       'account-invoices',
       'account-payments',
       'account-expenses',
+      'support-tickets',
       'settings',
       'notifications'
     ]
@@ -6847,6 +6983,7 @@ export class EmployeeDashboardComponent implements OnDestroy {
     this.messages.set(
       rows
     );
+    this.focusRequestedMessageNotification();
 
     if (
       !this.hasLoadedMessages
@@ -6969,6 +7106,7 @@ export class EmployeeDashboardComponent implements OnDestroy {
     this.notifications.set(
       rows
     );
+    this.focusRequestedPlatformAnnouncement();
 
     this.unreadCount.set(
       unreadCount

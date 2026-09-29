@@ -1,4 +1,4 @@
-﻿import { CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 
 import {
   Component,
@@ -19,6 +19,7 @@ import {
 import {
   ApiService
 } from '../../../core/services/api.service';
+import { navigateToNotification } from '../../../core/services/notification-navigation.service';
 
 import {
   AuthService
@@ -174,6 +175,9 @@ interface DashboardNotification {
   message?: string;
   createdAt?: string;
   isRead?: boolean;
+  actionUrl?: string;
+  entityType?: string;
+  entityId?: string | null;
 }
 
 interface NotificationListApi {
@@ -1568,6 +1572,11 @@ export class LogisticsDashboardComponent
     );
   }
 
+  protected openNotification(notification: DashboardNotification): void {
+    navigateToNotification(this.router, notification, this.auth.currentUser()?.role);
+    setTimeout(() => this.notificationsOpen.set(false), 0);
+  }
+
 
   protected toggleProfile():
     void {
@@ -2060,7 +2069,6 @@ export class LogisticsDashboardComponent
   }
 
 }
-
 
 
 
