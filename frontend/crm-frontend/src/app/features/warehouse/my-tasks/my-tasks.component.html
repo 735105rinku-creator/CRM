@@ -1,0 +1,621 @@
+<div class="warehouse-page">
+
+  <header class="page-header">
+
+    <div>
+      <div class="breadcrumb">
+        Warehouse
+        <b>&rsaquo;</b>
+        {{ mode() === 'list' ? pageTitle() : pageTitle() }}
+      </div>
+
+      <div class="title-row">
+        <span class="title-icon">&#10003;</span>
+
+        <div>
+          <h1>{{ pageTitle() }}</h1>
+          <p>{{ pageDescription() }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="header-actions">
+
+      @if (mode() === 'list') {
+        <button
+          type="button"
+          class="soft-button"
+          [disabled]="isLoading()"
+          (click)="reloadCurrent()"
+        >
+          <span class="button-icon">&#8635;</span>
+          {{ isLoading() ? 'Refreshing...' : 'Refresh' }}
+        </button>
+
+        <button
+          type="button"
+          class="primary-button"
+          (click)="openCreate()"
+        >
+          <span class="button-icon">&#43;</span>
+          New Task
+        </button>
+      }
+
+      @if (mode() === 'view') {
+        <button
+          type="button"
+          class="soft-button"
+          (click)="reloadCurrent()"
+        >
+          <span class="button-icon">&#8635;</span>
+          Refresh
+        </button>
+
+        @if (selected()?.status === 'open') {
+          <button
+            type="button"
+            class="primary-button"
+            [disabled]="isActing()"
+            (click)="startTask()"
+          >
+            Start
+          </button>
+          <button
+            type="button"
+            class="soft-button"
+            [disabled]="isActing()"
+            (click)="completeTask()"
+          >
+            Complete
+          </button>
+          <button
+            type="button"
+            class="soft-button"
+            [disabled]="isActing()"
+            (click)="cancelTask()"
+          >
+            Cancel
+          </button>
+        }
+
+        @if (selected()?.status === 'in_progress') {
+          <button
+            type="button"
+            class="primary-button"
+            [disabled]="isActing()"
+            (click)="completeTask()"
+          >
+            Complete
+          </button>
+          <button
+            type="button"
+            class="soft-button"
+            [disabled]="isActing()"
+            (click)="cancelTask()"
+          >
+            Cancel
+          </button>
+        }
+
+        @if (
+          selected()?.status === 'open' ||
+          selected()?.status === 'in_progress'
+        ) {
+          <button
+            type="button"
+            class="soft-button"
+            (click)="switchToEdit()"
+          >
+            Edit
+          </button>
+        }
+
+        <button
+          type="button"
+          class="soft-button danger"
+          [disabled]="isActing()"
+          (click)="deleteTask()"
+        >
+          Delete
+        </button>
+      }
+
+      @if (mode() === 'edit') {
+        <button
+          type="button"
+          class="soft-button"
+          [disabled]="isSaving()"
+          (click)="cancelEdit()"
+        >
+          Cancel
+        </button>
+      }
+
+    </div>
+
+  </header>
+
+  <main class="page-content">
+
+    @if (loadError()) {
+      <div class="load-error">{{ loadError() }}</div>
+    }
+
+    <!-- LIST -->
+
+    @if (mode() === 'list') {
+
+      <section class="filter-card">
+
+        <div class="filter-grid">
+
+          <label>
+            <span>Search</span>
+            <input
+              type="text"
+              placeholder="Title, description, remarks"
+              [value]="listSearch()"
+              (input)="listSearch.set($any($event.target).value)"
+              (keyup.enter)="applyFilters()"
+            />
+          </label>
+
+          <label>
+            <span>Status</span>
+            <select
+              [value]="listStatus()"
+              (change)="listStatus.set($any($event.target).value)"
+            >
+              <option value="">All</option>
+              @for (status of statuses; track status) {
+                <option [value]="status">
+                  {{ statusLabel(status) }}
+                </option>
+              }
+            </select>
+          </label>
+
+          <label>
+            <span>Priority</span>
+            <select
+              [value]="listPriority()"
+              (change)="listPriority.set($any($event.target).value)"
+            >
+              <option value="">All</option>
+              @for (priority of priorities; track priority) {
+                <option [value]="priority">
+                  {{ priorityLabel(priority) }}
+                </option>
+              }
+            </select>
+          </label>
+
+          <label>
+            <span>Warehouse</span>
+            <select
+              [value]="listWarehouseId()"
+              (change)="listWarehouseId.set($any($event.target).value)"
+            >
+              <option value="">All</option>
+              @for (warehouse of warehouses(); track warehouse._id) {
+                <option [value]="warehouse._id">
+                  {{ warehouse.name }} ({{ warehouse.code }})
+                </option>
+              }
+            </select>
+          </label>
+
+          <label>
+            <span>Overdue</span>
+            <select
+              [value]="listOverdue() ? 'true' : 'false'"
+              (change)="listOverdue.set($any($event.target).value === 'true')"
+            >
+              <option value="false">All</option>
+              <option value="true">Overdue only</option>
+            </select>
+          </label>
+
+        </div>
+
+        <div class="filter-actions">
+          <button
+            type="button"
+            class="soft-button"
+            (click)="resetFilters()"
+          >
+            Reset
+          </button>
+          <button
+            type="button"
+            class="primary-button"
+            (click)="applyFilters()"
+          >
+            Apply
+          </button>
+        </div>
+
+      </section>
+
+      <section class="table-card">
+
+        <header>
+          <div>
+            <span>{{ listScope() === 'mine' ? 'MY TASKS' : 'ALL TASKS' }}</span>
+            <h2>{{ listScope() === 'mine' ? 'Assigned to Me' : 'All Tasks' }}</h2>
+          </div>
+          <strong>
+            {{ records().length }} shown
+          </strong>
+        </header>
+
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Task</th>
+                <th>Warehouse</th>
+                <th>Priority</th>
+                <th>Due Date</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @for (record of records(); track record._id) {
+                <tr>
+                  <td>
+                    <strong>{{ record.title || '-' }}</strong>
+                    @if (record.description) {
+                      <small>{{ record.description }}</small>
+                    }
+                  </td>
+                  <td>{{ warehouseLabel(record.warehouseId) }}</td>
+                  <td>
+                    <span
+                      class="priority-badge"
+                      [class]="priorityBadgeClass(record.priority)"
+                    >
+                      {{ priorityLabel(record.priority) }}
+                    </span>
+                  </td>
+                  <td>
+                    {{ formatDate(record.dueDate) }}
+                    @if (isOverdue(record)) {
+                      <small class="overdue-flag">Overdue</small>
+                    }
+                  </td>
+                  <td>
+                    <span
+                      class="status-badge"
+                      [class]="statusBadgeClass(record.status)"
+                    >
+                      {{ statusLabel(record.status) }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="row-actions">
+                      <button
+                        type="button"
+                        class="row-button"
+                        (click)="openView(record)"
+                      >
+                        View
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="6">
+                    <div class="empty-state">
+                      <strong>No tasks yet.</strong>
+                      <p>Create a task to get started.</p>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        @if (pagination(); as page) {
+          <footer class="table-footer">
+            <span>
+              Page {{ page.page }} of {{ page.totalPages }}
+              ({{ page.total }} total)
+            </span>
+            <div class="table-footer-actions">
+              <button
+                type="button"
+                class="soft-button"
+                [disabled]="!page.hasPreviousPage"
+                (click)="loadTaskList(page.page - 1)"
+              >
+                Previous
+              </button>
+              <button
+                type="button"
+                class="soft-button"
+                [disabled]="!page.hasNextPage"
+                (click)="loadTaskList(page.page + 1)"
+              >
+                Next
+              </button>
+            </div>
+          </footer>
+        }
+
+      </section>
+
+    }
+
+    <!-- CREATE -->
+
+    @if (mode() === 'create') {
+
+      <section class="form-card">
+
+        <header>
+          <div>
+            <span>NEW TASK</span>
+            <h2>Task Details</h2>
+          </div>
+          <strong>Required fields marked *</strong>
+        </header>
+
+        <form
+          [formGroup]="form"
+          (ngSubmit)="submitCreate()"
+        >
+
+          @if (saveError()) {
+            <div class="load-error">{{ saveError() }}</div>
+          }
+
+          @if (saveSuccess()) {
+            <div class="success-banner">{{ saveSuccess() }}</div>
+          }
+
+          <div class="form-grid">
+
+            <label class="span-2">
+              <span>Title *</span>
+              <input formControlName="title" />
+              @if (form.controls.title.touched && form.controls.title.invalid) {
+                <small class="field-error">Title is required.</small>
+              }
+            </label>
+
+            <label>
+              <span>Priority</span>
+              <select formControlName="priority">
+                @for (priority of priorities; track priority) {
+                  <option [value]="priority">
+                    {{ priorityLabel(priority) }}
+                  </option>
+                }
+              </select>
+            </label>
+
+            <label>
+              <span>Due Date</span>
+              <input
+                type="date"
+                formControlName="dueDate"
+              />
+            </label>
+
+            <label>
+              <span>Warehouse</span>
+              <select formControlName="warehouseId">
+                <option value="">Company-wide</option>
+                @for (warehouse of warehouses(); track warehouse._id) {
+                  <option [value]="warehouse._id">
+                    {{ warehouse.name }} ({{ warehouse.code }})
+                  </option>
+                }
+              </select>
+            </label>
+
+            <label class="span-2">
+              <span>Description</span>
+              <textarea
+                rows="3"
+                formControlName="description"
+              ></textarea>
+            </label>
+
+            <label class="span-2">
+              <span>Remarks</span>
+              <textarea
+                rows="3"
+                formControlName="remarks"
+              ></textarea>
+            </label>
+
+          </div>
+
+          <div class="form-actions">
+            <button
+              type="button"
+              class="soft-button"
+              [disabled]="isSaving()"
+              (click)="cancelCreate()"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="primary-button"
+              [disabled]="isSaving()"
+            >
+              {{ isSaving() ? 'Saving...' : 'Create Task' }}
+            </button>
+          </div>
+
+        </form>
+
+      </section>
+
+    }
+
+    <!-- VIEW / EDIT -->
+
+    @if (mode() === 'view' || mode() === 'edit') {
+
+      @if (selected(); as record) {
+
+        <section class="form-card">
+
+          <header>
+            <div>
+              <span>TASK</span>
+              <h2>{{ record.title || 'Task' }}</h2>
+            </div>
+            <strong>
+              <span
+                class="status-badge"
+                [class]="statusBadgeClass(record.status)"
+              >
+                {{ statusLabel(record.status) }}
+              </span>
+            </strong>
+          </header>
+
+          @if (saveError()) {
+            <div class="load-error">{{ saveError() }}</div>
+          }
+
+          @if (saveSuccess()) {
+            <div class="success-banner">{{ saveSuccess() }}</div>
+          }
+
+          @if (actionError()) {
+            <div class="load-error">{{ actionError() }}</div>
+          }
+
+          <form
+            [formGroup]="form"
+            (ngSubmit)="submitUpdate()"
+          >
+
+            <div class="form-grid">
+
+              <label class="span-2">
+                <span>Title</span>
+                <input formControlName="title" [readonly]="mode() === 'view'" />
+              </label>
+
+              <label>
+                <span>Priority</span>
+                <select formControlName="priority" [attr.disabled]="mode() === 'view' ? true : null">
+                  @for (priority of priorities; track priority) {
+                    <option [value]="priority">
+                      {{ priorityLabel(priority) }}
+                    </option>
+                  }
+                </select>
+              </label>
+
+              <label>
+                <span>Due Date</span>
+                <input
+                  type="date"
+                  formControlName="dueDate"
+                  [readonly]="mode() === 'view'"
+                />
+              </label>
+
+              <label>
+                <span>Warehouse</span>
+                <select formControlName="warehouseId" [attr.disabled]="mode() === 'view' ? true : null">
+                  <option value="">Company-wide</option>
+                  @for (warehouse of warehouses(); track warehouse._id) {
+                    <option [value]="warehouse._id">
+                      {{ warehouse.name }} ({{ warehouse.code }})
+                    </option>
+                  }
+                </select>
+              </label>
+
+              <label>
+                <span>Completed</span>
+                <input
+                  [value]="formatDate(record.completedAt)"
+                  readonly
+                />
+              </label>
+
+              <label class="span-2">
+                <span>Description</span>
+                <textarea
+                  rows="3"
+                  formControlName="description"
+                  [readonly]="mode() === 'view'"
+                ></textarea>
+              </label>
+
+              <label class="span-2">
+                <span>Remarks</span>
+                <textarea
+                  rows="3"
+                  formControlName="remarks"
+                  [readonly]="mode() === 'view'"
+                ></textarea>
+              </label>
+
+            </div>
+
+            @if (mode() === 'edit') {
+              <div class="form-actions">
+                <button
+                  type="button"
+                  class="soft-button"
+                  [disabled]="isSaving()"
+                  (click)="cancelEdit()"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  class="primary-button"
+                  [disabled]="isSaving()"
+                >
+                  {{ isSaving() ? 'Saving...' : 'Save Changes' }}
+                </button>
+              </div>
+            }
+
+          </form>
+
+        </section>
+
+        <section class="meta-card">
+          <div>
+            <small>Created</small>
+            <strong>{{ formatDate(record.createdAt) }}</strong>
+          </div>
+          <div>
+            <small>Updated</small>
+            <strong>{{ formatDate(record.updatedAt) }}</strong>
+          </div>
+          <div>
+            <small>Completed</small>
+            <strong>{{ formatDate(record.completedAt) }}</strong>
+          </div>
+        </section>
+
+      } @else if (!isLoading()) {
+        <div class="empty-state">
+          <strong>Task not found.</strong>
+          <p>It may have been removed.</p>
+        </div>
+      }
+
+    }
+
+  </main>
+</div>

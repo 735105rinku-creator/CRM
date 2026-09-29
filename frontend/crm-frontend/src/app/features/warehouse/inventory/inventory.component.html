@@ -1,0 +1,687 @@
+<div class="warehouse-page">
+
+  <header class="page-header">
+
+    <div>
+      <div class="breadcrumb">
+        Warehouse
+        <b>&rsaquo;</b>
+        {{ mode() === 'list' ? 'Inventory' : pageTitle() }}
+      </div>
+
+      <div class="title-row">
+        <span class="title-icon">&#9636;</span>
+
+        <div>
+          <h1>{{ pageTitle() }}</h1>
+          <p>{{ pageDescription() }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="header-actions">
+
+      @if (mode() === 'list') {
+        <button
+          type="button"
+          class="soft-button"
+          [disabled]="isLoading()"
+          (click)="reloadCurrent()"
+        >
+          <span class="button-icon">&#8635;</span>
+          {{ isLoading() ? 'Refreshing...' : 'Refresh' }}
+        </button>
+
+        <button
+          type="button"
+          class="primary-button"
+          (click)="openCreate()"
+        >
+          <span class="button-icon">&#43;</span>
+          Add Item
+        </button>
+      }
+
+      @if (mode() === 'view') {
+        <button
+          type="button"
+          class="soft-button"
+          (click)="reloadCurrent()"
+        >
+          <span class="button-icon">&#8635;</span>
+          Refresh
+        </button>
+
+        <button
+          type="button"
+          class="soft-button"
+          (click)="deleteItem()"
+        >
+          Delete
+        </button>
+
+        <button
+          type="button"
+          class="primary-button"
+          (click)="switchToEdit()"
+        >
+          Edit
+        </button>
+      }
+
+      @if (mode() === 'edit') {
+        <button
+          type="button"
+          class="soft-button"
+          [disabled]="isSaving()"
+          (click)="cancelEdit()"
+        >
+          Cancel
+        </button>
+      }
+
+    </div>
+
+  </header>
+
+  <main class="page-content">
+
+    @if (loadError()) {
+      <div class="load-error">{{ loadError() }}</div>
+    }
+
+    <!-- LIST -->
+
+    @if (mode() === 'list') {
+
+      <section class="filter-card">
+
+        <div class="filter-grid">
+
+          <label>
+            <span>Search</span>
+            <input
+              type="text"
+              placeholder="Product name or SKU"
+              [value]="listSearch()"
+              (input)="listSearch.set($any($event.target).value)"
+              (keyup.enter)="applyFilters()"
+            />
+          </label>
+
+          <label>
+            <span>Warehouse</span>
+            <select
+              [value]="listWarehouseId()"
+              (change)="listWarehouseId.set($any($event.target).value)"
+            >
+              <option value="">All</option>
+              @for (warehouse of warehouses(); track warehouse._id) {
+                <option [value]="warehouse._id">
+                  {{ warehouse.name }} ({{ warehouse.code }})
+                </option>
+              }
+            </select>
+          </label>
+
+          <label>
+            <span>Status</span>
+            <select
+              [value]="listStatus()"
+              (change)="listStatus.set($any($event.target).value)"
+            >
+              <option value="">All</option>
+              @for (status of itemStatuses; track status) {
+                <option [value]="status">
+                  {{ statusLabel(status) }}
+                </option>
+              }
+            </select>
+          </label>
+
+        </div>
+
+        <div class="filter-actions">
+          <button
+            type="button"
+            class="soft-button"
+            (click)="resetFilters()"
+          >
+            Reset
+          </button>
+          <button
+            type="button"
+            class="primary-button"
+            (click)="applyFilters()"
+          >
+            Apply
+          </button>
+        </div>
+
+      </section>
+
+      <section class="table-card">
+
+        <header>
+          <div>
+            <span>INVENTORY</span>
+            <h2>Stock Items</h2>
+          </div>
+          <strong>
+            {{ records().length }} shown
+          </strong>
+        </header>
+
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>SKU</th>
+                <th>Warehouse</th>
+                <th>Available</th>
+                <th>Reserved</th>
+                <th>Damaged</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @for (record of records(); track record._id) {
+                <tr>
+                  <td>
+                    <strong>{{ record.productName || '-' }}</strong>
+                    <small>{{ unitLabel(record.unit) }}</small>
+                  </td>
+                  <td>{{ record.sku || '-' }}</td>
+                  <td>{{ warehouseLabel(record.warehouseId) }}</td>
+                  <td>{{ formatNumber(record.availableQuantity) }}</td>
+                  <td>{{ formatNumber(record.reservedQuantity) }}</td>
+                  <td>{{ formatNumber(record.damagedQuantity) }}</td>
+                  <td>
+                    <span
+                      class="status-badge"
+                      [class]="badgeClass(record.status)"
+                    >
+                      {{ statusLabel(record.status) }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="row-actions">
+                      <button
+                        type="button"
+                        class="row-button"
+                        (click)="openView(record)"
+                      >
+                        View
+                      </button>
+                      <button
+                        type="button"
+                        class="row-button"
+                        (click)="openView(record)"
+                      >
+                        Edit
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="8">
+                    <div class="empty-state">
+                      <strong>No items yet.</strong>
+                      <p>Add an item to get started.</p>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        @if (pagination(); as page) {
+          <footer class="table-footer">
+            <span>
+              Page {{ page.page }} of {{ page.totalPages }}
+              ({{ page.total }} total)
+            </span>
+            <div class="table-footer-actions">
+              <button
+                type="button"
+                class="soft-button"
+                [disabled]="!page.hasPreviousPage"
+                (click)="loadItems(page.page - 1)"
+              >
+                Previous
+              </button>
+              <button
+                type="button"
+                class="soft-button"
+                [disabled]="!page.hasNextPage"
+                (click)="loadItems(page.page + 1)"
+              >
+                Next
+              </button>
+            </div>
+          </footer>
+        }
+
+      </section>
+
+    }
+
+    <!-- CREATE -->
+
+    @if (mode() === 'create') {
+
+      <section class="form-card">
+
+        <header>
+          <div>
+            <span>NEW ITEM</span>
+            <h2>Item Information</h2>
+          </div>
+          <strong>Required fields marked *</strong>
+        </header>
+
+        <form
+          [formGroup]="form"
+          (ngSubmit)="submitCreate()"
+        >
+
+          @if (saveError()) {
+            <div class="load-error">{{ saveError() }}</div>
+          }
+
+          @if (saveSuccess()) {
+            <div class="success-banner">{{ saveSuccess() }}</div>
+          }
+
+          <div class="form-grid">
+
+            <label>
+              <span>Warehouse *</span>
+              <select formControlName="warehouseId">
+                <option value="">Select warehouse</option>
+                @for (warehouse of warehouses(); track warehouse._id) {
+                  <option [value]="warehouse._id">
+                    {{ warehouse.name }} ({{ warehouse.code }})
+                  </option>
+                }
+              </select>
+              @if (form.controls.warehouseId.touched && form.controls.warehouseId.invalid) {
+                <small class="field-error">Warehouse is required.</small>
+              }
+            </label>
+
+            <label>
+              <span>Product Name *</span>
+              <input formControlName="productName" />
+              @if (form.controls.productName.touched && form.controls.productName.invalid) {
+                <small class="field-error">Product name is required.</small>
+              }
+            </label>
+
+            <label>
+              <span>SKU *</span>
+              <input formControlName="sku" />
+              @if (form.controls.sku.touched && form.controls.sku.invalid) {
+                <small class="field-error">SKU is required.</small>
+              }
+            </label>
+
+            <label>
+              <span>Unit</span>
+              <select formControlName="unit">
+                @for (unit of itemUnits; track unit) {
+                  <option [value]="unit">{{ unitLabel(unit) }}</option>
+                }
+              </select>
+            </label>
+
+            <label>
+              <span>Available Quantity</span>
+              <input
+                type="number"
+                min="0"
+                formControlName="availableQuantity"
+              />
+            </label>
+
+            <label>
+              <span>Reserved Quantity</span>
+              <input
+                type="number"
+                min="0"
+                formControlName="reservedQuantity"
+              />
+            </label>
+
+            <label>
+              <span>Damaged Quantity</span>
+              <input
+                type="number"
+                min="0"
+                formControlName="damagedQuantity"
+              />
+            </label>
+
+            <label>
+              <span>Reorder Level</span>
+              <input
+                type="number"
+                min="0"
+                formControlName="reorderLevel"
+              />
+            </label>
+
+            <label class="span-2">
+              <span>Remarks</span>
+              <textarea
+                rows="3"
+                formControlName="remarks"
+              ></textarea>
+            </label>
+
+          </div>
+
+          <div class="form-actions">
+            <button
+              type="button"
+              class="soft-button"
+              [disabled]="isSaving()"
+              (click)="cancelCreate()"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="primary-button"
+              [disabled]="isSaving()"
+            >
+              {{ isSaving() ? 'Saving...' : 'Save Item' }}
+            </button>
+          </div>
+
+        </form>
+
+      </section>
+
+    }
+
+    <!-- VIEW / EDIT -->
+
+    @if (mode() === 'view' || mode() === 'edit') {
+
+      @if (selected(); as record) {
+
+        <section class="form-card">
+
+          <header>
+            <div>
+              <span>ITEM</span>
+              <h2>{{ record.productName || 'Item' }}</h2>
+            </div>
+            <strong>{{ record.sku || '-' }}</strong>
+          </header>
+
+          @if (saveError()) {
+            <div class="load-error">{{ saveError() }}</div>
+          }
+
+          @if (saveSuccess()) {
+            <div class="success-banner">{{ saveSuccess() }}</div>
+          }
+
+          <form
+            [formGroup]="form"
+            (ngSubmit)="submitUpdate()"
+          >
+
+            <div class="form-grid">
+
+              <label>
+                <span>Warehouse</span>
+                <input
+                  [value]="warehouseLabel(record.warehouseId)"
+                  readonly
+                />
+              </label>
+
+              <label>
+                <span>Product Name</span>
+                <input formControlName="productName" [readonly]="mode() === 'view'" />
+              </label>
+
+              <label>
+                <span>SKU</span>
+                <input formControlName="sku" [readonly]="mode() === 'view'" />
+              </label>
+
+              <label>
+                <span>Unit</span>
+                <select formControlName="unit" [attr.disabled]="mode() === 'view' ? true : null">
+                  @for (unit of itemUnits; track unit) {
+                    <option [value]="unit">{{ unitLabel(unit) }}</option>
+                  }
+                </select>
+              </label>
+
+              <label>
+                <span>Available Quantity</span>
+                <input
+                  type="number"
+                  [value]="record.availableQuantity || 0"
+                  readonly
+                />
+              </label>
+
+              <label>
+                <span>Reserved Quantity</span>
+                <input
+                  type="number"
+                  [value]="record.reservedQuantity || 0"
+                  readonly
+                />
+              </label>
+
+              <label>
+                <span>Damaged Quantity</span>
+                <input
+                  type="number"
+                  [value]="record.damagedQuantity || 0"
+                  readonly
+                />
+              </label>
+
+              <label>
+                <span>Reorder Level</span>
+                <input
+                  type="number"
+                  min="0"
+                  formControlName="reorderLevel"
+                  [readonly]="mode() === 'view'"
+                />
+              </label>
+
+              <label>
+                <span>Status</span>
+                <input
+                  [value]="statusLabel(record.status)"
+                  readonly
+                />
+              </label>
+
+              <label class="span-2">
+                <span>Remarks</span>
+                <textarea
+                  rows="3"
+                  formControlName="remarks"
+                  [readonly]="mode() === 'view'"
+                ></textarea>
+              </label>
+
+            </div>
+
+            @if (mode() === 'edit') {
+              <div class="form-actions">
+                <button
+                  type="button"
+                  class="soft-button"
+                  [disabled]="isSaving()"
+                  (click)="cancelEdit()"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  class="primary-button"
+                  [disabled]="isSaving()"
+                >
+                  {{ isSaving() ? 'Saving...' : 'Save Changes' }}
+                </button>
+              </div>
+            }
+
+          </form>
+
+        </section>
+
+        @if (mode() === 'view') {
+          <section class="action-bar">
+
+            <button
+              type="button"
+              class="soft-button"
+              (click)="openAdjust('add')"
+            >
+              Add Stock
+            </button>
+            <button
+              type="button"
+              class="soft-button"
+              (click)="openAdjust('remove')"
+            >
+              Remove Stock
+            </button>
+            <button
+              type="button"
+              class="soft-button"
+              (click)="openAdjust('adjust')"
+            >
+              Adjust Quantity
+            </button>
+            <button
+              type="button"
+              class="soft-button danger"
+              (click)="openAdjust('damage')"
+            >
+              Mark Damaged
+            </button>
+
+          </section>
+
+          @if (showAdjust()) {
+            <section class="form-card">
+
+              <header>
+                <div>
+                  <span>QUANTITY</span>
+                  <h2>
+                    @switch (adjustOperation()) {
+                      @case ('add') { Add Stock }
+                      @case ('remove') { Remove Stock }
+                      @case ('adjust') { Adjust Quantity }
+                      @case ('damage') { Mark Damaged }
+                    }
+                  </h2>
+                </div>
+                <strong>{{ record.unit || 'unit' }}</strong>
+              </header>
+
+              <form
+                [formGroup]="adjustForm"
+                (ngSubmit)="submitAdjust()"
+              >
+
+                @if (adjustError()) {
+                  <div class="load-error">{{ adjustError() }}</div>
+                }
+
+                <div class="form-grid">
+
+                  <label>
+                    <span>Quantity</span>
+                    <input
+                      type="number"
+                      min="0"
+                      formControlName="quantity"
+                    />
+                  </label>
+
+                  <label class="span-2">
+                    <span>Reason (optional)</span>
+                    <input formControlName="reason" />
+                  </label>
+
+                </div>
+
+                <div class="form-actions">
+                  <button
+                    type="button"
+                    class="soft-button"
+                    [disabled]="isAdjusting()"
+                    (click)="cancelAdjust()"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    class="primary-button"
+                    [disabled]="isAdjusting()"
+                  >
+                    {{ isAdjusting() ? 'Saving...' : 'Apply' }}
+                  </button>
+                </div>
+
+              </form>
+
+            </section>
+          }
+        }
+
+        <section class="meta-card">
+          <div>
+            <small>Created</small>
+            <strong>{{ formatDate(record.createdAt) }}</strong>
+          </div>
+          <div>
+            <small>Updated</small>
+            <strong>{{ formatDate(record.updatedAt) }}</strong>
+          </div>
+          <div>
+            <small>Created By</small>
+            <strong>
+              {{ record.createdBy?.displayName || record.createdBy?.name || '-' }}
+            </strong>
+          </div>
+          <div>
+            <small>Employee Code</small>
+            <strong>
+              {{ record.createdByEmployeeId?.employeeCode || '-' }}
+            </strong>
+          </div>
+        </section>
+
+      } @else if (!isLoading()) {
+        <div class="empty-state">
+          <strong>Item not found.</strong>
+          <p>It may have been removed.</p>
+        </div>
+      }
+
+    }
+
+  </main>
+</div>

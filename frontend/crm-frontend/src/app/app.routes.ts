@@ -313,6 +313,27 @@ export const routes: Routes = [
   },
 
 
+   /* ========================================================
+     WAREHOUSE WORKSPACE
+  ======================================================== */
+
+  {
+    path: 'warehouse',
+
+    canActivate: [
+      authGuard
+    ],
+
+    loadChildren: () =>
+      import(
+        './features/warehouse/warehouse.routes'
+      ).then(
+        (module) =>
+          module.WAREHOUSE_ROUTES
+      )
+  },
+
+
   /* ========================================================
      MAIN CRM / HRM / COMPANY WORKSPACE
   ======================================================== */

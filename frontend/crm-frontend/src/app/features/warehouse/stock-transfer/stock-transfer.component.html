@@ -1,0 +1,611 @@
+<div class="warehouse-page">
+
+  <header class="page-header">
+
+    <div>
+      <div class="breadcrumb">
+        Warehouse
+        <b>&rsaquo;</b>
+        {{ mode() === 'list' ? 'Stock Transfer' : pageTitle() }}
+      </div>
+
+      <div class="title-row">
+        <span class="title-icon">&#8644;</span>
+
+        <div>
+          <h1>{{ pageTitle() }}</h1>
+          <p>{{ pageDescription() }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="header-actions">
+
+      @if (mode() === 'list') {
+        <button
+          type="button"
+          class="soft-button"
+          [disabled]="isLoading()"
+          (click)="reloadCurrent()"
+        >
+          <span class="button-icon">&#8635;</span>
+          {{ isLoading() ? 'Refreshing...' : 'Refresh' }}
+        </button>
+
+        <button
+          type="button"
+          class="primary-button"
+          (click)="openCreate()"
+        >
+          <span class="button-icon">&#43;</span>
+          New Transfer
+        </button>
+      }
+
+      @if (mode() === 'view') {
+        <button
+          type="button"
+          class="soft-button"
+          (click)="reloadCurrent()"
+        >
+          <span class="button-icon">&#8635;</span>
+          Refresh
+        </button>
+
+        @if (selected()?.status === 'pending') {
+          <button
+            type="button"
+            class="primary-button"
+            [disabled]="isActing()"
+            (click)="completeTransfer()"
+          >
+            Complete Transfer
+          </button>
+
+          <button
+            type="button"
+            class="soft-button"
+            [disabled]="isActing()"
+            (click)="cancelTransfer()"
+          >
+            Cancel Transfer
+          </button>
+
+          <button
+            type="button"
+            class="soft-button danger"
+            [disabled]="isActing()"
+            (click)="deleteTransfer()"
+          >
+            Delete
+          </button>
+        }
+
+        @if (selected()?.status === 'cancelled') {
+          <button
+            type="button"
+            class="soft-button danger"
+            [disabled]="isActing()"
+            (click)="deleteTransfer()"
+          >
+            Delete
+          </button>
+        }
+      }
+
+    </div>
+
+  </header>
+
+  <main class="page-content">
+
+    @if (loadError()) {
+      <div class="load-error">{{ loadError() }}</div>
+    }
+
+    <!-- LIST -->
+
+    @if (mode() === 'list') {
+
+      <section class="filter-card">
+
+        <div class="filter-grid">
+
+          <label>
+            <span>Search</span>
+            <input
+              type="text"
+              placeholder="Product, SKU, remarks"
+              [value]="listSearch()"
+              (input)="listSearch.set($any($event.target).value)"
+              (keyup.enter)="applyFilters()"
+            />
+          </label>
+
+          <label>
+            <span>From Warehouse</span>
+            <select
+              [value]="listFromWarehouseId()"
+              (change)="listFromWarehouseId.set($any($event.target).value)"
+            >
+              <option value="">All</option>
+              @for (warehouse of warehouses(); track warehouse._id) {
+                <option [value]="warehouse._id">
+                  {{ warehouse.name }} ({{ warehouse.code }})
+                </option>
+              }
+            </select>
+          </label>
+
+          <label>
+            <span>To Warehouse</span>
+            <select
+              [value]="listToWarehouseId()"
+              (change)="listToWarehouseId.set($any($event.target).value)"
+            >
+              <option value="">All</option>
+              @for (warehouse of warehouses(); track warehouse._id) {
+                <option [value]="warehouse._id">
+                  {{ warehouse.name }} ({{ warehouse.code }})
+                </option>
+              }
+            </select>
+          </label>
+
+          <label>
+            <span>Status</span>
+            <select
+              [value]="listStatus()"
+              (change)="listStatus.set($any($event.target).value)"
+            >
+              <option value="">All</option>
+              @for (status of statuses; track status) {
+                <option [value]="status">
+                  {{ statusLabel(status) }}
+                </option>
+              }
+            </select>
+          </label>
+
+          <label>
+            <span>Transfer From</span>
+            <input
+              type="date"
+              [value]="listFromDate()"
+              (input)="listFromDate.set($any($event.target).value)"
+            />
+          </label>
+
+          <label>
+            <span>Transfer To</span>
+            <input
+              type="date"
+              [value]="listToDate()"
+              (input)="listToDate.set($any($event.target).value)"
+            />
+          </label>
+
+        </div>
+
+        <div class="filter-actions">
+          <button
+            type="button"
+            class="soft-button"
+            (click)="resetFilters()"
+          >
+            Reset
+          </button>
+          <button
+            type="button"
+            class="primary-button"
+            (click)="applyFilters()"
+          >
+            Apply
+          </button>
+        </div>
+
+      </section>
+
+      <section class="table-card">
+
+        <header>
+          <div>
+            <span>STOCK TRANSFERS</span>
+            <h2>Transfers</h2>
+          </div>
+          <strong>
+            {{ records().length }} shown
+          </strong>
+        </header>
+
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>SKU</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Quantity</th>
+                <th>Transfer Date</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @for (record of records(); track record._id) {
+                <tr>
+                  <td>
+                    <strong>{{ record.productName || '-' }}</strong>
+                    <small>{{ unitLabel(record.unit) }}</small>
+                  </td>
+                  <td>{{ record.sku || '-' }}</td>
+                  <td>{{ warehouseLabel(record.fromWarehouseId) }}</td>
+                  <td>{{ warehouseLabel(record.toWarehouseId) }}</td>
+                  <td>{{ formatNumber(record.quantity) }}</td>
+                  <td>{{ formatDate(record.transferDate) }}</td>
+                  <td>
+                    <span
+                      class="status-badge"
+                      [class]="badgeClass(record.status)"
+                    >
+                      {{ statusLabel(record.status) }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="row-actions">
+                      <button
+                        type="button"
+                        class="row-button"
+                        (click)="openView(record)"
+                      >
+                        View
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="8">
+                    <div class="empty-state">
+                      <strong>No transfers yet.</strong>
+                      <p>Create a stock transfer to get started.</p>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        @if (pagination(); as page) {
+          <footer class="table-footer">
+            <span>
+              Page {{ page.page }} of {{ page.totalPages }}
+              ({{ page.total }} total)
+            </span>
+            <div class="table-footer-actions">
+              <button
+                type="button"
+                class="soft-button"
+                [disabled]="!page.hasPreviousPage"
+                (click)="loadTransferList(page.page - 1)"
+              >
+                Previous
+              </button>
+              <button
+                type="button"
+                class="soft-button"
+                [disabled]="!page.hasNextPage"
+                (click)="loadTransferList(page.page + 1)"
+              >
+                Next
+              </button>
+            </div>
+          </footer>
+        }
+
+      </section>
+
+    }
+
+    <!-- CREATE -->
+
+    @if (mode() === 'create') {
+
+      <section class="form-card">
+
+        <header>
+          <div>
+            <span>NEW TRANSFER</span>
+            <h2>Stock Transfer</h2>
+          </div>
+          <strong>Required fields marked *</strong>
+        </header>
+
+        <form
+          [formGroup]="form"
+          (ngSubmit)="submitCreate()"
+        >
+
+          @if (saveError()) {
+            <div class="load-error">{{ saveError() }}</div>
+          }
+
+          @if (saveSuccess()) {
+            <div class="success-banner">{{ saveSuccess() }}</div>
+          }
+
+          <div class="form-grid">
+
+            <label>
+              <span>From Warehouse *</span>
+              <select
+                formControlName="fromWarehouseId"
+                (change)="onFromWarehouseChange()"
+              >
+                <option value="">Select source warehouse</option>
+                @for (warehouse of warehouses(); track warehouse._id) {
+                  <option [value]="warehouse._id">
+                    {{ warehouse.name }} ({{ warehouse.code }})
+                  </option>
+                }
+              </select>
+              @if (form.controls.fromWarehouseId.touched && form.controls.fromWarehouseId.invalid) {
+                <small class="field-error">Source warehouse is required.</small>
+              }
+            </label>
+
+            <label>
+              <span>To Warehouse *</span>
+              <select
+                formControlName="toWarehouseId"
+                (change)="onToWarehouseChange()"
+              >
+                <option value="">Select destination warehouse</option>
+                @for (warehouse of destinationWarehouseOptions(); track warehouse._id) {
+                  <option [value]="warehouse._id">
+                    {{ warehouse.name }} ({{ warehouse.code }})
+                  </option>
+                }
+              </select>
+              @if (form.controls.toWarehouseId.touched && form.controls.toWarehouseId.invalid) {
+                <small class="field-error">Destination warehouse is required.</small>
+              }
+            </label>
+
+            <label>
+              <span>Source Item *</span>
+              <select formControlName="fromItemId">
+                <option value="">Select source item</option>
+                @for (item of fromItems(); track item._id) {
+                  <option [value]="item._id">
+                    {{ item.productName }} ({{ item.sku }}) — {{ item.availableQuantity || 0 }} available
+                  </option>
+                }
+              </select>
+              @if (form.controls.fromItemId.touched && form.controls.fromItemId.invalid) {
+                <small class="field-error">Source item is required.</small>
+              }
+            </label>
+
+            <label>
+              <span>Destination Item (optional)</span>
+              <select formControlName="toItemId">
+                <option value="">Auto-resolve by SKU</option>
+                @for (item of toItems(); track item._id) {
+                  <option [value]="item._id">
+                    {{ item.productName }} ({{ item.sku }}) — {{ item.availableQuantity || 0 }} available
+                  </option>
+                }
+              </select>
+            </label>
+
+            <label>
+              <span>Quantity *</span>
+              <input
+                type="number"
+                min="1"
+                formControlName="quantity"
+              />
+              @if (form.controls.quantity.touched && form.controls.quantity.invalid) {
+                <small class="field-error">Quantity must be at least 1.</small>
+              }
+              @if (selectedFromItem(); as fromItem) {
+                <small class="field-hint">
+                  Available in source: {{ formatNumber(fromItem.availableQuantity) }} {{ unitLabel(fromItem.unit) }}
+                </small>
+              }
+            </label>
+
+            <label>
+              <span>Transfer Date</span>
+              <input
+                type="date"
+                formControlName="transferDate"
+              />
+            </label>
+
+            <label class="span-2">
+              <span>Remarks</span>
+              <textarea
+                rows="3"
+                formControlName="remarks"
+              ></textarea>
+            </label>
+
+          </div>
+
+          <div class="form-actions">
+            <button
+              type="button"
+              class="soft-button"
+              [disabled]="isSaving()"
+              (click)="cancelCreate()"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="primary-button"
+              [disabled]="isSaving()"
+            >
+              {{ isSaving() ? 'Saving...' : 'Create Transfer' }}
+            </button>
+          </div>
+
+        </form>
+
+      </section>
+
+    }
+
+    <!-- VIEW -->
+
+    @if (mode() === 'view') {
+
+      @if (selected(); as record) {
+
+        <section class="form-card">
+
+          <header>
+            <div>
+              <span>TRANSFER</span>
+              <h2>{{ record.productName || 'Transfer' }}</h2>
+            </div>
+            <strong>
+              <span
+                class="status-badge"
+                [class]="badgeClass(record.status)"
+              >
+                {{ statusLabel(record.status) }}
+              </span>
+            </strong>
+          </header>
+
+          @if (saveError()) {
+            <div class="load-error">{{ saveError() }}</div>
+          }
+
+          @if (saveSuccess()) {
+            <div class="success-banner">{{ saveSuccess() }}</div>
+          }
+
+          @if (actionError()) {
+            <div class="load-error">{{ actionError() }}</div>
+          }
+
+          <div class="form-grid">
+
+            <label>
+              <span>From Warehouse</span>
+              <input
+                [value]="warehouseLabel(record.fromWarehouseId)"
+                readonly
+              />
+            </label>
+
+            <label>
+              <span>To Warehouse</span>
+              <input
+                [value]="warehouseLabel(record.toWarehouseId)"
+                readonly
+              />
+            </label>
+
+            <label>
+              <span>Product</span>
+              <input
+                [value]="record.productName || '-'"
+                readonly
+              />
+            </label>
+
+            <label>
+              <span>SKU</span>
+              <input
+                [value]="record.sku || '-'"
+                readonly
+              />
+            </label>
+
+            <label>
+              <span>Source Item</span>
+              <input
+                [value]="itemLabel(record.fromItemId, 'from')"
+                readonly
+              />
+            </label>
+
+            <label>
+              <span>Destination Item</span>
+              <input
+                [value]="itemLabel(record.toItemId, 'to')"
+                readonly
+              />
+            </label>
+
+            <label>
+              <span>Quantity</span>
+              <input
+                [value]="formatNumber(record.quantity) + ' ' + unitLabel(record.unit)"
+                readonly
+              />
+            </label>
+
+            <label>
+              <span>Transfer Date</span>
+              <input
+                [value]="formatDate(record.transferDate)"
+                readonly
+              />
+            </label>
+
+            <label class="span-2">
+              <span>Remarks</span>
+              <textarea
+                rows="3"
+                [value]="record.remarks || ''"
+                readonly
+              ></textarea>
+            </label>
+
+          </div>
+
+        </section>
+
+        <section class="meta-card">
+          <div>
+            <small>Created</small>
+            <strong>{{ formatDate(record.createdAt) }}</strong>
+          </div>
+          <div>
+            <small>Completed</small>
+            <strong>{{ formatDate(record.completedAt) }}</strong>
+          </div>
+          <div>
+            <small>Created By</small>
+            <strong>
+              {{ record.createdBy?.displayName || record.createdBy?.name || '-' }}
+            </strong>
+          </div>
+          <div>
+            <small>Employee Code</small>
+            <strong>
+              {{ record.createdByEmployeeId?.employeeCode || '-' }}
+            </strong>
+          </div>
+        </section>
+
+      } @else if (!isLoading()) {
+        <div class="empty-state">
+          <strong>Transfer not found.</strong>
+          <p>It may have been removed.</p>
+        </div>
+      }
+
+    }
+
+  </main>
+</div>

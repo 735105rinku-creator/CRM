@@ -99,10 +99,18 @@ export const login = asyncHandler(async (req, res) => {
     ? { email: loginId.toLowerCase() }
     : { employeeCode: loginId.toUpperCase() };
 
-  const user = await User.findOne(userQuery).select("+passwordHash").populate(
+     const user = await User.findOne(userQuery).select("+passwordHash").populate(
     "companyId",
     "companyName companyCode logo settings status subscriptionStatus subscriptionPlan enabledModules"
-  ).populate("roleRef", "name level permissions company isCustom");
+  ).populate("roleRef", "name level permissions company isCustom").populate({
+    path: "employee",
+    select: "departmentId",
+    populate: {
+      path: "departmentId",
+      select:
+        "departmentName departmentCode featureKey dashboardKey accessModules",
+    },
+  });
   if (!user) {
     await auditLogin({
         email: loginId,

@@ -1,0 +1,707 @@
+<div class="warehouse-page">
+
+  <header class="page-header">
+
+    <div>
+      <div class="breadcrumb">
+        Warehouse
+        <b>&rsaquo;</b>
+        {{ mode() === 'list' ? 'Warehouse Master' : pageTitle() }}
+      </div>
+
+      <div class="title-row">
+        <span class="title-icon">&#8962;</span>
+
+        <div>
+          <h1>{{ pageTitle() }}</h1>
+          <p>{{ pageDescription() }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="header-actions">
+
+      @if (mode() === 'list') {
+        <button
+          type="button"
+          class="soft-button"
+          [disabled]="isLoading()"
+          (click)="reloadCurrent()"
+        >
+          <span class="button-icon">&#8635;</span>
+          {{ isLoading() ? 'Refreshing...' : 'Refresh' }}
+        </button>
+
+        <button
+          type="button"
+          class="primary-button"
+          (click)="openCreate()"
+        >
+          <span class="button-icon">&#43;</span>
+          Add Warehouse
+        </button>
+      }
+
+      @if (mode() === 'view') {
+        <button
+          type="button"
+          class="soft-button"
+          (click)="reloadCurrent()"
+        >
+          <span class="button-icon">&#8635;</span>
+          Refresh
+        </button>
+
+        <button
+          type="button"
+          class="primary-button"
+          (click)="switchToEdit()"
+        >
+          Edit
+        </button>
+      }
+
+      @if (mode() === 'edit') {
+        <button
+          type="button"
+          class="soft-button"
+          [disabled]="isSaving()"
+          (click)="cancelEdit()"
+        >
+          Cancel
+        </button>
+      }
+
+    </div>
+
+  </header>
+
+  <main class="page-content">
+
+    @if (loadError()) {
+      <div class="load-error">
+        {{ loadError() }}
+      </div>
+    }
+
+    <!-- ============================================
+         LIST
+    ============================================= -->
+
+    @if (mode() === 'list') {
+
+      <section class="summary-grid">
+
+        <article>
+          <span>&#8962;</span>
+          <div>
+            <small>Total Warehouses</small>
+            <strong>{{ summary().total || 0 }}</strong>
+            <p>All warehouse records</p>
+          </div>
+        </article>
+
+        <article>
+          <span>&#10003;</span>
+          <div>
+            <small>Active</small>
+            <strong>{{ summary().active || 0 }}</strong>
+            <p>Ready for operations</p>
+          </div>
+        </article>
+
+        <article>
+          <span>&#9888;</span>
+          <div>
+            <small>Inactive</small>
+            <strong>{{ summary().inactive || 0 }}</strong>
+            <p>Not in use</p>
+          </div>
+        </article>
+
+        <article>
+          <span>&#9635;</span>
+          <div>
+            <small>Maintenance</small>
+            <strong>{{ summary().maintenance || 0 }}</strong>
+            <p>Under maintenance</p>
+          </div>
+        </article>
+
+      </section>
+
+      <section class="filter-card">
+
+        <div class="filter-grid">
+
+          <label>
+            <span>Search</span>
+            <input
+              type="text"
+              placeholder="Code, name, city, contact"
+              [value]="listSearch()"
+              (input)="listSearch.set($any($event.target).value)"
+              (keyup.enter)="applyFilters()"
+            />
+          </label>
+
+          <label>
+            <span>Status</span>
+            <select
+              [value]="listStatus()"
+              (change)="listStatus.set($any($event.target).value)"
+            >
+              <option value="">All</option>
+              @for (status of warehouseStatuses; track status) {
+                <option [value]="status">
+                  {{ statusLabel(status) }}
+                </option>
+              }
+            </select>
+          </label>
+
+          <label>
+            <span>Type</span>
+            <select
+              [value]="listType()"
+              (change)="listType.set($any($event.target).value)"
+            >
+              <option value="">All</option>
+              @for (type of warehouseTypes; track type) {
+                <option [value]="type">
+                  {{ typeLabel(type) }}
+                </option>
+              }
+            </select>
+          </label>
+
+        </div>
+
+        <div class="filter-actions">
+          <button
+            type="button"
+            class="soft-button"
+            (click)="resetFilters()"
+          >
+            Reset
+          </button>
+          <button
+            type="button"
+            class="primary-button"
+            (click)="applyFilters()"
+          >
+            Apply
+          </button>
+        </div>
+
+      </section>
+
+      <section class="table-card">
+
+        <header>
+          <div>
+            <span>WAREHOUSE LIST</span>
+            <h2>Warehouses</h2>
+          </div>
+          <strong>
+            {{ records().length }} shown
+          </strong>
+        </header>
+
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Warehouse</th>
+                <th>Code</th>
+                <th>Location</th>
+                <th>Capacity</th>
+                <th>Contact</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @for (record of records(); track record._id) {
+                <tr>
+                  <td>
+                    <strong>{{ record.name || '-' }}</strong>
+                    <small>{{ typeLabel(record.type) }}</small>
+                  </td>
+                  <td>{{ record.code || '-' }}</td>
+                  <td>{{ locationLabel(record) }}</td>
+                  <td>
+                    {{ formatNumber(record.capacity) }}
+                    {{ capacityUnitLabel(record.capacityUnit) }}
+                  </td>
+                  <td>
+                    {{ record.contactPerson || '-' }}
+                    <small>{{ record.phone || '' }}</small>
+                  </td>
+                  <td>
+                    <span
+                      class="status-badge"
+                      [class.active]="record.status === 'active'"
+                      [class.inactive]="record.status === 'inactive'"
+                      [class.maintenance]="record.status === 'maintenance'"
+                    >
+                      {{ statusLabel(record.status) }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="row-actions">
+                      <button
+                        type="button"
+                        class="row-button"
+                        (click)="openView(record)"
+                      >
+                        View
+                      </button>
+                      <button
+                        type="button"
+                        class="row-button"
+                        (click)="openView(record)"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        class="row-button danger"
+                        (click)="toggleStatus(record)"
+                      >
+                        {{ record.status === 'active' ? 'Deactivate' : 'Activate' }}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="7">
+                    <div class="empty-state">
+                      <strong>No warehouses yet.</strong>
+                      <p>Create a warehouse to get started.</p>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        @if (pagination(); as page) {
+          <footer class="table-footer">
+            <span>
+              Page {{ page.page }} of {{ page.totalPages }}
+              ({{ page.total }} total)
+            </span>
+            <div class="table-footer-actions">
+              <button
+                type="button"
+                class="soft-button"
+                [disabled]="!page.hasPreviousPage"
+                (click)="loadWarehouses(page.page - 1)"
+              >
+                Previous
+              </button>
+              <button
+                type="button"
+                class="soft-button"
+                [disabled]="!page.hasNextPage"
+                (click)="loadWarehouses(page.page + 1)"
+              >
+                Next
+              </button>
+            </div>
+          </footer>
+        }
+
+      </section>
+
+    }
+
+    <!-- ============================================
+         CREATE
+    ============================================= -->
+
+    @if (mode() === 'create') {
+
+      <section class="form-card">
+
+        <header>
+          <div>
+            <span>NEW WAREHOUSE</span>
+            <h2>Warehouse Information</h2>
+          </div>
+          <strong>Required fields marked *</strong>
+        </header>
+
+        <form
+          [formGroup]="form"
+          (ngSubmit)="submitCreate()"
+        >
+
+          @if (saveError()) {
+            <div class="load-error">{{ saveError() }}</div>
+          }
+
+          @if (saveSuccess()) {
+            <div class="success-banner">{{ saveSuccess() }}</div>
+          }
+
+          <div class="form-grid">
+
+            <label>
+              <span>Warehouse Code *</span>
+              <input formControlName="code" />
+              @if (form.controls.code.touched && form.controls.code.invalid) {
+                <small class="field-error">Code is required.</small>
+              }
+            </label>
+
+            <label>
+              <span>Warehouse Name *</span>
+              <input formControlName="name" />
+              @if (form.controls.name.touched && form.controls.name.invalid) {
+                <small class="field-error">Name is required.</small>
+              }
+            </label>
+
+            <label>
+              <span>Type</span>
+              <select formControlName="type">
+                @for (type of warehouseTypes; track type) {
+                  <option [value]="type">{{ typeLabel(type) }}</option>
+                }
+              </select>
+            </label>
+
+            @if (form.controls.type.value === 'other') {
+              <label>
+                <span>Type (Other)</span>
+                <input formControlName="typeOther" />
+              </label>
+            }
+
+            <label>
+              <span>Address Line 1</span>
+              <input formControlName="addressLine1" />
+            </label>
+
+            <label>
+              <span>Address Line 2</span>
+              <input formControlName="addressLine2" />
+            </label>
+
+            <label>
+              <span>City</span>
+              <input formControlName="city" />
+            </label>
+
+            <label>
+              <span>State</span>
+              <input formControlName="state" />
+            </label>
+
+            <label>
+              <span>Country</span>
+              <input formControlName="country" />
+            </label>
+
+            <label>
+              <span>Pincode</span>
+              <input formControlName="pincode" />
+            </label>
+
+            <label>
+              <span>Contact Person</span>
+              <input formControlName="contactPerson" />
+            </label>
+
+            <label>
+              <span>Phone</span>
+              <input formControlName="phone" />
+            </label>
+
+            <label>
+              <span>Email</span>
+              <input formControlName="email" />
+              @if (form.controls.email.touched && form.controls.email.invalid) {
+                <small class="field-error">Enter a valid email.</small>
+              }
+            </label>
+
+            <label>
+              <span>Capacity</span>
+              <input
+                type="number"
+                min="0"
+                formControlName="capacity"
+              />
+            </label>
+
+            <label>
+              <span>Capacity Unit</span>
+              <select formControlName="capacityUnit">
+                @for (unit of capacityUnits; track unit) {
+                  <option [value]="unit">
+                    {{ capacityUnitLabel(unit) }}
+                  </option>
+                }
+              </select>
+            </label>
+
+            @if (form.controls.capacityUnit.value === 'other') {
+              <label>
+                <span>Capacity Unit (Other)</span>
+                <input formControlName="capacityUnitOther" />
+              </label>
+            }
+
+            <label>
+              <span>Status</span>
+              <select formControlName="status">
+                @for (status of warehouseStatuses; track status) {
+                  <option [value]="status">
+                    {{ statusLabel(status) }}
+                  </option>
+                }
+              </select>
+            </label>
+
+            <label class="span-2">
+              <span>Remarks</span>
+              <textarea
+                rows="3"
+                formControlName="remarks"
+              ></textarea>
+            </label>
+
+          </div>
+
+          <div class="form-actions">
+
+            <button
+              type="button"
+              class="soft-button"
+              [disabled]="isSaving()"
+              (click)="cancelCreate()"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              class="primary-button"
+              [disabled]="isSaving()"
+            >
+              {{ isSaving() ? 'Saving...' : 'Save Warehouse' }}
+            </button>
+
+          </div>
+
+        </form>
+
+      </section>
+
+    }
+
+    <!-- ============================================
+         VIEW / EDIT
+    ============================================= -->
+
+    @if (mode() === 'view' || mode() === 'edit') {
+
+      @if (selected(); as record) {
+
+        <section class="form-card">
+
+          <header>
+            <div>
+              <span>WAREHOUSE</span>
+              <h2>{{ record.name || 'Warehouse' }}</h2>
+            </div>
+            <strong>{{ record.code || '-' }}</strong>
+          </header>
+
+          @if (saveError()) {
+            <div class="load-error">{{ saveError() }}</div>
+          }
+
+          @if (saveSuccess()) {
+            <div class="success-banner">{{ saveSuccess() }}</div>
+          }
+
+          <form
+            [formGroup]="form"
+            (ngSubmit)="submitUpdate()"
+          >
+
+            <div class="form-grid">
+
+              <label>
+                <span>Warehouse Code</span>
+                <input formControlName="code" [readonly]="mode() === 'view'" />
+              </label>
+
+              <label>
+                <span>Warehouse Name</span>
+                <input formControlName="name" [readonly]="mode() === 'view'" />
+              </label>
+
+              <label>
+                <span>Type</span>
+                <select formControlName="type" [attr.disabled]="mode() === 'view' ? true : null">
+                  @for (type of warehouseTypes; track type) {
+                    <option [value]="type">{{ typeLabel(type) }}</option>
+                  }
+                </select>
+              </label>
+
+              @if (form.controls.type.value === 'other') {
+                <label>
+                  <span>Type (Other)</span>
+                  <input formControlName="typeOther" [readonly]="mode() === 'view'" />
+                </label>
+              }
+
+              <label>
+                <span>Address Line 1</span>
+                <input formControlName="addressLine1" [readonly]="mode() === 'view'" />
+              </label>
+
+              <label>
+                <span>Address Line 2</span>
+                <input formControlName="addressLine2" [readonly]="mode() === 'view'" />
+              </label>
+
+              <label>
+                <span>City</span>
+                <input formControlName="city" [readonly]="mode() === 'view'" />
+              </label>
+
+              <label>
+                <span>State</span>
+                <input formControlName="state" [readonly]="mode() === 'view'" />
+              </label>
+
+              <label>
+                <span>Country</span>
+                <input formControlName="country" [readonly]="mode() === 'view'" />
+              </label>
+
+              <label>
+                <span>Pincode</span>
+                <input formControlName="pincode" [readonly]="mode() === 'view'" />
+              </label>
+
+              <label>
+                <span>Contact Person</span>
+                <input formControlName="contactPerson" [readonly]="mode() === 'view'" />
+              </label>
+
+              <label>
+                <span>Phone</span>
+                <input formControlName="phone" [readonly]="mode() === 'view'" />
+              </label>
+
+              <label>
+                <span>Email</span>
+                <input formControlName="email" [readonly]="mode() === 'view'" />
+              </label>
+
+              <label>
+                <span>Capacity</span>
+                <input type="number" min="0" formControlName="capacity" [readonly]="mode() === 'view'" />
+              </label>
+
+              <label>
+                <span>Capacity Unit</span>
+                <select formControlName="capacityUnit" [attr.disabled]="mode() === 'view' ? true : null">
+                  @for (unit of capacityUnits; track unit) {
+                    <option [value]="unit">{{ capacityUnitLabel(unit) }}</option>
+                  }
+                </select>
+              </label>
+
+              @if (form.controls.capacityUnit.value === 'other') {
+                <label>
+                  <span>Capacity Unit (Other)</span>
+                  <input formControlName="capacityUnitOther" [readonly]="mode() === 'view'" />
+                </label>
+              }
+
+              <label>
+                <span>Status</span>
+                <select formControlName="status" [attr.disabled]="mode() === 'view' ? true : null">
+                  @for (status of warehouseStatuses; track status) {
+                    <option [value]="status">{{ statusLabel(status) }}</option>
+                  }
+                </select>
+              </label>
+
+              <label class="span-2">
+                <span>Remarks</span>
+                <textarea rows="3" formControlName="remarks" [readonly]="mode() === 'view'"></textarea>
+              </label>
+
+            </div>
+
+            @if (mode() === 'edit') {
+              <div class="form-actions">
+                <button
+                  type="button"
+                  class="soft-button"
+                  [disabled]="isSaving()"
+                  (click)="cancelEdit()"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  class="primary-button"
+                  [disabled]="isSaving()"
+                >
+                  {{ isSaving() ? 'Saving...' : 'Save Changes' }}
+                </button>
+              </div>
+            }
+
+          </form>
+
+        </section>
+
+        <section class="meta-card">
+          <div>
+            <small>Created</small>
+            <strong>{{ formatDate(record.createdAt) }}</strong>
+          </div>
+          <div>
+            <small>Updated</small>
+            <strong>{{ formatDate(record.updatedAt) }}</strong>
+          </div>
+          <div>
+            <small>Created By</small>
+            <strong>
+              {{ record.createdBy?.displayName || record.createdBy?.name || '-' }}
+            </strong>
+          </div>
+          <div>
+            <small>Employee Code</small>
+            <strong>
+              {{ record.createdByEmployeeId?.employeeCode || '-' }}
+            </strong>
+          </div>
+        </section>
+
+      } @else if (!isLoading()) {
+        <div class="empty-state">
+          <strong>Warehouse not found.</strong>
+          <p>It may have been removed.</p>
+        </div>
+      }
+
+    }
+
+  </main>
+</div>

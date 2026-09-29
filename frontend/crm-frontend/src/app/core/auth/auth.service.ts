@@ -654,6 +654,13 @@ export class AuthService {
       return '/logistics/dashboard';
     }
 
+    if (
+  this.hasRole('employee') &&
+  this.isWarehouseUser()
+) {
+  return '/warehouse/dashboard';
+}
+
     if (level >= 2 && level < 99) {
       return '/employee/dashboard';
     }
@@ -677,7 +684,7 @@ export class AuthService {
     return '/dashboard';
   }
 
-  isLogisticsUser(
+   isLogisticsUser(
     user = this.getCurrentUser()
   ): boolean {
     if (!user) {
@@ -690,12 +697,54 @@ export class AuthService {
       profile?: {
         department?: string;
       };
+      employee?: {
+        departmentId?: DepartmentRef | string | null;
+      } | string | null;
     };
+
+    const employee =
+      userWithDepartment.employee &&
+      typeof userWithDepartment.employee === 'object'
+        ? userWithDepartment.employee
+        : null;
 
     return this.hasLogisticsDepartment([
       userWithDepartment.department,
       userWithDepartment.profile?.department,
-      userWithDepartment.departmentRef
+      userWithDepartment.departmentRef,
+      employee?.departmentId
+    ]);
+  }
+
+    isWarehouseUser(
+    user = this.getCurrentUser()
+  ): boolean {
+    if (!user) {
+      return false;
+    }
+
+    const userWithDepartment = user as {
+      department?: string;
+      departmentRef?: DepartmentRef | string | null;
+      profile?: {
+        department?: string;
+      };
+      employee?: {
+        departmentId?: DepartmentRef | string | null;
+      } | string | null;
+    };
+
+    const employee =
+      userWithDepartment.employee &&
+      typeof userWithDepartment.employee === 'object'
+        ? userWithDepartment.employee
+        : null;
+
+    return this.hasWarehouseDepartment([
+      userWithDepartment.department,
+      userWithDepartment.profile?.department,
+      userWithDepartment.departmentRef,
+      employee?.departmentId
     ]);
   }
 
@@ -721,6 +770,32 @@ export class AuthService {
           /\blogistics?\b/i.test(value)
       );
   }
+
+  hasWarehouseDepartment(
+  values: unknown[]
+): boolean {
+  return values
+    .flatMap((value) =>
+      this.departmentValues(value)
+    )
+    .map((value) =>
+      String(value ?? '')
+        .trim()
+        .toLowerCase()
+    )
+    .filter(Boolean)
+    .some(
+      (value) =>
+        value === 'warehouse' ||
+        value === 'store' ||
+        value === 'inventory' ||
+        value === 'warehouse-department' ||
+        value === 'warehouse department' ||
+        /\bwarehouse\b/i.test(value) ||
+        /\bstore\b/i.test(value) ||
+        /\binventory\b/i.test(value)
+    );
+}
 
   getAccessToken(): string | null {
     return this.memoryAccessToken;

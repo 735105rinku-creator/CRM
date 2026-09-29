@@ -87,13 +87,14 @@ const departmentBaseSchema = Joi.object({
       "operations",
       "purchase",
       "production",
-      "store"
+      "store",
+      "warehouse"
     )
     .default("none"),
   dashboardKey: Joi.string()
     .trim()
     .lowercase()
-    .valid("none", "employee", "sales", "accounts", "logistics", "hr", "support", "operations", "purchase")
+    .valid("none", "employee", "sales", "accounts", "logistics", "hr", "support", "operations", "purchase","warehouse")
     .default("employee"),
 
   accessModules: Joi.array()
@@ -116,6 +117,7 @@ const departmentBaseSchema = Joi.object({
           "accounts",
           "logistics",
           "purchase",
+          "warehouse",
           "settings",
           "notifications"
         )

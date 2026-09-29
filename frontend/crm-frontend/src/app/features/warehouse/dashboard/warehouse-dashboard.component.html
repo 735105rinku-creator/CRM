@@ -1,0 +1,365 @@
+<section class="logistics-dashboard-page">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="topbar-title">
+      <p>{{ workspaceName() }} / Warehouse</p>
+      <h1>Warehouse Dashboard</h1>
+    </div>
+
+    <div class="topbar-actions">
+
+      <button
+        class="top-icon-btn"
+        type="button"
+        title="Search"
+      >&#8981;</button>
+
+      <div class="dropdown-host">
+        <button
+          class="top-icon-btn notification-button"
+          type="button"
+          (click)="toggleNotifications()"
+        >
+          &#9826;
+          @if (unreadNotificationCount() > 0) {
+            <span class="notification-badge">
+              {{ unreadNotificationCount() }}
+            </span>
+          }
+        </button>
+
+        @if (notificationsOpen()) {
+          <div class="luxury-dropdown notification-dropdown">
+
+            <div class="dropdown-heading">
+              <div>
+                <strong>Notifications</strong>
+                <span>
+                  {{ unreadNotificationCount() }} new updates
+                </span>
+              </div>
+
+              <button
+                type="button"
+                (click)="toggleNotifications()"
+              >&times;</button>
+            </div>
+
+            @for (
+              notification of notifications();
+              track notification._id ||
+                notification.createdAt ||
+                notification.title
+            ) {
+              <article>
+                <span
+                  class="notification-dot"
+                  [class.green]="notification.isRead"
+                  [class.gold]="!notification.isRead"
+                ></span>
+
+                <div>
+                  <strong>
+                    {{ notification.title || 'Notification' }}
+                  </strong>
+                  <p>{{ notification.message || '-' }}</p>
+                  <small>
+                    {{ notificationTime(notification.createdAt) }}
+                  </small>
+                </div>
+              </article>
+            } @empty {
+              <article>
+                <span class="notification-dot blue"></span>
+                <div>
+                  <strong>No notifications</strong>
+                  <p>Updates will appear here.</p>
+                  <small>-</small>
+                </div>
+              </article>
+            }
+
+          </div>
+        }
+      </div>
+
+      <div class="dropdown-host">
+        <button
+          class="user-profile-button"
+          type="button"
+          (click)="toggleProfile()"
+        >
+          <span class="top-avatar">
+            @if (topAvatarUrl()) {
+              <img
+                [src]="topAvatarUrl()"
+                [alt]="userName + ' profile photo'"
+                (error)="handleTopAvatarError()"
+              />
+            } @else {
+              {{ userName.charAt(0) }}
+            }
+          </span>
+
+          <span class="top-user-copy">
+            <strong>{{ userName }}</strong>
+            <small>{{ userDesignation }}</small>
+          </span>
+
+          <span class="profile-chevron">&#8964;</span>
+        </button>
+
+        @if (profileOpen()) {
+          <div class="luxury-dropdown profile-dropdown">
+
+            <button
+              type="button"
+              (click)="openProfile()"
+            >
+              <span>&#9817;</span> My Profile
+            </button>
+
+            <button
+              type="button"
+              (click)="openSettings()"
+            >
+              <span>&#9881;</span> Settings
+            </button>
+
+            <hr />
+
+            <button
+              type="button"
+              class="logout-action"
+              (click)="logout()"
+            >
+              <span>&#8618;</span> Logout
+            </button>
+
+          </div>
+        }
+      </div>
+
+    </div>
+  </header>
+
+  <!-- CONTENT -->
+  <div class="dashboard-content">
+
+    @if (dashboardError()) {
+      <div class="section-card">
+        <p>{{ dashboardError() }}</p>
+      </div>
+    }
+
+    <!-- HERO -->
+    <section class="dashboard-hero">
+      <div>
+        <span class="hero-eyebrow">WAREHOUSE OPERATIONS</span>
+
+        <h2>
+          {{ timeGreeting() }},
+          <span>{{ userName }}</span>
+        </h2>
+
+        <p>
+          Warehouses, inventory, incoming and outgoing shipments,
+          stock transfers and daily warehouse activity at a glance.
+        </p>
+
+        <small>{{ currentDate }}</small>
+      </div>
+
+      <div class="hero-actions">
+
+        <button
+          class="luxury-btn luxury-btn-secondary"
+          type="button"
+          (click)="selectMenu('incoming-new')"
+        >
+          <span>&#8595;</span> New Incoming
+        </button>
+
+        <button
+          class="luxury-btn luxury-btn-primary"
+          type="button"
+          (click)="selectMenu('warehouse-new')"
+        >
+          <span>&#65291;</span> Add Warehouse
+        </button>
+
+      </div>
+    </section>
+
+    <!-- METRICS -->
+    <section class="metric-grid">
+      @for (
+        metric of metrics();
+        track metric.label
+      ) {
+        <article
+          class="metric-card"
+          [attr.data-tone]="metric.tone"
+        >
+          <div class="metric-icon">
+            {{ metric.icon }}
+          </div>
+
+          <div class="metric-copy">
+            <span>{{ metric.label }}</span>
+            <strong>{{ metric.value }}</strong>
+            <small>{{ metric.helper }}</small>
+          </div>
+
+          <div class="metric-arrow">&#8599;</div>
+        </article>
+      }
+    </section>
+
+    <!-- QUICK ACTIONS -->
+    <section class="section-card quick-action-section">
+
+      <header class="section-heading">
+        <div>
+          <span class="section-kicker">WORKSPACE</span>
+          <h3>Quick Actions</h3>
+        </div>
+
+        <p>Frequently used warehouse operations</p>
+      </header>
+
+      <div class="quick-action-grid">
+        @for (
+          action of quickActions();
+          track action.id
+        ) {
+          <button
+            type="button"
+            [class.primary-action]="action.primary"
+            (click)="selectMenu(action.id)"
+          >
+            <span class="quick-icon">{{ action.icon }}</span>
+            <strong>{{ action.title }}</strong>
+            <small>{{ action.description }}</small>
+          </button>
+        }
+      </div>
+
+    </section>
+
+    <!-- TWO COLUMN CONTENT -->
+    <div class="dashboard-grid">
+
+      <!-- RECENT ACTIVITY -->
+      <section class="section-card shipment-card">
+
+        <header class="section-heading">
+          <div>
+            <span class="section-kicker">LATEST MOVEMENT</span>
+            <h3>Recent Activity</h3>
+          </div>
+
+          <button
+            class="text-action"
+            type="button"
+            (click)="selectMenu('activity')"
+          >
+            View All &#8594;
+          </button>
+        </header>
+
+        <div class="shipment-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Activity</th>
+                <th>Product</th>
+                <th>Warehouse</th>
+                <th>Quantity</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @for (
+                item of recentActivity();
+                track item.activityId || item.product
+              ) {
+                <tr>
+                  <td>
+                    <span
+                      class="status-chip"
+                      [class]="
+                        'status-chip ' +
+                        item.statusClass
+                      "
+                    >
+                      {{ item.status }}
+                    </span>
+                  </td>
+
+                  <td>
+                    <strong>{{ item.product }}</strong>
+                  </td>
+
+                  <td>{{ item.warehouse }}</td>
+
+                  <td>{{ item.quantity }}</td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="4">
+                    <div class="empty">
+                      No warehouse activity yet.
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+      </section>
+
+      <!-- MY TASKS -->
+      <aside class="section-card activity-card">
+
+        <header class="section-heading">
+          <div>
+            <span class="section-kicker">TODAY</span>
+            <h3>My Tasks</h3>
+          </div>
+        </header>
+
+        <div class="operations-list">
+          @for (
+            operation of operations();
+            track operation.title
+          ) {
+            <article>
+              <span
+                class="activity-icon"
+                [class]="
+                  'activity-icon ' + operation.tone
+                "
+              >
+                {{ operation.icon }}
+              </span>
+
+              <div>
+                <strong>{{ operation.title }}</strong>
+                <small>{{ operation.helper }}</small>
+              </div>
+
+              <b>{{ operation.count }}</b>
+            </article>
+          }
+        </div>
+
+      </aside>
+
+    </div>
+
+  </div>
+
+</section>

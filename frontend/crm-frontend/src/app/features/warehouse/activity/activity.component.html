@@ -1,0 +1,214 @@
+<div class="warehouse-page">
+
+  <header class="page-header">
+
+    <div>
+      <div class="breadcrumb">
+        Warehouse
+        <b>&rsaquo;</b>
+        Warehouse Activity
+      </div>
+
+      <div class="title-row">
+        <span class="title-icon">&#8801;</span>
+
+        <div>
+          <h1>Warehouse Activity</h1>
+          <p>
+            Every goods and stock movement across the warehouse workspace.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="header-actions">
+
+      <button
+        type="button"
+        class="soft-button"
+        [disabled]="isLoading()"
+        (click)="reloadCurrent()"
+      >
+        <span class="button-icon">&#8635;</span>
+        {{ isLoading() ? 'Refreshing...' : 'Refresh' }}
+      </button>
+
+    </div>
+
+  </header>
+
+  <main class="page-content">
+
+    @if (loadError()) {
+      <div class="load-error">{{ loadError() }}</div>
+    }
+
+    <section class="filter-card">
+
+      <div class="filter-grid">
+
+        <label>
+          <span>Search</span>
+          <input
+            type="text"
+            placeholder="Product, SKU, reference, notes"
+            [value]="listSearch()"
+            (input)="listSearch.set($any($event.target).value)"
+            (keyup.enter)="applyFilters()"
+          />
+        </label>
+
+        <label>
+          <span>Type</span>
+          <select
+            [value]="listType()"
+            (change)="listType.set($any($event.target).value)"
+          >
+            <option value="">All</option>
+            @for (type of types; track type) {
+              <option [value]="type">
+                {{ typeLabel(type) }}
+              </option>
+            }
+          </select>
+        </label>
+
+        <label>
+          <span>Warehouse</span>
+          <select
+            [value]="listWarehouseId()"
+            (change)="listWarehouseId.set($any($event.target).value)"
+          >
+            <option value="">All</option>
+            @for (warehouse of warehouses(); track warehouse._id) {
+              <option [value]="warehouse._id">
+                {{ warehouse.name }} ({{ warehouse.code }})
+              </option>
+            }
+          </select>
+        </label>
+
+        <label>
+          <span>From</span>
+          <input
+            type="date"
+            [value]="listFromDate()"
+            (input)="listFromDate.set($any($event.target).value)"
+          />
+        </label>
+
+        <label>
+          <span>To</span>
+          <input
+            type="date"
+            [value]="listToDate()"
+            (input)="listToDate.set($any($event.target).value)"
+          />
+        </label>
+
+      </div>
+
+      <div class="filter-actions">
+        <button
+          type="button"
+          class="soft-button"
+          (click)="resetFilters()"
+        >
+          Reset
+        </button>
+        <button
+          type="button"
+          class="primary-button"
+          (click)="applyFilters()"
+        >
+          Apply
+        </button>
+      </div>
+
+    </section>
+
+    <section class="table-card">
+
+      <header>
+        <div>
+          <span>ACTIVITY</span>
+          <h2>History</h2>
+        </div>
+        <strong>{{ records().length }} shown</strong>
+      </header>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Activity</th>
+              <th>Product</th>
+              <th>Quantity</th>
+              <th>Warehouse</th>
+              <th>Employee</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (record of records(); track record._id) {
+              <tr>
+                <td>{{ formatDate(record.occurredAt) }}</td>
+                <td>
+                  <span
+                    class="status-badge"
+                    [class]="badgeClass(record.type)"
+                  >
+                    {{ typeLabel(record.type) }}
+                  </span>
+                </td>
+                <td>{{ productLabel(record) }}</td>
+                <td>{{ quantityLabel(record) }}</td>
+                <td>{{ warehouseLabel(record.warehouseId) }}</td>
+                <td>{{ employeeLabel(record) }}</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6">
+                  <div class="empty-state">
+                    <strong>No activity yet.</strong>
+                    <p>Activity is recorded when goods and stock move.</p>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      @if (pagination(); as page) {
+        <footer class="table-footer">
+          <span>
+            Page {{ page.page }} of {{ page.totalPages }}
+            ({{ page.total }} total)
+          </span>
+          <div class="table-footer-actions">
+            <button
+              type="button"
+              class="soft-button"
+              [disabled]="!page.hasPreviousPage"
+              (click)="loadActivity(page.page - 1)"
+            >
+              Previous
+            </button>
+            <button
+              type="button"
+              class="soft-button"
+              [disabled]="!page.hasNextPage"
+              (click)="loadActivity(page.page + 1)"
+            >
+              Next
+            </button>
+          </div>
+        </footer>
+      }
+
+    </section>
+
+  </main>
+</div>

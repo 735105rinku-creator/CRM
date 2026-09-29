@@ -901,7 +901,8 @@ export class HrDashboardComponent implements OnDestroy {
     { value: 'operations', label: 'Operations' },
     { value: 'purchase', label: 'Purchase' },
     { value: 'production', label: 'Production' },
-    { value: 'store', label: 'Store' }
+    { value: 'store', label: 'Store' },
+    { value: 'warehouse', label: 'Warehouse' }
   ] as const;
 
 
@@ -912,6 +913,7 @@ export class HrDashboardComponent implements OnDestroy {
     { value: 'logistics', label: 'Logistics Dashboard' },
     { value: 'purchase', label: 'Purchase Dashboard' },
     { value: 'hr', label: 'HR Dashboard' },
+    { value: 'warehouse', label: 'Warehouse Dashboard' },
     { value: 'none', label: 'No dashboard shortcut' }
   ] as const;
 
@@ -937,6 +939,7 @@ export class HrDashboardComponent implements OnDestroy {
     { value: 'accounts', label: 'Accounts' },
     { value: 'logistics', label: 'Logistics' },
     { value: 'purchase', label: 'Purchase' },
+    { value: 'warehouse', label: 'Warehouse' },
     { value: 'settings', label: 'Settings' },
     { value: 'notifications', label: 'Notifications' }
   ] as const;
@@ -3925,7 +3928,7 @@ protected attendanceReportSummary(): { present: number; late: number; absent: nu
 
   private defaultDepartmentDashboard(featureKey?: string): string {
     const key = String(featureKey || 'none').toLowerCase();
-    return ['sales', 'accounts', 'logistics', 'purchase', 'hr', 'support', 'operations'].includes(key) ? key : 'employee';
+    return ['sales', 'accounts', 'logistics', 'purchase', 'hr','warehouse', 'support', 'operations'].includes(key) ? key : 'employee';
   }
 
   private defaultDepartmentAccess(featureKey?: string): string[] {
@@ -3935,6 +3938,7 @@ protected attendanceReportSummary(): { present: number; late: number; absent: nu
     if (key === 'accounts') return [...base, 'accounts'];
     if (key === 'logistics') return ['logistics'];
     if (key === 'purchase') return [...base, 'purchase'];
+    if (key === 'warehouse') return [...base, 'warehouse'];
     return base;
   }
 

@@ -34,6 +34,7 @@ import enterpriseRoutes from "./routes/enterprise.routes.js";
 import billingRoutes from "./routes/billing.routes.js";
 
 import logisticsRoutes from "./routes/logistics.routes.js";
+import warehouseRoutes from "./routes/warehouse.routes.js";
 
 import {
   requireAuth,
@@ -706,6 +707,10 @@ app.use(
   logisticsRoutes
 );
 
+app.use(
+  "/warehouse",
+  warehouseRoutes
+);
 
 /* ============================================================
    BILLING

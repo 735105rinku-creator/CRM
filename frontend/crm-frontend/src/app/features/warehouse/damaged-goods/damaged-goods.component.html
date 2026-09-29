@@ -1,0 +1,568 @@
+<div class="warehouse-page">
+
+  <header class="page-header">
+
+    <div>
+      <div class="breadcrumb">
+        Warehouse
+        <b>&rsaquo;</b>
+        {{ mode() === 'list' ? 'Damaged Goods' : pageTitle() }}
+      </div>
+
+      <div class="title-row">
+        <span class="title-icon">&#9888;</span>
+
+        <div>
+          <h1>{{ pageTitle() }}</h1>
+          <p>{{ pageDescription() }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="header-actions">
+
+      @if (mode() === 'list') {
+        <button
+          type="button"
+          class="soft-button"
+          [disabled]="isLoading()"
+          (click)="reloadCurrent()"
+        >
+          <span class="button-icon">&#8635;</span>
+          {{ isLoading() ? 'Refreshing...' : 'Refresh' }}
+        </button>
+
+        <button
+          type="button"
+          class="primary-button"
+          (click)="openCreate()"
+        >
+          <span class="button-icon">&#43;</span>
+          Report Damage
+        </button>
+      }
+
+      @if (mode() === 'view') {
+        <button
+          type="button"
+          class="soft-button"
+          (click)="reloadCurrent()"
+        >
+          <span class="button-icon">&#8635;</span>
+          Refresh
+        </button>
+
+        @if (selected()?.status === 'reported') {
+          <button
+            type="button"
+            class="primary-button"
+            [disabled]="isActing()"
+            (click)="markUnderReview()"
+          >
+            Mark Under Review
+          </button>
+
+          <button
+            type="button"
+            class="soft-button danger"
+            [disabled]="isActing()"
+            (click)="deleteDamage()"
+          >
+            Delete
+          </button>
+        }
+
+        @if (selected()?.status === 'under_review') {
+          <button
+            type="button"
+            class="primary-button"
+            [disabled]="isActing()"
+            (click)="approve()"
+          >
+            Approve
+          </button>
+        }
+
+        @if (selected()?.status === 'approved') {
+          <button
+            type="button"
+            class="primary-button"
+            [disabled]="isActing()"
+            (click)="markRemoved()"
+          >
+            Mark Removed from Stock
+          </button>
+        }
+      }
+
+    </div>
+
+  </header>
+
+  <main class="page-content">
+
+    @if (loadError()) {
+      <div class="load-error">{{ loadError() }}</div>
+    }
+
+    <!-- LIST -->
+
+    @if (mode() === 'list') {
+
+      <section class="filter-card">
+
+        <div class="filter-grid">
+
+          <label>
+            <span>Search</span>
+            <input
+              type="text"
+              placeholder="Product, SKU, reason, remarks"
+              [value]="listSearch()"
+              (input)="listSearch.set($any($event.target).value)"
+              (keyup.enter)="applyFilters()"
+            />
+          </label>
+
+          <label>
+            <span>Warehouse</span>
+            <select
+              [value]="listWarehouseId()"
+              (change)="listWarehouseId.set($any($event.target).value)"
+            >
+              <option value="">All</option>
+              @for (warehouse of warehouses(); track warehouse._id) {
+                <option [value]="warehouse._id">
+                  {{ warehouse.name }} ({{ warehouse.code }})
+                </option>
+              }
+            </select>
+          </label>
+
+          <label>
+            <span>Status</span>
+            <select
+              [value]="listStatus()"
+              (change)="listStatus.set($any($event.target).value)"
+            >
+              <option value="">All</option>
+              @for (status of statuses; track status) {
+                <option [value]="status">
+                  {{ statusLabel(status) }}
+                </option>
+              }
+            </select>
+          </label>
+
+          <label>
+            <span>Damage From</span>
+            <input
+              type="date"
+              [value]="listFromDate()"
+              (input)="listFromDate.set($any($event.target).value)"
+            />
+          </label>
+
+          <label>
+            <span>Damage To</span>
+            <input
+              type="date"
+              [value]="listToDate()"
+              (input)="listToDate.set($any($event.target).value)"
+            />
+          </label>
+
+        </div>
+
+        <div class="filter-actions">
+          <button
+            type="button"
+            class="soft-button"
+            (click)="resetFilters()"
+          >
+            Reset
+          </button>
+          <button
+            type="button"
+            class="primary-button"
+            (click)="applyFilters()"
+          >
+            Apply
+          </button>
+        </div>
+
+      </section>
+
+      <section class="table-card">
+
+        <header>
+          <div>
+            <span>DAMAGED GOODS</span>
+            <h2>Damage Reports</h2>
+          </div>
+          <strong>
+            {{ records().length }} shown
+          </strong>
+        </header>
+
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>SKU</th>
+                <th>Warehouse</th>
+                <th>Quantity</th>
+                <th>Reason</th>
+                <th>Damage Date</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @for (record of records(); track record._id) {
+                <tr>
+                  <td>
+                    <strong>{{ record.productName || '-' }}</strong>
+                    <small>{{ unitLabel(record.unit) }}</small>
+                  </td>
+                  <td>{{ record.sku || '-' }}</td>
+                  <td>{{ warehouseLabel(record.warehouseId) }}</td>
+                  <td>{{ formatNumber(record.quantity) }}</td>
+                  <td>{{ record.damageReason || '-' }}</td>
+                  <td>{{ formatDate(record.damageDate) }}</td>
+                  <td>
+                    <span
+                      class="status-badge"
+                      [class]="badgeClass(record.status)"
+                    >
+                      {{ statusLabel(record.status) }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="row-actions">
+                      <button
+                        type="button"
+                        class="row-button"
+                        (click)="openView(record)"
+                      >
+                        View
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="8">
+                    <div class="empty-state">
+                      <strong>No damage reports yet.</strong>
+                      <p>Report damaged goods to get started.</p>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        @if (pagination(); as page) {
+          <footer class="table-footer">
+            <span>
+              Page {{ page.page }} of {{ page.totalPages }}
+              ({{ page.total }} total)
+            </span>
+            <div class="table-footer-actions">
+              <button
+                type="button"
+                class="soft-button"
+                [disabled]="!page.hasPreviousPage"
+                (click)="loadDamageList(page.page - 1)"
+              >
+                Previous
+              </button>
+              <button
+                type="button"
+                class="soft-button"
+                [disabled]="!page.hasNextPage"
+                (click)="loadDamageList(page.page + 1)"
+              >
+                Next
+              </button>
+            </div>
+          </footer>
+        }
+
+      </section>
+
+    }
+
+    <!-- CREATE -->
+
+    @if (mode() === 'create') {
+
+      <section class="form-card">
+
+        <header>
+          <div>
+            <span>NEW DAMAGE REPORT</span>
+            <h2>Damaged Goods</h2>
+          </div>
+          <strong>Required fields marked *</strong>
+        </header>
+
+        <form
+          [formGroup]="form"
+          (ngSubmit)="submitCreate()"
+        >
+
+          @if (saveError()) {
+            <div class="load-error">{{ saveError() }}</div>
+          }
+
+          @if (saveSuccess()) {
+            <div class="success-banner">{{ saveSuccess() }}</div>
+          }
+
+          <div class="form-grid">
+
+            <label>
+              <span>Warehouse *</span>
+              <select
+                formControlName="warehouseId"
+                (change)="onWarehouseChange()"
+              >
+                <option value="">Select warehouse</option>
+                @for (warehouse of warehouses(); track warehouse._id) {
+                  <option [value]="warehouse._id">
+                    {{ warehouse.name }} ({{ warehouse.code }})
+                  </option>
+                }
+              </select>
+              @if (form.controls.warehouseId.touched && form.controls.warehouseId.invalid) {
+                <small class="field-error">Warehouse is required.</small>
+              }
+            </label>
+
+            <label>
+              <span>Item *</span>
+              <select formControlName="itemId">
+                <option value="">Select item</option>
+                @for (item of items(); track item._id) {
+                  <option [value]="item._id">
+                    {{ item.productName }} ({{ item.sku }}) — {{ item.availableQuantity || 0 }} available
+                  </option>
+                }
+              </select>
+              @if (form.controls.itemId.touched && form.controls.itemId.invalid) {
+                <small class="field-error">Item is required.</small>
+              }
+            </label>
+
+            <label>
+              <span>Quantity *</span>
+              <input
+                type="number"
+                min="1"
+                formControlName="quantity"
+              />
+              @if (form.controls.quantity.touched && form.controls.quantity.invalid) {
+                <small class="field-error">Quantity must be at least 1.</small>
+              }
+              @if (selectedItem(); as item) {
+                <small class="field-hint">
+                  Available: {{ formatNumber(item.availableQuantity) }} {{ unitLabel(item.unit) }}
+                </small>
+              }
+            </label>
+
+            <label>
+              <span>Damage Date</span>
+              <input
+                type="date"
+                formControlName="damageDate"
+              />
+            </label>
+
+            <label class="span-2">
+              <span>Damage Reason *</span>
+              <input formControlName="damageReason" />
+              @if (form.controls.damageReason.touched && form.controls.damageReason.invalid) {
+                <small class="field-error">Damage reason is required.</small>
+              }
+            </label>
+
+            <label class="span-2">
+              <span>Remarks</span>
+              <textarea
+                rows="3"
+                formControlName="remarks"
+              ></textarea>
+            </label>
+
+          </div>
+
+          <div class="form-actions">
+            <button
+              type="button"
+              class="soft-button"
+              [disabled]="isSaving()"
+              (click)="cancelCreate()"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="primary-button"
+              [disabled]="isSaving()"
+            >
+              {{ isSaving() ? 'Saving...' : 'Report Damage' }}
+            </button>
+          </div>
+
+        </form>
+
+      </section>
+
+    }
+
+    <!-- VIEW -->
+
+    @if (mode() === 'view') {
+
+      @if (selected(); as record) {
+
+        <section class="form-card">
+
+          <header>
+            <div>
+              <span>DAMAGE REPORT</span>
+              <h2>{{ record.productName || 'Damage Report' }}</h2>
+            </div>
+            <strong>
+              <span
+                class="status-badge"
+                [class]="badgeClass(record.status)"
+              >
+                {{ statusLabel(record.status) }}
+              </span>
+            </strong>
+          </header>
+
+          @if (saveError()) {
+            <div class="load-error">{{ saveError() }}</div>
+          }
+
+          @if (saveSuccess()) {
+            <div class="success-banner">{{ saveSuccess() }}</div>
+          }
+
+          @if (actionError()) {
+            <div class="load-error">{{ actionError() }}</div>
+          }
+
+          <div class="form-grid">
+
+            <label>
+              <span>Warehouse</span>
+              <input
+                [value]="warehouseLabel(record.warehouseId)"
+                readonly
+              />
+            </label>
+
+            <label>
+              <span>Product</span>
+              <input
+                [value]="record.productName || '-'"
+                readonly
+              />
+            </label>
+
+            <label>
+              <span>SKU</span>
+              <input
+                [value]="record.sku || '-'"
+                readonly
+              />
+            </label>
+
+            <label>
+              <span>Quantity</span>
+              <input
+                [value]="formatNumber(record.quantity) + ' ' + unitLabel(record.unit)"
+                readonly
+              />
+            </label>
+
+            <label>
+              <span>Damage Date</span>
+              <input
+                [value]="formatDate(record.damageDate)"
+                readonly
+              />
+            </label>
+
+            <label class="span-2">
+              <span>Damage Reason</span>
+              <input
+                [value]="record.damageReason || '-'"
+                readonly
+              />
+            </label>
+
+            <label class="span-2">
+              <span>Remarks</span>
+              <textarea
+                rows="3"
+                [value]="record.remarks || ''"
+                readonly
+              ></textarea>
+            </label>
+
+          </div>
+
+        </section>
+
+        <section class="meta-card">
+          <div>
+            <small>Reported</small>
+            <strong>{{ formatDate(record.createdAt) }}</strong>
+          </div>
+          <div>
+            <small>Reviewed</small>
+            <strong>{{ formatDate(record.reviewedAt) }}</strong>
+          </div>
+          <div>
+            <small>Approved</small>
+            <strong>{{ formatDate(record.approvedAt) }}</strong>
+          </div>
+          <div>
+            <small>Removed</small>
+            <strong>{{ formatDate(record.removedAt) }}</strong>
+          </div>
+          <div>
+            <small>Created By</small>
+            <strong>
+              {{ record.createdBy?.displayName || record.createdBy?.name || '-' }}
+            </strong>
+          </div>
+          <div>
+            <small>Employee Code</small>
+            <strong>
+              {{ record.createdByEmployeeId?.employeeCode || '-' }}
+            </strong>
+          </div>
+        </section>
+
+      } @else if (!isLoading()) {
+        <div class="empty-state">
+          <strong>Damage report not found.</strong>
+          <p>It may have been removed.</p>
+        </div>
+      }
+
+    }
+
+  </main>
+</div>

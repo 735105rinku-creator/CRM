@@ -291,7 +291,14 @@ export class LoginComponent {
     return roles.has('super_admin') || roles.has(selectedRole);
   }
 
-  private redirectUrlForRole(role: string): string {
+    private redirectUrlForRole(role: string): string {
+
+    const resolved = this.authService.getDefaultRedirectUrl();
+
+    if (resolved) {
+      return resolved;
+    }
+
     const roleRedirects: Record<string, string> = {
       hr: '/hr-dashboard',
       employee: '/employee/dashboard',
@@ -302,6 +309,6 @@ export class LoginComponent {
       super_admin: '/super-admin'
     };
 
-    return roleRedirects[role] || this.authService.getDefaultRedirectUrl();
+    return roleRedirects[role] || '/login';
   }
 }

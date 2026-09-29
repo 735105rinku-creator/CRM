@@ -12604,12 +12604,15 @@ if (
   }
 
 
-  private departmentCreatePayload(
+    private departmentCreatePayload(
     payload: {
       departmentName:
         string;
 
       departmentCode:
+        string;
+
+      featureKey:
         string;
     }
   ): {
@@ -12618,6 +12621,9 @@ if (
 
     departmentCode:
       string;
+
+    featureKey:
+      string;
   } {
 
     return {
@@ -12625,7 +12631,10 @@ if (
         payload.departmentName,
 
       departmentCode:
-        payload.departmentCode
+        payload.departmentCode,
+
+      featureKey:
+        payload.featureKey
     };
   }
 

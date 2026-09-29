@@ -1,0 +1,725 @@
+<div class="warehouse-page">
+
+  <header class="page-header">
+
+    <div>
+      <div class="breadcrumb">
+        Warehouse
+        <b>&rsaquo;</b>
+        {{ mode() === 'list' ? 'Outgoing Goods' : pageTitle() }}
+      </div>
+
+      <div class="title-row">
+        <span class="title-icon">&#8593;</span>
+
+        <div>
+          <h1>{{ pageTitle() }}</h1>
+          <p>{{ pageDescription() }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="header-actions">
+
+      @if (mode() === 'list') {
+        <button
+          type="button"
+          class="soft-button"
+          [disabled]="isLoading()"
+          (click)="reloadCurrent()"
+        >
+          <span class="button-icon">&#8635;</span>
+          {{ isLoading() ? 'Refreshing...' : 'Refresh' }}
+        </button>
+
+        <button
+          type="button"
+          class="primary-button"
+          (click)="openCreate()"
+        >
+          <span class="button-icon">&#43;</span>
+          Add Outgoing
+        </button>
+      }
+
+      @if (mode() === 'view') {
+        <button
+          type="button"
+          class="soft-button"
+          (click)="reloadCurrent()"
+        >
+          <span class="button-icon">&#8635;</span>
+          Refresh
+        </button>
+
+        @if (selected()?.status === 'preparing') {
+          <button
+            type="button"
+            class="primary-button"
+            [disabled]="isActing()"
+            (click)="dispatch()"
+          >
+            Dispatch
+          </button>
+        }
+
+        @if (selected()?.status === 'dispatched') {
+          <button
+            type="button"
+            class="primary-button"
+            [disabled]="isActing()"
+            (click)="markDelivered()"
+          >
+            Mark Delivered
+          </button>
+        }
+
+        @if (selected()?.status === 'preparing') {
+          <button
+            type="button"
+            class="soft-button"
+            [disabled]="isActing()"
+            (click)="cancelOutgoing()"
+          >
+            Cancel Outgoing
+          </button>
+        }
+
+        @if (selected()?.status === 'preparing' || selected()?.status === 'cancelled') {
+          <button
+            type="button"
+            class="soft-button danger"
+            [disabled]="isActing()"
+            (click)="deleteOutgoing()"
+          >
+            Delete
+          </button>
+        }
+
+        @if (selected()?.status === 'preparing') {
+          <button
+            type="button"
+            class="soft-button"
+            (click)="switchToEdit()"
+          >
+            Edit
+          </button>
+        }
+      }
+
+      @if (mode() === 'edit') {
+        <button
+          type="button"
+          class="soft-button"
+          [disabled]="isSaving()"
+          (click)="cancelEdit()"
+        >
+          Cancel
+        </button>
+      }
+
+    </div>
+
+  </header>
+
+  <main class="page-content">
+
+    @if (loadError()) {
+      <div class="load-error">{{ loadError() }}</div>
+    }
+
+    <!-- LIST -->
+
+    @if (mode() === 'list') {
+
+      <section class="filter-card">
+
+        <div class="filter-grid">
+
+          <label>
+            <span>Search</span>
+            <input
+              type="text"
+              placeholder="Shipment, customer, product, SKU"
+              [value]="listSearch()"
+              (input)="listSearch.set($any($event.target).value)"
+              (keyup.enter)="applyFilters()"
+            />
+          </label>
+
+          <label>
+            <span>Warehouse</span>
+            <select
+              [value]="listWarehouseId()"
+              (change)="listWarehouseId.set($any($event.target).value)"
+            >
+              <option value="">All</option>
+              @for (warehouse of warehouses(); track warehouse._id) {
+                <option [value]="warehouse._id">
+                  {{ warehouse.name }} ({{ warehouse.code }})
+                </option>
+              }
+            </select>
+          </label>
+
+          <label>
+            <span>Status</span>
+            <select
+              [value]="listStatus()"
+              (change)="listStatus.set($any($event.target).value)"
+            >
+              <option value="">All</option>
+              @for (status of statuses; track status) {
+                <option [value]="status">
+                  {{ statusLabel(status) }}
+                </option>
+              }
+            </select>
+          </label>
+
+          <label>
+            <span>Dispatch From</span>
+            <input
+              type="date"
+              [value]="listFromDate()"
+              (input)="listFromDate.set($any($event.target).value)"
+            />
+          </label>
+
+          <label>
+            <span>Dispatch To</span>
+            <input
+              type="date"
+              [value]="listToDate()"
+              (input)="listToDate.set($any($event.target).value)"
+            />
+          </label>
+
+        </div>
+
+        <div class="filter-actions">
+          <button
+            type="button"
+            class="soft-button"
+            (click)="resetFilters()"
+          >
+            Reset
+          </button>
+          <button
+            type="button"
+            class="primary-button"
+            (click)="applyFilters()"
+          >
+            Apply
+          </button>
+        </div>
+
+      </section>
+
+      <section class="table-card">
+
+        <header>
+          <div>
+            <span>OUTGOING GOODS</span>
+            <h2>Shipments</h2>
+          </div>
+          <strong>
+            {{ records().length }} shown
+          </strong>
+        </header>
+
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Shipment</th>
+                <th>Customer</th>
+                <th>Product</th>
+                <th>Warehouse</th>
+                <th>Quantity</th>
+                <th>Dispatch</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @for (record of records(); track record._id) {
+                <tr>
+                  <td>
+                    <strong>{{ record.shipmentNumber || '-' }}</strong>
+                    <small>{{ destinationTypeLabel(record.destinationType) }}</small>
+                  </td>
+                  <td>{{ record.customerName || '-' }}</td>
+                  <td>
+                    <strong>{{ record.productName || '-' }}</strong>
+                    <small>{{ record.sku || '-' }}</small>
+                  </td>
+                  <td>{{ warehouseLabel(record.warehouseId) }}</td>
+                  <td>
+                    {{ formatNumber(record.quantity) }}
+                    {{ unitLabel(record.unit) }}
+                  </td>
+                  <td>{{ formatDate(record.dispatchDate) }}</td>
+                  <td>
+                    <span
+                      class="status-badge"
+                      [class]="badgeClass(record.status)"
+                    >
+                      {{ statusLabel(record.status) }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="row-actions">
+                      <button
+                        type="button"
+                        class="row-button"
+                        (click)="openView(record)"
+                      >
+                        View
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="8">
+                    <div class="empty-state">
+                      <strong>No outgoing goods yet.</strong>
+                      <p>Record an outgoing shipment to get started.</p>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        @if (pagination(); as page) {
+          <footer class="table-footer">
+            <span>
+              Page {{ page.page }} of {{ page.totalPages }}
+              ({{ page.total }} total)
+            </span>
+            <div class="table-footer-actions">
+              <button
+                type="button"
+                class="soft-button"
+                [disabled]="!page.hasPreviousPage"
+                (click)="loadOutgoingList(page.page - 1)"
+              >
+                Previous
+              </button>
+              <button
+                type="button"
+                class="soft-button"
+                [disabled]="!page.hasNextPage"
+                (click)="loadOutgoingList(page.page + 1)"
+              >
+                Next
+              </button>
+            </div>
+          </footer>
+        }
+
+      </section>
+
+    }
+
+    <!-- CREATE -->
+
+    @if (mode() === 'create') {
+
+      <section class="form-card">
+
+        <header>
+          <div>
+            <span>NEW OUTGOING</span>
+            <h2>Outgoing Goods</h2>
+          </div>
+          <strong>Required fields marked *</strong>
+        </header>
+
+        <form
+          [formGroup]="form"
+          (ngSubmit)="submitCreate()"
+        >
+
+          @if (saveError()) {
+            <div class="load-error">{{ saveError() }}</div>
+          }
+
+          @if (saveSuccess()) {
+            <div class="success-banner">{{ saveSuccess() }}</div>
+          }
+
+          <div class="form-grid">
+
+            <label>
+              <span>Warehouse *</span>
+              <select
+                formControlName="warehouseId"
+                (change)="onWarehouseChange()"
+              >
+                <option value="">Select warehouse</option>
+                @for (warehouse of warehouses(); track warehouse._id) {
+                  <option [value]="warehouse._id">
+                    {{ warehouse.name }} ({{ warehouse.code }})
+                  </option>
+                }
+              </select>
+              @if (form.controls.warehouseId.touched && form.controls.warehouseId.invalid) {
+                <small class="field-error">Warehouse is required.</small>
+              }
+            </label>
+
+            <label>
+              <span>Shipment / Order Number *</span>
+              <input formControlName="shipmentNumber" />
+              @if (form.controls.shipmentNumber.touched && form.controls.shipmentNumber.invalid) {
+                <small class="field-error">Shipment number is required.</small>
+              }
+            </label>
+
+            <label>
+              <span>Destination Type</span>
+              <select formControlName="destinationType">
+                @for (type of destinationTypes; track type) {
+                  <option [value]="type">{{ destinationTypeLabel(type) }}</option>
+                }
+              </select>
+            </label>
+
+            @if (form.controls.destinationType.value === 'other') {
+              <label>
+                <span>Destination Type (Other)</span>
+                <input formControlName="destinationTypeOther" />
+              </label>
+            }
+
+            @if (form.controls.destinationType.value === 'other_warehouse') {
+              <label>
+                <span>Destination Warehouse</span>
+                <select formControlName="destinationWarehouseId">
+                  <option value="">Select warehouse</option>
+                  @for (warehouse of destinationWarehouseOptions(); track warehouse._id) {
+                    <option [value]="warehouse._id">
+                      {{ warehouse.name }} ({{ warehouse.code }})
+                    </option>
+                  }
+                </select>
+              </label>
+            }
+
+            <label>
+              <span>Customer Name *</span>
+              <input formControlName="customerName" />
+              @if (form.controls.customerName.touched && form.controls.customerName.invalid) {
+                <small class="field-error">Customer name is required.</small>
+              }
+            </label>
+
+            <label>
+              <span>Product Name *</span>
+              <input formControlName="productName" />
+              @if (form.controls.productName.touched && form.controls.productName.invalid) {
+                <small class="field-error">Product name is required.</small>
+              }
+            </label>
+
+            <label>
+              <span>SKU *</span>
+              <input formControlName="sku" />
+              @if (form.controls.sku.touched && form.controls.sku.invalid) {
+                <small class="field-error">SKU is required.</small>
+              }
+            </label>
+
+            <label>
+              <span>Link to Inventory Item</span>
+              <select formControlName="itemId">
+                <option value="">Not linked</option>
+                @for (item of items(); track item._id) {
+                  <option [value]="item._id">
+                    {{ item.productName }} ({{ item.sku }}) — {{ item.availableQuantity || 0 }} available
+                  </option>
+                }
+              </select>
+            </label>
+
+            <label>
+              <span>Quantity *</span>
+              <input
+                type="number"
+                min="0"
+                formControlName="quantity"
+              />
+              @if (form.controls.quantity.touched && form.controls.quantity.invalid) {
+                <small class="field-error">Quantity is required.</small>
+              }
+            </label>
+
+            <label>
+              <span>Unit</span>
+              <select formControlName="unit">
+                @for (unit of units; track unit) {
+                  <option [value]="unit">{{ unitLabel(unit) }}</option>
+                }
+              </select>
+            </label>
+
+            <label>
+              <span>Dispatch Date</span>
+              <input
+                type="date"
+                formControlName="dispatchDate"
+              />
+            </label>
+
+            <label class="span-2">
+              <span>Destination (address / notes)</span>
+              <input formControlName="destination" />
+            </label>
+
+            <label class="span-2">
+              <span>Remarks</span>
+              <textarea
+                rows="3"
+                formControlName="remarks"
+              ></textarea>
+            </label>
+
+          </div>
+
+          <div class="form-actions">
+            <button
+              type="button"
+              class="soft-button"
+              [disabled]="isSaving()"
+              (click)="cancelCreate()"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="primary-button"
+              [disabled]="isSaving()"
+            >
+              {{ isSaving() ? 'Saving...' : 'Save Outgoing' }}
+            </button>
+          </div>
+
+        </form>
+
+      </section>
+
+    }
+
+    <!-- VIEW / EDIT -->
+
+    @if (mode() === 'view' || mode() === 'edit') {
+
+      @if (selected(); as record) {
+
+        <section class="form-card">
+
+          <header>
+            <div>
+              <span>OUTGOING</span>
+              <h2>{{ record.shipmentNumber || 'Outgoing Record' }}</h2>
+            </div>
+            <strong>
+              <span
+                class="status-badge"
+                [class]="badgeClass(record.status)"
+              >
+                {{ statusLabel(record.status) }}
+              </span>
+            </strong>
+          </header>
+
+          @if (saveError()) {
+            <div class="load-error">{{ saveError() }}</div>
+          }
+
+          @if (saveSuccess()) {
+            <div class="success-banner">{{ saveSuccess() }}</div>
+          }
+
+          @if (actionError()) {
+            <div class="load-error">{{ actionError() }}</div>
+          }
+
+          <form
+            [formGroup]="form"
+            (ngSubmit)="submitUpdate()"
+          >
+
+            <div class="form-grid">
+
+              <label>
+                <span>Warehouse</span>
+                <input
+                  [value]="warehouseLabel(record.warehouseId)"
+                  readonly
+                />
+              </label>
+
+              <label>
+                <span>Shipment Number</span>
+                <input formControlName="shipmentNumber" readonly />
+              </label>
+
+              <label>
+                <span>Destination Type</span>
+                <select formControlName="destinationType" [attr.disabled]="mode() === 'view' ? true : null">
+                  @for (type of destinationTypes; track type) {
+                    <option [value]="type">{{ destinationTypeLabel(type) }}</option>
+                  }
+                </select>
+              </label>
+
+              @if (form.controls.destinationType.value === 'other') {
+                <label>
+                  <span>Destination Type (Other)</span>
+                  <input formControlName="destinationTypeOther" [readonly]="mode() === 'view'" />
+                </label>
+              }
+
+              @if (form.controls.destinationType.value === 'other_warehouse') {
+                <label>
+                  <span>Destination Warehouse</span>
+                  <select formControlName="destinationWarehouseId" [attr.disabled]="mode() === 'view' ? true : null">
+                    <option value="">Select warehouse</option>
+                    @for (warehouse of destinationWarehouseOptions(); track warehouse._id) {
+                      <option [value]="warehouse._id">
+                        {{ warehouse.name }} ({{ warehouse.code }})
+                      </option>
+                    }
+                  </select>
+                </label>
+              }
+
+              <label>
+                <span>Customer</span>
+                <input formControlName="customerName" [readonly]="mode() === 'view'" />
+              </label>
+
+              <label>
+                <span>Product</span>
+                <input formControlName="productName" [readonly]="mode() === 'view'" />
+              </label>
+
+              <label>
+                <span>SKU</span>
+                <input formControlName="sku" [readonly]="mode() === 'view'" />
+              </label>
+
+              <label>
+                <span>Linked Item</span>
+                <input
+                  [value]="itemLabel(record.itemId)"
+                  readonly
+                />
+              </label>
+
+              <label>
+                <span>Quantity</span>
+                <input
+                  type="number"
+                  min="0"
+                  formControlName="quantity"
+                  [readonly]="mode() === 'view'"
+                />
+              </label>
+
+              <label>
+                <span>Unit</span>
+                <select formControlName="unit" [attr.disabled]="mode() === 'view' ? true : null">
+                  @for (unit of units; track unit) {
+                    <option [value]="unit">{{ unitLabel(unit) }}</option>
+                  }
+                </select>
+              </label>
+
+              <label>
+                <span>Dispatch Date</span>
+                <input
+                  type="date"
+                  formControlName="dispatchDate"
+                  [readonly]="mode() === 'view'"
+                />
+              </label>
+
+              <label class="span-2">
+                <span>Destination</span>
+                <input formControlName="destination" [readonly]="mode() === 'view'" />
+              </label>
+
+              <label class="span-2">
+                <span>Remarks</span>
+                <textarea
+                  rows="3"
+                  formControlName="remarks"
+                  [readonly]="mode() === 'view'"
+                ></textarea>
+              </label>
+
+            </div>
+
+            @if (mode() === 'edit') {
+              <div class="form-actions">
+                <button
+                  type="button"
+                  class="soft-button"
+                  [disabled]="isSaving()"
+                  (click)="cancelEdit()"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  class="primary-button"
+                  [disabled]="isSaving()"
+                >
+                  {{ isSaving() ? 'Saving...' : 'Save Changes' }}
+                </button>
+              </div>
+            }
+
+          </form>
+
+        </section>
+
+        <section class="meta-card">
+          <div>
+            <small>Dispatch Date</small>
+            <strong>{{ formatDate(record.dispatchDate) }}</strong>
+          </div>
+          <div>
+            <small>Dispatched</small>
+            <strong>{{ formatDate(record.dispatchedAt) }}</strong>
+          </div>
+          <div>
+            <small>Delivered</small>
+            <strong>{{ formatDate(record.deliveredAt) }}</strong>
+          </div>
+          <div>
+            <small>Created By</small>
+            <strong>
+              {{ record.createdBy?.displayName || record.createdBy?.name || '-' }}
+            </strong>
+          </div>
+        </section>
+
+      } @else if (!isLoading()) {
+        <div class="empty-state">
+          <strong>Outgoing record not found.</strong>
+          <p>It may have been removed.</p>
+        </div>
+      }
+
+    }
+
+  </main>
+</div>

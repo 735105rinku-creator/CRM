@@ -1,0 +1,28 @@
+<div class="logistics-shell">
+
+    <!-- ============================================
+         PERSISTENT WAREHOUSE SIDEBAR
+    ============================================= -->
+  
+    <app-warehouse-sidebar>
+    </app-warehouse-sidebar>
+  
+  
+    <!-- ============================================
+         PAGE CONTENT
+  
+         Dashboard / Employee / Warehouse Master
+         will render here without removing sidebar.
+    ============================================= -->
+  
+    <main class="logistics-content">
+  
+      <div class="logistics-router-content">
+        <router-outlet>
+        </router-outlet>
+      </div>
+  
+    </main>
+    <app-support-ticket-form mode="launcher"></app-support-ticket-form>
+  
+  </div>
