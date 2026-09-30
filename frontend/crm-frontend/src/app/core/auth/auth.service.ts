@@ -638,49 +638,51 @@ export class AuthService {
 
   getDefaultRedirectUrl(): string {
     const level = this.getRoleLevel();
-
+  
     if (level === 0) {
       return '/super-admin/dashboard';
     }
-
+  
     if (level === 1) {
       return '/company/dashboard';
     }
-
+  
+    // HR must be resolved before the generic level >= 2 employee redirect.
+    // HR users normally have role level 2.
+    if (this.hasRole('hr')) {
+      return '/hr-dashboard';
+    }
+  
     if (
       this.hasRole('employee') &&
       this.isLogisticsUser()
     ) {
       return '/logistics/dashboard';
     }
-
+  
     if (
-  this.hasRole('employee') &&
-  this.isWarehouseUser()
-) {
-  return '/warehouse/dashboard';
-}
-
+      this.hasRole('employee') &&
+      this.isWarehouseUser()
+    ) {
+      return '/warehouse/dashboard';
+    }
+  
     if (level >= 2 && level < 99) {
       return '/employee/dashboard';
     }
-
+  
     if (this.hasRole('super_admin')) {
       return '/super-admin';
     }
-
-    if (this.hasRole('hr')) {
-      return '/hr-dashboard';
-    }
-
+  
     if (this.hasRole('employee')) {
       return '/employee-dashboard';
     }
-
+  
     if (this.hasRole('accounts')) {
       return '/invoices';
     }
-
+  
     return '/dashboard';
   }
 
