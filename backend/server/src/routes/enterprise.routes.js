@@ -1,4 +1,4 @@
-import { Router } from "express";
+﻿import { Router } from "express";
 
 import { Company } from "../models/Company.js";
 import { CrmModuleSetting, CRM_SETTING_TYPES } from "../models/CrmModuleSetting.js";
@@ -381,10 +381,16 @@ router.post(
       updatedBy: req.user._id,
     });
 
-    const recipients = await User.find({ companyId: req.user.companyId, role: { $in: recipientRoles }, status: USER_STATUS.ACTIVE }).select("_id role").lean();
+    // Super Admin recipients are not tied to a company — query by role only for them
+    const isSuperAdminRecipient = recipientRoles.includes(ROLES.SUPER_ADMIN);
+    const recipients = await User.find({
+      ...(isSuperAdminRecipient ? {} : { companyId: req.user.companyId }),
+      role: { $in: recipientRoles },
+      status: USER_STATUS.ACTIVE
+    }).select("_id role companyId").lean();
     if (recipients.length) {
       await Notification.insertMany(recipients.map((recipient) => ({
-        companyId: req.user.companyId,
+        companyId: recipient.companyId || req.user.companyId,
         recipientUserId: recipient._id,
         senderUserId: req.user._id,
         type: NOTIFICATION_TYPE.SYSTEM,
@@ -397,7 +403,9 @@ router.post(
           ? `/hr-dashboard?feature=support-tickets&recordId=${ticket._id}`
           : recipient.role === ROLES.EMPLOYEE
             ? `/sales/employee?feature=support-tickets&recordId=${ticket._id}`
-            : `/dashboard?section=support-tickets&recordId=${ticket._id}`,
+            : recipient.role === ROLES.SUPER_ADMIN
+              ? `/super-admin?section=tickets&recordId=${ticket._id}`
+              : `/dashboard?section=support-tickets&recordId=${ticket._id}`,
         createdBy: req.user._id,
       })));
     }
@@ -1396,6 +1404,7 @@ router.get(
 );
 
 export default router;
+
 
 
 

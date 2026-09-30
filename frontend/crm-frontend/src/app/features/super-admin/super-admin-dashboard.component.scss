@@ -1682,9 +1682,9 @@ tbody tr:hover td { background: rgba(219, 234, 254, 0.32); }
 
 /* Keep dropdown anchored under the bell and above page content. */
 .super-admin-shared-navbar .super-notification-panel {
-  right: 0 !important;
-  top: calc(100% + 10px) !important;
-  z-index: 100 !important;
+  position: fixed !important;
+  right: 24px !important;
+  top: 80px !important;
+  z-index: 2147483647 !important;
 }
-
 

@@ -303,6 +303,7 @@ export function resolveNotificationRoute(
     if (entityKey === 'ticket' || entityKey === 'supportticket') {
       if (normalizedRole === 'hr') return `/hr-dashboard?feature=support-tickets&recordId=${id}`;
       if (normalizedRole === 'employee') return `/sales/employee?feature=support-tickets&recordId=${id}`;
+      if (normalizedRole === 'superadmin') return `/super-admin?section=support-tickets&recordId=${id}`;
       return `/dashboard?section=support-tickets&recordId=${id}`;
     }
     if (entityKey === 'platformannouncement') {
@@ -372,6 +373,7 @@ export function navigateToNotification(
 
   void router.navigateByUrl(target);
 }
+
 
 
 

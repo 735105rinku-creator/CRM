@@ -353,9 +353,12 @@ export class LogisticsDashboardComponent
 
   protected readonly notifications =
     signal<DashboardNotification[]>([]);
+  protected readonly visibleNotifications = computed(() =>
+    this.notifications().filter((n) => !n.isRead).slice(0, 4)
+  );
 
 
-  protected readonly unreadNotificationCount =
+  protected readonly unreadCount =
     signal(0);
 
 
@@ -1226,14 +1229,14 @@ export class LogisticsDashboardComponent
       )
       .subscribe({
         next: (response) =>
-          this.unreadNotificationCount.set(
+          this.unreadCount.set(
             Number(
               response?.unreadCount ||
               0
             )
           ),
         error: () =>
-          this.unreadNotificationCount.set(
+          this.unreadCount.set(
             0
           )
       });
@@ -1573,8 +1576,28 @@ export class LogisticsDashboardComponent
   }
 
   protected openNotification(notification: DashboardNotification): void {
+    const current = this.notifications().find((item) =>
+      notification._id ? item._id === notification._id : item === notification
+    );
+    if (current && !current.isRead) {
+      this.notifications.update((items) =>
+        items.map((item) => item === current ? { ...item, isRead: true } : item)
+      );
+      this.unreadCount.update((count) => Math.max(0, count - 1));
+    }
+    if (notification._id && !notification.isRead) {
+      this.api.patch(`/hr/communication/notifications/${encodeURIComponent(notification._id)}/read`, {})
+        .subscribe({ error: () => undefined });
+    }
     navigateToNotification(this.router, notification, this.auth.currentUser()?.role);
-    setTimeout(() => this.notificationsOpen.set(false), 0);
+    this.notificationsOpen.set(false);
+  }
+
+  protected clearNotifications(): void {
+    this.notifications.set([]);
+    this.unreadCount.set(0);
+    this.api.patch('/hr/communication/notifications/read-all', {})
+      .subscribe({ error: () => undefined });
   }
 
 

@@ -1,4 +1,4 @@
-<section
+﻿<section
   class="employee-shell"
   [class.logistics-embedded]="isLogisticsEmbedded()"
   [class.sales-workspace]="isSalesDepartment()"
@@ -41,7 +41,7 @@
 
         @if (isSalesDepartment()) {
           <small class="employee-department-label">
-            Sales • {{ designationName() }}
+            Sales â€¢ {{ designationName() }}
           </small>
         }
       </div>
@@ -217,7 +217,7 @@
             title="Open lead search"
             (click)="setActiveSection('my-leads')"
           >
-            <span aria-hidden="true">⌕</span>
+            <span aria-hidden="true">âŒ•</span>
           </button>
 
 
@@ -228,7 +228,7 @@
               (click)="toggleNotificationPanel()"
               aria-label="Open notifications"
             >
-              <span aria-hidden="true">◇</span>
+              <span aria-hidden="true">â—‡</span>
 
               @if (unreadCount() > 0) {
                 <small>
@@ -262,7 +262,7 @@
                 class="sales-profile-chevron"
                 aria-hidden="true"
               >
-                ▾
+                â–¾
               </span>
 
             </summary>
@@ -323,7 +323,7 @@
                 class="sales-profile-option sales-profile-option--logout"
                 (click)="logout()"
               >
-                <span class="sales-profile-option-icon">↪</span>
+                <span class="sales-profile-option-icon">â†ª</span>
 
                 <span>
                   <strong>Logout</strong>
@@ -347,7 +347,7 @@
             aria-label="Open notifications"
           >
             <span>
-              🔔
+              ðŸ””
             </span>
 
             @if (unreadCount() > 0) {
@@ -363,7 +363,7 @@
           class="header-back-btn employee-header-back"
           (click)="goBack()"
         >
-          <span>←</span>
+          <span>â†</span>
           Back
         </button>
 
@@ -392,18 +392,27 @@
               </strong>
 
               <span>
-                {{ notifications().slice(0, 4).length }}
+                {{ visibleNotifications().length }}
                 updates
               </span>
             </div>
 
-            <button
-              type="button"
-              (click)="closeNotificationPanel()"
-              aria-label="Close notifications"
-            >
-              X
-            </button>
+            <div class="notification-actions">
+              <button
+                type="button"
+                class="neo-notification-clear"
+                (click)="clearNotifications()"
+              >
+                Clear
+              </button>
+              <button
+                type="button"
+                (click)="closeNotificationPanel()"
+                aria-label="Close notifications"
+              >
+                X
+              </button>
+            </div>
 
           </header>
 
@@ -411,7 +420,7 @@
           <div class="notification-tray-list">
 
             @for (
-              notification of notifications().slice(0, 4);
+              notification of visibleNotifications();
               track notification._id || notification.createdAt
             ) {
 
@@ -661,7 +670,7 @@
               class="sales-action sales-action--primary"
               (click)="setActiveSection('my-leads')"
             >
-              <span>＋</span>
+              <span>ï¼‹</span>
               Add / View Leads
             </button>
 
@@ -670,7 +679,7 @@
               class="sales-action"
               (click)="setActiveSection('my-deals')"
             >
-              <span>◆</span>
+              <span>â—†</span>
               Manage Deals
             </button>
 
@@ -679,7 +688,7 @@
               class="sales-action"
               (click)="setActiveSection('my-tasks')"
             >
-              <span>✓</span>
+              <span>âœ“</span>
               Follow-ups
             </button>
 
@@ -688,7 +697,7 @@
               class="sales-action"
               (click)="setActiveSection('attendance')"
             >
-              <span>◷</span>
+              <span>â—·</span>
               Attendance
             </button>
 
@@ -2688,7 +2697,7 @@
             <div class="stack-list">
 
               @for (
-                notification of notifications().slice(0, 4);
+                notification of visibleNotifications();
                 track notification._id
               ) {
 
@@ -3429,7 +3438,7 @@
                               </small>
 
                               {{ lead.originLocation || '-' }}
-                              →
+                              â†’
                               {{ lead.destinationLocation || '-' }}
                             </span>
                           }
@@ -5022,7 +5031,7 @@
               } @else {
 
                 @for (
-                  notification of notifications().slice(0, 4);
+                  notification of visibleNotifications();
                   track notification._id || notification.createdAt
                 ) {
 

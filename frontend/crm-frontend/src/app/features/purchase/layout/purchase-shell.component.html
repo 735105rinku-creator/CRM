@@ -35,12 +35,7 @@
              SEARCH BUTTON
         ==================================================== -->
 
-        <button
-          type="button"
-          class="purchase-topbar__icon-button"
-          aria-label="Search"
-          (click)="toggleSearch($event)"
-        >
+        <button type="button" class="purchase-topbar__icon-button" aria-label="Search" (click)="toggleSearch($event)">
           <span>
             ⌕
           </span>
@@ -51,24 +46,17 @@
              NOTIFICATION BUTTON
         ==================================================== -->
 
-        <button
-          type="button"
-          class="purchase-topbar__icon-button"
-          aria-label="Notifications"
-          (click)="toggleNotifications($event)"
-        >
+        <button type="button" class="purchase-topbar__icon-button" aria-label="Notifications"
+          (click)="toggleNotifications($event)">
           <span>
             ◇
           </span>
 
-          <span
-            *ngIf="unreadNotificationCount() > 0"
-            class="purchase-topbar__notification-badge"
-          >
+          <span *ngIf="unreadCount() > 0" class="purchase-topbar__notification-badge">
             {{
-              unreadNotificationCount() > 9
-                ? '9+'
-                : unreadNotificationCount()
+            unreadCount() > 9
+            ? '9+'
+            : unreadCount()
             }}
           </span>
         </button>
@@ -78,31 +66,18 @@
              SEARCH DROPDOWN
         ==================================================== -->
 
-        <div
-          *ngIf="searchOpen()"
-          class="purchase-topbar__dropdown purchase-search"
-          (click)="$event.stopPropagation()"
-        >
+        <div *ngIf="searchOpen()" class="purchase-topbar__dropdown purchase-search" (click)="$event.stopPropagation()">
 
-          <input
-            type="search"
-            placeholder="Search Purchase..."
-            [value]="searchTerm()"
-            (input)="
+          <input type="search" placeholder="Search Purchase..." [value]="searchTerm()" (input)="
               updateSearchTerm(
                 $any($event.target).value
               )
-            "
-          />
+            " />
 
 
           <div class="purchase-search__results">
 
-            <button
-              *ngFor="let item of searchResults()"
-              type="button"
-              (click)="openSearchItem(item)"
-            >
+            <button *ngFor="let item of searchResults()" type="button" (click)="openSearchItem(item)">
 
               <strong>
                 {{ item.label }}
@@ -128,14 +103,10 @@
              NOTIFICATIONS DROPDOWN
         ==================================================== -->
 
-        <div
-          *ngIf="notificationOpen()"
-          class="
+        <div *ngIf="notificationOpen()" class="
             purchase-topbar__dropdown
             purchase-notifications
-          "
-          (click)="$event.stopPropagation()"
-        >
+          " (click)="$event.stopPropagation()">
 
           <!-- HEADER -->
 
@@ -148,52 +119,41 @@
               </strong>
 
               <small>
-                {{ unreadNotificationCount() }}
+                {{ unreadCount() }}
                 {{
-                  unreadNotificationCount() === 1
-                    ? 'new update'
-                    : 'new updates'
+                unreadCount() === 1
+                ? 'new update'
+                : 'new updates'
                 }}
               </small>
 
             </div>
+            <div class="notification-actions">
+              <button type="button" class="neo-notification-clear" (click)="clearNotifications()">Clear</button>
+
+              <button type="button" class="purchase-notifications__close" aria-label="Close notifications"
+                (click)="toggleNotifications($event)">
+                ×
+              </button>
+            </div>
 
 
-            <button
-              type="button"
-              class="purchase-notifications__close"
-              aria-label="Close notifications"
-              (click)="toggleNotifications($event)"
-            >
-              ×
-            </button>
+
 
           </div>
 
 
           <!-- NOTIFICATION LIST -->
 
-          <div
-            *ngIf="notifications().length > 0"
-            class="purchase-notifications__list"
-          >
+          <div *ngIf="visibleNotifications().length > 0" class="purchase-notifications__list">
 
-            <button
-              *ngFor="
-                let notification of notifications()
-              "
-              type="button"
-              class="purchase-notifications__item"
-              [class.purchase-notifications__item--read]="
+            <button *ngFor="
+                let notification of visibleNotifications()
+              " type="button" class="purchase-notifications__item" [class.purchase-notifications__item--read]="
                 notification.isRead
-              "
-              (click)="openNotification(notification)"
-            >
+              " (click)="openNotification(notification)">
 
-              <span
-                class="purchase-notifications__status"
-                [class.read]="notification.isRead"
-              >
+              <span class="purchase-notifications__status" [class.read]="notification.isRead">
               </span>
 
 
@@ -201,23 +161,23 @@
 
                 <strong>
                   {{
-                    notification.title ||
-                    'Notification'
+                  notification.title ||
+                  'Notification'
                   }}
                 </strong>
 
                 <p>
                   {{
-                    notification.message ||
-                    '-'
+                  notification.message ||
+                  '-'
                   }}
                 </p>
 
                 <small>
                   {{
-                    notificationTime(
-                      notification.createdAt
-                    )
+                  notificationTime(
+                  notification.createdAt
+                  )
                   }}
                 </small>
 
@@ -230,14 +190,9 @@
 
           <!-- EMPTY STATE -->
 
-          <div
-            *ngIf="!notifications().length"
-            class="purchase-notifications__empty"
-          >
+          <div *ngIf="!visibleNotifications().length" class="purchase-notifications__empty">
 
-            <span
-              class="purchase-notifications__empty-icon"
-            >
+            <span class="purchase-notifications__empty-icon">
               ✓
             </span>
 
@@ -254,32 +209,13 @@
 
           <!-- FOOTER -->
 
-          <button
-            *ngIf="unreadNotificationCount() > 0"
-            type="button"
-            class="purchase-notifications__all"
-            (click)="markAllNotificationsRead()"
-          >
-
-            <span>
-              Mark all as read
-            </span>
-
-          </button>
-
-          <button
-            type="button"
-            class="purchase-notifications__all"
-            (click)="openAllNotifications()"
-          >
+          <button type="button" class="purchase-notifications__all" (click)="openAllNotifications()">
 
             <span>
               View all notifications
             </span>
 
-            <span
-              class="purchase-notifications__all-arrow"
-            >
+            <span class="purchase-notifications__all-arrow">
               →
             </span>
 
@@ -294,26 +230,16 @@
 
         <div class="purchase-profile">
 
-          <button
-            type="button"
-            class="purchase-profile__trigger"
-            [class.purchase-profile__trigger--open]="
+          <button type="button" class="purchase-profile__trigger" [class.purchase-profile__trigger--open]="
               profileOpen()
-            "
-            (click)="toggleProfile($event)"
-          >
+            " (click)="toggleProfile($event)">
 
             <div class="purchase-profile__avatar">
 
-              <img
-                *ngIf="
+              <img *ngIf="
                   employeePhotoUrl();
                   else profileInitial
-                "
-                [src]="employeePhotoUrl()"
-                [alt]="userName()"
-                (error)="handleAvatarError()"
-              />
+                " [src]="employeePhotoUrl()" [alt]="userName()" (error)="handleAvatarError()" />
 
 
               <ng-template #profileInitial>
@@ -340,12 +266,9 @@
             </div>
 
 
-            <span
-              class="purchase-profile__chevron"
-              [class.purchase-profile__chevron--open]="
+            <span class="purchase-profile__chevron" [class.purchase-profile__chevron--open]="
                 profileOpen()
-              "
-            >
+              ">
               ▾
             </span>
 
@@ -356,25 +279,16 @@
                PROFILE DROPDOWN
           ================================================== -->
 
-          <div
-            *ngIf="profileOpen()"
-            class="purchase-profile__menu"
-            (click)="$event.stopPropagation()"
-          >
+          <div *ngIf="profileOpen()" class="purchase-profile__menu" (click)="$event.stopPropagation()">
 
             <div class="purchase-profile__menu-header">
 
               <div class="purchase-profile__menu-avatar">
 
-                <img
-                  *ngIf="
+                <img *ngIf="
                     employeePhotoUrl();
                     else menuInitial
-                  "
-                  [src]="employeePhotoUrl()"
-                  [alt]="userName()"
-                  (error)="handleAvatarError()"
-                />
+                  " [src]="employeePhotoUrl()" [alt]="userName()" (error)="handleAvatarError()" />
 
 
                 <ng-template #menuInitial>
@@ -403,23 +317,15 @@
             </div>
 
 
-            <div
-              class="purchase-profile__menu-divider"
-            >
+            <div class="purchase-profile__menu-divider">
             </div>
 
 
             <!-- MY PROFILE -->
 
-            <button
-              type="button"
-              class="purchase-profile__menu-item"
-              (click)="openProfile()"
-            >
+            <button type="button" class="purchase-profile__menu-item" (click)="openProfile()">
 
-              <span
-                class="purchase-profile__menu-icon"
-              >
+              <span class="purchase-profile__menu-icon">
                 P
               </span>
 
@@ -441,15 +347,9 @@
 
             <!-- SETTINGS -->
 
-            <button
-              type="button"
-              class="purchase-profile__menu-item"
-              (click)="openSettings()"
-            >
+            <button type="button" class="purchase-profile__menu-item" (click)="openSettings()">
 
-              <span
-                class="purchase-profile__menu-icon"
-              >
+              <span class="purchase-profile__menu-icon">
                 S
               </span>
 
@@ -469,26 +369,18 @@
             </button>
 
 
-            <div
-              class="purchase-profile__menu-divider"
-            >
+            <div class="purchase-profile__menu-divider">
             </div>
 
 
             <!-- LOGOUT -->
 
-            <button
-              type="button"
-              class="
+            <button type="button" class="
                 purchase-profile__menu-item
                 purchase-profile__menu-item--logout
-              "
-              (click)="logout()"
-            >
+              " (click)="logout()">
 
-              <span
-                class="purchase-profile__menu-icon"
-              >
+              <span class="purchase-profile__menu-icon">
                 ↪
               </span>
 

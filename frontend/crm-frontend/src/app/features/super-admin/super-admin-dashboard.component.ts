@@ -1,7 +1,7 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, finalize, of } from 'rxjs';
 
 import { apiUrl } from '../../core/config/api.config';
@@ -205,6 +205,7 @@ export class SuperAdminDashboardComponent {
   private readonly auth = inject(AuthService);
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   protected readonly companies = signal<CompanyRow[]>([]);
   protected readonly allUsers = signal<UserRow[]>([]);
@@ -230,8 +231,11 @@ export class SuperAdminDashboardComponent {
   protected readonly isSupportSaving = signal(false);
   protected readonly notificationOverview = signal<NotificationOverview>({});
   protected readonly isNotificationSaving = signal(false);
-  protected readonly topbarNotifications = signal<TopbarNotificationRow[]>([]);
-  protected readonly notificationUnreadCount = signal(0);
+  protected readonly notifications = signal<TopbarNotificationRow[]>([]);
+  protected readonly visibleNotifications = computed(() =>
+    this.notifications().filter((n) => !n.isRead).slice(0, 4)
+  );
+  protected readonly unreadCount = signal(0);
   protected readonly isNotificationPanelOpen = signal(false);
   protected readonly auditOverview = signal<AuditOverview>({});
   protected readonly platformSettings = signal<PlatformSettingsRow>({});
@@ -534,14 +538,48 @@ export class SuperAdminDashboardComponent {
     this.loadLoginLogs();
     this.loadBillingOverview();
     this.loadNotificationOverview();
-    this.loadTopbarNotifications(false);
+    this.loadTopbarNotifications();
     this.loadAuditOverview();
     this.loadPlatformSettings();
     this.loadBackupHistory();
     this.loadProfileActivity();
     this.loadRolesAndPermissions();
     this.loadReportAnalytics();
+    this.loadSupportOverview();
     this.patchProfileFormFromUser();
+
+    // Handle URL query params (from notification clicks)
+    this.route.queryParamMap.subscribe((params) => {
+      const section = params.get('section');
+      const recordId = params.get('recordId');
+
+      if (!section) return;
+
+      // Map URL section values to internal activeSection values
+      const sectionMap: Record<string, string> = {
+        'support-tickets': 'tickets',
+        'notifications': 'announcements',
+        'notification-templates': 'notification-templates',
+        'crm-modules': 'crm-templates',
+        'audit-logs': 'system-logs',
+        'companies': 'companies',
+        'users': 'users',
+        'subscriptions': 'subscriptions',
+        'settings': 'general-settings',
+        'reports': 'usage-report',
+        'roles': 'roles',
+      };
+
+      const mappedSection = sectionMap[section] || section;
+
+      // Set active section and expand matching menu group
+      this.activeSection.set(mappedSection);
+
+      if (recordId) {
+        // Optional: focus on specific record
+        console.debug('[SuperAdmin] Navigate to section:', mappedSection, 'recordId:', recordId);
+      }
+    });
   }
 
   protected refresh(): void {
@@ -668,8 +706,7 @@ export class SuperAdminDashboardComponent {
     const nextState = !this.isNotificationPanelOpen();
     this.isNotificationPanelOpen.set(nextState);
     if (nextState) {
-      this.loadTopbarNotifications(true);
-      this.markTopbarNotificationsRead();
+      this.loadTopbarNotifications();
     }
   }
 
@@ -678,17 +715,29 @@ export class SuperAdminDashboardComponent {
   }
 
   protected openTopbarNotification(notification: TopbarNotificationRow): void {
-    this.closeNotificationPanel();
+    const current = this.notifications().find((item) =>
+      notification._id ? item._id === notification._id : item === notification
+    );
+    if (current && !current.isRead) {
+      this.notifications.update((items) =>
+        items.map((item) => item === current ? { ...item, isRead: true } : item)
+      );
+      this.unreadCount.update((count) => Math.max(0, count - 1));
+    }
+    if (notification._id && !notification.isRead) {
+      this.api.patch(`/hr/communication/notifications/${encodeURIComponent(notification._id)}/read`, {})
+        .subscribe({ error: () => undefined });
+    }
     navigateToNotification(this.router, notification, this.auth.currentUser()?.role);
+    this.isNotificationPanelOpen.set(false);
   }
 
-  protected loadTopbarNotifications(markOnOpen = false): void {
+  protected loadTopbarNotifications(): void {
     this.api.get<{ notifications?: TopbarNotificationRow[]; unreadCount?: number }>('/api/super-admin/notification-center', { limit: 8 })
-      .pipe(catchError(() => of({ notifications: [], unreadCount: this.notificationUnreadCount() })))
+      .pipe(catchError(() => of({ notifications: [], unreadCount: this.unreadCount() })))
       .subscribe((data) => {
-        this.topbarNotifications.set(data.notifications || []);
-        this.notificationUnreadCount.set(Number(data.unreadCount || 0));
-        if (markOnOpen && Number(data.unreadCount || 0) > 0) this.markTopbarNotificationsRead();
+        this.notifications.set(data.notifications || []);
+        this.unreadCount.set(Number(data.unreadCount || 0));
       });
   }
 
@@ -696,11 +745,11 @@ export class SuperAdminDashboardComponent {
     return row.priority === 'urgent' || row.priority === 'high' ? 'danger' : row.isRead ? 'success' : '';
   }
 
-  private markTopbarNotificationsRead(): void {
-    if (this.notificationUnreadCount() === 0 && this.topbarNotifications().every((item) => item.isRead)) return;
-    this.notificationUnreadCount.set(0);
-    this.topbarNotifications.update((items) => items.map((item) => ({ ...item, isRead: true })));
-    this.api.patch('/api/super-admin/notification-center/read-all', {}).subscribe({ error: () => undefined });
+  protected clearNotifications(): void {
+    this.notifications.set([]);
+    this.unreadCount.set(0);
+    this.api.patch('/hr/communication/notifications/read-all', {})
+      .subscribe({ error: () => undefined });
   }
   protected loadNotificationOverview(): void {
     this.api.get<NotificationOverview>('/api/super-admin/notifications/overview')
@@ -1363,7 +1412,7 @@ export class SuperAdminDashboardComponent {
       .slice(0, 4)
       .map((company) => ({
         title: `${company.companyName || 'Company'} registered`,
-        meta: `${company.companyCode || 'Tenant'} • ${this.formatDate(company.createdAt)}`,
+        meta: `${company.companyCode || 'Tenant'} â€¢ ${this.formatDate(company.createdAt)}`,
         status: company.status || 'trial'
       }));
 
@@ -1372,7 +1421,7 @@ export class SuperAdminDashboardComponent {
       .slice(0, 3)
       .map((payment) => ({
         title: `${payment.planName || payment.planCode || 'Subscription'} payment received`,
-        meta: `${this.paymentCompanyLabel(payment)} � ${this.formatCurrency(payment.payableInr || 0)}`,
+        meta: `${this.paymentCompanyLabel(payment)} ï¿½ ${this.formatCurrency(payment.payableInr || 0)}`,
         status: payment.status || 'paid'
       }));
 
@@ -1665,6 +1714,8 @@ export class SuperAdminDashboardComponent {
     void this.router.navigate(['/reports/activity']);
   }
 }
+
+
 
 
 

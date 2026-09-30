@@ -155,18 +155,27 @@
                   <header>
                     <strong>Notifications</strong>
 
-                    <button
+                    <div class="notification-actions">
+                      <button
+                        type="button"
+                        class="neo-notification-clear"
+                        (click)="clearNotifications()"
+                      >
+                        Clear
+                      </button>
+                       <button
                       type="button"
                       (click)="closeNotificationPanel()"
                       aria-label="Close notifications"
                     >
                       X
                     </button>
+                    </div>
                   </header>
 
                   <div class="notification-list">
                     @for (
-                      notification of notifications().slice(0, 4);
+                      notification of visibleNotifications();
                       track notification._id || notification.createdAt
                     ) {
                       <article
@@ -8859,3 +8868,4 @@
   </div>
 
 </section>
+

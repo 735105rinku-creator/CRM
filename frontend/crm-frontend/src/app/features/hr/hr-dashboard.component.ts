@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -706,30 +706,30 @@ export class HrDashboardComponent implements OnDestroy {
   private hasLoadedMessages = false;
 
   protected readonly mainMenu: FeatureItem[] = [
-    { id: 'dashboard', label: 'Dashboard', icon: 'â–¦' },
+    { id: 'dashboard', label: 'Dashboard', icon: 'Ã¢â€“Â¦' },
     { id: 'profile', label: 'Profile', icon: 'P' },
-    { id: 'hr', label: 'HR', icon: 'â™™' },
-    { id: 'attendance', label: 'Attendance', icon: 'â–£' },
+    { id: 'hr', label: 'HR', icon: 'Ã¢â„¢â„¢' },
+    { id: 'attendance', label: 'Attendance', icon: 'Ã¢â€“Â£' },
     { id: 'logistics', label: 'Logistics', icon: 'L' }
   ];
   protected readonly managementMenu: FeatureItem[] = [
-    { id: 'employee', label: 'Employee setup', icon: 'â™™' },
-    { id: 'payroll', label: 'Payroll setup', icon: 'â–¤' },
-    { id: 'leave', label: 'Leave management', icon: 'â–¦' },
-    { id: 'recruitment', label: 'Recruitment setup', icon: 'â–±' },
-    { id: 'events', label: 'Event setup', icon: 'âœ§' },
-    { id: 'meetings', label: 'Meeting setup', icon: 'â™§' },
+    { id: 'employee', label: 'Employee setup', icon: 'Ã¢â„¢â„¢' },
+    { id: 'payroll', label: 'Payroll setup', icon: 'Ã¢â€“Â¤' },
+    { id: 'leave', label: 'Leave management', icon: 'Ã¢â€“Â¦' },
+    { id: 'recruitment', label: 'Recruitment setup', icon: 'Ã¢â€“Â±' },
+    { id: 'events', label: 'Event setup', icon: 'Ã¢Å“Â§' },
+    { id: 'meetings', label: 'Meeting setup', icon: 'Ã¢â„¢Â§' },
     { id: 'messages', label: 'Messages', icon: 'M' },
     { id: 'support-tickets', label: 'Raise Support Ticket', icon: 'S' },
-    { id: 'holidays', label: 'Calendar', icon: 'â–¡' }
+    { id: 'holidays', label: 'Calendar', icon: 'Ã¢â€“Â¡' }
   ];
   protected readonly reportsMenu: FeatureItem[] = [
-    { id: 'reports', label: 'HR Reports', icon: 'â–¥' },
-    { id: 'analytics', label: 'Analytics', icon: 'â–¤' }
+    { id: 'reports', label: 'HR Reports', icon: 'Ã¢â€“Â¥' },
+    { id: 'analytics', label: 'Analytics', icon: 'Ã¢â€“Â¤' }
   ];
   protected readonly settingsMenu: FeatureItem[] = [
-    { id: 'settings', label: 'HR Settings', icon: 'âš™' },
-    { id: 'access', label: 'Access & Roles', icon: 'â—‡' }
+    { id: 'settings', label: 'HR Settings', icon: 'Ã¢Å¡â„¢' },
+    { id: 'access', label: 'Access & Roles', icon: 'Ã¢â€”â€¡' }
   ];
 
   protected readonly currentCompany = computed(() => {
@@ -833,7 +833,10 @@ export class HrDashboardComponent implements OnDestroy {
   protected readonly dismissedNotificationIds = signal<Set<string>>(new Set(this.readDismissedNotificationIds()));
   protected readonly visibleNotifications = computed(() => {
     const dismissed = this.dismissedNotificationIds();
-    return this.notifications().filter((notification) => !dismissed.has(this.notificationIdentity(notification))).slice(0, 4);
+    return this.notifications()
+      .filter((notification) => !dismissed.has(this.notificationIdentity(notification)))
+      .filter((notification) => !notification.isRead)
+      .slice(0, 4);
   });
   protected readonly isSaving = signal(false);
   protected readonly isLeaveActionSaving = signal(false);
@@ -2431,7 +2434,7 @@ protected readonly attendanceReportRecords = signal<AttendanceRecord[]>([]);
   const summary = this.dashboard()?.employees?.summary;
   const apiToday = this.dashboard()?.attendance?.today;
 
-  // âœ… Use the SAME computation as the attendance page
+  // Ã¢Å“â€¦ Use the SAME computation as the attendance page
   const liveAttendance = this.attendanceMetrics();
   const livePresent = liveAttendance.find((item) => item.label === 'Present')?.value ?? 0;
   const liveLate = liveAttendance.find((item) => item.label === 'Late')?.value ?? 0;
@@ -2543,7 +2546,7 @@ protected readonly attendanceReportRecords = signal<AttendanceRecord[]>([]);
   }
 
 /* ==========================================================
-   ATTENDANCE REPORTS â€” Date Filter
+   ATTENDANCE REPORTS Ã¢â‚¬â€ Date Filter
 ========================================================== */
 
 protected applyReportPreset(preset: 'today' | 'yesterday' | 'week' | 'month'): void {
@@ -2636,10 +2639,10 @@ protected attendanceReportDailyRows(): AttendanceDisplayRow[] {
     .sort((a, b) => `${b.date}${b.employeeName}`.localeCompare(`${a.date}${a.employeeName}`));
 }
 
-/** Rows for the Monthly table â€” same records, different sort */
+/** Rows for the Monthly table Ã¢â‚¬â€ same records, different sort */
 protected attendanceReportMonthlyRows(): AttendanceDisplayRow[] {
   const rows = this.attendanceReportDailyRows();
-  // Group by employee for the monthly summary (or keep flat â€” your choice)
+  // Group by employee for the monthly summary (or keep flat Ã¢â‚¬â€ your choice)
   return rows;
 }
 
@@ -2648,7 +2651,7 @@ protected attendanceReportSummary(): { present: number; late: number; absent: nu
   const rows = this.attendanceReportDailyRows();
 
   const late = rows.filter((r) => r.status === 'late' || r.lateByMinutes > 0).length;
-  const present = rows.filter((r) => r.status === 'present').length + late;   // â† present + late
+  const present = rows.filter((r) => r.status === 'present').length + late;   // Ã¢â€ Â present + late
   const absent = rows.filter((r) => r.status === 'absent').length;
   const onLeave = rows.filter((r) => r.status === 'on_leave').length;
   const halfDay = rows.filter((r) => r.status === 'half_day').length;
@@ -4224,8 +4227,6 @@ protected attendanceReportSummary(): { present: number; late: number; absent: nu
 
   protected toggleNotificationPanel(): void {
     this.isNotificationPanelOpen.update((value) => !value);
-    if (!this.isNotificationPanelOpen()) return;
-    this.markNotificationsSeen();
   }
 
     protected toggleHrProfileMenu(): void {
@@ -4251,6 +4252,21 @@ protected attendanceReportSummary(): { present: number; late: number; absent: nu
   }
 
   protected openDashboardNotification(notification: NotificationRow): void {
+    // Mark as read first (locally) so it disappears from dropdown
+    if (notification._id) {
+      this.notifications.update((items) =>
+        items.map((item) =>
+          item._id === notification._id ? { ...item, isRead: true } : item
+        )
+      );
+      
+      // Persist to backend
+      this.api
+        .patch(`/hr/communication/notifications/${notification._id}/read`, {})
+        .pipe(catchError(() => of(null)))
+        .subscribe();
+    }
+    
     navigateToNotification(this.router, notification, this.auth.currentUser()?.role);
     setTimeout(() => this.closeNotificationPanel(), 0);
   }
@@ -5313,6 +5329,9 @@ const request = editingId
     this.workTimer.set([hours, minutes, seconds].map((part) => String(part).padStart(2, '0')).join(':'));
   }
 }
+
+
+
 
 
 

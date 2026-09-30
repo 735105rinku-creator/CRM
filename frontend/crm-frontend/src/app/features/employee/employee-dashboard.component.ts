@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -485,6 +485,12 @@ export class EmployeeDashboardComponent implements OnDestroy {
   protected readonly notifications =
     signal<NotificationRow[]>([]);
 
+  protected readonly visibleNotifications = computed(() =>
+    this.notifications()
+      .filter((notification) => !notification.isRead)
+      .slice(0, 4)
+  );
+
   protected readonly holidays =
     signal<HolidayRow[]>([]);
 
@@ -960,7 +966,7 @@ export class EmployeeDashboardComponent implements OnDestroy {
     },
     {
       label: 'Vendor Payments',
-      icon: 'â‚¹',
+      icon: 'Ã¢â€šÂ¹',
       route: '/logistics/vendor-payments'
     },
     {
@@ -2752,7 +2758,7 @@ export class EmployeeDashboardComponent implements OnDestroy {
         .filter(Boolean);
 
     return routeParts.length
-      ? routeParts.join(' â€¢ ')
+      ? routeParts.join(' Ã¢â‚¬Â¢ ')
       : 'Route not specified';
   }
 
@@ -2765,7 +2771,7 @@ export class EmployeeDashboardComponent implements OnDestroy {
       lead.commodity
     ]
       .filter(Boolean)
-      .join(' â€¢ ') ||
+      .join(' Ã¢â‚¬Â¢ ') ||
       'General Sales';
   }
 
@@ -3218,7 +3224,7 @@ export class EmployeeDashboardComponent implements OnDestroy {
               'Lead',
 
             meta:
-              `Lead â€¢ ${lead.company || lead.businessCategory || 'Sales'}`,
+              `Lead Ã¢â‚¬Â¢ ${lead.company || lead.businessCategory || 'Sales'}`,
 
             status:
               lead.status ||
@@ -3238,7 +3244,7 @@ export class EmployeeDashboardComponent implements OnDestroy {
               'Deal',
 
             meta:
-              `Deal â€¢ ${this.formatCurrency(deal.value || 0)}`,
+              `Deal Ã¢â‚¬Â¢ ${this.formatCurrency(deal.value || 0)}`,
 
             status:
               deal.stage ||
@@ -3258,7 +3264,7 @@ export class EmployeeDashboardComponent implements OnDestroy {
               'Follow-up',
 
             meta:
-              `Task â€¢ ${task.relatedTo || task.taskType || 'Sales'}`,
+              `Task Ã¢â‚¬Â¢ ${task.relatedTo || task.taskType || 'Sales'}`,
 
             status:
               task.status ||
@@ -3546,7 +3552,6 @@ export class EmployeeDashboardComponent implements OnDestroy {
     }
 
     this.loadNotifications(false);
-    this.markNotificationsSeen();
   }
 
   protected closeNotificationPanel(): void {
@@ -3556,6 +3561,14 @@ export class EmployeeDashboardComponent implements OnDestroy {
   }
 
   protected openDashboardNotification(notification: NotificationRow): void {
+    if (notification._id) {
+      this.notifications.update((items) =>
+        items.map((item) =>
+          item._id === notification._id ? { ...item, isRead: true } : item
+        )
+      );
+      this.api.patch(`/hr/communication/notifications/${notification._id}/read`, {}).pipe(catchError(() => of(null))).subscribe();
+    }
     navigateToNotification(this.router, notification, this.auth.currentUser()?.role);
     setTimeout(() => this.closeNotificationPanel(), 0);
   }
@@ -7248,6 +7261,12 @@ export class EmployeeDashboardComponent implements OnDestroy {
       .subscribe();
   }
 
+  protected clearNotifications(): void {
+    this.notifications.set([]);
+    this.unreadCount.set(0);
+    this.api.patch('/hr/communication/notifications/read-all', {}).pipe(catchError(() => of(null))).subscribe();
+  }
+
   private showMessagePopup(
     text:
       string
@@ -8002,3 +8021,4 @@ export class EmployeeDashboardComponent implements OnDestroy {
     );
   }
 }
+

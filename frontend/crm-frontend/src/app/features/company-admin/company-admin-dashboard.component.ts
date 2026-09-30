@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, ElementRef, ViewChild, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -449,6 +449,10 @@ export class CompanyAdminDashboardComponent {
 
   protected readonly notifications =
     signal<NotificationRow[]>([]);
+
+  protected readonly visibleNotifications = computed(() =>
+    this.notifications().filter((notification) => !notification.isRead).slice(0, 4)
+  );
 
   protected readonly logisticsMonitor =
     signal<any | null>(null);
@@ -7015,8 +7019,6 @@ export class CompanyAdminDashboardComponent {
       this.loadCrm();
 
       this.loadAccounting();
-
-      this.markNotificationsRead();
     }
   }
 
@@ -7029,6 +7031,14 @@ export class CompanyAdminDashboardComponent {
   }
 
   protected openTopbarNotification(notification: NotificationRow): void {
+    if (notification._id) {
+      this.notifications.update((items) =>
+        items.map((item) =>
+          item._id === notification._id ? { ...item, isRead: true } : item
+        )
+      );
+      this.api.patch(`/hr/communication/notifications/${notification._id}/read`, {}).pipe(catchError(() => of(null))).subscribe();
+    }
     navigateToNotification(this.router, notification, this.auth.currentUser()?.role);
     setTimeout(() => this.closeNotificationPanel(), 0);
   }
@@ -11326,7 +11336,7 @@ if (
             `${user.name || user.email || 'User'} added`,
 
           meta:
-            `${this.roleLabel(user.role)} Ã¢â‚¬Â¢ ${user.department || 'No department'}`,
+            `${this.roleLabel(user.role)} ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ ${user.department || 'No department'}`,
 
           status:
             user.status ||
@@ -15184,6 +15194,14 @@ if (
       });
   }
 
+  protected clearNotifications(): void {
+    this.notifications.set([]);
+    this.unreadCount.set(0);
+    this.api
+      .patch('/hr/communication/notifications/read-all', {})
+      .subscribe({ error: () => undefined });
+  }
+
 
   private syncThemeToStoredUser(
     profile:
@@ -15451,3 +15469,4 @@ if (
     return `${(number >> 16) & 255}, ${(number >> 8) & 255}, ${number & 255}`;
   }
 }
+

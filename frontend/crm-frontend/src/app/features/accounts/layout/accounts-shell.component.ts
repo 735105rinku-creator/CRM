@@ -124,44 +124,39 @@ export class AccountsShellComponent implements OnInit {
 
   readonly notificationOpen = signal(false);
   readonly notifications = signal<AccountsNotification[]>([]);
-  readonly unreadNotificationCount = signal(0);
+  protected readonly visibleNotifications = computed(() =>
+    this.notifications().filter((n) => !n.isRead).slice(0, 4)
+  );
+  readonly unreadCount = signal(0);
 
   toggleNotifications(): void {
     this.notificationOpen.update(value => !value);
     if (this.notificationOpen()) this.loadNotifications();
   }
 
-  markAllNotificationsRead(): void {
-    if (!this.unreadNotificationCount()) return;
+  protected clearNotifications(): void {
+    this.notifications.set([]);
+    this.unreadCount.set(0);
     this.api.patch('/hr/communication/notifications/read-all', {})
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: () => {
-          this.notifications.update(rows => rows.map(row => ({ ...row, isRead: true })));
-          this.unreadNotificationCount.set(0);
-        }
-      });
+      .subscribe({ error: () => undefined });
   }
 
-  openNotification(notification: AccountsNotification): void {
-    const navigate = () => {
-      this.notificationOpen.set(false);
-      navigateToNotification(this.router, notification, this.auth.currentUser()?.role);
-    };
-    if (!notification._id || notification.isRead) {
-      navigate();
-      return;
+  protected openNotification(notification: AccountsNotification): void {
+    const current = this.notifications().find((item) =>
+      notification._id ? item._id === notification._id : item === notification
+    );
+    if (current && !current.isRead) {
+      this.notifications.update((items) =>
+        items.map((item) => item === current ? { ...item, isRead: true } : item)
+      );
+      this.unreadCount.update((count) => Math.max(0, count - 1));
     }
-    this.api.patch(`/hr/communication/notifications/${encodeURIComponent(notification._id)}/read`, {})
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: () => {
-          this.notifications.update(rows => rows.map(row => row._id === notification._id ? { ...row, isRead: true } : row));
-          this.unreadNotificationCount.update(count => Math.max(0, count - 1));
-          navigate();
-        },
-        error: navigate
-      });
+    if (notification._id && !notification.isRead) {
+      this.api.patch(`/hr/communication/notifications/${encodeURIComponent(notification._id)}/read`, {})
+        .subscribe({ error: () => undefined });
+    }
+    navigateToNotification(this.router, notification, this.auth.currentUser()?.role);
+    this.notificationOpen.set(false);
   }
 
   notificationTime(value?: string): string {
@@ -175,13 +170,13 @@ export class AccountsShellComponent implements OnInit {
       .subscribe({ next: response => this.notifications.set(response?.notifications || []), error: () => this.notifications.set([]) });
     this.api.get<{ unreadCount?: number }>('/hr/communication/notifications/unread-count')
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({ next: response => this.unreadNotificationCount.set(Number(response?.unreadCount || 0)), error: () => this.unreadNotificationCount.set(0) });
+      .subscribe({ next: response => this.unreadCount.set(Number(response?.unreadCount || 0)), error: () => this.unreadCount.set(0) });
   }
 
   private addRealtimeNotification(notification: AccountsNotification): void {
     if (!notification || !notification.title && !notification.message) return;
     this.notifications.update(rows => [notification, ...rows.filter(row => row._id !== notification._id)].slice(0, 5));
-    if (!notification.isRead) this.unreadNotificationCount.update(count => count + 1);
+    if (!notification.isRead) this.unreadCount.update(count => count + 1);
   }
 
 

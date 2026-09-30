@@ -156,8 +156,11 @@ export class PurchaseShellComponent {
 
   readonly notifications =
     signal<PurchaseNotification[]>([]);
+  protected readonly visibleNotifications = computed(() =>
+    this.notifications().filter((n) => !n.isRead).slice(0, 4)
+  );
 
-  readonly unreadNotificationCount =
+  readonly unreadCount =
     signal(0);
 
   readonly employeeDashboard =
@@ -548,68 +551,30 @@ export class PurchaseShellComponent {
   }
 
 
-  markAllNotificationsRead(): void {
-    if (
-      this.unreadNotificationCount() === 0 &&
-      this.notifications().every(notification => notification.isRead)
-    ) {
-      return;
-    }
-
-    this.api
-      .patch(
-        '/hr/communication/notifications/read-all',
-        {}
-      )
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: () => {
-          this.notifications.update(rows =>
-            rows.map(row => ({
-              ...row,
-              isRead: true
-            }))
-          );
-          this.unreadNotificationCount.set(0);
-        }
-      });
+  protected clearNotifications(): void {
+    this.notifications.set([]);
+    this.unreadCount.set(0);
+    this.api.patch('/hr/communication/notifications/read-all', {})
+      .subscribe({ error: () => undefined });
   }
 
 
-  openNotification(notification: PurchaseNotification): void {
-    const navigate = () => {
-      this.notificationOpen.set(false);
-
-      navigateToNotification(this.router, notification, this.auth.currentUser()?.role);
-    };
-
-    if (!notification._id || notification.isRead) {
-      navigate();
-      return;
+  protected openNotification(notification: PurchaseNotification): void {
+    const current = this.notifications().find((item) =>
+      notification._id ? item._id === notification._id : item === notification
+    );
+    if (current && !current.isRead) {
+      this.notifications.update((items) =>
+        items.map((item) => item === current ? { ...item, isRead: true } : item)
+      );
+      this.unreadCount.update((count) => Math.max(0, count - 1));
     }
-
-    this.api
-      .patch<PurchaseNotification>(
-        `/hr/communication/notifications/${encodeURIComponent(notification._id)}/read`,
-        {}
-      )
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: () => {
-          this.notifications.update(rows =>
-            rows.map(row =>
-              row._id === notification._id
-                ? { ...row, isRead: true }
-                : row
-            )
-          );
-          this.unreadNotificationCount.update(count =>
-            Math.max(0, count - 1)
-          );
-          navigate();
-        },
-        error: navigate
-      });
+    if (notification._id && !notification.isRead) {
+      this.api.patch(`/hr/communication/notifications/${encodeURIComponent(notification._id)}/read`, {})
+        .subscribe({ error: () => undefined });
+    }
+    navigateToNotification(this.router, notification, this.auth.currentUser()?.role);
+    this.notificationOpen.set(false);
   }
 
 
@@ -756,11 +721,11 @@ export class PurchaseShellComponent {
       )
       .subscribe({
         next: response =>
-          this.unreadNotificationCount.set(
+          this.unreadCount.set(
             Number(response?.unreadCount || 0)
           ),
         error: () =>
-          this.unreadNotificationCount.set(0)
+          this.unreadCount.set(0)
       });
   }
 

@@ -192,10 +192,10 @@
 .super-notification-list article,
 .purchase-notifications__item,
 .accounts-notification-item {
-  display: grid !important;
-  grid-template-columns: 8px minmax(0, 1fr) !important;
-  gap: 10px !important;
-  align-items: start !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+  align-items: flex-start !important;
   background: #f8fafc !important;
   border: 1px solid #e5ebf3 !important;
   border-radius: 10px !important;
@@ -206,6 +206,16 @@
   transition: background 0.15s ease, border-color 0.15s ease !important;
   pointer-events: auto !important;
   box-shadow: none !important;
+}
+
+/* Agar article me notification-dot ho to grid use karo */
+.notification-list article:has(.notification-dot),
+.notification-tray article:has(.notification-dot),
+.super-notification-list article:has(.notification-dot) {
+  display: grid !important;
+  grid-template-columns: 8px minmax(0, 1fr) !important;
+  gap: 10px !important;
+  align-items: start !important;
 }
 
 .notification-list article:hover,
@@ -421,4 +431,5 @@
   position: relative;
   z-index: 901;
 }
+
 

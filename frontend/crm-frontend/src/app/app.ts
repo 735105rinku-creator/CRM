@@ -73,7 +73,7 @@ export class App implements AfterViewInit, OnDestroy {
     for (const button of buttons) {
       if (button.classList.contains('punch-ring') || button.dataset['intentColored'] === 'true') continue;
       // Skip sidebar buttons — HR/Purchase/Accounts/Logistics/Employee dashboards
-      if (button.closest('.hr-sidebar, .hr-workspace, .purchase-sidebar, .accounts-sidebar, .logistics-sidebar, .employee-sidebar, .company-sidebar, .purchase-shell, .accounts-shell, .logistics-shell, .employee-shell, .hr-shell, .company-shell, .notification-menu, .notification-panel, .purchase-sidebar__link')) {
+      if (button.closest('.hr-sidebar, .hr-workspace, .purchase-sidebar, .accounts-sidebar, .logistics-sidebar, .employee-sidebar, .company-sidebar, .purchase-shell, .accounts-shell, .logistics-shell, .employee-shell, .hr-shell, .company-shell, .super-admin-shell, .super-admin-console, .super-admin-dashboard, .super-notification-menu, .super-admin-navbar-actions, .notification-menu, .notification-panel, .purchase-sidebar__link')) {
         continue;
       }
       const label = `${button.textContent || ''} ${button.className || ''}`.toLowerCase();
@@ -98,7 +98,7 @@ export class App implements AfterViewInit, OnDestroy {
 
     for (const panel of panels) {
       // Har dashboard apna notification panel khud manage karta hai
-      if (panel.closest('.hr-workspace, .hr-shell, .hr-topbar, .hr-main, .company-admin-console, .company-premium-shell, .company-shell, .company-navbar-actions, .purchase-shell, .purchase-topbar, .accounts-shell, .accounts-topbar, .logistics-shell, .logistics-topbar, .employee-shell, .employee-topbar, .super-admin-shell, .super-admin-console, .notification-menu')) {
+      if (panel.closest('.hr-workspace, .hr-shell, .hr-topbar, .hr-main, .company-admin-console, .company-premium-shell, .company-shell, .company-navbar-actions, .purchase-shell, .purchase-topbar, .accounts-shell, .accounts-topbar, .logistics-shell, .logistics-topbar, .logistics-dashboard-page, .employee-shell, .employee-topbar, .super-admin-shell, .super-admin-console, .super-admin-dashboard, .super-notification-menu, .super-admin-navbar-actions, .notification-menu, .dropdown-host')) {
         continue;
       }
       if (panel.parentElement !== overlayHost) overlayHost.append(panel);
@@ -271,6 +271,8 @@ export class App implements AfterViewInit, OnDestroy {
     sync();
   }
 }
+
+
 
 
 

@@ -4,20 +4,13 @@
        SIDEBAR
   ====================================================== -->
 
-  <aside
-    class="accounts-sidebar-wrapper"
-    [class.mobile-open]="mobileSidebarOpen()"
-  >
+  <aside class="accounts-sidebar-wrapper" [class.mobile-open]="mobileSidebarOpen()">
     <app-accounts-sidebar></app-accounts-sidebar>
   </aside>
 
   @if (mobileSidebarOpen()) {
-    <button
-      type="button"
-      class="sidebar-overlay"
-      aria-label="Close accounts menu"
-      (click)="closeMobileSidebar()"
-    ></button>
+  <button type="button" class="sidebar-overlay" aria-label="Close accounts menu"
+    (click)="closeMobileSidebar()"></button>
   }
 
   <div class="accounts-main">
@@ -30,12 +23,8 @@
 
       <div class="header-left">
 
-        <button
-          type="button"
-          class="mobile-menu-button"
-          aria-label="Open accounts menu"
-          (click)="toggleMobileSidebar()"
-        >
+        <button type="button" class="mobile-menu-button" aria-label="Open accounts menu"
+          (click)="toggleMobileSidebar()">
           <span class="menu-line"></span>
           <span class="menu-line"></span>
           <span class="menu-line"></span>
@@ -58,10 +47,7 @@
                 {{ companyName() }}
               </strong>
 
-              <span
-                class="header-copy-separator"
-                aria-hidden="true"
-              >
+              <span class="header-copy-separator" aria-hidden="true">
                 &middot;
               </span>
 
@@ -80,58 +66,50 @@
       <div class="header-right">
 
         <div class="accounts-notification-host">
-          <button
-            type="button"
-            class="accounts-notification-button"
-            aria-label="Open notifications"
-            [attr.aria-expanded]="notificationOpen()"
-            (click)="toggleNotifications()"
-          >
+          <button type="button" class="accounts-notification-button" aria-label="Open notifications"
+            [attr.aria-expanded]="notificationOpen()" (click)="toggleNotifications()">
             <span class="notification-bell" aria-hidden="true">&#128276;</span>
-            @if (unreadNotificationCount() > 0) {
-              <span class="notification-count">{{ unreadNotificationCount() > 99 ? '99+' : unreadNotificationCount() }}</span>
+            @if (unreadCount() > 0) {
+            <span class="notification-count">{{ unreadCount() > 99 ? '99+' : unreadCount() }}</span>
             }
           </button>
 
           @if (notificationOpen()) {
-            <div class="accounts-notification-dropdown" role="dialog" aria-label="Notifications">
-              <div class="accounts-notification-heading">
-                <div>
-                  <strong>Notifications</strong>
-                  <small>{{ unreadNotificationCount() }} new {{ unreadNotificationCount() === 1 ? 'update' : 'updates' }}</small>
-                </div>
-                <button type="button" class="notification-close" aria-label="Close notifications" (click)="toggleNotifications()">&times;</button>
+          <div class="accounts-notification-dropdown" role="dialog" aria-label="Notifications">
+            <div class="accounts-notification-heading">
+              <div>
+                <strong>Notifications</strong>
+                <small>{{ unreadCount() }} new {{ unreadCount() === 1 ? 'update' : 'updates' }}</small>
+              </div>
+              <div class="notification-actions">
+                <button type="button" class="neo-notification-clear" (click)="clearNotifications()">Clear</button>
+                <button type="button" class="notification-close" aria-label="Close notifications"
+                  (click)="toggleNotifications()">&times;</button>
               </div>
 
-              @if (notifications().length) {
-                <div class="accounts-notification-list">
-                  @for (notification of notifications(); track notification._id || $index) {
-                    <button
-                      type="button"
-                      class="accounts-notification-item"
-                      [class.read]="notification.isRead"
-                      (click)="openNotification(notification)"
-                    >
-                      <span class="notification-status" [class.read]="notification.isRead"></span>
-                      <span class="notification-copy">
-                        <strong>{{ notification.title || 'Notification' }}</strong>
-                        <span>{{ notification.message || '-' }}</span>
-                        <small>{{ notificationTime(notification.createdAt) }}</small>
-                      </span>
-                    </button>
-                  }
-                </div>
-              } @else {
-                <div class="accounts-notification-empty">
-                  <strong>You're all caught up</strong>
-                  <span>No notifications available.</span>
-                </div>
-              }
+            </div>
 
-              @if (unreadNotificationCount() > 0) {
-                <button type="button" class="notification-footer-action" (click)="markAllNotificationsRead()">Mark all as read</button>
+            @if (visibleNotifications().length) {
+            <div class="accounts-notification-list">
+              @for (notification of visibleNotifications(); track notification._id || $index) {
+              <button type="button" class="accounts-notification-item" [class.read]="notification.isRead"
+                (click)="openNotification(notification)">
+                <span class="notification-status" [class.read]="notification.isRead"></span>
+                <span class="notification-copy">
+                  <strong>{{ notification.title || 'Notification' }}</strong>
+                  <span>{{ notification.message || '-' }}</span>
+                  <small>{{ notificationTime(notification.createdAt) }}</small>
+                </span>
+              </button>
               }
             </div>
+            } @else {
+            <div class="accounts-notification-empty">
+              <strong>You're all caught up</strong>
+              <span>No notifications available.</span>
+            </div>
+            }
+          </div>
           }
         </div>
 
@@ -154,29 +132,17 @@
 
         <div class="account-user-menu-host">
 
-          <button
-            type="button"
-            class="account-user-button"
-            aria-label="Open account user menu"
-            [attr.aria-expanded]="userMenuOpen()"
-            (click)="toggleUserMenu()"
-          >
+          <button type="button" class="account-user-button" aria-label="Open account user menu"
+            [attr.aria-expanded]="userMenuOpen()" (click)="toggleUserMenu()">
 
             <span class="account-user-avatar">
 
               @if (userProfileImage()) {
-                <img
-                  [src]="userProfileImage()"
-                  [alt]="userName() + ' profile image'"
-                  (error)="onProfileImageError()"
-                />
+              <img [src]="userProfileImage()" [alt]="userName() + ' profile image'" (error)="onProfileImageError()" />
               } @else {
-                <span
-                  class="account-user-initial"
-                  aria-hidden="true"
-                >
-                  {{ userInitial() }}
-                </span>
+              <span class="account-user-initial" aria-hidden="true">
+                {{ userInitial() }}
+              </span>
               }
 
             </span>
@@ -190,16 +156,13 @@
 
               <small>
                 <!-- {{ userDesignation() }} -->
-                  Accounts & Finance
+                Accounts & Finance
               </small>
 
             </span>
 
 
-            <span
-              class="account-user-chevron"
-              aria-hidden="true"
-            >
+            <span class="account-user-chevron" aria-hidden="true">
               &#8964;
             </span>
 
@@ -208,100 +171,75 @@
 
           @if (userMenuOpen()) {
 
-            <div
-              class="account-user-dropdown"
-              role="menu"
-            >
+          <div class="account-user-dropdown" role="menu">
 
-              <div class="account-user-dropdown-heading">
+            <div class="account-user-dropdown-heading">
 
-                <span class="dropdown-avatar">
+              <span class="dropdown-avatar">
 
-                  @if (userProfileImage()) {
-                    <img
-                      [src]="userProfileImage()"
-                      [alt]="userName() + ' profile image'"
-                      (error)="onProfileImageError()"
-                    />
-                  } @else {
-                    <span
-                      class="account-user-initial"
-                      aria-hidden="true"
-                    >
-                      {{ userInitial() }}
-                    </span>
-                  }
-
+                @if (userProfileImage()) {
+                <img [src]="userProfileImage()" [alt]="userName() + ' profile image'" (error)="onProfileImageError()" />
+                } @else {
+                <span class="account-user-initial" aria-hidden="true">
+                  {{ userInitial() }}
                 </span>
+                }
+
+              </span>
 
 
-                <div class="dropdown-user-copy">
+              <div class="dropdown-user-copy">
 
-                  <strong>
-                    {{ userName() }}
-                  </strong>
+                <strong>
+                  {{ userName() }}
+                </strong>
 
-                  <small>
-                    {{ userDesignation() }}
-                  </small>
+                <small>
+                  {{ userDesignation() }}
+                </small>
 
-                  <span class="dropdown-company-name">
-                    {{ companyName() }}
-                  </span>
-
-                </div>
+                <span class="dropdown-company-name">
+                  {{ companyName() }}
+                </span>
 
               </div>
 
-
-              <div class="account-user-menu-divider"></div>
-
-
-              <button
-                type="button"
-                class="account-user-menu-item"
-                role="menuitem"
-                (click)="openProfile()"
-              >
-                <span aria-hidden="true">
-                  &#9817;
-                </span>
-
-                My Profile
-              </button>
-
-
-              <button
-                type="button"
-                class="account-user-menu-item"
-                role="menuitem"
-                (click)="openSettings()"
-              >
-                <span aria-hidden="true">
-                  &#9881;
-                </span>
-
-                Settings
-              </button>
-
-
-              <div class="account-user-menu-divider"></div>
-
-
-              <button
-                type="button"
-                class="account-user-menu-item logout"
-                role="menuitem"
-                (click)="logout()"
-              >
-                <span aria-hidden="true">
-                  &#8618;
-                </span>
-
-                Logout
-              </button>
-
             </div>
+
+
+            <div class="account-user-menu-divider"></div>
+
+
+            <button type="button" class="account-user-menu-item" role="menuitem" (click)="openProfile()">
+              <span aria-hidden="true">
+                &#9817;
+              </span>
+
+              My Profile
+            </button>
+
+
+            <button type="button" class="account-user-menu-item" role="menuitem" (click)="openSettings()">
+              <span aria-hidden="true">
+                &#9881;
+              </span>
+
+              Settings
+            </button>
+
+
+            <div class="account-user-menu-divider"></div>
+
+
+            <button type="button" class="account-user-menu-item logout" role="menuitem" (click)="logout()">
+              <span aria-hidden="true">
+                &#8618;
+              </span>
+
+              Logout
+            </button>
+
+          </div>
 
           }
 
