@@ -52,6 +52,7 @@ const ROLE_DASHBOARD_MAP: Record<string, { prefix: string; style: 'feature' | 's
   accounts:        { prefix: '/accounts/dashboard',  style: 'feature' },
   purchase:        { prefix: '/purchase/dashboard',  style: 'feature' },
   logistics:       { prefix: '/logistics/dashboard', style: 'feature' },
+  warehouse:       { prefix: '/warehouse/employee',  style: 'feature' },
   sales:           { prefix: '/sales/employee',      style: 'feature' },
   employee:        { prefix: '/sales/employee',      style: 'feature' },
 };
@@ -71,6 +72,7 @@ const LEAVE_FEATURE_BY_ROLE: Record<string, string> = {
   accounts:     'leave',
   purchase:     'leave',
   logistics:    'leave',
+  warehouse:    'leave-history',
   sales:        'leave-history',
   employee:     'leave-history',
 };
@@ -108,6 +110,7 @@ export function detectDashboardFromUrl(currentUrl: string): string | null {
   if (url.startsWith('/purchase'))   return '/purchase/dashboard';
   if (url.startsWith('/accounts'))   return '/accounts/dashboard';
   if (url.startsWith('/logistics'))  return '/logistics/dashboard';
+  if (url.startsWith('/warehouse'))  return '/warehouse/dashboard';
   if (url.startsWith('/hr-dashboard')) return '/hr-dashboard';
   if (url.startsWith('/company'))    return '/dashboard';
   if (url.startsWith('/dashboard'))  return '/dashboard';
@@ -167,6 +170,9 @@ export function resolveNotificationRouteWithContext(
     // Logistics — apne employee route pe bhejo
     if (dashboardBase === '/logistics/dashboard') {
       return `/logistics/employee?feature=leave-history&recordId=${id}`;
+    }
+    if (dashboardBase === '/warehouse/dashboard') {
+      return `/warehouse/employee?feature=leave-history&recordId=${id}`;
     }
     // Purchase — apne employee route pe bhejo
     if (dashboardBase === '/purchase/dashboard') {

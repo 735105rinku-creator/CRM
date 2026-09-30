@@ -31,6 +31,10 @@ import {
   apiUrl
 } from '../../../core/config/api.config';
 
+import {
+  navigateToNotification
+} from '../../../core/services/notification-navigation.service';
+
 
 interface WarehouseSummary {
   total?: number;
@@ -119,6 +123,10 @@ interface WarehouseTaskListResponse {
 
 interface DashboardNotification {
   _id?: string;
+  actionUrl?: string;
+  type?: string;
+  entityType?: string;
+  entityId?: string | { _id?: string; id?: string } | null;
   title?: string;
   message?: string;
   createdAt?: string;
@@ -753,6 +761,34 @@ export class WarehouseDashboardComponent
     );
 
     this.profileOpen.set(false);
+  }
+
+
+  protected openNotification(notification: DashboardNotification): void {
+    const current = this.notifications().find((item) =>
+      notification._id ? item._id === notification._id : item === notification
+    );
+
+    if (current && !current.isRead) {
+      this.notifications.update((items) =>
+        items.map((item) => item === current ? { ...item, isRead: true } : item)
+      );
+      this.unreadNotificationCount.update((count) => Math.max(0, count - 1));
+    }
+
+    if (notification._id && !notification.isRead) {
+      this.api.patch(
+        `/hr/communication/notifications/${encodeURIComponent(notification._id)}/read`,
+        {}
+      ).subscribe({ error: () => undefined });
+    }
+
+    navigateToNotification(
+      this.router,
+      notification,
+      this.auth.currentUser()?.role
+    );
+    this.notificationsOpen.set(false);
   }
 
 

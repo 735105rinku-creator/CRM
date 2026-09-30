@@ -52,7 +52,13 @@
                 notification.createdAt ||
                 notification.title
             ) {
-              <article>
+              <article
+              role="button"
+              tabindex="0"
+              style="cursor: pointer; pointer-events: auto;"
+              (click)="openNotification(notification)"
+              (keydown.enter)="openNotification(notification)"
+              >
                 <span
                   class="notification-dot"
                   [class.green]="notification.isRead"
