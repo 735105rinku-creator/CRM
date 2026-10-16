@@ -216,9 +216,17 @@ const applySearchFilter = (filter, moduleName, search) => {
   if (!q) return filter;
   const fields = searchableFields[moduleName] || [];
   if (!fields.length) return filter;
+  // Preserve tenant and employee-assignment filters when adding search conditions.
+  // Spreading a second $or over the original filter removes its visibility guard.
   return {
-    ...filter,
-    $or: fields.map((field) => ({ [field]: { $regex: q, $options: "i" } })),
+    $and: [
+      filter,
+      {
+        $or: fields.map((field) => ({
+          [field]: { $regex: q, $options: "i" },
+        })),
+      },
+    ],
   };
 };
 
