@@ -381,20 +381,29 @@ router.get("/contacts", asyncHandler(async (req, res) => {
     .limit(limit)
     .lean();
 
+  const canViewPrivateContacts = [
+    ROLES.SUPER_ADMIN,
+    ROLES.COMPANY_ADMIN,
+    ROLES.HR,
+  ].includes(req.user.role);
   const contacts = employees.map((employee) => ({
     _id: employee._id,
     employeeCode: employee.employeeCode,
     employeeName: employeeName(employee),
     officialEmail: employee.officialEmail,
-    personalEmail: employee.personalEmail,
     mobile: employee.mobile,
-    alternateMobile: employee.alternateMobile,
     department: departmentName(employee),
     designation: designationName(employee),
     workLocation: employee.workLocation,
-    emergencyContact: employee.emergencyContact || {},
     employeeStatus: employee.employeeStatus,
     createdAt: employee.createdAt,
+    ...(canViewPrivateContacts
+      ? {
+          personalEmail: employee.personalEmail,
+          alternateMobile: employee.alternateMobile,
+          emergencyContact: employee.emergencyContact || {},
+        }
+      : {}),
   }));
 
   res.json(new ApiResponse(200, { contacts, total: contacts.length }, "Employee contacts fetched."));
