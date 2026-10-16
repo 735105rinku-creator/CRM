@@ -46,6 +46,72 @@ const requireNonHrOperationalCrm = (req, _res, next) => {
   next();
 };
 
+const requireEmployeeBankAccess = asyncHandler(async (req, res, next) => {
+  const companyId = companyIdOf(req.user, req.auth);
+
+  if (!companyId) {
+    throw new ApiError(403, "Company context missing.");
+  }
+
+  if (
+    [
+      ROLES.SUPER_ADMIN,
+      ROLES.COMPANY_ADMIN,
+      ROLES.HR,
+    ].includes(req.user.role)
+  ) {
+    return next();
+  }
+
+  const employeeCode = getEmployeeCode(req.user);
+
+  const identityFilters = [
+    { userId: req.user._id },
+  ];
+
+  if (employeeCode) {
+    identityFilters.push({
+      employeeCode,
+      $or: [
+        { userId: null },
+        { userId: { $exists: false } },
+      ],
+    });
+  }
+
+  const employee = await Employee.findOne({
+    companyId,
+    $or: identityFilters,
+  }).populate("departmentId", "departmentName departmentCode featureKey");
+
+  const department = employee?.departmentId;
+
+  const featureKey = String(
+    department?.featureKey || "none"
+  ).trim().toLowerCase();
+
+  const fallbackDepartmentMatch = [
+    department?.departmentName,
+    department?.departmentCode,
+  ].some((value) =>
+    /^(accounts?|accounting|finance|acc|acct|fin)$/i.test(
+      String(value || "").trim()
+    )
+  );
+
+  const isAccountsOrFinance =
+    featureKey === "accounts" ||
+    (featureKey === "none" && fallbackDepartmentMatch);
+
+  if (!employee || !isAccountsOrFinance) {
+    throw new ApiError(
+      403,
+      "Employee bank details are restricted to authorized HR, Admin, and Accounts/Finance users."
+    );
+  }
+
+  return next();
+});
 const scopeFilter = (req) => {
   const companyId = companyIdOf(req.user, req.auth);
   if (!companyId) throw new ApiError(403, "Company context missing.");
@@ -334,7 +400,7 @@ router.get("/contacts", asyncHandler(async (req, res) => {
   res.json(new ApiResponse(200, { contacts, total: contacts.length }, "Employee contacts fetched."));
 }));
 
-router.get("/accounts", asyncHandler(async (req, res) => {
+router.get("/accounts", requireEmployeeBankAccess, asyncHandler(async (req, res) => {
   const companyId = companyIdOf(req.user);
   const limit = Math.min(Number(req.query.limit || 200), 300);
   const employees = await Employee.find(await withVisibleEmployeeFilter({ companyId, isActive: true }))
