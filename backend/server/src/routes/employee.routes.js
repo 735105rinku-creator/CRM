@@ -156,7 +156,6 @@ router.put(
 
 router.get(
   "/:id/bank",
-  requireEmployeeReadOrSelf,
   getEmployeeBank
 );
 
