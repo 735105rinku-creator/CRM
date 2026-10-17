@@ -1503,9 +1503,43 @@ export const upsertEmployeeBankService = async (
   });
 };
 
+const ensureEmployeeBankReadAccess = (currentUser, employee) => {
+  if (canManageHR(currentUser)) {
+    return;
+  }
+
+  const userId = String(currentUser?._id || "");
+  const employeeId = String(employee?._id || "");
+
+  const linkedUserId = employee?.userId
+    ? String(employee.userId?._id || employee.userId)
+    : "";
+
+  const linkedEmployeeId = currentUser?.employee
+    ? String(currentUser.employee?._id || currentUser.employee)
+    : "";
+
+  const hasVerifiedUserLink =
+    Boolean(userId && linkedUserId) &&
+    userId === linkedUserId;
+
+  const hasVerifiedEmployeeLink =
+    Boolean(employeeId && linkedEmployeeId) &&
+    employeeId === linkedEmployeeId;
+
+  if (
+    (linkedUserId && !hasVerifiedUserLink) ||
+    (linkedEmployeeId && !hasVerifiedEmployeeLink) ||
+    (!hasVerifiedUserLink && !hasVerifiedEmployeeLink)
+  ) {
+    throw new ApiError(403, "You cannot access another employee's bank details.");
+  }
+};
+
 export const getEmployeeBankService = async (currentUser, employeeId) => {
-  await getEmployeeByIdService(currentUser, employeeId);
-  return findEmployeeBank(employeeId);
+  const employee = await getEmployeeByIdService(currentUser, employeeId);
+  ensureEmployeeBankReadAccess(currentUser, employee);
+  return findEmployeeBank(employee._id);
 };
 
 export const upsertEmployeeStatutoryService = async (

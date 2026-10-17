@@ -46,6 +46,72 @@ const requireNonHrOperationalCrm = (req, _res, next) => {
   next();
 };
 
+const requireEmployeeBankAccess = asyncHandler(async (req, res, next) => {
+  const companyId = companyIdOf(req.user, req.auth);
+
+  if (!companyId) {
+    throw new ApiError(403, "Company context missing.");
+  }
+
+  if (
+    [
+      ROLES.SUPER_ADMIN,
+      ROLES.COMPANY_ADMIN,
+      ROLES.HR,
+    ].includes(req.user.role)
+  ) {
+    return next();
+  }
+
+  const employeeCode = getEmployeeCode(req.user);
+
+  const identityFilters = [
+    { userId: req.user._id },
+  ];
+
+  if (employeeCode) {
+    identityFilters.push({
+      employeeCode,
+      $or: [
+        { userId: null },
+        { userId: { $exists: false } },
+      ],
+    });
+  }
+
+  const employee = await Employee.findOne({
+    companyId,
+    $or: identityFilters,
+  }).populate("departmentId", "departmentName departmentCode featureKey");
+
+  const department = employee?.departmentId;
+
+  const featureKey = String(
+    department?.featureKey || "none"
+  ).trim().toLowerCase();
+
+  const fallbackDepartmentMatch = [
+    department?.departmentName,
+    department?.departmentCode,
+  ].some((value) =>
+    /^(accounts?|accounting|finance|acc|acct|fin)$/i.test(
+      String(value || "").trim()
+    )
+  );
+
+  const isAccountsOrFinance =
+    featureKey === "accounts" ||
+    (featureKey === "none" && fallbackDepartmentMatch);
+
+  if (!employee || !isAccountsOrFinance) {
+    throw new ApiError(
+      403,
+      "Employee bank details are restricted to authorized HR, Admin, and Accounts/Finance users."
+    );
+  }
+
+  return next();
+});
 const scopeFilter = (req) => {
   const companyId = companyIdOf(req.user, req.auth);
   if (!companyId) throw new ApiError(403, "Company context missing.");
@@ -216,9 +282,17 @@ const applySearchFilter = (filter, moduleName, search) => {
   if (!q) return filter;
   const fields = searchableFields[moduleName] || [];
   if (!fields.length) return filter;
+  // Preserve tenant and employee-assignment filters when adding search conditions.
+  // Spreading a second $or over the original filter removes its visibility guard.
   return {
-    ...filter,
-    $or: fields.map((field) => ({ [field]: { $regex: q, $options: "i" } })),
+    $and: [
+      filter,
+      {
+        $or: fields.map((field) => ({
+          [field]: { $regex: q, $options: "i" },
+        })),
+      },
+    ],
   };
 };
 
@@ -307,26 +381,35 @@ router.get("/contacts", asyncHandler(async (req, res) => {
     .limit(limit)
     .lean();
 
+  const canViewPrivateContacts = [
+    ROLES.SUPER_ADMIN,
+    ROLES.COMPANY_ADMIN,
+    ROLES.HR,
+  ].includes(req.user.role);
   const contacts = employees.map((employee) => ({
     _id: employee._id,
     employeeCode: employee.employeeCode,
     employeeName: employeeName(employee),
     officialEmail: employee.officialEmail,
-    personalEmail: employee.personalEmail,
     mobile: employee.mobile,
-    alternateMobile: employee.alternateMobile,
     department: departmentName(employee),
     designation: designationName(employee),
     workLocation: employee.workLocation,
-    emergencyContact: employee.emergencyContact || {},
     employeeStatus: employee.employeeStatus,
     createdAt: employee.createdAt,
+    ...(canViewPrivateContacts
+      ? {
+          personalEmail: employee.personalEmail,
+          alternateMobile: employee.alternateMobile,
+          emergencyContact: employee.emergencyContact || {},
+        }
+      : {}),
   }));
 
   res.json(new ApiResponse(200, { contacts, total: contacts.length }, "Employee contacts fetched."));
 }));
 
-router.get("/accounts", asyncHandler(async (req, res) => {
+router.get("/accounts", requireEmployeeBankAccess, asyncHandler(async (req, res) => {
   const companyId = companyIdOf(req.user);
   const limit = Math.min(Number(req.query.limit || 200), 300);
   const employees = await Employee.find(await withVisibleEmployeeFilter({ companyId, isActive: true }))
